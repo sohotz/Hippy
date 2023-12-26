@@ -369,7 +369,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
   }
 
   FOOTSTONE_DLOG(INFO) << "uri = " << uri
-                       << "read_script_flag = " << read_script_flag
+                       << ", read_script_flag = " << read_script_flag
                        << ", script content = " << script_content;
 
   if (!read_script_flag || StringViewUtils::IsEmpty(script_content)) {
@@ -481,6 +481,7 @@ void JsDriverUtils::DestroyInstance(std::shared_ptr<Engine>&& engine,
       scope->WillExit();
     }
 #else
+    (void)is_reload;
     scope->WillExit();
 #endif
     FOOTSTONE_LOG(INFO) << "js destroy end";

@@ -42,6 +42,12 @@ if (V8_WITHOUT_INSPECTOR)
 endif()
 # endregion
 
+# TODO(hot):
+if (OHOS)
+  set(JS_ENGINE "V8")
+  add_subdirectory("${PROJECT_SOURCE_DIR}/v8_ohos" ./v8_ohos)
+endif ()
+
 # region vm
 if ("${JS_ENGINE}" STREQUAL "V8")
   if (NOT TARGET v8)
@@ -119,18 +125,30 @@ endif ()
 # endregion
 
 # region footstone
-GlobalPackages_Add(footstone)
+if (OHOS)
+  GlobalPackages_Add_footstone()
+else ()
+  GlobalPackages_Add(footstone)
+endif ()
 target_link_libraries(${PROJECT_NAME} PRIVATE footstone)
 # endregion
 
 # region vfs
-GlobalPackages_Add(vfs)
+if (OHOS)
+  GlobalPackages_Add_vfs()
+else ()
+  GlobalPackages_Add(vfs)
+endif ()
 # Just reference the `dom` header files, no library needed
 target_include_directories(${PROJECT_NAME} PRIVATE $<TARGET_PROPERTY:vfs,INTERFACE_INCLUDE_DIRECTORIES>)
 # endregion
 
 # region dom
-GlobalPackages_Add(dom)
+if (OHOS)
+  GlobalPackages_Add_dom()
+else ()
+  GlobalPackages_Add(dom)
+endif ()
 target_link_libraries(${PROJECT_NAME} PRIVATE dom)
 # endregion
 
