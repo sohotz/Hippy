@@ -463,7 +463,7 @@ void YogaLayoutNode::Parser(
     if (it != style_delete.end()) YGNodeStyleSetFlexShrink(yoga_node_, 0);
   }
   if (style_update.find(kFlexBasis) != style_update.end()) {
-    auto dom_value = style_map.find(kFlexBasis)->second;
+    auto dom_value = style_update.find(kFlexBasis)->second;
     SetYGFlexBasis(dom_value);
   } else {
     auto it = std::find(style_delete.begin(), style_delete.end(), kFlexBasis);
