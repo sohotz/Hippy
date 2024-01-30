@@ -112,7 +112,7 @@ export struct HippyImageView {
         .interpolation(ImageInterpolation.High)
         .width("100%")
         .height("100%")
-        .objectFit(this.getResizeMode(this.descriptor.props.resizeMode))
+        //.objectFit(this.getResizeMode(this.descriptor.props.resizeMode))
         .objectRepeat(this.descriptor.props.resizeMode === 4 ? ImageRepeat.XY : ImageRepeat.NoRepeat )
         .colorFilter(this.getColorFilter())
         .blur(this.descriptor.props.blurRadius)

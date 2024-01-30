@@ -178,7 +178,7 @@ export struct HippyTextView {
       }
       .width("100%")
       .height("100%")
-      .maxLines(handledMaxLines(this.descriptor.props.maximumNumberOfLines))
+      //.maxLines(handledMaxLines(this.descriptor.props.maximumNumberOfLines))
       .textOverflow({ overflow: stringToTextOverflow(this.descriptor.props.ellipsizeMode) })
       .textAlign(TextAlign.Center)//stringToAlignment(this.descriptor.props.textAlign))
       .align(Alignment.Start)//stringToVerticalAlign(this.descriptor.props.textAlignVertical))
