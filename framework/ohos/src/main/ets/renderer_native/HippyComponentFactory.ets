@@ -26,6 +26,7 @@ import { HippyTextView } from './components/HippyTextView';
 import { HippyTextInputView } from './components/HippyTextInputView';
 import { HippyListView } from './components/list/HippyListView';
 import { HippyListItemView } from './components/list/HippyListItemView';
+import { HippyModalView } from './components/HippyModalView';
 
 export class ComponentBuilderContext {
   renderContext: NativeRenderContext
@@ -88,6 +89,14 @@ export struct HippyComponentFactory {
       HippyTextView({ ctx: this.ctx, tag: this.tag })
     } else if (this.descriptorType === "TextInput") {
       HippyTextInputView({ ctx: this.ctx, tag: this.tag })
+    } else if (this.descriptorType === "Modal") {
+      HippyModalView({
+        ctx: this.ctx,
+        tag: this.tag,
+        renderDescriptors: () => {
+          this.renderDescriptors()
+        }
+      })
     } else if (this.descriptorType === "ListView") {
       HippyListView({
         ctx: this.ctx,
