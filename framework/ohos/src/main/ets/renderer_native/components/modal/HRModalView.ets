@@ -21,7 +21,7 @@ import { HRComponent } from '../../HippyRenderView'
 import { NativeRenderContext } from '../../NativeRenderContext'
 import { HRGestureDispatcher } from '../../uimanager/HRGestureDispatcher'
 import { HREventType, HREventUtils } from '../../utils/HREventUtils'
-import HippyRenderBaseView, { HippyObervedArray } from '../base/HippyRenderBaseView'
+import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
 
 @Observed
 export class HRModalView extends HippyRenderBaseView {
@@ -44,7 +44,7 @@ export class HRModalView extends HippyRenderBaseView {
 struct HippyDialog {
   controller: CustomDialogController
   @ObjectLink renderView: HRModalView
-  @ObjectLink children: HippyObervedArray<HippyRenderBaseView>
+  @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
   build() {
@@ -64,7 +64,7 @@ struct HippyDialog {
 @Component
 export struct HRModal {
   @ObjectLink renderView: HRModalView
-  @ObjectLink children: HippyObervedArray<HippyRenderBaseView>
+  @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   private dialogController: CustomDialogController = {} as CustomDialogController
 

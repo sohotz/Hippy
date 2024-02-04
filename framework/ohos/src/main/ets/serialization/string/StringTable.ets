@@ -28,5 +28,5 @@ export interface StringTable {
          relatedKey: HippyAny
   ): string;
 
-  release();
+  release(): void;
 }

@@ -19,13 +19,13 @@
  */
 import { HippyAny } from '../../../support/common/HippyTypes'
 import { NativeRenderContext } from '../../NativeRenderContext'
-import HippyRenderBaseView, { HippyObervedArray } from '../base/HippyRenderBaseView'
+import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
 import { HRRichTextShadow, MAX_LINES } from './HRRichTextShadow'
 import { HRTextSpan } from './HRTextSpan'
 
 @Observed
 export class HRTextAttr {
-  spans: HippyObervedArray<HRTextSpan> = new HippyObervedArray()
+  spans: HippyObservedArray<HRTextSpan> = new HippyObservedArray()
 }
 
 @Observed
@@ -85,7 +85,7 @@ export class HRRichTextView extends HippyRenderBaseView {
 @Component
 export struct HRRichText {
   @ObjectLink renderView: HRRichTextView
-  @ObjectLink spans: HippyObervedArray<HRTextSpan>
+  @ObjectLink spans: HippyObservedArray<HRTextSpan>
 
   build() {
     Text() {

@@ -21,7 +21,7 @@ import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyType
 import { HRComponent } from '../../HippyRenderView'
 import { NativeRenderContext } from '../../NativeRenderContext'
 import { HRRect } from '../../utils/HRTypes'
-import HippyRenderBaseView, { HippyObervedArray } from '../base/HippyRenderBaseView'
+import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
 
 @Observed
 export class HRListItemView extends HippyRenderBaseView {
@@ -44,7 +44,7 @@ export class HRListItemView extends HippyRenderBaseView {
 @Component
 export struct HRListItem {
   @ObjectLink renderView: HRListItemView
-  @ObjectLink children: HippyObervedArray<HippyRenderBaseView>
+  @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView:($$:HippyRenderBaseView, parent: HRComponent) => void
 
   build() {

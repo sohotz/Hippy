@@ -20,15 +20,16 @@
 import resmgr from "@ohos.resourceManager";
 import { JsDriver } from '../hippy_framework/connector/JsDriver';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
+import { HippyAny } from '../support/common/HippyTypes';
 
 export interface HippyLibrary {
-  DomManager_SetRenderManager(instanceId: number, renderId: number);
+  DomManager_SetRenderManager(instanceId: number, renderId: number): void;
   DomManager_CreateDomManager(): number;
-  DomManager_DestroyDomManager(domManagerId: number);
-  DomManager_CreateRoot(rootId: number, density: number);
-  DomManager_DestroyRoot(rootId: number);
-  DomManager_ReleaseRootResources(rootId: number);
-  DomManager_SetDomManager(rootId: number, instanceId: number);
+  DomManager_DestroyDomManager(domManagerId: number): void;
+  DomManager_CreateRoot(rootId: number, density: number): void;
+  DomManager_DestroyRoot(rootId: number): void;
+  DomManager_ReleaseRootResources(rootId: number): void;
+  DomManager_SetDomManager(rootId: number, instanceId: number): void;
 
   JsDriver_CreateJsDriver(
     jsDriver: JsDriver,
@@ -42,10 +43,10 @@ export interface HippyLibrary {
     //v8InitParams: ,
     vfsId: number,
     devtoolsId: number
-  );
-  JsDriver_DestroyJsDriver(instanceId: number, useLowMemoryMode: boolean, isReload: boolean);
-  JsDriver_LoadInstance(instanceId: number, buffer: ArrayBuffer);
-  JsDriver_UnloadInstance(instanceId: number,str: string);
+  ): number;
+  JsDriver_DestroyJsDriver(instanceId: number, useLowMemoryMode: boolean, isReload: boolean): void;
+  JsDriver_LoadInstance(instanceId: number, buffer: ArrayBuffer): void;
+  JsDriver_UnloadInstance(instanceId: number,str: string): void;
   JsDriver_RunScriptFromUri(
     instanceId: number,
     uri: string,
@@ -54,30 +55,30 @@ export interface HippyLibrary {
     codeCacheDir: string,
     vfsId: number,
     callback: (result: number, reason: string) => void
-  );
-  JsDriver_SetRootNode(instanceId: number, rootId: number);
-  JsDriver_SetDomManager(instanceId: number, domManagerId: number);
-  JsDriver_OnNativeInitEnd(instanceId: number, startTime: number, endTime: number);
-  JsDriver_OnFirstFrameEnd(instanceId: number, time: number);
+  ): boolean;
+  JsDriver_SetRootNode(instanceId: number, rootId: number): void;
+  JsDriver_SetDomManager(instanceId: number, domManagerId: number): void;
+  JsDriver_OnNativeInitEnd(instanceId: number, startTime: number, endTime: number): void;
+  JsDriver_OnFirstFrameEnd(instanceId: number, time: number): void;
   JsDriver_OnResourceLoadEnd(
     instanceId: number,
     uri: string,
     startTime: number,
     endTime: number,
     retCode: number,
-    errorMsg: string);
-  JsDriver_CallFunction(instanceId: number, action: string, buffer: string);
+    errorMsg: string): void;
+  JsDriver_CallFunction(instanceId: number, action: string, buffer: string): void;
 
-  NativeRenderer_CreateNativeRenderManager(renderProvider: NativeRenderProvider, density: number);
-  NativeRenderer_DestroyNativeRenderManager(instanceId: number);
-  NativeRenderer_GetNativeRendererInstance(instanceId: number);
-  NativeRenderer_SetDomManager(instanceId: number, domManagerId: number);
+  NativeRenderer_CreateNativeRenderManager(renderProvider: NativeRenderProvider, density: number): number;
+  NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
+  NativeRenderer_GetNativeRendererInstance(instanceId: number): HippyAny;
+  NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
 
-  NativeRenderImpl_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number);
-  NativeRenderImpl_UpdateNodeSize(instanceId: number, rootId: number, nodeId: number, width: number, height: number, isSync: boolean);
-  NativeRenderImpl_OnReceivedEvent(instanceId: number, rootId: number, nodeId: number, eventName: string, buffer: ArrayBuffer | null, useCapture: boolean, useBubble: boolean);
-  NativeRenderImpl_DoCallBack(instanceId: number, result: number, functionName: string, rootId: number, nodeId: number, callbackId: number, buffer: ArrayBuffer | null);
+  NativeRenderImpl_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number): void;
+  NativeRenderImpl_UpdateNodeSize(instanceId: number, rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void;
+  NativeRenderImpl_OnReceivedEvent(instanceId: number, rootId: number, nodeId: number, eventName: string, buffer: ArrayBuffer | null, useCapture: boolean, useBubble: boolean): void;
+  NativeRenderImpl_DoCallBack(instanceId: number, result: number, functionName: string, rootId: number, nodeId: number, callbackId: number, buffer: ArrayBuffer | null): void;
 
-  VfsManager_CreateVfs();
-  VfsManager_DestroyVfs(instanceId: number);
+  VfsManager_CreateVfs(): number;
+  VfsManager_DestroyVfs(instanceId: number): void;
 }

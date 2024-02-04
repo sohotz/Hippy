@@ -24,14 +24,14 @@ import { HRGestureDispatcher } from '../../uimanager/HRGestureDispatcher';
 import { HRRect } from '../../utils/HRTypes';
 
 @Observed
-export class HippyObervedArray<T> extends Array<T> {
+export class HippyObservedArray<T> extends Array<T> {
 }
 
 export default abstract class HippyRenderBaseView {
   ctx: NativeRenderContext
   tag: number = -1
   viewType: string = ""
-  children: HippyObervedArray<HippyRenderBaseView> = new HippyObervedArray()
+  children: HippyObservedArray<HippyRenderBaseView> = new HippyObservedArray()
   parentView: HippyRenderBaseView | null = null
 
   cssBackgroundColor: number | null = null

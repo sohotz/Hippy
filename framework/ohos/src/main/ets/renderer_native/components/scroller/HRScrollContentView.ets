@@ -19,7 +19,7 @@
  */
 import { HippyAny } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
-import HippyRenderBaseView, { HippyObervedArray } from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
 
 @Observed
 export class HRScrollContentView extends HippyRenderBaseView {
@@ -34,7 +34,7 @@ export class HRScrollContentView extends HippyRenderBaseView {
 @Component
 export struct HRScrollContent {
   @ObjectLink renderView: HRScrollContentView
-  @ObjectLink children: HippyObervedArray<HippyRenderBaseView>
+  @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   @Prop xOffset: number
   @Prop yOffset: number

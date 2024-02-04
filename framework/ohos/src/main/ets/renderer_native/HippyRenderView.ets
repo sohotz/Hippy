@@ -20,7 +20,7 @@
 import window from '@ohos.window'
 import { HippyEngine } from '../hippy_framework';
 import { HippyRecord } from '../support/common/HippyTypes';
-import HippyRenderBaseView, { HippyObervedArray } from './components/base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray } from './components/base/HippyRenderBaseView';
 import {
   hippyRenderViewCreatorRegisterMap,
   HRRenderViewCreator } from './components/HippyRenderRegisterMap';
@@ -101,7 +101,7 @@ export class HippyRenderView extends HippyRenderBaseView {
 @Component
 export struct HippyRender {
   @ObjectLink renderView: HippyRenderView
-  @ObjectLink children: HippyObervedArray<HippyRenderBaseView>
+  @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildCustomRenderView: (renderView: HippyRenderBaseView) => void | null
 
   build() {
