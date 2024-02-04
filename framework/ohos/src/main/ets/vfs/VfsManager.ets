@@ -17,34 +17,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import { HippyLibrary } from '../hippy_library/HippyLibrary';
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
+export class VfsManager {
+  private libHippy: HippyLibrary
+  public instanceId: number = 0
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
+  constructor(libHippy: HippyLibrary) {
+    this.libHippy = libHippy
+    this.instanceId = this.createVfs();
+  }
 
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
+  createVfs(): number {
+    return this.libHippy?.VfsManager_CreateVfs()
+  }
+
+  destroyVfs() {
+    this.libHippy?.VfsManager_DestroyVfs(this.instanceId)
   }
 }

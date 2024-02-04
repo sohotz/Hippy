@@ -17,34 +17,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import resmgr from "@ohos.resourceManager";
+import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
+import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
+import { DomManager } from './connector/DomManager';
+import { JsDriver } from './connector/JsDriver';
+import { NativeRenderer } from './connector/NativeRenderer';
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
+export interface HippyEngine {
+  jsDriver: JsDriver
+  domMgr: DomManager
+  nativeRenderer: NativeRenderer
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
+  runJsBundle(resourceManager: resmgr.ResourceManager): Promise<void>
 
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
-  }
+  getNativeRenderContext(): NativeRenderContext
+
+  getNativeRenderProvider(): NativeRenderProvider
 }

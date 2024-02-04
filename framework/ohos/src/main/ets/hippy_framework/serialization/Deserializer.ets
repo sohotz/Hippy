@@ -17,34 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import { PrimitiveValueDeserializer } from '../../serialization/PrimitiveValueDeserializer';
+import { BinaryReader } from '../../serialization/reader/BinaryReader';
+import { HippySerValue } from '../../serialization/SharedSerialization';
+import { StringTable } from '../../serialization/string/StringTable';
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
+export class Deserializer extends PrimitiveValueDeserializer {
+  constructor(reader: BinaryReader, stringTable: StringTable) {
+    super(reader, stringTable)
+  }
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
-
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
+  readValue(): HippySerValue {
+    return null
   }
 }

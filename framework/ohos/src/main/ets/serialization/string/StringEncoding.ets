@@ -17,34 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
-
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
-
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
-
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
-  }
+export enum StringEncoding {
+  LATIN,   // ISO-8859-1
+  UTF16LE, // UTF-16LE
+  UTF8,    // utf8
 }

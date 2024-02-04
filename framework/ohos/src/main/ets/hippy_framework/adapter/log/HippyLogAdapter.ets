@@ -17,34 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
-
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
+export enum HippyLogSeverity {
+  LOG_SEVERITY_DEBUG = -1,
+  LOG_SEVERITY_INFO = 0,
+  LOG_SEVERITY_WARNING = 1,
+  LOG_SEVERITY_ERROR = 2,
+  LOG_SEVERITY_FATAL = 3
 }
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
-
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
-  }
+export interface HippyLogAdapter {
+  onReceiveLogMessage(level: number, tag: string, msg: string)
 }

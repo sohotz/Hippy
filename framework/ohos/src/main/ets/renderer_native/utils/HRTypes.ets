@@ -17,34 +17,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+export class HRSize {
+  width: number
+  height: number
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
+  constructor(width: number, height: number) {
+    this.width = width
+    this.height = height
+  }
 }
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
+export class HRRect {
+  x: number
+  y: number
+  width: number
+  height: number
 
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
+  static zero = new HRRect(0, 0, 0, 0)
+
+  constructor(x: number, y: number, width: number, height: number) {
+    this.x = x
+    this.y = y
+    this.width = width
+    this.height = height
   }
+}
+
+export class HRTransform {
+  anchor: Position | null = null
+  rotate: RotateOptions | null = null
+  scale: ScaleOptions | null = null
+  translate: TranslateOptions | null = null
 }

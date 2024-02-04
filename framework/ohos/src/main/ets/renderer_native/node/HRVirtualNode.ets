@@ -17,34 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import { HippyMap } from '../../support/common/HippyTypes'
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
-
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
-
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
-  }
+export class HRVirtualNode {
+  rootId: number | null = null
+  id: number | null = null
+  pid: number | null = null
+  index: number | null = null
+  dirty: boolean | null = null
+  children: HRVirtualNode[] | null = null
+  parent: HRVirtualNode | null = null
+  props: HippyMap | null = null
 }

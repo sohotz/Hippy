@@ -17,34 +17,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+export interface HippyStorageAdapter {
+  multiGet(keys: string[]): Promise<[key: string, value: string][]>
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
+  multiSet(pairs: [key: string, value: string][]): Promise<void>
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
+  multiRemove(keys: string[]): Promise<void>
 
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
-  }
+  getAllKeys(): Promise<string[]>
 }

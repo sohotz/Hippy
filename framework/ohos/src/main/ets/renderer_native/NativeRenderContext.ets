@@ -17,34 +17,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+export class NativeRenderContext {
+  private rootId: number
+  private instanceId: number
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
+  constructor(rootId: number) {
+    this.rootId = rootId
+    this.instanceId = -1
+  }
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
+  setInstanceId(instanceId: number) {
+    this.instanceId = instanceId
+  }
 
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
+  getRootId() {
+    return this.rootId
+  }
+
+  getInstanceId() {
+    return this.instanceId
   }
 }

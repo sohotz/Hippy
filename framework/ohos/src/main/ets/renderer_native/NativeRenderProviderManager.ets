@@ -17,34 +17,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import { NativeRenderProvider } from './NativeRenderProvider'
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
+export class NativeRenderProviderManager {
+  private static sProviderMap = new Map<number, NativeRenderProvider>()
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
+  static addRenderProvider(instanceId: number, provider: NativeRenderProvider) {
+    NativeRenderProviderManager.sProviderMap.set(instanceId, provider)
+  }
 
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
+  // TODO(hot): to invoke
+  static removeRenderProvider(instanceId: number) {
+    NativeRenderProviderManager.sProviderMap.delete(instanceId)
+  }
+
+  static getRenderProvider(instanceId: number) {
+    return NativeRenderProviderManager.sProviderMap.get(instanceId)
   }
 }

@@ -19,4 +19,4 @@
  */
 
 export * from "./HippyRootView"
-export * from "./HippyComponentFactory"
+export * from "./components/base/HippyRenderBaseView"

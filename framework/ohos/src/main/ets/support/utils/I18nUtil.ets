@@ -17,34 +17,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import Intl from '@ohos.intl';
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
+export class I18nUtil {
 
-@Entry
-@Component
-struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
-  @State exception: string = ""
+  // TDOO(hot):
 
-  build() {
-    Stack() {
-      HippyRoot({
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
+  public static isRTL(): boolean {
+    return false
+  }
+
+  public static getLayoutDirection(): number {
+    return 0
+  }
+
+  public static getLanguage(): string {
+    return ""
+  }
+
+  public static getCountry(): string {
+    return ""
   }
 }
