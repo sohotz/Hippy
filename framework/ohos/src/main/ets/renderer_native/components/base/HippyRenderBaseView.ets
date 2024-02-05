@@ -106,7 +106,7 @@ export default abstract class HippyRenderBaseView {
     return true
   }
 
-  call(method: string, params: HippyAny, callback: HippyRenderCallback | null): void {
+  call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
 
   }
 

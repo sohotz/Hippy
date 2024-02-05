@@ -18,7 +18,8 @@
  * limitations under the License.
  */
 import TextMeasurer from "@ohos.measure"
-import { HippyAny, HippyMap } from '../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyRenderCallback } from '../support/common/HippyTypes'
+import { LogUtils } from '../support/utils/LogUtils'
 import { NativeRenderContext } from './NativeRenderContext'
 import { HRVirtualNode } from './node/HRVirtualNode'
 import { HRManager } from './uimanager/HRManager'
@@ -45,6 +46,7 @@ export class TextMeasurerConfig {
 declare function px2vp(px: number): number
 
 export class NativeRenderImpl {
+  private readonly TAG = "NativeRenderImpl"
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private readonly INVALID_NODE_ID = -1
 
@@ -180,8 +182,9 @@ export class NativeRenderImpl {
 
   }
 
-  callUIFunction(rootId: number, nodeId: number, callbackId: number, functionName: string, eventList: Array<HippyAny>) {
-
+  callUIFunction(nodeId: number, functionName: string, params: Array<HippyAny>, callback: HippyRenderCallback | null) {
+    LogUtils.d(this.TAG,  "callUIFunction: id " + nodeId + ", functionName " + functionName + ", params" + params)
+    this.renderManager.callViewMethod(nodeId, functionName, params, callback)
   }
 
   measure(rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {

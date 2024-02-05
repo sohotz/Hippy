@@ -45,7 +45,7 @@ export class HRRichTextShadow {
     this.props[propKey] = propValue
   }
 
-  call(methodName: string, params: string): HippyAny {
+  call(methodName: string, params: Array<HippyAny>): HippyAny {
     return null
   }
 

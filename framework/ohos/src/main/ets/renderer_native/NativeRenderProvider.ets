@@ -109,8 +109,11 @@ export class NativeRenderProvider {
   }
 
   callUIFunction(rootId: number, nodeId: number, callbackId: number, functionName: string, buffer: ArrayBuffer) {
-    let eventList = this.bytesToArgument(buffer)
-    this.renderImpl.callUIFunction(rootId, nodeId, callbackId, functionName, eventList)
+    let params = this.bytesToArgument(buffer)
+    // If callbackId equal to 0 mean this call does not need to callback.
+    this.renderImpl.callUIFunction(nodeId, functionName, params, (callbackId == 0) ? null : (result: HippyAny) => {
+      this.doCallBack(1, callbackId, functionName, rootId, nodeId, result)
+    })
   }
 
   measure(rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
@@ -150,7 +153,7 @@ export class NativeRenderProvider {
     this.libHippy?.NativeRenderImpl_OnReceivedEvent(this.instanceId, rootId, nodeId, lowerCaseEventName, buffer, useCapture, useBubble)
   }
 
-  doPromiseCallBack(result: number, callbackId: number, functionName: string, rootId: number, nodeId: number, params: HippyAny) {
+  doCallBack(result: number, callbackId: number, functionName: string, rootId: number, nodeId: number, params: HippyAny) {
     let buffer: ArrayBuffer | null = null
     if (params != null) {
       try {

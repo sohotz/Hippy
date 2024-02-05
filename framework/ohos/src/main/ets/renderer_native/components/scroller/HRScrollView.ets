@@ -79,10 +79,12 @@ export class HRScrollView extends HippyRenderBaseView {
     return super.setProp(propKey, propValue)
   }
 
-  call(method: string, params: HippyAny, callback: HippyRenderCallback | null): void {
+  call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
     switch (method) {
       case this.METHOD_CONTENT_OFFSET:
-        this.setContentOffset(params)
+        if (params.length > 0) {
+          this.setContentOffset(params[0])
+        }
         break
       case this.METHOD_CONTENT_INSET_WHEN_END_DRAG:
         break

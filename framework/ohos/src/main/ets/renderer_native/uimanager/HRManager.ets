@@ -17,7 +17,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyMap, HippyRenderCallback, HippyValue } from '../../support/common/HippyTypes'
+import {
+  HippyAny,
+  HippyMap, HippyRenderCallback, HippyValue } from '../../support/common/HippyTypes'
 import HippyRenderBaseView from '../components/base/HippyRenderBaseView'
 import { HRRenderViewCreator } from '../components/HippyRenderRegisterMap'
 import { HippyRenderView } from '../HippyRenderView'
@@ -132,7 +134,7 @@ export class HRManager {
     }
   }
 
-  callViewMethod(tag: number, method: string, params: string, callback: HippyRenderCallback): void {
+  callViewMethod(tag: number, method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
     let renderView = this.viewRegistry.get(tag)
     if (renderView) {
       renderView.call(method, params, callback)
