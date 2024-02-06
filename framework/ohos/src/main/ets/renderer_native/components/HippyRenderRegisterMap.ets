@@ -25,6 +25,9 @@ import { HRListView } from './list/HRListView'
 import { HRModalView } from './modal/HRModalView'
 import { HRRichTextView } from './richtext/HRRichTextView'
 import { HRScrollView } from './scroller/HRScrollView'
+import { HRWebView } from './web/HRWebView'
+import { HRViewPagerView } from './pager/HRViewPager'
+import { HRViewPagerItemView } from './pager/HRViewPagerItem'
 import { HRDivView } from './view/HRDivView'
 
 export type HRRenderViewCreator = (ctx: NativeRenderContext) => HippyRenderBaseView
@@ -38,6 +41,9 @@ export function hippyRenderViewCreatorRegisterMap(): Map<string, HRRenderViewCre
   registerMap.set("ListView", (ctx): HippyRenderBaseView => new HRListView(ctx))
   registerMap.set("ListViewItem", (ctx): HippyRenderBaseView => new HRListItemView(ctx))
   registerMap.set("ScrollView", (ctx): HippyRenderBaseView => new HRScrollView(ctx))
+  registerMap.set("WebView", (ctx): HippyRenderBaseView => new HRWebView(ctx))
+  registerMap.set("ViewPager", (ctx): HippyRenderBaseView => new HRViewPagerView(ctx))
+  registerMap.set("ViewPagerItem", (ctx): HippyRenderBaseView => new HRViewPagerItemView(ctx))
 
   return registerMap
 }

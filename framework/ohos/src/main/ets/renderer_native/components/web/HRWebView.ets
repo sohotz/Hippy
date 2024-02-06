@@ -1,0 +1,86 @@
+/*
+ * Tencent is pleased to support the open source community by making
+ * Hippy available.
+ *
+ * Copyright (C) 2022 THL A29 Limited, a Tencent company.
+ * All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HRComponent } from '../../HippyRenderView';
+import { NativeRenderContext } from '../../NativeRenderContext';
+import HippyRenderBaseView, {
+  HippyObservedArray } from '../base/HippyRenderBaseView';
+import HashMap from '@ohos.util.HashMap';
+import web_webview from '@ohos.web.webview'
+
+@Observed
+export class HRWebView extends HippyRenderBaseView {
+  public source: string = ''
+  constructor(ctx: NativeRenderContext) {
+    super(ctx)
+  }
+
+  setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+    if (propKey === 'source') {
+      let map = propValue as HippyMap
+      this.source = map.get('uri') as string
+    }
+
+    return super.setProp(propKey, propValue)
+  }
+}
+
+@Component
+export struct HRWeb {
+  @ObjectLink renderView: HRWebView
+  @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
+  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  controller: web_webview.WebviewController = new web_webview.WebviewController()
+
+  aboutToAppear() {
+  }
+
+  aboutToDisappear() {
+  }
+
+  build() {
+    Web({
+      src: this.renderView.source,
+      controller: this.controller
+    })
+      .applyRenderViewBaseAttr(this.renderView)
+  }
+}
+
+// base props for all components
+@Extend(Web)
+function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .backgroundColor($$.cssBackgroundColor)
+  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
+  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .opacity($$.cssOpacity)
+  .clip($$.cssOverflow)
+  .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .touchable($$.cssTouchEnable) // TODO: use new api
+  .zIndex($$.cssZIndex)
+  .border($$.cssBorder)
+  .borderWidth(2) // TODO:
+  .rotate($$.cssRotate)
+  .scale($$.cssScale)
+  .translate($$.cssTranslate)
+  .onClick($$.eventClick)
+}
+

@@ -20,6 +20,7 @@
 import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView from '../base/HippyRenderBaseView';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
 interface ImageLoadEvent {
   width: number
@@ -36,22 +37,78 @@ interface ImageLoadEvent {
 @Observed
 export class HRImageView extends HippyRenderBaseView {
   private static readonly BASE64_IMAGE_PREFIX = "data:image";
-
+  private readonly TAG = "HRImageView"
   cssSrc: string | null = null
   cssResizeMode: ImageFit = ImageFit.Cover
+  cssBorderColor: number = 0
+  cssBorderStyle: BorderStyle = BorderStyle.Solid
+  cssBorderWidth: number = 0
+  cssAlt: string = ''
   onCompleteCallback: ((event?: ImageLoadEvent) => void) | null = null
   eventLoadSuccess: HippyRenderCallback | null = null
   eventLoadResolution: HippyRenderCallback | null = null
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
+    LogUtils.d(this.TAG, "constructor -------------------- ")
+  }
+
+  setResizeMode(pvalue: string) {
+    switch (pvalue) {
+      case 'contain':
+        this.cssResizeMode = ImageFit.Contain
+        break;
+      case 'cover':
+        this.cssResizeMode = ImageFit.Cover
+        break;
+      case 'center':
+      // TODO: 没有center，随便找一个
+        this.cssResizeMode = ImageFit.Auto
+        break;
+      default:
+        LogUtils.d(this.TAG, "unknown resizeMode: " + pvalue);
+        break;
+    }
+  }
+
+  setBorderStyle(pvalue: string) {
+    switch (pvalue) {
+      case 'solid':
+        this.cssBorderStyle = BorderStyle.Solid;
+        break;
+      default:
+        LogUtils.d(this.TAG, "unknown BorderStyle: " + pvalue);
+        break;
+    }
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+    LogUtils.d(this.TAG, "setProp: propKey " + propKey + " propValue: " + propValue)
     switch (propKey) {
       case "src":
         this.cssSrc = propValue as string
         return true
+      case "resizeMode":
+        {
+          let pvalue = propValue as string;
+          this.setResizeMode(pvalue)
+        }
+        break;
+      case "borderStyle":
+        {
+          let pvalue = propValue as string;
+          this.setBorderStyle(pvalue)
+        }
+        break;
+      case "borderColor":
+        this.cssBorderColor = propValue as number;
+        break;
+      case "borderWidth":
+        this.cssBorderWidth = propValue as number;
+        break;
+      case 'alt':
+        this.cssAlt = propValue as string;
+        break;
       default:
         break
     }
@@ -78,10 +135,14 @@ export class HRImageView extends HippyRenderBaseView {
 export struct HRImage {
   @ObjectLink renderView: HRImageView
   build() {
+    // Text("image")
     Image(this.renderView.getImage())
       .applyRenderViewBaseAttr(this.renderView)
       .objectFit(this.renderView.cssResizeMode)
       .onComplete(this.renderView.onCompleteCallback)
+      .borderWidth(this.renderView.cssBorderWidth)
+      .borderColor(this.renderView.cssBorderColor)
+      .borderStyle(this.renderView.cssBorderStyle)
   }
 }
 

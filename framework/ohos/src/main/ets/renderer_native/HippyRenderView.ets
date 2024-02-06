@@ -28,10 +28,13 @@ import { HRImage, HRImageView } from './components/image/HRImageView';
 import { HRListItem, HRListItemView } from './components/list/HRListItemView';
 import { HRList, HRListView } from './components/list/HRListView';
 import { HRModal, HRModalView } from './components/modal/HRModalView';
+import { HRViewPager, HRViewPagerView } from './components/pager/HRViewPager';
+import { HRViewPagerItem, HRViewPagerItemView } from './components/pager/HRViewPagerItem';
 import { HRRichText, HRRichTextView } from './components/richtext/HRRichTextView';
 import { HRScrollContent, HRScrollContentView } from './components/scroller/HRScrollContentView';
 import { HRScroll, HRScrollView } from './components/scroller/HRScrollView';
 import { HRDiv, HRDivView } from './components/view/HRDivView';
+import { HRWeb, HRWebView } from './components/web/HRWebView'
 import { NativeRenderContext } from './NativeRenderContext';
 import { HRManager } from './uimanager/HRManager';
 import { HRSize } from './utils/HRTypes';
@@ -142,6 +145,12 @@ export struct HippyRender {
       HRList({ renderView: $$ as HRListView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRListItemView) {
       HRListItem({ renderView: $$ as HRListItemView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRWebView) {
+      HRWeb({ renderView: $$ as HRWebView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRViewPagerView) {
+      HRViewPager({ renderView: $$ as HRViewPagerView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRViewPagerItemView) {
+      HRViewPagerItem({ renderView: $$ as HRViewPagerItemView, children: $$.children, buildRenderView: this.buildRenderView })
     } else {
       if (this.buildCustomRenderView !== null) {
         this.buildCustomRenderView($$)

@@ -127,9 +127,14 @@ export struct HRScroll {
 
   build() {
     List({ scroller: this.renderView.scroller }) {
-      if (this.children.length > 0) {
-        this.buildRenderView(this.children[0], this)
-      }
+      // if (this.children.length > 0) {
+      //   this.buildRenderView(this.children[0], this)
+      // }
+      ForEach(this.children, (item: HippyRenderBaseView) => {
+        ListItem() {
+          this.buildRenderView(item, null)
+        }
+      }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
     .edgeEffect(this.renderView.edgeEffect)
