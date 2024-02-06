@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-#include "vfs/handler/native_delegate_handler.h"
+#include "vfs/handler/napi_delegate_handler.h"
 #include "footstone/check.h"
 #include "footstone/logging.h"
 #include "footstone/string_view_utils.h"
@@ -31,16 +31,16 @@
 namespace hippy {
 inline namespace vfs {
 
-NativeDelegateHandler::AsyncWrapperMap NativeDelegateHandler::wrapper_map_;
-std::atomic<uint32_t> NativeDelegateHandler::request_id_ = 1;
+NapiDelegateHandler::AsyncWrapperMap NapiDelegateHandler::wrapper_map_;
+std::atomic<uint32_t> NapiDelegateHandler::request_id_ = 1;
 
 std::atomic<uint32_t> g_delegate_id = 1;
 
-NativeDelegateHandler::NativeDelegateHandler() {
+NapiDelegateHandler::NapiDelegateHandler() {
 
 }
 
-void NativeDelegateHandler::RequestUntrustedContent(
+void NapiDelegateHandler::RequestUntrustedContent(
     std::shared_ptr<RequestJob> request,
     std::shared_ptr<JobResponse> response,
     std::function<std::shared_ptr<UriHandler>()> next) {
@@ -48,7 +48,7 @@ void NativeDelegateHandler::RequestUntrustedContent(
 
 }
 
-void NativeDelegateHandler::RequestUntrustedContent(
+void NapiDelegateHandler::RequestUntrustedContent(
     std::shared_ptr<RequestJob> request,
     std::function<void(std::shared_ptr<JobResponse>)> cb,
     std::function<std::shared_ptr<UriHandler>()> next) {

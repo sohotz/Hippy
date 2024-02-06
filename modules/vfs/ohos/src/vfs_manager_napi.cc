@@ -39,7 +39,7 @@
 #include "footstone/worker_manager.h"
 #include "vfs/handler/asset_handler.h"
 #include "vfs/handler/file_handler.h"
-#include "vfs/handler/native_delegate_handler.h"
+#include "vfs/handler/napi_delegate_handler.h"
 #include "vfs/uri_loader.h"
 
 namespace hippy {
