@@ -17,6 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyException } from '../../support/common/HippyException'
+
 export class BinaryReader {
   private bytes_: Uint8Array
   private byteLength_: number
@@ -40,8 +42,7 @@ export class BinaryReader {
       pos += this.position_
     }
     if (pos < 0 || pos >= this.byteLength_) {
-      // TODO(hot):
-      throw new Error('error')
+      throw new HippyException(`illegal set position, position = ${this.position_}, targetPosition = ${pos}, total buffer length = ${this.byteLength_}`)
     }
     this.position_ = pos;
   }
@@ -54,8 +55,7 @@ export class BinaryReader {
 
   getBytes(length: number): Uint8Array {
     if (this.position_ + length > this.byteLength_) {
-      // TODO(hot):
-      throw new Error('error')
+      throw new HippyException(`illegal read length, position = ${this.position_}}, length = ${this.length}, total buffer length = ${this.byteLength_}`)
     }
     let byteData = new Uint8Array(length)
     let index = 0

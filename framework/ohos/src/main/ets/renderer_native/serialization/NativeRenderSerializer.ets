@@ -20,6 +20,7 @@
 import { PrimitiveValueSerializer } from '../../serialization/PrimitiveValueSerializer';
 import { HippySerValue, SharedSerialization } from '../../serialization/SharedSerialization';
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
+import { HippyException } from '../../support/common/HippyException';
 import { HippyAny } from '../../support/common/HippyTypes';
 import { NativeRenderSerializationTag } from './NativeRenderSerializationTag';
 
@@ -56,8 +57,7 @@ export class NativeRenderSerializer extends PrimitiveValueSerializer {
       this.assignId(object)
       this.writeList(object)
     } else {
-      // TODO(hot):
-      throw new Error(this.TAG + ": Unsupported object data type, object=" + object)
+      throw new HippyException(this.TAG + ": writeValue: unsupported object data type, object = " + object)
     }
     return true
   }

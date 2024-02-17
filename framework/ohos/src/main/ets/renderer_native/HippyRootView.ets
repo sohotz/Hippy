@@ -19,9 +19,12 @@
  */
 import window from '@ohos.window';
 import { HippyAbility, HippyEngine } from '../hippy_framework';
+import { HippyException } from '../support/common/HippyException';
 import { HippyRecord } from '../support/common/HippyTypes';
 import HippyRenderBaseView from './components/base/HippyRenderBaseView';
+import { FrameworkProxy } from './FrameworkProxy';
 import { HippyRender, HippyRenderView } from './HippyRenderView';
+import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
 import { NativeRenderContext } from './NativeRenderContext';
 import { HRConvertUtil } from './utils/HRConvertUtil';
 import { HRSize } from './utils/HRTypes';
@@ -31,6 +34,7 @@ export class HippyRootView {
   renderView: HippyRenderView | null = null
   pagerName: string
   pagerData: HippyRecord
+  renderExceptionListener: IHippyRenderExceptionListener | null = null
   private avoidArea: window.AvoidArea | null = null
   private renderViewDidCreateCallback: (() => void) | null = null
   private renderViewSize: HRSize = new HRSize(0, 0)
@@ -39,10 +43,12 @@ export class HippyRootView {
   constructor(ctx: NativeRenderContext,
               pagerName: string,
               pagerData: HippyRecord,
+              renderExceptionListener: IHippyRenderExceptionListener
   ) {
     this.ctx = ctx
     this.pagerName = pagerName
     this.pagerData = pagerData
+    this.renderExceptionListener = renderExceptionListener
   }
 
   private initRenderViewIfNeed() {
@@ -121,11 +127,25 @@ export class HippyRootView {
   }
 }
 
+class HippyRenderExceptionListener implements IHippyRenderExceptionListener {
+  listener: ((exception: HippyException) => void) | null = null
+  frameworkProxy: FrameworkProxy | null = null
+
+  onRenderException(exception: HippyException): void {
+    this.listener?.(exception)
+    if (this.frameworkProxy) {
+      this.frameworkProxy.handleNativeException(exception)
+    }
+  }
+}
+
 @Component
 export struct HippyRoot {
   pagerName: string = ""
   pagerData: HippyRecord = {}
   initViewSize: HRSize | null = HRConvertUtil.screenSize()
+  onRenderException: ((exception: HippyException) => void) | null = null
+  private renderExceptionListener = new HippyRenderExceptionListener()
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void
   @State showRenderView: boolean = false
   private rootView: HippyRootView | null = null
@@ -141,7 +161,9 @@ export struct HippyRoot {
     }
 
     if (!this.rootView && this.hippyEngine) {
-      this.rootView = new HippyRootView(this.hippyEngine.getNativeRenderContext(), this.pagerName, this.pagerData)//, this.communicator, this.delegate, this.renderExceptionListener)
+      this.renderExceptionListener.listener = this.onRenderException
+      this.renderExceptionListener.frameworkProxy = null // TODO(hot):
+      this.rootView = new HippyRootView(this.hippyEngine.getNativeRenderContext(), this.pagerName, this.pagerData, this.renderExceptionListener)//, this.communicator, this.delegate, this.renderExceptionListener)
       if (this.initViewSize && this.rootView) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }

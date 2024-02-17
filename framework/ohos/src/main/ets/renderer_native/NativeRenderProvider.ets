@@ -72,48 +72,84 @@ export class NativeRenderProvider {
   }
 
   createNode(rootId: number, buffer: ArrayBuffer) {
-    let nodeList = this.bytesToArgument(buffer)
-    this.renderImpl.createNode(rootId, nodeList)
+    try {
+      let nodeList = this.bytesToArgument(buffer)
+      this.renderImpl.createNode(rootId, nodeList)
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   updateNode(rootId: number, buffer: ArrayBuffer) {
-    let nodeList = this.bytesToArgument(buffer)
-    this.renderImpl.updateNode(rootId, nodeList)
+    try {
+      let nodeList = this.bytesToArgument(buffer)
+      this.renderImpl.updateNode(rootId, nodeList)
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   moveNode(rootId: number, pid: number, buffer: ArrayBuffer) {
-    let nodeList = this.bytesToArgument(buffer)
-    this.renderImpl.moveNode(rootId, pid, nodeList)
+    try {
+      let nodeList = this.bytesToArgument(buffer)
+      this.renderImpl.moveNode(rootId, pid, nodeList)
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   moveNode2(rootId: number, id_array: Array<number>, to_pid: number, from_pid: number, index: number) {
-    this.renderImpl.moveNode2(rootId, id_array, to_pid, from_pid, index)
+    try {
+      this.renderImpl.moveNode2(rootId, id_array, to_pid, from_pid, index)
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   deleteNode(rootId: number, id_array: Array<number>) {
-    this.renderImpl.deleteNode(rootId, id_array)
+    try {
+      this.renderImpl.deleteNode(rootId, id_array)
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   updateLayout(rootId: number, buffer: ArrayBuffer) {
-    let nodeList = this.bytesToArgument(buffer)
-    this.renderImpl.updateLayout(rootId, nodeList)
+    try {
+      let nodeList = this.bytesToArgument(buffer)
+      this.renderImpl.updateLayout(rootId, nodeList)
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   endBatch(rootId: number) {
-    this.renderImpl.endBatch(rootId)
+    try {
+      this.renderImpl.endBatch(rootId)
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   updateEventListener(rootId: number, buffer: ArrayBuffer) {
-    let eventList = this.bytesToArgument(buffer)
-    this.renderImpl.updateEventListener(rootId, eventList)
+    try {
+      let eventList = this.bytesToArgument(buffer)
+      this.renderImpl.updateEventListener(rootId, eventList)
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   callUIFunction(rootId: number, nodeId: number, callbackId: number, functionName: string, buffer: ArrayBuffer) {
-    let params = this.bytesToArgument(buffer)
-    // If callbackId equal to 0 mean this call does not need to callback.
-    this.renderImpl.callUIFunction(nodeId, functionName, params, (callbackId == 0) ? null : (result: HippyAny) => {
-      this.doCallBack(1, callbackId, functionName, rootId, nodeId, result)
-    })
+    try {
+      let params = this.bytesToArgument(buffer)
+      // If callbackId equal to 0 mean this call does not need to callback.
+      this.renderImpl.callUIFunction(nodeId, functionName, params, (callbackId == 0) ? null : (result: HippyAny) => {
+        this.doCallBack(1, callbackId, functionName, rootId, nodeId, result)
+      })
+    } catch (e) {
+      this.renderImpl.handleRenderException(e)
+    }
   }
 
   measure(rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
@@ -147,7 +183,7 @@ export class NativeRenderProvider {
       try {
         buffer = this.argumentToBytes(params)
       } catch (e) {
-
+        this.renderImpl.handleRenderException(e)
       }
     }
     this.libHippy?.NativeRenderImpl_OnReceivedEvent(this.instanceId, rootId, nodeId, lowerCaseEventName, buffer, useCapture, useBubble)
@@ -159,7 +195,7 @@ export class NativeRenderProvider {
       try {
         buffer = this.argumentToBytes(params)
       } catch (e) {
-
+        this.renderImpl.handleRenderException(e)
       }
     }
     this.libHippy?.NativeRenderImpl_DoCallBack(this.instanceId, result, functionName, rootId, nodeId, callbackId, buffer)

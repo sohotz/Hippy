@@ -25,6 +25,7 @@ import { PrimitiveSerializationTag } from './PrimitiveSerializationTag';
 import { StringLocation } from './string/StringLocation';
 import { StringEncoding } from './string/StringEncoding';
 import { HippyAny } from '../support/common/HippyTypes';
+import { HippyException } from '../support/common/HippyException';
 
 export class PrimitiveValueDeserializer extends SharedSerialization {
   protected stringTable_: StringTable
@@ -71,8 +72,7 @@ export class PrimitiveValueDeserializer extends SharedSerialization {
       this.version_ = this.reader_.getVarint();
       let supportedVersion = this.getSupportedVersion();
       if (supportedVersion > 0 && this.version_ > supportedVersion) {
-        // TODO(hot):
-        throw new Error('error')
+        throw new HippyException(this.TAG + ": readHeader: invalid or unsupported version")
       }
     }
   }
@@ -179,8 +179,7 @@ export class PrimitiveValueDeserializer extends SharedSerialization {
       case PrimitiveSerializationTag.UTF8_STRING:
         return this.readUTF8String(location, relatedKey)
       default:
-        // TODO(hot):
-        throw new Error('error')
+        throw new HippyException(this.TAG + ": readString: unreachable code")
       }
   }
 
@@ -219,16 +218,14 @@ export class PrimitiveValueDeserializer extends SharedSerialization {
   readString2(encoding: StringEncoding, location: StringLocation, relatedKey: HippyAny): string {
     let byteCount = this.reader_.getVarint()
     if (byteCount < 0) {
-      // TODO(hot):
-      throw new Error('error')
+      throw new HippyException(this.TAG + ": readString2: out of range")
     }
 
     let byteBuffer = this.reader_.getBytes(byteCount)
     try {
       return this.stringTable_.lookup(byteBuffer, encoding, location, relatedKey)
     } catch (e) {
-      // TODO(hot):
-      throw new Error('error')
+      throw new HippyException(this.TAG + ": readString2: unreachable code")
     }
   }
 
@@ -240,13 +237,11 @@ export class PrimitiveValueDeserializer extends SharedSerialization {
   readObjectReference(): HippySerValue {
     let id = this.reader_.getVarint()
     if (id < 0) {
-      // TODO(hot):
-      throw new Error('error')
+      throw new HippyException(this.TAG + ": readObjectReference: out of range")
     }
     let object = this.objectMap_.get(id)
     if (object == null) {
-      // TODO(hot):
-      throw new Error('error')
+      throw new HippyException(this.TAG + ": readObjectReference: invalid object reference(" + id + ")")
     }
     return object
   }

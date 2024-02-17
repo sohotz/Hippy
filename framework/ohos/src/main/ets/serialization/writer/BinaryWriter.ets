@@ -17,6 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyException } from '../../support/common/HippyException'
+
 export class BinaryWriter {
   private bytes_: Array<number>
   private position_: number = 0
@@ -35,8 +37,7 @@ export class BinaryWriter {
 
   putByte(byte: number) {
     if (!(byte >= 0 && byte < 256)) {
-      // TODO(hot):
-      throw new Error(`illegal write byte(${byte}), out of range`)
+      throw new HippyException(`illegal write byte(${byte}), out of range`)
     }
 
     this.bytes_.push(byte)

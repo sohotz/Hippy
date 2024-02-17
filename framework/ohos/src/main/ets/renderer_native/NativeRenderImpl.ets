@@ -18,8 +18,10 @@
  * limitations under the License.
  */
 import TextMeasurer from "@ohos.measure"
+import { HippyException } from '../support/common/HippyException'
 import { HippyAny, HippyMap, HippyRenderCallback } from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
+import { FrameworkProxy } from './FrameworkProxy'
 import { NativeRenderContext } from './NativeRenderContext'
 import { HRVirtualNode } from './node/HRVirtualNode'
 import { HRManager } from './uimanager/HRManager'
@@ -52,6 +54,8 @@ export class NativeRenderImpl {
 
   private static sRootIdCounter = 0
 
+  private frameworkProxy: FrameworkProxy | null = null
+
   private ctx: NativeRenderContext
   private mutations: HRMutation[] = []
   private virtualNodes: Map<number, HRVirtualNode>
@@ -67,12 +71,23 @@ export class NativeRenderImpl {
     this.renderManager = new HRManager(this.ctx)
   }
 
+  setFrameworkProxy(proxy: FrameworkProxy) {
+    this.frameworkProxy = proxy
+  }
+
   getNativeRenderContext(): NativeRenderContext {
     return this.ctx
   }
 
   getRenderManager(): HRManager {
     return this.renderManager
+  }
+
+  handleRenderException(exception: HippyException) {
+    LogUtils.e(this.TAG, `message:${exception.message}`)
+    if (this.frameworkProxy) {
+      this.frameworkProxy.handleNativeException(exception)
+    }
   }
 
   createVirtualNode(rootId: number, id: number, pid: number, index: number, props: HippyMap): HRVirtualNode {

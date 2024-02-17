@@ -21,6 +21,7 @@ import { HippyAbility, HippyRoot
 } from 'hippy'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import { HippyException } from 'hippy/src/main/ets/support/common/HippyException'
 
 @Builder
 function buildCustomRenderView($$: HippyRenderBaseView) {
@@ -38,6 +39,9 @@ struct Index {
         pagerName: 'demo',
         pagerData: {},
         buildCustomRenderView: buildCustomRenderView,
+        onRenderException: (exception: HippyException) => {
+          this.exception = `${exception.message}\n${exception.stack}`
+        },
       })
       if (this.exception) {
         Text(this.exception)
