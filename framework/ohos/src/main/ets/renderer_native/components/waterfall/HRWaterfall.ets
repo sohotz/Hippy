@@ -41,7 +41,7 @@ export class HRWaterfallView extends HippyRenderBaseView {
   public numberOfColumns: number = 0
   public columnsTemplate: string = '1fr 1fr'
   public x: number = 0
-  public y: number = 20
+  public y: number = 0
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -152,11 +152,7 @@ export struct HRWaterfall {
         }, (item: HippyRenderBaseView) => item.tag + '')
         WaterFlow() {
           ForEach(this.children, (item: HippyRenderBaseView) => {
-            if (item.viewType === 'View') {
-              // Stack() {
-              //   this.buildRenderView(item, null)
-              // }
-            } else if (item.viewType === 'WaterfallItem') {
+            if (item.viewType === 'WaterfallItem') {
               FlowItem() {
                 this.buildRenderView(item, null)
               }
@@ -172,14 +168,18 @@ export struct HRWaterfall {
           scrollForward: NestedScrollMode.PARENT_FIRST,
           scrollBackward: NestedScrollMode.PARENT_FIRST,})
       }
-      .applyRenderViewBaseAttr(this.renderView)
-      .position({x:this.renderView.x, y: this.renderView.y})
     }
+    .applyRenderViewBaseAttr(this.renderView)
+    .width('100%')
+    .height('100%')
+    .position({x:this.renderView.x, y: this.renderView.y})
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring)
     .onScroll((xOffset:number, yOffset:number) => {
       LogUtils.d(this.TAG, "onScroll: xOffset:" + xOffset + " yOffset:" + yOffset)
       if (xOffset === 0 && yOffset === 0) {
         this.renderView.x = 0
-        this.renderView.y = 40
+        this.renderView.y = 0
         HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
           HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
       }
@@ -188,7 +188,7 @@ export struct HRWaterfall {
       LogUtils.d(this.TAG, "onScrollEdge: side " + side)
       if (side === Edge.Top) {
         this.renderView.x = 0
-        this.renderView.y = 40
+        this.renderView.y = 0
         HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
           HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
       }
@@ -198,7 +198,7 @@ export struct HRWaterfall {
 }
 
 // base props for all components
-@Extend(Column)
+@Extend(Scroll)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
   // .position({ x: $$.cssPositionX, y: $$.cssPositionY })

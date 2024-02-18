@@ -28,7 +28,9 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
 export class HRViewPagerView extends HippyRenderBaseView {
+  private readonly TAG = "HRViewPagerView"
   public initialPage: number = 0
+  public index: number = 0
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
@@ -37,8 +39,20 @@ export class HRViewPagerView extends HippyRenderBaseView {
     // TODO: xxxxx
     if (propKey === 'initialPage') {
       this.initialPage = propValue as number
+      this.index = this.initialPage
     }
     return super.setProp(propKey, propValue)
+  }
+
+  call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+    LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
+    switch (method) {
+      case "setPage":
+        this.index = params[0] as number
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -50,7 +64,6 @@ export struct HRViewPager {
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   private controller: SwiperController = new SwiperController()
   private PAGE_ITEM_POSITION: string = "position";
-  @State index: number = 0
 
   handleChangeEvent(index: number) {
     LogUtils.d(this.TAG, "handleChangeEvent: index " + index)
@@ -85,14 +98,9 @@ export struct HRViewPager {
   }
 
   aboutToAppear() {
-    this.index = this.renderView.initialPage
   }
 
   aboutToDisappear() {
-  }
-
-  setPage(index: number) {
-    this.index = index
   }
 
   build() {
@@ -101,7 +109,7 @@ export struct HRViewPager {
         this.buildRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
-    .index(this.index)
+    .index(this.renderView.index)
     .applyRenderViewBaseAttr(this.renderView)
     .onChange((event) => this.handleChangeEvent(event))
     .onGestureSwipe((index: number, extraInfo: SwiperAnimationEvent) =>

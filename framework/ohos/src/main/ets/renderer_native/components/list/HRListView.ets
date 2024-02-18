@@ -22,14 +22,38 @@ import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, {
   HippyObservedArray } from '../base/HippyRenderBaseView';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
 export class HRListView extends HippyRenderBaseView {
+  private readonly TAG = "HRListView"
+  public flex: number = 0
+  public scrollForward: number = NestedScrollMode.PARENT_FIRST
+  public scrollBackward: number = NestedScrollMode.PARENT_FIRST
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+    LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
+    switch (propKey) {
+      case 'nestedScrollTopPriority':
+        {
+          let pvalue = propValue as string
+          if (pvalue === 'parent') {
+            this.scrollForward = NestedScrollMode.PARENT_FIRST
+            this.scrollBackward = NestedScrollMode.PARENT_FIRST
+          } else if (pvalue === 'self') {
+            this.scrollForward = NestedScrollMode.SELF_FIRST
+            this.scrollBackward = NestedScrollMode.SELF_FIRST
+          }
+        }
+
+        break;
+      default:
+        break;
+    }
     return super.setProp(propKey, propValue)
   }
 }
@@ -54,6 +78,9 @@ export struct HRList {
     .friction(0.6)
     .divider({ strokeWidth: 2, color: 0xFFFFFF, startMargin: 0, endMargin: 0 })
     .edgeEffect(EdgeEffect.Spring)
+    .nestedScroll({
+      scrollForward: this.renderView.scrollForward,
+      scrollBackward: this.renderView.scrollBackward})
     .onScrollIndex((firstIndex: number, lastIndex: number, centerIndex: number) => {
 
     })
