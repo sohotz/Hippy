@@ -62,7 +62,7 @@ export class HRRichTextShadow {
       fontStyle: measureSpan.fontStyle,
       letterSpacing: measureSpan.letterSpacing,
       fontFamily: measureSpan.fontFamily,
-      lineHeight: measureSpan.lineHeight ? measureSpan.lineHeight : undefined ,
+      lineHeight: measureSpan.lineHeight ? measureSpan.lineHeight : undefined,
       constraintWidth: constraintWidth,
     })
 

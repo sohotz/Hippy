@@ -144,6 +144,7 @@ export class HRManager {
   willDestroy(): void {
 
   }
+
   onDestroy(): void {
 
   }

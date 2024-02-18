@@ -51,9 +51,16 @@ export class HippyRootView {
     this.renderExceptionListener = renderExceptionListener
   }
 
+  setRenderExceptionListener(listener: IHippyRenderExceptionListener) {
+    this.renderExceptionListener = listener
+    if (this.renderView) {
+      this.renderView.setRenderExceptionListener(listener)
+    }
+  }
+
   private initRenderViewIfNeed() {
     if (!this.renderView && this.renderViewSize.width) {
-      this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea)
+      this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea, this.renderExceptionListener)
       this.performAllRenderViewTasks()
     }
     this.fireDidCreateRenderViewCallbackIfNeed()
@@ -163,7 +170,7 @@ export struct HippyRoot {
     if (!this.rootView && this.hippyEngine) {
       this.renderExceptionListener.listener = this.onRenderException
       this.renderExceptionListener.frameworkProxy = null // TODO(hot):
-      this.rootView = new HippyRootView(this.hippyEngine.getNativeRenderContext(), this.pagerName, this.pagerData, this.renderExceptionListener)//, this.communicator, this.delegate, this.renderExceptionListener)
+      this.rootView = new HippyRootView(this.hippyEngine.getNativeRenderContext(), this.pagerName, this.pagerData, this.renderExceptionListener)
       if (this.initViewSize && this.rootView) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
