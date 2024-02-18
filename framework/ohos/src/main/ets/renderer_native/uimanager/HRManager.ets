@@ -30,8 +30,10 @@ import { HRCreateMutation,
   HRMutation, HRMutationType,
   HRUpdateLayoutMutation,
   HRUpdateMutation } from './HRMutation'
+import { LogUtils } from '../../support/utils/LogUtils';
 
 export class HRManager {
+  private readonly TAG = "HRManager"
   private ctx: NativeRenderContext
   private rootTag: number
   private rootRenderView: HippyRenderView | null = null
@@ -86,6 +88,8 @@ export class HRManager {
       renderView.tag = tag
       renderView.viewType = viewName
       this.viewRegistry.set(tag, renderView)
+    } else {
+      LogUtils.d(this.TAG, "createRenderView: failed:  " + viewName)
     }
   }
 
@@ -110,6 +114,9 @@ export class HRManager {
     let childView = this.viewRegistry.get(childTag)
     if (parentView && childView) {
       parentView.addSubRenderView(childView, index)
+    } else {
+      LogUtils.d(this.TAG, "insertSubRenderView parentTag:" +
+        parentTag + ", child:" + childTag)
     }
   }
 
