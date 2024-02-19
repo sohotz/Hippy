@@ -42,6 +42,6 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
 
   onTaskFailed(request: HippyHttpRequest, error: BusinessError<void>): void {
     throw new Error('Method not implemented.');
-    //todo onTaskSuccess...
+    //todo onTaskFailed...
   }
 }

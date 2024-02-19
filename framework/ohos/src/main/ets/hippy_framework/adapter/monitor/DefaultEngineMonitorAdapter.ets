@@ -22,11 +22,10 @@ import hilog from '@ohos.hilog';
 import ArrayList from '@ohos.util.ArrayList';
 import { MonitorGroup, MonitorPoint } from '../../../support/utils/TimeMonitor';
 
-const  DOMAIN = 0x0002
+const DOMAIN = 0x0002
 const TAG:string = "DefaultEngineMonitorAdapter"
 
 export class DefaultEngineMonitorAdapter implements HippyEngineMonitorAdapter{
-
 
   protected printGroupTime( monitorGroup:MonitorGroup ):void {
     let monitorPoints:ArrayList<MonitorPoint> = monitorGroup.getMonitorPoints();
@@ -42,7 +41,7 @@ export class DefaultEngineMonitorAdapter implements HippyEngineMonitorAdapter{
   //   hilog.info(DOMAIN,TAG, "engine initialization completed with result: " + statusCode);
   //   this.printGroupTime(monitorGroup);
   // }
-  //
+
   // onLoadModuleCompleted(statusCode: ModuleLoadStatus, componentName: string, monitorGroup: MonitorGroup): void {
   //   hilog.info(DOMAIN,TAG,"load module completed with result: " + statusCode);
   //   this.printGroupTime(monitorGroup);
@@ -57,7 +56,7 @@ export class DefaultEngineMonitorAdapter implements HippyEngineMonitorAdapter{
   // onInterceptCallNative(componentName: string, params: HippyCallNativeParams): boolean {
   //   return false;
   // }
-  //
+
   // onCallNativeFinished(componentName: string, params: HippyCallNativeParams): void {
   //   throw new Error('Method not implemented.');
   // }

@@ -106,7 +106,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     }
   }
 
-  public getCookie(url: string, promise: Promise<void>): void {
+  public getCookie(url: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
 

@@ -29,8 +29,7 @@ export interface HippyHttpAdapter {
 
   // fetch(holder: ResourceDataHolder, nativeParams: HashMap<string, Object>, callback: ProcessorCallback);
 
-  //todo 注意promise<void>泛型类
-  getCookie(url: string, promise: Promise<void>): void
+  getCookie(url: string): Promise<void>
 
   setCookie(url: string, keyValue: string, expires: string): void
 }
