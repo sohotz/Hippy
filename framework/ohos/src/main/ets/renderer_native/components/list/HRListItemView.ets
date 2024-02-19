@@ -22,14 +22,18 @@ import { HRComponent } from '../../HippyRenderView'
 import { NativeRenderContext } from '../../NativeRenderContext'
 import { HRRect } from '../../utils/HRTypes'
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
+import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
 export class HRListItemView extends HippyRenderBaseView {
+  private readonly TAG = "HRListItemView"
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+
     return super.setProp(propKey, propValue)
   }
 

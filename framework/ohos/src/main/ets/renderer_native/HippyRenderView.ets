@@ -43,6 +43,7 @@ import { NativeRenderContext } from './NativeRenderContext';
 import { HRManager } from './uimanager/HRManager';
 import { HRSize } from './utils/HRTypes';
 import { LogUtils } from '../support/utils/LogUtils';
+import { HRPullHeader, HRPullHeaderView } from './components/pullheader/HRPullHeader';
 import { HRPullFooter, HRPullFooterView } from './components/pullfooter/HRPullFooter';
 
 export type HRComponent = HRDivView | HRScroll | HRScrollContent | HRModal | null
@@ -166,6 +167,8 @@ export struct HippyRender {
       HRRefreshWrapper({ renderView: $$ as HRRefreshWrapperView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRRefreshWrapperItemView) {
       HRRefreshWrapperItem({ renderView: $$ as HRRefreshWrapperItemView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRPullHeaderView) {
+      HRPullHeader({ renderView: $$ as HRPullHeaderView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRPullFooterView) {
       HRPullFooter({ renderView: $$ as HRPullFooterView, children: $$.children, buildRenderView: this.buildRenderView })
     } else {

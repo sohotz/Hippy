@@ -27,28 +27,58 @@ import HippyRenderBaseView, {
 import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
-export class HRRefreshWrapperView extends HippyRenderBaseView {
-  private readonly TAG = "HRRefreshWrapperView"
-  public initialPage: number = 0
+export class HRPullHeaderView extends HippyRenderBaseView {
+  private readonly TAG = "HRPullHeaderView"
+  // public cssVisibility: number = 0
+  public collapseTime: number = 0
   constructor(ctx: NativeRenderContext) {
     super(ctx)
+    this.cssVisibility = Visibility.Hidden
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
     // TODO: xxxxx
-    return super.setProp(propKey, propValue)
+    LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
+    switch (propKey) {
+      case "cssPositionX":
+        this.cssPositionX = propValue as number;
+        break;
+      case "cssPositionY":
+        this.cssPositionY = propValue as number;
+        break;
+      default:
+        break;
+    }
+    let ret : boolean = super.setProp(propKey, propValue)
+    if (propKey === "visibility") {
+      LogUtils.d(this.TAG, "setProp: visibility " + this.cssVisibility)
+    }
+    return ret;
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
     LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
+    switch (method) {
+      case "collapsePullHeaderWithOptions":
+        {
+          let map = params[0] as HippyMap
+          this.collapseTime = map.get('time') as number;
+          setTimeout(() => {
+            LogUtils.d(this.TAG, "delay : " + this.collapseTime)
+            this.cssVisibility = Visibility.Hidden
+          }, this.collapseTime);
+        }
+        break;
+      default:
+        break;
+    }
   }
 }
 
 @Component
-export struct HRRefreshWrapper {
-  private readonly TAG = "HRRefreshWrapper"
-  @ObjectLink renderView: HRRefreshWrapperView
+export struct HRPullHeader {
+  private readonly TAG = "HRPullHeader"
+  @ObjectLink renderView: HRPullHeaderView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   private controller: SwiperController = new SwiperController()
@@ -56,14 +86,9 @@ export struct HRRefreshWrapper {
   @State index: number = 0
 
   aboutToAppear() {
-    this.index = this.renderView.initialPage
   }
 
   aboutToDisappear() {
-  }
-
-  setPage(index: number) {
-    this.index = index
   }
 
   build() {
@@ -73,6 +98,8 @@ export struct HRRefreshWrapper {
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
+    .zIndex(2)
+    // .visibility(this.renderView.cssVisibility)
   }
 }
 
@@ -86,7 +113,7 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .touchable($$.cssTouchEnable) // TODO: use new api
-  .zIndex($$.cssZIndex)
+  // .zIndex($$.cssZIndex)
   .border($$.cssBorder)
   .borderWidth(2) // TODO:
   .rotate($$.cssRotate)

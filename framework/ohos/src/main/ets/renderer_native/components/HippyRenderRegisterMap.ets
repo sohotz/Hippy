@@ -32,6 +32,7 @@ import { HRWaterfallView } from './waterfall/HRWaterfall'
 import { HRWaterfallItemView } from './waterfall/HRWaterfallItem'
 import { HRRefreshWrapperView } from './refreshwrapper/HRRefreshWrapper'
 import { HRRefreshWrapperItemView } from './refreshwrapper/HRRefreshWrapperItem'
+import { HRPullHeaderView } from './pullheader/HRPullHeader'
 import { HRPullFooterView } from './pullfooter/HRPullFooter'
 import { HRDivView } from './view/HRDivView'
 
@@ -53,6 +54,7 @@ export function hippyRenderViewCreatorRegisterMap(): Map<string, HRRenderViewCre
   registerMap.set("WaterfallItem", (ctx): HippyRenderBaseView => new HRWaterfallItemView(ctx))
   registerMap.set("RefreshWrapper", (ctx): HippyRenderBaseView => new HRRefreshWrapperView(ctx))
   registerMap.set("RefreshWrapperItemView", (ctx): HippyRenderBaseView => new HRRefreshWrapperItemView(ctx))
+  registerMap.set("PullHeaderView", (ctx): HippyRenderBaseView => new HRPullHeaderView(ctx))
   registerMap.set("PullFooterView", (ctx): HippyRenderBaseView => new HRPullFooterView(ctx))
 
   return registerMap

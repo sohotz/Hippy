@@ -62,7 +62,7 @@ export class HRImageView extends HippyRenderBaseView {
         this.cssResizeMode = ImageFit.Cover
         break;
       case 'center':
-      // TODO: Ã»ÓĞcenter£¬Ëæ±ãÕÒÒ»¸ö
+      // TODO: æ²¡æœ‰centerï¼Œéšä¾¿æ‰¾ä¸€ä¸ª
         this.cssResizeMode = ImageFit.Auto
         break;
       default:
