@@ -139,6 +139,7 @@ class HippyRenderExceptionListener implements IHippyRenderExceptionListener {
   frameworkProxy: FrameworkProxy | null = null
 
   onRenderException(exception: HippyException): void {
+    exception = HippyException.safeBuild(exception)
     this.listener?.(exception)
     if (this.frameworkProxy) {
       this.frameworkProxy.handleNativeException(exception)

@@ -84,6 +84,7 @@ export class NativeRenderImpl {
   }
 
   handleRenderException(exception: HippyException) {
+    exception = HippyException.safeBuild(exception)
     LogUtils.e(this.TAG, `message:${exception.message}`)
     if (this.frameworkProxy) {
       this.frameworkProxy.handleNativeException(exception)

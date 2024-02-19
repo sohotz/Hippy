@@ -18,21 +18,6 @@
  * limitations under the License.
  */
 
-export class HippyException extends Error {
-  constructor(message: string) {
-    super()
-    this.message = message
-  }
+export class TimeMonitor {
 
-  static safeBuild(exception: Object): HippyException {
-    if (exception instanceof HippyException) {
-      return exception
-    } else if (exception instanceof Error) {
-      let ex = new HippyException('')
-      ex.message = `${exception.name}, ${exception.message}`
-      ex.stack = exception.stack
-      return ex
-    }
-    return new HippyException('')
-  }
 }

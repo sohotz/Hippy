@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 import {
+  Hippy1Map,
   HippyAny,
   HippyMap, HippyRenderCallback, HippyValue } from '../../support/common/HippyTypes'
 import HippyRenderBaseView from '../components/base/HippyRenderBaseView'
@@ -118,7 +119,7 @@ export class HRManager {
     if (renderView) {
       let theView = renderView as HippyRenderBaseView
       if (props.size > 0) {
-        props.forEach((value: HippyValue, key: string) => {
+        (props as Hippy1Map).forEach((value: HippyValue, key: string) => {
           if (key && value) {
             theView.setProp(key, value)
           }

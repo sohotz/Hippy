@@ -17,22 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyExecutor } from '../../../support/common/HippyExecutor'
 
-export class HippyException extends Error {
-  constructor(message: string) {
-    super()
-    this.message = message
-  }
+export interface HippyExecutorSupplierAdapter {
 
-  static safeBuild(exception: Object): HippyException {
-    if (exception instanceof HippyException) {
-      return exception
-    } else if (exception instanceof Error) {
-      let ex = new HippyException('')
-      ex.message = `${exception.name}, ${exception.message}`
-      ex.stack = exception.stack
-      return ex
-    }
-    return new HippyException('')
-  }
+  getDBExecutor(): HippyExecutor
+
+  getBackgroundTaskExecutor(): HippyExecutor
+
+  destroyIfNeed()
 }

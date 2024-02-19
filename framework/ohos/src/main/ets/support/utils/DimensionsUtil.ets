@@ -17,22 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyMap } from '../common/HippyTypes';
 
-export class HippyException extends Error {
-  constructor(message: string) {
-    super()
-    this.message = message
-  }
-
-  static safeBuild(exception: Object): HippyException {
-    if (exception instanceof HippyException) {
-      return exception
-    } else if (exception instanceof Error) {
-      let ex = new HippyException('')
-      ex.message = `${exception.name}, ${exception.message}`
-      ex.stack = exception.stack
-      return ex
-    }
-    return new HippyException('')
+export class DimensionsUtil {
+  static getDimensions(ww: number, wh: number, context: Context, shouldUseScreenDisplay: boolean): HippyMap {
+    let dimensionMap = new Map() as HippyMap
+    return dimensionMap
   }
 }
