@@ -54,7 +54,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC vfs_native)
 set(SOURCE_SET
   src/handler/asset_handler.cc
   src/handler/file_handler.cc
-  src/handler/native_delegate_handler.cc)
+  src/handler/napi_delegate_handler.cc)
 set(PUBLIC_SOURCE_SET
   src/vfs_manager_napi.cc)
 

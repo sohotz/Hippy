@@ -17,14 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyJsException } from './HippyJsException'
-import { BusinessError } from '@ohos.base'
+
+import { HippyException } from '../../../support/common/HippyException';
+import { HippyJsException } from '../../common/HippyJsException';
 
 export interface HippyExceptionHandlerAdapter {
+  handleJsException(exception: HippyJsException)
 
-  handleJsException(exception:HippyJsException):void
+  handleNativeException(exception: HippyException, haveCaught: boolean)
 
-  handleNativeException(exception:BusinessError, haveCaught:boolean):void
-
-  handleBackgroundTracing(details: string): void
+  handleBackgroundTracing(details: string)
 }

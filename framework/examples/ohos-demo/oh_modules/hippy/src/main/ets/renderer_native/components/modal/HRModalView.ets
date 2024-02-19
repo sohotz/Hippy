@@ -77,7 +77,9 @@ export struct HRModal {
       }),
       autoCancel: true,
       customStyle: true,
-      alignment: DialogAlignment.Center
+      alignment: DialogAlignment.Center,
+      openAnimation: { duration: 0 },
+      closeAnimation: { duration: 0 },
     });
     this.dialogController.open()
   }

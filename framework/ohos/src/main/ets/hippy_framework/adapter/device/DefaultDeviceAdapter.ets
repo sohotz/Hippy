@@ -21,7 +21,7 @@ import { HippyMap } from 'ets/support/common/HippyTypes';
 import { HippyDeviceAdapter } from './HippyDeviceAdapter';
 
 export class DefaultDeviceAdapter implements HippyDeviceAdapter {
-  reviseDimensionIfNeed(context: Context, dimensionMap: HippyMap, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean): void {
-    throw new Error('Method not implemented.');
+  reviseDimensionIfNeed(context: Context, dimensionMap: HippyMap, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean) {
+    // Default do nothing here
   }
 }

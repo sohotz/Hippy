@@ -17,8 +17,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FontAdapter } from '../../../renderer_native/components/richtext/FontAdapter'
 
-export interface HippyFontScaleAdapter {
+export interface HippyFontScaleAdapter extends FontAdapter{
   getFontScale(): number
 
   getEmoticonText(text: string, fontSize: number): string

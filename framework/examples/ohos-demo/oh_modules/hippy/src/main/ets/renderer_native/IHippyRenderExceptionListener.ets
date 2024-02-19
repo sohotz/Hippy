@@ -17,12 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BusinessError } from '@ohos.base';
+import { HippyException } from '../support/common/HippyException';
 
-export class HippyJsException implements BusinessError{
-  code: number;
-  data?: void;
-  name: string;
-  message: string;
-  stack?: string;
+export interface IHippyRenderExceptionListener {
+  onRenderException(exception: HippyException): void
 }

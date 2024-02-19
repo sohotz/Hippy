@@ -35,3 +35,12 @@ export interface HippyEngine {
 
   getNativeRenderProvider(): NativeRenderProvider
 }
+
+export enum EngineInitStatus {
+
+}
+
+export enum ModuleLoadStatus {
+
+}
+

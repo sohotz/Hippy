@@ -18,22 +18,17 @@
  * limitations under the License.
  */
 import { HippyExecutorSupplierAdapter } from './HippyExecutorSupplierAdapter';
-import taskpool from '@ohos.taskpool';
-let mDBExecutor : taskpool.Task
+import { HippyExecutor } from '../../../support/common/HippyExecutor';
 
 export class DefaultExecutorSupplierAdapter implements HippyExecutorSupplierAdapter {
-  getDBExecutor(): taskpool.Task {
-    if(mDBExecutor){
-      // return taskpool.Task
-    }
+  getDBExecutor(): HippyExecutor {
     throw new Error('Method not implemented.');
   }
 
-  getBackgroundTaskExecutor(): taskpool.TaskGroup {
-    return new taskpool.TaskGroup
+  getBackgroundTaskExecutor(): HippyExecutor {
+    throw new Error('Method not implemented.');
   }
 
-  destroyIfNeed(): void {
-    throw new Error('Method not implemented.');
+  destroyIfNeed() {
   }
 }

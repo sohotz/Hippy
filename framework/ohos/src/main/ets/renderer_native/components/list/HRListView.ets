@@ -38,7 +38,7 @@ export class HRListView extends HippyRenderBaseView {
 export struct HRList {
   @ObjectLink renderView: HRListView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$:HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
 
   build() {
     List({ space: 20, initialIndex: 0 }) {

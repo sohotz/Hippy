@@ -24,14 +24,19 @@ import { HRScrollContentView } from './HRScrollContentView';
 
 @Observed
 export class HRScrollView extends HippyRenderBaseView {
-  axis: Axis = Axis.Vertical
+  private static readonly DEFAULT_FRICTION = 0.8
+  axis: ScrollDirection = ScrollDirection.Vertical
   scrollBar: BarState = BarState.Auto
   edgeEffect: EdgeEffect = EdgeEffect.Spring
   scrollEvent: HippyRenderCallback | null = null
   scrollEndEvent: HippyRenderCallback | null = null
   dragBeginEvent: HippyRenderCallback | null = null
   dragEndEvent: HippyRenderCallback | null = null
-  friction: number = 0.6 // default value is 0.6 in ohos
+  willDragEndEvent: HippyRenderCallback | null = null
+  friction: number = HRScrollView.DEFAULT_FRICTION // default value is 0.6 in ohos
+  pageEnabled: boolean = false
+  contentInset: number = 0
+  contentInsetWhenDrag: number = 0
   private readonly DIRECTION_ROW: string = "directionRow"
   private readonly SHOW_SCROLLER_INDICATOR: string = "showScrollerIndicator"
   private readonly VERTICAL_BOUNCES: string = "verticalbounces"
@@ -41,17 +46,19 @@ export class HRScrollView extends HippyRenderBaseView {
   private readonly SCROLL_END: string = "scrollEnd"
   private readonly DRAG_BEGIN: string = "dragBegin"
   private readonly DRAG_END: string = "dragEnd"
+  private readonly WILL_DRAG_END: string = "willDragEnd"
   private readonly FLING_ENABLE: string = "flingEnable"
   private readonly METHOD_CONTENT_OFFSET: string = "contentOffset"
   private readonly METHOD_CONTENT_INSET_WHEN_END_DRAG: string = "contentInsetWhenEndDrag"
   private readonly METHOD_CONTENT_INSET: string = "contentInset"
   private readonly BLANK_SEPARATOR: string = " "
+  private readonly PAGING_ENABLED = "pagingEnabled"
   scroller: Scroller = new Scroller()
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     switch (propKey) {
       case this.DIRECTION_ROW:
-        this.axis = propValue as number == 1 ? Axis.Horizontal : Axis.Vertical
+        this.axis = propValue as number == 1 ? ScrollDirection.Horizontal : ScrollDirection.Vertical
         return true
       case this.SHOW_SCROLLER_INDICATOR:
         this.scrollBar = propValue as number == 1 ? BarState.On : BarState.Off
@@ -75,6 +82,12 @@ export class HRScrollView extends HippyRenderBaseView {
       case this.DRAG_END:
         this.dragEndEvent = propValue as HippyRenderCallback
         return true
+      case this.WILL_DRAG_END:
+        this.willDragEndEvent = propValue as HippyRenderCallback
+        return true
+      case this.PAGING_ENABLED:
+        this.pageEnabled = (propValue as number == 0) ? false : true
+        return true
     }
     return super.setProp(propKey, propValue)
   }
@@ -87,8 +100,14 @@ export class HRScrollView extends HippyRenderBaseView {
         }
         break
       case this.METHOD_CONTENT_INSET_WHEN_END_DRAG:
+        if (params.length > 0) {
+          this.setContentInsetWhenEndDrag(params[0])
+        }
         break
       case this.METHOD_CONTENT_INSET:
+        if (params.length > 0) {
+          this.setContentInset(params[0])
+        }
         break
       default:
         super.call(method, params, callback)
@@ -107,12 +126,61 @@ export class HRScrollView extends HippyRenderBaseView {
   }
 
   private canScrollImmediately(xOffset: number, yOffset: number): boolean {
-    if (this.axis == Axis.Vertical) {
+    if (this.axis == ScrollDirection.Vertical) {
       return (this.children[0] as HRScrollContentView)?.viewHeight > yOffset
     } else {
       return (this.children[0] as HRScrollContentView)?.viewWidth > xOffset
     }
   }
+
+  private setContentInsetWhenEndDrag(params: HippyAny) {
+    let top: number = 0
+    let left: number = 0
+    let bottom: number = 0
+    let right: number = 0
+    let animation: boolean = false
+
+    let arr: Array<string> = (params as string).split(this.BLANK_SEPARATOR)
+    top = Number(arr[0])
+    left = Number(arr[1])
+    bottom = Number(arr[2])
+    right = Number(arr[3])
+    if (arr.length > 4) {
+      animation = Number(arr[4]) == 1
+    }
+
+    if (this.axis == ScrollDirection.Vertical) {
+      this.contentInsetWhenDrag = top - bottom
+    } else {
+      this.contentInsetWhenDrag = left - right
+    }
+    (this.children[0] as HRScrollContentView).startOffset = this.contentInsetWhenDrag
+  }
+
+  private setContentInset(params: HippyAny) {
+    let top: number = 0
+    let left: number = 0
+    let bottom: number = 0
+    let right: number = 0
+    let animation: boolean = false
+
+    let arr: Array<string> = (params as string).split(this.BLANK_SEPARATOR)
+    top = Number(arr[0])
+    left = Number(arr[1])
+    bottom = Number(arr[2])
+    right = Number(arr[3])
+    if (arr.length > 4) {
+      animation = Number(arr[4]) == 1
+    }
+
+    if (this.axis == ScrollDirection.Vertical) {
+      this.contentInset = bottom - top
+    } else {
+      this.contentInset = right - left
+    }
+    (this.children[0] as HRScrollContentView).startOffset = this.contentInset
+  }
+
 }
 
 @Component
@@ -124,69 +192,76 @@ export struct HRScroll {
   @State yOffset: number = 0
   viewWidth: number = 0
   viewHeight: number = 0
+  private isDragging: boolean = false
+  private needFireWillEndDragEvent: boolean = false
+
+  private fireBeginDragEvent() {
+    this.needFireWillEndDragEvent = true
+    if (this.renderView.dragBeginEvent) {
+      this.renderView.dragBeginEvent(this.generateParam())
+    }
+  }
+
+  private fireEndDragEvent() {
+    if (this.needFireWillEndDragEvent) {
+      this.fireWillDragEndEvent()
+    }
+    if (this.renderView.dragEndEvent) {
+      this.renderView.dragEndEvent(this.generateParam())
+    }
+  }
+
+  private fireWillDragEndEvent() {
+    this.needFireWillEndDragEvent = false
+  }
+
+  private generateParam(): HippyRecord {
+    return {
+      "offsetX": this.renderView.scroller.currentOffset().xOffset,
+      "offsetY": this.renderView.scroller.currentOffset().yOffset,
+      "contentWidth": (this.renderView.children[0] as HRScrollContentView)?.viewWidth,
+      "contentHeight": (this.renderView.children[0] as HRScrollContentView)?.viewHeight,
+      "viewWidth": this.viewWidth,
+      "viewHeight": this.viewHeight,
+      "isDragging": this.isDragging ? 1 : 0
+    } as HippyRecord
+  }
 
   build() {
-    List({ scroller: this.renderView.scroller }) {
+    Scroll(this.renderView.scroller) {
       if (this.children.length > 0) {
         this.buildRenderView(this.children[0], this)
       }
     }
     .applyRenderViewBaseAttr(this.renderView)
     .edgeEffect(this.renderView.edgeEffect)
-    .listDirection(this.renderView.axis)
+    .scrollable(this.renderView.axis)
     .friction(this.renderView.friction)
+    //.enablePaging(this.renderView.pageEnabled)
     .onScroll((xOffset: number, yOffset: number) => {
       this.xOffset = xOffset
       this.yOffset = yOffset
       if (this.renderView.scrollEvent) {
-        this.renderView.scrollEvent({
-          "offsetX": this.renderView.scroller.currentOffset().xOffset,
-          "offsetY": this.renderView.scroller.currentOffset().yOffset,
-          "contentWidth": (this.renderView.children[0] as HRScrollContentView).viewWidth,
-          "contentHeight": (this.renderView.children[0] as HRScrollContentView).viewHeight,
-          "viewWidth": this.viewWidth,
-          "viewHeight": this.viewHeight,
-          "isDragging": false
-        } as HippyRecord);
+        this.renderView.scrollEvent(this.generateParam())
       }
     })
     .onScrollStop(() => {
       if (this.renderView.scrollEndEvent) {
-        this.renderView.scrollEndEvent({
-          "offsetX": this.renderView.scroller.currentOffset().xOffset,
-          "offsetY": this.renderView.scroller.currentOffset().yOffset,
-          "contentWidth": (this.renderView.children[0] as HRScrollContentView).viewWidth,
-          "contentHeight": (this.renderView.children[0] as HRScrollContentView).viewHeight,
-          "viewWidth": this.viewWidth,
-          "viewHeight": this.viewHeight,
-          "isDragging": false
-        } as HippyRecord);
+        this.renderView.scrollEndEvent(this.generateParam())
       }
     })
-    .onDragStart(() => {
-      if (this.renderView.dragBeginEvent) {
-        this.renderView.dragBeginEvent({
-          "offsetX": this.renderView.scroller.currentOffset().xOffset,
-          "offsetY": this.renderView.scroller.currentOffset().yOffset,
-          "contentWidth": (this.renderView.children[0] as HRScrollContentView).viewWidth,
-          "contentHeight": (this.renderView.children[0] as HRScrollContentView).viewHeight,
-          "viewWidth": this.viewWidth,
-          "viewHeight": this.viewHeight,
-          "isDragging": true
-        } as HippyRecord);
-      }
-    })
-    .onDragEnd(() => {
-      if (this.renderView.dragEndEvent) {
-        this.renderView.dragEndEvent({
-          "offsetX": this.renderView.scroller.currentOffset().xOffset,
-          "offsetY": this.renderView.scroller.currentOffset().yOffset,
-          "contentWidth": (this.renderView.children[0] as HRScrollContentView).viewWidth,
-          "contentHeight": (this.renderView.children[0] as HRScrollContentView).viewHeight,
-          "viewWidth": this.viewWidth,
-          "viewHeight": this.viewHeight,
-          "isDragging": true
-        } as HippyRecord);
+    .onTouch((e: TouchEvent) => {
+      switch (e.type) {
+        case TouchType.Down:
+        case TouchType.Move:
+          this.isDragging = true
+          this.fireBeginDragEvent()
+          break
+        case TouchType.Up:
+        case TouchType.Cancel:
+          this.isDragging = false
+          this.fireEndDragEvent()
+          break
       }
     })
     .onAreaChange((oldArea: Area, newArea: Area) => {
@@ -197,7 +272,7 @@ export struct HRScroll {
 }
 
 // base props for all components
-@Extend(List)
+@Extend(Scroll)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
   .position({ x: $$.cssPositionX, y: $$.cssPositionY })

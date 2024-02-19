@@ -17,14 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import taskpool from '@ohos.taskpool'
+
+import { HippyExecutor } from '../../../support/common/HippyExecutor'
 
 export interface HippyExecutorSupplierAdapter {
 
-  //todo java语法中的executor改写为taskpool，待跟踪是否有新的问题
-  getDBExecutor(): taskpool.Task
+  getDBExecutor(): HippyExecutor
 
-  getBackgroundTaskExecutor(): taskpool.TaskGroup
+  getBackgroundTaskExecutor(): HippyExecutor
 
-  destroyIfNeed(): void
+  destroyIfNeed()
 }

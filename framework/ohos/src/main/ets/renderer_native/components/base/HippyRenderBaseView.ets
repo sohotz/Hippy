@@ -17,11 +17,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HippyAny,
+  HippyRecord,
+  HippyRenderCallback,
+  HippyTouchParamType,
+  HippyValue } from '../../../support/common/HippyTypes';
+import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRNodeProps } from '../../dom_node/HRNodeProps';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HRGestureDispatcher } from '../../uimanager/HRGestureDispatcher';
+import { HRConvertUtil } from '../../utils/HRConvertUtil';
 import { HRRect } from '../../utils/HRTypes';
+
+interface LinearGradient {
+  angle?: number | string
+  direction?: GradientDirection
+  colors: Array<[ResourceColor, number]>
+  repeating?: boolean
+}
+
+function touchEventToParamRecord(event: TouchEvent) : HippyTouchParamType {
+  let touches = event.touches.map((value)=>{
+    return {
+      'x': value.x,
+      'y': value.y,
+      'pageX': value.windowX,
+      'pageY': value.windowY,
+    } as HippyRecord
+  })
+  let param : HippyTouchParamType = {
+    'x': touches[0].x,
+    'y': touches[0].y,
+    'pageX': touches[0].pageX,
+    'pageY': touches[0].pageY,
+    'touches': touches,
+  }
+  return param
+}
 
 @Observed
 export class HippyObservedArray<T> extends Array<T> {
@@ -49,6 +81,7 @@ export default abstract class HippyRenderBaseView {
   cssRotate: RotateOptions | null = null
   cssScale: ScaleOptions | null = null
   cssTranslate: TranslateOptions | null = null
+  cssLinearGradient: LinearGradient | null = null
   eventClick: ((event: ClickEvent) => void) | null = null
   eventDoubleClick: ((event: GestureEvent | null) => void) | null = null
   eventLongPress: ((event: GestureEvent | null, state: string) => void) | null = null
@@ -78,6 +111,12 @@ export default abstract class HippyRenderBaseView {
         this.cssOpacity = propValue as number
         break
       case HRNodeProps.BORDER_RADIUS:
+        // this.cssBorderRadius = HRConvertUtil.toBorderRadius(propValue as string)
+        // if (this.cssBorder) {
+        //   this.cssBorder.radius = this.cssBorderRadius ? this.cssBorderRadius : undefined
+        // } else {
+        //   this.cssBorder = {width: 0, color: Color.Transparent, style: BorderStyle.Solid, radius: this.cssBorderRadius ? this.cssBorderRadius : undefined}
+        // }
         break
       case HRNodeProps.BORDER_TOP_LEFT_RADIUS:
       case HRNodeProps.BORDER_TOP_RIGHT_RADIUS:
@@ -85,12 +124,20 @@ export default abstract class HippyRenderBaseView {
       case HRNodeProps.BORDER_BOTTOM_RIGHT_RADIUS:
         break
       case HRNodeProps.BORDER_WIDTH:
+        // this.cssBorder = HRConvertUtil.toBorder(propValue as string, this.cssBorderRadius)
         break
       case HRNodeProps.TRANSFORM:
+        // let transform = HRConvertUtil.toTransform(propValue as string)
+        // this.cssScale = transform.scale
+        // this.cssTranslate = transform.translate
+        // this.cssRotate = transform.rotate
         break
       case HRNodeProps.OVERFLOW:
         this.cssOverflow = propValue as number == 1
         break
+      // case cssTouchEnable:
+      //   this.cssTouchEnable = propValue == 1
+      //   break
       case HRNodeProps.Z_INDEX:
         this.cssZIndex = propValue as number
         break
@@ -98,6 +145,42 @@ export default abstract class HippyRenderBaseView {
         this.eventClick = (event) => {
           HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
         }
+        break
+      case HRNodeProps.ON_LONG_CLICK:
+        this.eventLongPress = (event, state) => {
+          if(event) {
+            let localX: number = event['localX'];
+            let localY: number = event['localY'];
+            (propValue as HippyRenderCallback)({
+              'x': localX,
+              'y': localY,
+              'state': state
+            } as HippyRecord)
+          }
+        }
+        break
+      case HRNodeProps.ON_TOUCH_END:
+        this.eventTouchUp = (event) => {
+          let params = touchEventToParamRecord(event) as HippyTouchParamType
+          //(propValue as HippyRenderCallback)(params)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_DOWN:
+        this.eventTouchDown = (event) => {
+          let params = touchEventToParamRecord(event) as HippyTouchParamType
+          //(propValue as HippyRenderCallback)(params)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_MOVE:
+        this.eventTouchMove = (event) => {
+          let params = touchEventToParamRecord(event) as HippyTouchParamType
+          //(propValue as HippyRenderCallback)(params)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_CANCEL:
+        break
+      case HRNodeProps.BACKGROUND_IMAGE:
+        this.setBackgroundImage(propValue as string)
         break
       default:
         break
@@ -107,6 +190,10 @@ export default abstract class HippyRenderBaseView {
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+
+  }
+
+  onDestroy(): void {
 
   }
 
@@ -141,6 +228,43 @@ export default abstract class HippyRenderBaseView {
 
   setRenderViewFrame(frame: HRRect): void {
     this.updateRenderViewFrame(frame)
+  }
+
+  setBackgroundImage(value: string): void {
+    const linearGradientPrefix = 'linear-gradient(';
+    if (value?.startsWith(linearGradientPrefix) && value.endsWith(')')) {
+      const lg = value.substring(linearGradientPrefix.length, value.length - 1)
+      this.cssLinearGradient = this.parseLinearGradient(lg)
+    } else {
+      this.cssLinearGradient = null
+    }
+  }
+
+  private static readonly gradientDirectionOrder = [
+    GradientDirection.Top,
+    GradientDirection.Bottom,
+    GradientDirection.Left,
+    GradientDirection.Right,
+    GradientDirection.LeftTop,
+    GradientDirection.RightTop,
+    GradientDirection.LeftBottom,
+    GradientDirection.RightBottom
+  ]
+
+  private parseLinearGradient(lg: string): LinearGradient | null {
+    try {
+      const splits = lg.split(',')
+      return {
+        direction: HippyRenderBaseView.gradientDirectionOrder[parseInt(splits[0], 10)],
+        colors: splits.slice(1).map((value) => {
+          const pair = value.trim().split(' ');
+          return [parseInt(pair[0], 10), parseFloat(pair[1])]
+        }),
+      }
+    } catch (err) {
+      LogUtils.e('HippyRenderBaseView', `parse linearGradient input = "${lg}" error = ${JSON.stringify(err)}`)
+      return null
+    }
   }
 
 }

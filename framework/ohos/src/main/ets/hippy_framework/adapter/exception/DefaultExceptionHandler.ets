@@ -17,21 +17,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyException } from '../../../support/common/HippyException';
+import { LogUtils } from '../../../support/utils/LogUtils';
+import { HippyJsException } from '../../common/HippyJsException';
 import { HippyExceptionHandlerAdapter } from './HippyExceptionHandlerAdapter';
-import { BusinessError } from '@ohos.base';
-import { HippyJsException } from './HippyJsException';
 
 export class DefaultExceptionHandler implements HippyExceptionHandlerAdapter {
-  //todo HippyJsException need to be reCode
-  handleJsException(exception: HippyJsException): void {
-    throw new Error('Method not implemented.');
+  handleJsException(exception: HippyJsException) {
+
   }
 
-  handleNativeException(exception: BusinessError, haveCaught: boolean): void {
-    throw new Error('Method not implemented.');
+  handleNativeException(exception: HippyException, haveCaught: boolean) {
+    LogUtils.e('NativeException', `message:${exception?.message} stack: ${exception?.stack}`)
   }
 
-  handleBackgroundTracing(details: string): void {
-    throw new Error('Method not implemented.');
+  handleBackgroundTracing(details: string) {
+
   }
 }
