@@ -17,30 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import resmgr from "@ohos.resourceManager";
-import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
-import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { DomManager } from './connector/DomManager';
-import { JsDriver } from './connector/JsDriver';
-import { NativeRenderer } from './connector/NativeRenderer';
+import { HippySoLoaderAdapter } from './HippySoLoaderAdapter';
 
-export interface HippyEngine {
-  jsDriver: JsDriver
-  domMgr: DomManager
-  nativeRenderer: NativeRenderer
-
-  runJsBundle(resourceManager: resmgr.ResourceManager): Promise<void>
-
-  getNativeRenderContext(): NativeRenderContext
-
-  getNativeRenderProvider(): NativeRenderProvider
+export class DefaultSoLoaderAdapter implements HippySoLoaderAdapter{
+  public loadSoPath(soName: string): string {
+    return null;
+  }
 }
-
-export enum EngineInitStatus {
-
-}
-
-export enum ModuleLoadStatus {
-
-}
-

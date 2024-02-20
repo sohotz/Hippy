@@ -17,30 +17,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import resmgr from "@ohos.resourceManager";
-import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
-import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { DomManager } from './connector/DomManager';
-import { JsDriver } from './connector/JsDriver';
-import { NativeRenderer } from './connector/NativeRenderer';
+import { HippyExecutorSupplierAdapter } from './HippyExecutorSupplierAdapter';
+import { HippyExecutor } from '../../../support/common/HippyExecutor';
 
-export interface HippyEngine {
-  jsDriver: JsDriver
-  domMgr: DomManager
-  nativeRenderer: NativeRenderer
+export class DefaultExecutorSupplierAdapter implements HippyExecutorSupplierAdapter {
+  getDBExecutor(): HippyExecutor {
+    throw new Error('Method not implemented.');
+  }
 
-  runJsBundle(resourceManager: resmgr.ResourceManager): Promise<void>
+  getBackgroundTaskExecutor(): HippyExecutor {
+    throw new Error('Method not implemented.');
+  }
 
-  getNativeRenderContext(): NativeRenderContext
-
-  getNativeRenderProvider(): NativeRenderProvider
+  destroyIfNeed() {
+  }
 }
-
-export enum EngineInitStatus {
-
-}
-
-export enum ModuleLoadStatus {
-
-}
-
