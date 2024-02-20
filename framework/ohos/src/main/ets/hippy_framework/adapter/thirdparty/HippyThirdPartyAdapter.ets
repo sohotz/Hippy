@@ -17,30 +17,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import resmgr from "@ohos.resourceManager";
-import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
-import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { DomManager } from './connector/DomManager';
-import { JsDriver } from './connector/JsDriver';
-import { NativeRenderer } from './connector/NativeRenderer';
 
-export interface HippyEngine {
-  jsDriver: JsDriver
-  domMgr: DomManager
-  nativeRenderer: NativeRenderer
+export abstract class HippyThirdPartyAdapter {
+  public onRuntimeInit(runtimeId: number) {
+  }
 
-  runJsBundle(resourceManager: resmgr.ResourceManager): Promise<void>
+  public onRuntimeDestroy() {
+  }
 
-  getNativeRenderContext(): NativeRenderContext
+  public getExtraData(): ESObject {
+    return null;
+  }
 
-  getNativeRenderProvider(): NativeRenderProvider
+  public getPageUrl(): string {
+    return null;
+  }
+
+  public getNightMode(): boolean {
+    return false;
+  }
+
+  public abstract getPackageName(): string
+
+  public abstract getAppVersion(): string
 }
-
-export enum EngineInitStatus {
-
-}
-
-export enum ModuleLoadStatus {
-
-}
-
