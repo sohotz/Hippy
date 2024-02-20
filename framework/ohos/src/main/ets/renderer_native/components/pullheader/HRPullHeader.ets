@@ -29,8 +29,9 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 @Observed
 export class HRPullHeaderView extends HippyRenderBaseView {
   private readonly TAG = "HRPullHeaderView"
-  // public cssVisibility: number = 0
-  public collapseTime: number = 0
+  public collapseTime: number = 1000
+  private CURRENT_OFFSET: string = "contentOffset";
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
     this.cssVisibility = Visibility.Hidden
@@ -66,6 +67,10 @@ export class HRPullHeaderView extends HippyRenderBaseView {
           setTimeout(() => {
             LogUtils.d(this.TAG, "delay : " + this.collapseTime)
             this.cssVisibility = Visibility.Hidden
+            let params = new Map<string, Number>() as HippyMap;
+            params.set(this.CURRENT_OFFSET, 0);
+            HREventUtils.sendComponentEvent(this.ctx, this.tag,
+              HREventUtils.EVENT_LIST_HEADER_PULLING, params);
           }, this.collapseTime);
         }
         break;

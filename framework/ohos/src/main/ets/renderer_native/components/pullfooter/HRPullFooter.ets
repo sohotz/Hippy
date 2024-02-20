@@ -29,19 +29,49 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 @Observed
 export class HRPullFooterView extends HippyRenderBaseView {
   private readonly TAG = "HRPullFooterView"
-  public initialPage: number = 0
+  public collapseTime: number = 1000
+  private CURRENT_OFFSET: string = "contentOffset";
   constructor(ctx: NativeRenderContext) {
     super(ctx)
+    this.cssVisibility = Visibility.None
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     // TODO: xxxxx
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
+    switch (propKey) {
+      case "cssPositionX":
+        this.cssPositionX = propValue as number;
+        break;
+      case "cssPositionY":
+        this.cssPositionY = propValue as number;
+        break;
+      default:
+        break;
+    }
     return super.setProp(propKey, propValue)
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
     LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
+    switch (method) {
+      case "collapsePullHeaderWithOptions":
+        {
+          let map = params[0] as HippyMap
+          this.collapseTime = map.get('time') as number;
+          setTimeout(() => {
+            LogUtils.d(this.TAG, "delay : " + this.collapseTime)
+            this.cssVisibility = Visibility.Hidden
+            let params = new Map<string, Number>() as HippyMap;
+            params.set(this.CURRENT_OFFSET, 0);
+            HREventUtils.sendComponentEvent(this.ctx, this.tag,
+              HREventUtils.EVENT_LIST_FOOTER_RELEASED, params);
+          }, this.collapseTime);
+        }
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -56,7 +86,6 @@ export struct HRPullFooter {
   @State index: number = 0
 
   aboutToAppear() {
-    this.index = this.renderView.initialPage
   }
 
   aboutToDisappear() {
@@ -74,6 +103,7 @@ export struct HRPullFooter {
     }
     .applyRenderViewBaseAttr(this.renderView)
     .visibility(Visibility.Visible)
+    .applyRenderViewBaseAttr(this.renderView)
     .zIndex(2)
   }
 }
@@ -82,7 +112,7 @@ export struct HRPullFooter {
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
-  // .position({ x: $$.cssPositionX, y: $$.cssPositionY })
+  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
   .size({ width: $$.cssWidth, height: $$.cssHeight })
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)

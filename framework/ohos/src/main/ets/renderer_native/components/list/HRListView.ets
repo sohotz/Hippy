@@ -119,6 +119,7 @@ export struct HRList {
   private edgeState: EdgeAction = EdgeAction.None;
   private headerView: HRPullHeaderView | null = null;
   private footerView: HRPullFooterView | null = null;
+  private footerYOff: number = 0;
 
   aboutToAppear(): void {
     LogUtils.d(this.TAG, "aboutToAppear: " )
@@ -137,15 +138,14 @@ export struct HRList {
 
   build() {
     Column() {
-
-      ForEach(this.children, (item: HippyRenderBaseView) => {
-        if (item.viewType === 'PullHeaderView') {
-            // if (item instanceof HRPullHeaderView) {
-            //   this.headerView = item as HRPullHeaderView;
-            // }
+      Stack() {
+        ForEach(this.children, (item: HippyRenderBaseView) => {
+          if (item.viewType === 'PullHeaderView') {
             this.buildRenderView(item, null)
-        }
-      }, (item: HippyRenderBaseView) => item.tag + '')
+          }
+        }, (item: HippyRenderBaseView) => item.tag + '')
+      }
+      .zIndex(1)
 
       Stack() {
         List({ space: 20, initialIndex: 0, scroller: this.renderView.scroller }) {
@@ -173,19 +173,16 @@ export struct HRList {
             ", lastIndex=" + lastIndex + ", centerIndex=" + centerIndex)
         })
         .onScroll((scrollOffset: number, scrollState: ScrollState) => {
-          // LogUtils.d(this.TAG, "onScroll: scrollOffset=" + scrollOffset +
-          //   ", scrollState=" + scrollState )
+          LogUtils.d(this.TAG, "onScroll: scrollOffset=" + scrollOffset +
+            ", scrollState=" + scrollState )
           let xOff: number = this.renderView.scroller.currentOffset().xOffset;
           let yOff: number = this.renderView.scroller.currentOffset().yOffset;
           // LogUtils.d(this.TAG, "current xOffset=" + xOff + ", yOffset=" + yOff )
           if (this.pullAction === ScrollAction.None && scrollOffset < 0 &&
             scrollState === ScrollState.Scroll && this.edgeState === EdgeAction.ReachStart) {
-            //手动滚动见顶,
-            let curOff = new Map<string, Number>() as HippyMap;
-            curOff.set("x", xOff);
-            curOff.set("y", yOff);
-            let params = new Map<string, HippyMap>() as Hippy2Map;
-            params.set(this.CURRENT_OFFSET, curOff);
+            //scroll to head
+            let params = new Map<string, Number>() as HippyMap;
+            params.set(this.CURRENT_OFFSET, -yOff);
             if (this.headerView) {
               HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
                 HREventUtils.EVENT_LIST_HEADER_PULLING, params);
@@ -195,54 +192,77 @@ export struct HRList {
             }
             this.pullAction = ScrollAction.PullHeader
             LogUtils.d(this.TAG, "ScrollAction: PullHeader=" )
-          } else if (this.pullAction === ScrollAction.PullHeader && scrollOffset < 0 &&
-            scrollState === ScrollState.Scroll && this.edgeState === EdgeAction.ReachStart) {
-            if (this.headerView) {
-              this.headerView.setProp("cssPositionX", xOff);
-              this.headerView.setProp("cssPositionY", -yOff-50);
-            }
           } else if (this.pullAction === ScrollAction.PullHeader && scrollOffset > 0 &&
             scrollState === ScrollState.Fling && yOff < 0.1) {
-            //滚动见顶松手,
-            let curOff = new Map<string, Number>() as HippyMap;
-            curOff.set("x", xOff);
-            curOff.set("y", yOff);
-            let params = new Map<string, HippyMap>() as Hippy2Map;
-            params.set(this.CURRENT_OFFSET, curOff);
+            //scroll to head then release
+            let params = new Map<string, Number>() as Hippy2Map;
+            params.set(this.CURRENT_OFFSET, -yOff);
             if (this.headerView) {
               HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
                 HREventUtils.EVENT_LIST_HEADER_RELEASED, params);
             }
             this.pullAction = ScrollAction.ReleaseHeader;
             LogUtils.d(this.TAG, "ScrollAction: ReleaseHeader=" )
+          } else if ((this.pullAction === ScrollAction.PullHeader ||
+            this.pullAction === ScrollAction.ReleaseHeader) &&
+            this.edgeState === EdgeAction.ReachStart) {
+            if (this.headerView) {
+              if (scrollState === ScrollState.Scroll) {
+                let params = new Map<string, Number>() as Hippy2Map;
+                params.set(this.CURRENT_OFFSET, -yOff);
+                HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
+                  HREventUtils.EVENT_LIST_HEADER_PULLING, params);
+              }
+              this.headerView.setProp("cssPositionX", xOff);
+              this.headerView.setProp("cssPositionY", -yOff);
+            }
           } else if (this.pullAction === ScrollAction.None && scrollOffset > 0 &&
             scrollState === ScrollState.Scroll && this.edgeState === EdgeAction.ReachEnd) {
-            //滚动见底,
-            let curOff = new Map<string, Number>() as HippyMap;
-            curOff.set("x", xOff);
-            curOff.set("y", yOff);
-            let params = new Map<string, HippyMap>() as Hippy2Map;
-            params.set(this.CURRENT_OFFSET, curOff);
+            //scroll to end,
+            let params = new Map<string, Number>() as HippyMap;
+            yOff = yOff - this.footerYOff
+            params.set(this.CURRENT_OFFSET, yOff);
+            LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff )
             if (this.footerView) {
               HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
                 HREventUtils.EVENT_LIST_FOOTER_PULLING, params);
+              this.footerView.setProp("visibility", 1);
+              this.footerView.setProp("cssPositionX", xOff);
+              this.footerView.setProp("cssPositionY", -yOff );
             }
             this.pullAction = ScrollAction.PullFooter;
             LogUtils.d(this.TAG, "ScrollAction: PullFooter=" )
           } else if (this.pullAction === ScrollAction.PullFooter && scrollOffset < 0 &&
             scrollState === ScrollState.Fling && this.edgeState === EdgeAction.ReachEnd) {
-            //滚动见底松手,
-            let curOff = new Map<string, Number>() as HippyMap;
-            curOff.set("x", xOff);
-            curOff.set("y", yOff);
-            let params = new Map<string, HippyMap>() as Hippy2Map;
-            params.set(this.CURRENT_OFFSET, curOff);
+            //scroll to end then release
+            let params = new Map<string, Number>() as HippyMap;
+            yOff = yOff - this.footerYOff
+            params.set(this.CURRENT_OFFSET, yOff);
             if (this.footerView) {
+              LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff )
               HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
                 HREventUtils.EVENT_LIST_FOOTER_RELEASED, params);
+              this.footerView.setProp("cssPositionX", xOff);
+              this.footerView.setProp("cssPositionY", -yOff);
             }
             this.pullAction = ScrollAction.ReleaseFooter;
             LogUtils.d(this.TAG, "ScrollAction: ReleaseFooter=" )
+          } else if ((this.pullAction === ScrollAction.PullFooter ||
+            this.pullAction === ScrollAction.ReleaseFooter) &&
+            this.edgeState === EdgeAction.ReachEnd) {
+            yOff = yOff - this.footerYOff
+            if (this.footerView) {
+              if (scrollState === ScrollState.Scroll) {
+                let params = new Map<string, Number>() as Hippy2Map;
+
+                params.set(this.CURRENT_OFFSET, -yOff);
+                HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
+                  HREventUtils.EVENT_LIST_FOOTER_PULLING, params);
+              }
+              LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff )
+              this.footerView.setProp("cssPositionX", xOff);
+              this.footerView.setProp("cssPositionY", -yOff);
+            }
           }
         })
         .onScrollStart(() => {
@@ -263,30 +283,29 @@ export struct HRList {
         .onReachStart(() => {
           LogUtils.d(this.TAG, "onScroll: onReachStart=" );
           this.edgeState = EdgeAction.ReachStart;
-          if (this.headerView) {
-
-          }
           if (this.pullAction === ScrollAction.ReleaseHeader) {
             this.pullAction = ScrollAction.None;
           }
         })
         .onReachEnd(() => {
           LogUtils.d(this.TAG, "onScroll: onReachEnd=" )
-          this.edgeState = EdgeAction.ReachEnd
+          // HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
+          //   HREventUtils.EVENT_RECYCLER_END_REACHED, null);
+          this.edgeState = EdgeAction.ReachEnd;
           if (this.pullAction === ScrollAction.ReleaseFooter) {
-            this.pullAction = ScrollAction.None
+            this.pullAction = ScrollAction.None;
           }
+          this.footerYOff = this.renderView.scroller.currentOffset().yOffset;
         })
       }
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
           if (item.viewType === 'PullFooterView') {
-            Stack() {
-              this.buildRenderView(item, null)
-            }
+            this.buildRenderView(item, null)
           }
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
+      .zIndex(1)
     }
   }
 }
