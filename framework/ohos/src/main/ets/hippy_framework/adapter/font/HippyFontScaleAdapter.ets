@@ -17,30 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import resmgr from "@ohos.resourceManager";
-import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
-import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { DomManager } from './connector/DomManager';
-import { JsDriver } from './connector/JsDriver';
-import { NativeRenderer } from './connector/NativeRenderer';
+import { FontAdapter } from '../../../renderer_native/components/richtext/FontAdapter'
 
-export interface HippyEngine {
-  jsDriver: JsDriver
-  domMgr: DomManager
-  nativeRenderer: NativeRenderer
+export interface HippyFontScaleAdapter extends FontAdapter{
+  getFontScale(): number
 
-  runJsBundle(resourceManager: resmgr.ResourceManager): Promise<void>
+  getEmoticonText(text: string, fontSize: number): string
 
-  getNativeRenderContext(): NativeRenderContext
+  getCustomFontFilePath(fontFamily: string, style: number)
 
-  getNativeRenderProvider(): NativeRenderProvider
+  getCustomTypeface(fontFamily: string, style: number)
 }
-
-export enum EngineInitStatus {
-
-}
-
-export enum ModuleLoadStatus {
-
-}
-

@@ -17,30 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import resmgr from "@ohos.resourceManager";
-import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
-import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { DomManager } from './connector/DomManager';
-import { JsDriver } from './connector/JsDriver';
-import { NativeRenderer } from './connector/NativeRenderer';
 
-export interface HippyEngine {
-  jsDriver: JsDriver
-  domMgr: DomManager
-  nativeRenderer: NativeRenderer
-
-  runJsBundle(resourceManager: resmgr.ResourceManager): Promise<void>
-
-  getNativeRenderContext(): NativeRenderContext
-
-  getNativeRenderProvider(): NativeRenderProvider
+export class HttpHeaderReuqest {
+  public static ACCEPT: string = "Accept"
+  public static HOST: string = "Host";
+  public static ACCEPT_LANGUAGE: string = "Accept-Language";
+  public static ACCEPT_ENCODING: string = "Accept-Encoding";
+  public static CONTENT_LENGTH: string = "Content-Length";
+  public static CONTENT_TYPE: string = "Content-Type";
+  public static USER_AGENT: string = "User-Agent";
+  public static REFERER: string = "Referer";
+  public static RANGE: string = "Range";
+  public static CONNECTION: string = "Connection";
+  public static COOKIE: string = "Cookie";
 }
-
-export enum EngineInitStatus {
-
-}
-
-export enum ModuleLoadStatus {
-
-}
-
