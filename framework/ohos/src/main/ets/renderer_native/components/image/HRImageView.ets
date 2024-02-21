@@ -37,6 +37,7 @@ interface ImageLoadEvent {
 @Observed
 export class HRImageView extends HippyRenderBaseView {
   private static readonly BASE64_IMAGE_PREFIX = "data:image";
+  private static readonly RAWFILE_IMAGE_PREFIX = "hpfile://";
   private readonly TAG = "HRImageView"
   cssSrc: string | null = null
   cssResizeMode: ImageFit = ImageFit.Cover
@@ -88,6 +89,13 @@ export class HRImageView extends HippyRenderBaseView {
       case "src":
         this.cssSrc = propValue as string
         return true
+      case "defaultSource":
+        {
+          this.cssAlt = propValue as string
+          let splitList = this.cssAlt.split("/")
+          this.cssAlt = splitList[splitList.length - 1]
+        }
+        return true
       case "resizeMode":
         {
           let pvalue = propValue as string;
@@ -136,13 +144,15 @@ export struct HRImage {
   @ObjectLink renderView: HRImageView
   build() {
     // Text("image")
-    Image(this.renderView.getImage())
-      .applyRenderViewBaseAttr(this.renderView)
-      .objectFit(this.renderView.cssResizeMode)
-      .onComplete(this.renderView.onCompleteCallback)
-      .borderWidth(this.renderView.cssBorderWidth)
-      .borderColor(this.renderView.cssBorderColor)
-      .borderStyle(this.renderView.cssBorderStyle)
+
+      Image(this.renderView.getImage())
+        .applyRenderViewBaseAttr(this.renderView)
+        .objectFit(this.renderView.cssResizeMode)
+        .onComplete(this.renderView.onCompleteCallback)
+        .borderWidth(this.renderView.cssBorderWidth)
+        .borderColor(this.renderView.cssBorderColor)
+        .borderStyle(this.renderView.cssBorderStyle)
+        .alt($rawfile(this.renderView.cssAlt))
   }
 }
 
