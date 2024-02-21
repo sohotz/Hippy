@@ -17,6 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import matrix4 from '@ohos.matrix4'
+
 export class HRSize {
   width: number
   height: number
@@ -48,4 +50,5 @@ export class HRTransform {
   rotate: RotateOptions | null = null
   scale: ScaleOptions | null = null
   translate: TranslateOptions | null = null
+  matrix: matrix4.Matrix4Transit | null = null
 }

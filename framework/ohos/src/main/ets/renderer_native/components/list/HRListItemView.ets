@@ -30,7 +30,7 @@ export class HRListItemView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 
   protected updateRenderViewFrame(frame: HRRect): void {

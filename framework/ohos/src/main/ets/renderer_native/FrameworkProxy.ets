@@ -20,6 +20,8 @@
 import { HippyException } from '../support/common/HippyException';
 
 export interface FrameworkProxy {
+  getBundlePath(): string
+
   getEngineId(): number
 
   handleNativeException(exception: HippyException)

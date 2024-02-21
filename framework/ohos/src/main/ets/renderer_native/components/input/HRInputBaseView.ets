@@ -127,7 +127,7 @@ export default abstract class HRInputBaseView extends HippyRenderBaseView {
         this.eventTextLengthBeyondLimit = propValue as HippyRenderCallback
         return true;
       default:
-        return super.setProp(propKey, propValue)
+        return super.setProp(propKey, propValue as HippyAny)
     }
   }
 

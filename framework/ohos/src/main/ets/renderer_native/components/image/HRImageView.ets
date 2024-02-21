@@ -75,7 +75,7 @@ export class HRImageView extends HippyRenderBaseView {
       default:
         break
     }
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 
   private initOnCompleteCallbackIfNeeded() {

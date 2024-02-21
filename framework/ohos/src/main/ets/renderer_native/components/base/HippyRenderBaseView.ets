@@ -17,7 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import matrix4 from '@ohos.matrix4';
 import { HippyAny,
+  HippyArray,
+  HippyMap,
   HippyRecord,
   HippyRenderCallback,
   HippyTouchParamType,
@@ -28,13 +31,9 @@ import { NativeRenderContext } from '../../NativeRenderContext';
 import { HRGestureDispatcher } from '../../uimanager/HRGestureDispatcher';
 import { HRConvertUtil } from '../../utils/HRConvertUtil';
 import { HRRect } from '../../utils/HRTypes';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
-interface LinearGradient {
-  angle?: number | string
-  direction?: GradientDirection
-  colors: Array<[ResourceColor, number]>
-  repeating?: boolean
-}
+export const HIPPY_COMPONENT_KEY_PREFIX = "HippyKey"
 
 function touchEventToParamRecord(event: TouchEvent) : HippyTouchParamType {
   let touches = event.touches.map((value)=>{
@@ -76,12 +75,20 @@ export default abstract class HippyRenderBaseView {
   cssOverflow: boolean | null = null
   cssTouchEnable: boolean | null = null
   cssZIndex: number | null = null
-  cssBorderRadius:  BorderRadiuses | null = null
-  cssBorder: BorderOptions  | undefined = undefined
+  cssAccessibilityLabel: string | null = null
+  cssFocusable: boolean | null = null
+  cssBorder: BorderOptions | undefined = undefined
+  cssShadow: ShadowOptions | undefined = undefined
+  cssShadowColor: number = 0
+  cssShadowOpacity: number | undefined = undefined
+  cssLinearGradient: LinearGradient | null = null
+  cssBackgroundImage: ResourceStr | null = null // TODO(hot):
+  cssBackgroundImagePosition: Position | null = null
+  cssBackgroundImageSize: ImageSize | null = null
   cssRotate: RotateOptions | null = null
   cssScale: ScaleOptions | null = null
   cssTranslate: TranslateOptions | null = null
-  cssLinearGradient: LinearGradient | null = null
+  cssMatrix: matrix4.Matrix4Transit | null = null
   eventClick: ((event: ClickEvent) => void) | null = null
   eventDoubleClick: ((event: GestureEvent | null) => void) | null = null
   eventLongPress: ((event: GestureEvent | null, state: string) => void) | null = null
@@ -99,48 +106,41 @@ export default abstract class HippyRenderBaseView {
     }
   }
 
-  setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+  setProp(propKey: string, propValue: HippyAny): boolean {
     switch (propKey) {
       case HRNodeProps.VISIBILITY:
-        this.cssVisibility = propValue as number == 1 ? Visibility.Visible : Visibility.Hidden
+        this.cssVisibility = HRValueUtils.getString(propValue) != HRNodeProps.HIDDEN ? Visibility.Visible : Visibility.Hidden
         break
       case HRNodeProps.BACKGROUND_COLOR:
-        this.cssBackgroundColor = propValue as number
+        this.cssBackgroundColor = HRValueUtils.getNumber(propValue)
         break
       case HRNodeProps.OPACITY:
-        this.cssOpacity = propValue as number
-        break
-      case HRNodeProps.BORDER_RADIUS:
-        // this.cssBorderRadius = HRConvertUtil.toBorderRadius(propValue as string)
-        // if (this.cssBorder) {
-        //   this.cssBorder.radius = this.cssBorderRadius ? this.cssBorderRadius : undefined
-        // } else {
-        //   this.cssBorder = {width: 0, color: Color.Transparent, style: BorderStyle.Solid, radius: this.cssBorderRadius ? this.cssBorderRadius : undefined}
-        // }
-        break
-      case HRNodeProps.BORDER_TOP_LEFT_RADIUS:
-      case HRNodeProps.BORDER_TOP_RIGHT_RADIUS:
-      case HRNodeProps.BORDER_BOTTOM_LEFT_RADIUS:
-      case HRNodeProps.BORDER_BOTTOM_RIGHT_RADIUS:
-        break
-      case HRNodeProps.BORDER_WIDTH:
-        // this.cssBorder = HRConvertUtil.toBorder(propValue as string, this.cssBorderRadius)
+        this.cssOpacity = HRValueUtils.getNumber2(propValue, 1.0)
         break
       case HRNodeProps.TRANSFORM:
-        // let transform = HRConvertUtil.toTransform(propValue as string)
-        // this.cssScale = transform.scale
-        // this.cssTranslate = transform.translate
-        // this.cssRotate = transform.rotate
+        this.setTransformProp(propKey, propValue)
         break
       case HRNodeProps.OVERFLOW:
-        this.cssOverflow = propValue as number == 1
+        this.cssOverflow = HRValueUtils.getString(propValue) != HRNodeProps.HIDDEN ? false : true
+        break
+      case HRNodeProps.Z_INDEX:
+        this.cssZIndex = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.PROP_ACCESSIBILITY_LABEL:
+        this.cssAccessibilityLabel = HRValueUtils.getString(propValue)
+        break
+      case HRNodeProps.FOCUSABLE:
+        this.cssFocusable = HRValueUtils.getBoolean(propValue, false)
+        break
+      case HRNodeProps.REQUEST_FOCUS:
+        focusControl.requestFocus(HIPPY_COMPONENT_KEY_PREFIX + this.tag)
+        break
+      case HRNodeProps.LINEAR_GRADIENT:
+        this.setLinearGradientProp(propKey, propValue)
         break
       // case cssTouchEnable:
       //   this.cssTouchEnable = propValue == 1
       //   break
-      case HRNodeProps.Z_INDEX:
-        this.cssZIndex = propValue as number
-        break
       case HRNodeProps.ON_CLICK:
         this.eventClick = (event) => {
           HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
@@ -149,13 +149,13 @@ export default abstract class HippyRenderBaseView {
       case HRNodeProps.ON_LONG_CLICK:
         this.eventLongPress = (event, state) => {
           if(event) {
-            let localX: number = event['localX'];
-            let localY: number = event['localY'];
-            (propValue as HippyRenderCallback)({
-              'x': localX,
-              'y': localY,
-              'state': state
-            } as HippyRecord)
+            // let localX: number = event['localX'];
+            // let localY: number = event['localY'];
+            // (propValue as HippyRenderCallback)({
+            //   'x': localX,
+            //   'y': localY,
+            //   'state': state
+            // } as HippyRecord)
           }
         }
         break
@@ -179,14 +179,304 @@ export default abstract class HippyRenderBaseView {
         break
       case HRNodeProps.ON_TOUCH_CANCEL:
         break
-      case HRNodeProps.BACKGROUND_IMAGE:
-        this.setBackgroundImage(propValue as string)
-        break
       default:
+        {
+          let handled = this.setBackgroundImageProp(propKey, propValue)
+          if (!handled) {
+            handled = this.setBorderProp(propKey, propValue)
+          }
+          if (!handled) {
+            this.setShadowProp(propKey, propValue)
+          }
+        }
         break
     }
 
     return true
+  }
+
+  private setTransformProp(propKey: string, propValue: HippyAny): boolean {
+    let transform = HRConvertUtil.toTransform(propValue as HippyArray)
+    if (transform) {
+      this.cssScale = transform.scale
+      this.cssTranslate = transform.translate
+      this.cssRotate = transform.rotate
+      this.cssMatrix = transform.matrix
+    }
+    return true
+  }
+
+  private setLinearGradientProp(propKey: string, propValue: HippyAny): boolean {
+    let m = HRValueUtils.getMap(propValue)
+    if (!m) {
+      return false
+    }
+
+    let angle = HRValueUtils.getString((m as Map<string, HippyAny>).get('angle') as HippyAny)
+    let colorStopList = HRValueUtils.getArray((m as Map<string, HippyAny>).get('colorStopList') as HippyArray)
+    if (!angle || angle.length == 0 || !colorStopList || colorStopList.length == 0) {
+      return false
+    }
+
+    let size = colorStopList.length
+    let colorsArray = new Array<Array<number>>()
+    for (let i = 0; i < size; i++) {
+      let colorStop = HRValueUtils.getMap(colorStopList[i])
+      if (!colorStop) {
+        continue
+      }
+      let color = HRValueUtils.getNumber(colorStop.get('color') as HippyAny)
+      let ratio = 0.0
+      if (colorStop.get('ratio')) {
+        ratio = HRValueUtils.getNumber(colorStop.get('ratio') as HippyAny)
+      } else if (i == size - 1) {
+        ratio = 1.0
+      }
+      colorsArray.push([color, ratio])
+    }
+
+    switch (angle) {
+      case 'totopright':
+        this.cssLinearGradient = { direction: GradientDirection.RightTop, colors: colorsArray }
+        break
+      case 'tobottomright':
+        this.cssLinearGradient = { direction: GradientDirection.RightBottom, colors: colorsArray }
+        break
+      case 'tobottomleft':
+        this.cssLinearGradient = { direction: GradientDirection.LeftBottom, colors: colorsArray }
+        break
+      case 'totopleft':
+        this.cssLinearGradient = { direction: GradientDirection.LeftTop, colors: colorsArray }
+        break
+      default: {
+        let value = Math.trunc(HRValueUtils.getNumber(angle)) % 360
+        this.cssLinearGradient = { angle: value, colors: colorsArray }
+      }
+        break
+    }
+    return true
+  }
+
+  private setBackgroundImageProp(propKey: string, propValue: HippyAny): boolean {
+    switch (propKey) {
+      case HRNodeProps.BACKGROUND_IMAGE:
+        if (typeof propValue == 'string') {
+          this.cssBackgroundImage = this.convertToLocalPathIfNeeded(propValue)
+        }
+        break
+      case HRNodeProps.BACKGROUND_POSITION_X:
+        if (!this.cssBackgroundImagePosition) {
+          this.cssBackgroundImagePosition = { x: 0, y: 0}
+        }
+        this.cssBackgroundImagePosition.x = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BACKGROUND_POSITION_Y:
+        if (!this.cssBackgroundImagePosition) {
+          this.cssBackgroundImagePosition = { x: 0, y: 0}
+        }
+        this.cssBackgroundImagePosition.y = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BACKGROUND_SIZE:
+        this.cssBackgroundImageSize = HRConvertUtil.toImageSize(propValue)
+        break
+      default:
+        return false
+    }
+    return true
+  }
+
+  private convertToLocalPathIfNeeded(uri: string): ResourceStr {
+    // hpfile://./assets/defaultSource.jpg
+    if (uri != null && uri.startsWith("hpfile://")) {
+      let relativePath = uri.replace("hpfile://./", "");
+      let bundlePath = "vue2/" // TODO(hot):
+      uri = bundlePath.substring(0, bundlePath.lastIndexOf("/") + 1) + relativePath
+      return $rawfile(uri)
+    }
+    return uri
+  }
+
+  private setBorderProp(propKey: string, propValue: HippyAny): boolean {
+    switch (propKey) {
+      case HRNodeProps.BORDER_RADIUS: {
+        this.checkAndBuildCssBorderRadius();
+        let value: number = HRValueUtils.getNumber(propValue);
+        (this.cssBorder?.radius as BorderRadiuses).topLeft = value;
+        (this.cssBorder?.radius as BorderRadiuses).topRight = value;
+        (this.cssBorder?.radius as BorderRadiuses).bottomRight = value;
+        (this.cssBorder?.radius as BorderRadiuses).bottomLeft = value;
+      }
+        break
+      case HRNodeProps.BORDER_TOP_LEFT_RADIUS:
+        this.checkAndBuildCssBorderRadius();
+        (this.cssBorder?.radius as BorderRadiuses).topLeft = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BORDER_TOP_RIGHT_RADIUS:
+        this.checkAndBuildCssBorderRadius();
+        (this.cssBorder?.radius as BorderRadiuses).topRight = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BORDER_BOTTOM_RIGHT_RADIUS:
+        this.checkAndBuildCssBorderRadius();
+        (this.cssBorder?.radius as BorderRadiuses).bottomRight = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BORDER_BOTTOM_LEFT_RADIUS:
+        this.checkAndBuildCssBorderRadius();
+        (this.cssBorder?.radius as BorderRadiuses).bottomLeft = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BORDER_WIDTH: {
+        this.checkAndBuildCssBorderWidth();
+        let value: number = HRValueUtils.getNumber(propValue);
+        (this.cssBorder?.width as EdgeWidths).top = value;
+        (this.cssBorder?.width as EdgeWidths).right = value;
+        (this.cssBorder?.width as EdgeWidths).bottom = value;
+        (this.cssBorder?.width as EdgeWidths).left = value;
+      }
+        break
+      case HRNodeProps.BORDER_TOP_WIDTH:
+        this.checkAndBuildCssBorderWidth();
+        (this.cssBorder?.width as EdgeWidths).top = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BORDER_RIGHT_WIDTH:
+        this.checkAndBuildCssBorderWidth();
+        (this.cssBorder?.width as EdgeWidths).right = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BORDER_BOTTOM_WIDTH:
+        this.checkAndBuildCssBorderWidth();
+        (this.cssBorder?.width as EdgeWidths).bottom = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BORDER_LEFT_WIDTH:
+        this.checkAndBuildCssBorderWidth();
+        (this.cssBorder?.width as EdgeWidths).left = HRValueUtils.getNumber(propValue)
+        break
+      case HRNodeProps.BORDER_STYLE: {
+        this.checkAndBuildCssBorderStyle();
+        let value = HRConvertUtil.toBorderStyle(HRValueUtils.getString(propValue));
+        (this.cssBorder?.style as EdgeStyles).top = value;
+        (this.cssBorder?.style as EdgeStyles).right = value;
+        (this.cssBorder?.style as EdgeStyles).bottom = value;
+        (this.cssBorder?.style as EdgeStyles).left = value;
+      }
+        break
+      case HRNodeProps.BORDER_TOP_STYLE:
+        this.checkAndBuildCssBorderStyle();
+        (this.cssBorder?.style as EdgeStyles).top = HRConvertUtil.toBorderStyle(HRValueUtils.getString(propValue));
+        break
+      case HRNodeProps.BORDER_RIGHT_STYLE:
+        this.checkAndBuildCssBorderStyle();
+        (this.cssBorder?.style as EdgeStyles).right = HRConvertUtil.toBorderStyle(HRValueUtils.getString(propValue));
+        break
+      case HRNodeProps.BORDER_BOTTOM_STYLE:
+        this.checkAndBuildCssBorderStyle();
+        (this.cssBorder?.style as EdgeStyles).bottom = HRConvertUtil.toBorderStyle(HRValueUtils.getString(propValue));
+        break
+      case HRNodeProps.BORDER_LEFT_STYLE:
+        this.checkAndBuildCssBorderStyle();
+        (this.cssBorder?.style as EdgeStyles).left = HRConvertUtil.toBorderStyle(HRValueUtils.getString(propValue));
+        break
+      case HRNodeProps.BORDER_COLOR: {
+        this.checkAndBuildCssBorderColor();
+        let value: number = HRValueUtils.getNumber(propValue);
+        (this.cssBorder?.color as EdgeColors).top = value;
+        (this.cssBorder?.color as EdgeColors).right = value;
+        (this.cssBorder?.color as EdgeColors).bottom = value;
+        (this.cssBorder?.color as EdgeColors).left = value;
+      }
+        break
+      case HRNodeProps.BORDER_TOP_COLOR:
+        this.checkAndBuildCssBorderColor();
+        (this.cssBorder?.color as EdgeColors).top = HRValueUtils.getNumber(propValue);
+        break
+      case HRNodeProps.BORDER_RIGHT_COLOR:
+        this.checkAndBuildCssBorderColor();
+        (this.cssBorder?.color as EdgeColors).right = HRValueUtils.getNumber(propValue);
+        break
+      case HRNodeProps.BORDER_BOTTOM_COLOR:
+        this.checkAndBuildCssBorderColor();
+        (this.cssBorder?.color as EdgeColors).bottom = HRValueUtils.getNumber(propValue);
+        break
+      case HRNodeProps.BORDER_LEFT_COLOR:
+        this.checkAndBuildCssBorderColor();
+        (this.cssBorder?.color as EdgeColors).left = HRValueUtils.getNumber(propValue);
+        break
+      default:
+        return false
+    }
+    return true
+  }
+
+  private checkAndBuildCssBorder() {
+    if(!this.cssBorder) {
+      this.cssBorder = {width: undefined, color: undefined, radius: undefined, style: undefined}
+    }
+  }
+
+  private checkAndBuildCssBorderWidth() {
+    this.checkAndBuildCssBorder();
+    (this.cssBorder as BorderOptions).width = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+  }
+
+  private checkAndBuildCssBorderColor() {
+    this.checkAndBuildCssBorder();
+    (this.cssBorder as BorderOptions).color = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+  }
+
+  private checkAndBuildCssBorderRadius() {
+    this.checkAndBuildCssBorder();
+    (this.cssBorder as BorderOptions).radius = {topLeft: undefined, topRight: undefined, bottomLeft:undefined, bottomRight: undefined}
+  }
+
+  private checkAndBuildCssBorderStyle() {
+    this.checkAndBuildCssBorder();
+    (this.cssBorder as BorderOptions).style = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+  }
+
+  private setShadowProp(propKey: string, propValue: HippyAny): boolean {
+    switch (propKey) {
+      case HRNodeProps.SHADOW_OFFSET: {
+        this.checkAndBuildCssShadow();
+        let m = HRValueUtils.getMap(propValue);
+        let x = m ? (m as HippyMap).get('x') : 0;
+        let y = m ? (m as HippyMap).get('y') : 0;
+        (this.cssShadow as ShadowOptions).offsetX = HRValueUtils.getNumber(x as HippyAny);
+        (this.cssShadow as ShadowOptions).offsetY = HRValueUtils.getNumber(y as HippyAny);
+      }
+        break
+      case HRNodeProps.SHADOW_OFFSET_X:
+        this.checkAndBuildCssShadow();
+        (this.cssShadow as ShadowOptions).offsetX = HRValueUtils.getNumber(propValue);
+        break
+      case HRNodeProps.SHADOW_OFFSET_Y:
+        this.checkAndBuildCssShadow();
+        (this.cssShadow as ShadowOptions).offsetY = HRValueUtils.getNumber(propValue);
+        break
+      case HRNodeProps.SHADOW_OPACITY:
+        this.checkAndBuildCssShadow();
+        this.cssShadowOpacity = HRValueUtils.getNumber(propValue); // 0-1.0
+        (this.cssShadow as ShadowOptions).color = HRConvertUtil.toColorWithNumberAndOpacity(this.cssShadowColor, this.cssShadowOpacity);
+        break
+      case HRNodeProps.SHADOW_RADIUS:
+        this.checkAndBuildCssShadow();
+        (this.cssShadow as ShadowOptions).radius = HRValueUtils.getNumber(propValue);
+        break
+      case HRNodeProps.SHADOW_COLOR:
+        this.checkAndBuildCssShadow();
+        this.cssShadowColor = HRValueUtils.getNumber(propValue);
+        if (this.cssShadowOpacity == undefined) {
+          (this.cssShadow as ShadowOptions).color = HRConvertUtil.toColorWithNumber(this.cssShadowColor);
+        } else {
+          (this.cssShadow as ShadowOptions).color = HRConvertUtil.toColorWithNumberAndOpacity(this.cssShadowColor, this.cssShadowOpacity);
+        }
+        break
+      default:
+        return false
+    }
+    return true
+  }
+
+  private checkAndBuildCssShadow() {
+    if(!this.cssShadow) {
+      this.cssShadow = {radius: 0, type: ShadowType.COLOR, color: undefined, offsetX: undefined, offsetY: undefined}
+    }
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
@@ -228,43 +518,6 @@ export default abstract class HippyRenderBaseView {
 
   setRenderViewFrame(frame: HRRect): void {
     this.updateRenderViewFrame(frame)
-  }
-
-  setBackgroundImage(value: string): void {
-    const linearGradientPrefix = 'linear-gradient(';
-    if (value?.startsWith(linearGradientPrefix) && value.endsWith(')')) {
-      const lg = value.substring(linearGradientPrefix.length, value.length - 1)
-      this.cssLinearGradient = this.parseLinearGradient(lg)
-    } else {
-      this.cssLinearGradient = null
-    }
-  }
-
-  private static readonly gradientDirectionOrder = [
-    GradientDirection.Top,
-    GradientDirection.Bottom,
-    GradientDirection.Left,
-    GradientDirection.Right,
-    GradientDirection.LeftTop,
-    GradientDirection.RightTop,
-    GradientDirection.LeftBottom,
-    GradientDirection.RightBottom
-  ]
-
-  private parseLinearGradient(lg: string): LinearGradient | null {
-    try {
-      const splits = lg.split(',')
-      return {
-        direction: HippyRenderBaseView.gradientDirectionOrder[parseInt(splits[0], 10)],
-        colors: splits.slice(1).map((value) => {
-          const pair = value.trim().split(' ');
-          return [parseInt(pair[0], 10), parseFloat(pair[1])]
-        }),
-      }
-    } catch (err) {
-      LogUtils.e('HippyRenderBaseView', `parse linearGradient input = "${lg}" error = ${JSON.stringify(err)}`)
-      return null
-    }
   }
 
 }

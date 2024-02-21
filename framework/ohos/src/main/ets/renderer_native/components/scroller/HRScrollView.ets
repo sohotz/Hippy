@@ -89,7 +89,7 @@ export class HRScrollView extends HippyRenderBaseView {
         this.pageEnabled = (propValue as number == 0) ? false : true
         return true
     }
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
