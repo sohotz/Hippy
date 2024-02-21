@@ -93,7 +93,7 @@ export class HRImageView extends HippyRenderBaseView {
         {
           this.cssAlt = propValue as string
           let splitList = this.cssAlt.split("/")
-          this.cssAlt = splitList[splitList.length - 1]
+          this.cssAlt = "vue2/assets/"+splitList[splitList.length - 1]
         }
         return true
       case "resizeMode":

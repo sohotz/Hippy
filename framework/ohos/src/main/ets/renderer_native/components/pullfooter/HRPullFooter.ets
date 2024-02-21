@@ -25,12 +25,12 @@ import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
   HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HRRect } from '../../utils/HRTypes';
 
 @Observed
 export class HRPullFooterView extends HippyRenderBaseView {
   private readonly TAG = "HRPullFooterView"
   public collapseTime: number = 1000
-  private CURRENT_OFFSET: string = "contentOffset";
   constructor(ctx: NativeRenderContext) {
     super(ctx)
     this.cssVisibility = Visibility.None
@@ -55,23 +55,28 @@ export class HRPullFooterView extends HippyRenderBaseView {
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
     LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
     switch (method) {
-      case "collapsePullHeaderWithOptions":
+      case "collapsePullFooter":
         {
-          let map = params[0] as HippyMap
-          this.collapseTime = map.get('time') as number;
           setTimeout(() => {
             LogUtils.d(this.TAG, "delay : " + this.collapseTime)
             this.cssVisibility = Visibility.Hidden
-            let params = new Map<string, Number>() as HippyMap;
-            params.set(this.CURRENT_OFFSET, 0);
-            HREventUtils.sendComponentEvent(this.ctx, this.tag,
-              HREventUtils.EVENT_LIST_FOOTER_RELEASED, params);
+            if (this.parentView) {
+              this.parentView.setProp("cssPositionX", 0);
+              this.parentView.setProp("cssPositionY", 0);
+              this.parentView.setProp("cssHeight", this.parentView.cssHeight+this.cssHeight)
+            }
           }, this.collapseTime);
         }
         break;
       default:
         break;
     }
+  }
+
+  setRenderViewFrame(frame: HRRect): void {
+    frame.x = this.cssPositionX;
+    frame.y = this.cssPositionY;
+    super.setRenderViewFrame(frame)
   }
 }
 
@@ -102,9 +107,8 @@ export struct HRPullFooter {
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
-    .visibility(Visibility.Visible)
-    .applyRenderViewBaseAttr(this.renderView)
-    .zIndex(2)
+    .visibility(this.renderView.cssVisibility)
+    // .zIndex(2)
   }
 }
 

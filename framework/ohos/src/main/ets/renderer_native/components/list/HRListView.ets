@@ -26,6 +26,7 @@ import { HREventUtils } from '../../utils/HREventUtils'
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRPullHeaderView } from '../pullheader/HRPullHeader';
 import { HRPullFooterView } from '../pullfooter/HRPullFooter';
+import { HRRect } from '../../utils/HRTypes';
 
 @Observed
 export class HRListView extends HippyRenderBaseView {
@@ -41,6 +42,12 @@ export class HRListView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
     switch (propKey) {
+      case "cssPositionX":
+        this.cssPositionX = propValue as number;
+        break;
+      case "cssPositionY":
+        this.cssPositionY = propValue as number;
+        break;
       case 'nestedScrollTopPriority':
         {
           let pvalue = propValue as string
@@ -52,6 +59,9 @@ export class HRListView extends HippyRenderBaseView {
             this.scrollBackward = NestedScrollMode.SELF_FIRST
           }
         }
+        break;
+      case "cssHeight":
+        this.cssHeight = propValue as number;
         break;
       default:
         break;
@@ -82,16 +92,20 @@ export class HRListView extends HippyRenderBaseView {
           })
         }
         break;
-      case "collapsePullHeaderWithOptions":
-        {
-
-        }
-        break;
       default:
         break;
     }
   }
 
+  setRenderViewFrame(frame: HRRect): void {
+    frame.x = this.cssPositionX;
+    frame.y = this.cssPositionY;
+    if (this.cssHeight > 0) {
+      frame.height = this.cssHeight;
+    }
+
+    super.setRenderViewFrame(frame)
+  }
 }
 
 enum ScrollAction {
@@ -123,11 +137,19 @@ export struct HRList {
 
   aboutToAppear(): void {
     LogUtils.d(this.TAG, "aboutToAppear: " )
+    this.renderView.setProp("cssPositionX", 0);
+    this.renderView.setProp("cssPositionY", 0);
     this.children.forEach(element => {
       if (element instanceof HRPullHeaderView) {
         this.headerView = element as HRPullHeaderView;
+        this.headerView.parentView = this.renderView;
+        this.headerView.setProp("cssPositionX", 0)
+        this.headerView.setProp("cssPositionY", this.headerView.cssHeight)
       } else if (element instanceof  HRPullFooterView) {
         this.footerView = element as HRPullFooterView;
+        this.footerView.parentView = this.renderView;
+        this.footerView.setProp("cssPositionX", 0)
+        this.footerView.setProp("cssPositionY", this.footerView.cssHeight)
       }
     });
   }
@@ -188,14 +210,16 @@ export struct HRList {
                 HREventUtils.EVENT_LIST_HEADER_PULLING, params);
               this.headerView.setProp("visibility", 1);
               this.headerView.setProp("cssPositionX", xOff);
-              this.headerView.setProp("cssPositionY", -yOff);
+              this.headerView.setProp("cssPositionY", -yOff+this.headerView.cssHeight);
+              this.renderView.setProp("cssPositionX", 0);
+              this.renderView.setProp("cssPositionY", this.headerView.cssHeight);
             }
             this.pullAction = ScrollAction.PullHeader
             LogUtils.d(this.TAG, "ScrollAction: PullHeader=" )
           } else if (this.pullAction === ScrollAction.PullHeader && scrollOffset > 0 &&
             scrollState === ScrollState.Fling && yOff < 0.1) {
             //scroll to head then release
-            let params = new Map<string, Number>() as Hippy2Map;
+            let params = new Map<string, Number>() as HippyMap;
             params.set(this.CURRENT_OFFSET, -yOff);
             if (this.headerView) {
               HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
@@ -208,13 +232,16 @@ export struct HRList {
             this.edgeState === EdgeAction.ReachStart) {
             if (this.headerView) {
               if (scrollState === ScrollState.Scroll) {
-                let params = new Map<string, Number>() as Hippy2Map;
+                let params = new Map<string, Number>() as HippyMap;
                 params.set(this.CURRENT_OFFSET, -yOff);
                 HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
                   HREventUtils.EVENT_LIST_HEADER_PULLING, params);
+                this.headerView.setProp("cssPositionX", xOff);
+                this.headerView.setProp("cssPositionY", -yOff+this.headerView.cssHeight);
+              } else {
+                this.headerView.setProp("cssPositionX", xOff);
+                this.headerView.setProp("cssPositionY", -yOff+this.headerView.cssHeight);
               }
-              this.headerView.setProp("cssPositionX", xOff);
-              this.headerView.setProp("cssPositionY", -yOff);
             }
           } else if (this.pullAction === ScrollAction.None && scrollOffset > 0 &&
             scrollState === ScrollState.Scroll && this.edgeState === EdgeAction.ReachEnd) {
@@ -228,7 +255,8 @@ export struct HRList {
                 HREventUtils.EVENT_LIST_FOOTER_PULLING, params);
               this.footerView.setProp("visibility", 1);
               this.footerView.setProp("cssPositionX", xOff);
-              this.footerView.setProp("cssPositionY", -yOff );
+              this.footerView.setProp("cssPositionY", -yOff);
+              this.renderView.setProp("cssHeight", this.renderView.cssHeight-this.footerView.cssHeight)
             }
             this.pullAction = ScrollAction.PullFooter;
             LogUtils.d(this.TAG, "ScrollAction: PullFooter=" )
@@ -253,8 +281,7 @@ export struct HRList {
             yOff = yOff - this.footerYOff
             if (this.footerView) {
               if (scrollState === ScrollState.Scroll) {
-                let params = new Map<string, Number>() as Hippy2Map;
-
+                let params = new Map<string, Number>() as HippyMap;
                 params.set(this.CURRENT_OFFSET, -yOff);
                 HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
                   HREventUtils.EVENT_LIST_FOOTER_PULLING, params);
@@ -281,19 +308,16 @@ export struct HRList {
             HREventUtils.EVENT_SCROLLER_ON_SCROLL, params);
         })
         .onReachStart(() => {
-          LogUtils.d(this.TAG, "onScroll: onReachStart=" );
           this.edgeState = EdgeAction.ReachStart;
           if (this.pullAction === ScrollAction.ReleaseHeader) {
             this.pullAction = ScrollAction.None;
           }
         })
         .onReachEnd(() => {
-          LogUtils.d(this.TAG, "onScroll: onReachEnd=" )
-          // HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
-          //   HREventUtils.EVENT_RECYCLER_END_REACHED, null);
           this.edgeState = EdgeAction.ReachEnd;
           if (this.pullAction === ScrollAction.ReleaseFooter) {
             this.pullAction = ScrollAction.None;
+            this.edgeState = EdgeAction.None;
           }
           this.footerYOff = this.renderView.scroller.currentOffset().yOffset;
         })
@@ -305,8 +329,8 @@ export struct HRList {
           }
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
-      .zIndex(1)
     }
+    .zIndex(-1)
   }
 }
 
@@ -314,7 +338,7 @@ export struct HRList {
 @Extend(List)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
-  // .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)

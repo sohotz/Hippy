@@ -22,6 +22,7 @@ import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
+import { HRRect } from '../../utils/HRTypes';
 import HippyRenderBaseView, {
   HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
@@ -68,15 +69,25 @@ export class HRPullHeaderView extends HippyRenderBaseView {
             LogUtils.d(this.TAG, "delay : " + this.collapseTime)
             this.cssVisibility = Visibility.Hidden
             let params = new Map<string, Number>() as HippyMap;
-            params.set(this.CURRENT_OFFSET, 0);
+            params.set(this.CURRENT_OFFSET, this.cssHeight);
             HREventUtils.sendComponentEvent(this.ctx, this.tag,
               HREventUtils.EVENT_LIST_HEADER_PULLING, params);
+            if (this.parentView) {
+              this.parentView.setProp("cssPositionX", 0);
+              this.parentView.setProp("cssPositionY", 0);
+            }
           }, this.collapseTime);
         }
         break;
       default:
         break;
     }
+  }
+
+  setRenderViewFrame(frame: HRRect): void {
+    frame.x = this.cssPositionX;
+    frame.y = this.cssPositionY;
+    super.setRenderViewFrame(frame)
   }
 }
 
