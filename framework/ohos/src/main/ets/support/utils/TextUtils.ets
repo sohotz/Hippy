@@ -17,13 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyExecutor } from '../../../support/common/HippyExecutor'
 
-export interface HippyExecutorSupplierAdapter {
+export class TextUtils {
+  static isEmpty(value: string | null | undefined) {
+    if (value as undefined || value == "" || value?.length == 0)
+      return true;
+    return false;
+  }
 
-  getDBExecutor(): HippyExecutor
-
-  getBackgroundTaskExecutor(): HippyExecutor
-
-  destroyIfNeed():void
+  static equals(source: string, value: string | null | undefined) {
+    if (value === source)
+      return true;
+    return false;
+  }
 }

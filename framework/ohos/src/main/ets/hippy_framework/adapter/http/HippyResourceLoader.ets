@@ -17,13 +17,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyExecutor } from '../../../support/common/HippyExecutor'
+import { ResourceDataHolder } from 'ets/vfs/ResourceDataHolder';
+import { ResourceLoader } from '../../../vfs/ResourceLoader';
+import { ProcessorCallback } from './ProcessorCallback';
 
-export interface HippyExecutorSupplierAdapter {
+export enum FetchResultCode {
+  OK,
+  ERR_OPEN_LOCAL_FILE,
+  ERR_UNKNOWN_SCHEME,
+  ERR_REMOTE_REQUEST_FAILED,
+}
 
-  getDBExecutor(): HippyExecutor
+export class HippyResourceLoader implements ResourceLoader {
+  constructor() {
+  }
 
-  getBackgroundTaskExecutor(): HippyExecutor
+  fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback) {
+  }
 
-  destroyIfNeed():void
+  fetchResourceSync(holder: ResourceDataHolder): boolean {
+    return true
+  }
 }

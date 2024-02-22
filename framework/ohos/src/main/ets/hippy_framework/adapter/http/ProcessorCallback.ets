@@ -17,13 +17,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyExecutor } from '../../../support/common/HippyExecutor'
 
-export interface HippyExecutorSupplierAdapter {
+//todo  need to be changed to vfsFile
+export interface ProcessorCallback {
 
-  getDBExecutor(): HippyExecutor
+  goNext():void
 
-  getBackgroundTaskExecutor(): HippyExecutor
+  onHandleCompleted():void
 
-  destroyIfNeed():void
 }

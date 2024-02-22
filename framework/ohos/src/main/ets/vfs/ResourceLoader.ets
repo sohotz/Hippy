@@ -17,13 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyExecutor } from '../../../support/common/HippyExecutor'
+import { ProcessorCallback } from '../hippy_framework/adapter/http/ProcessorCallback';
+import { ResourceDataHolder } from './ResourceDataHolder';
 
-export interface HippyExecutorSupplierAdapter {
+export interface ResourceLoader {
+  fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback)
 
-  getDBExecutor(): HippyExecutor
-
-  getBackgroundTaskExecutor(): HippyExecutor
-
-  destroyIfNeed():void
+  fetchResourceSync(holder: ResourceDataHolder): boolean
 }
+
+
+
+
