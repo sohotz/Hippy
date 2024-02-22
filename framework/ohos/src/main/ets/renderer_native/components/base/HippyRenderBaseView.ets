@@ -32,6 +32,7 @@ import { HRGestureDispatcher } from '../../uimanager/HRGestureDispatcher';
 import { HRConvertUtil } from '../../utils/HRConvertUtil';
 import { HRRect } from '../../utils/HRTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import call from '@ohos.telephony.call';
 
 export const HIPPY_COMPONENT_KEY_PREFIX = "HippyKey"
 
@@ -73,7 +74,6 @@ export default abstract class HippyRenderBaseView {
   cssWidth: number = 0
   cssHeight: number = 0
   cssOverflow: boolean | null = null
-  cssTouchEnable: boolean | null = null
   cssZIndex: number | null = null
   cssAccessibilityLabel: string | null = null
   cssFocusable: boolean | null = null
@@ -138,47 +138,6 @@ export default abstract class HippyRenderBaseView {
       case HRNodeProps.LINEAR_GRADIENT:
         this.setLinearGradientProp(propKey, propValue)
         break
-      // case cssTouchEnable:
-      //   this.cssTouchEnable = propValue == 1
-      //   break
-      case HRNodeProps.ON_CLICK:
-        this.eventClick = (event) => {
-          HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
-        }
-        break
-      case HRNodeProps.ON_LONG_CLICK:
-        this.eventLongPress = (event, state) => {
-          if(event) {
-            // let localX: number = event['localX'];
-            // let localY: number = event['localY'];
-            // (propValue as HippyRenderCallback)({
-            //   'x': localX,
-            //   'y': localY,
-            //   'state': state
-            // } as HippyRecord)
-          }
-        }
-        break
-      case HRNodeProps.ON_TOUCH_END:
-        this.eventTouchUp = (event) => {
-          let params = touchEventToParamRecord(event) as HippyTouchParamType
-          //(propValue as HippyRenderCallback)(params)
-        }
-        break
-      case HRNodeProps.ON_TOUCH_DOWN:
-        this.eventTouchDown = (event) => {
-          let params = touchEventToParamRecord(event) as HippyTouchParamType
-          //(propValue as HippyRenderCallback)(params)
-        }
-        break
-      case HRNodeProps.ON_TOUCH_MOVE:
-        this.eventTouchMove = (event) => {
-          let params = touchEventToParamRecord(event) as HippyTouchParamType
-          //(propValue as HippyRenderCallback)(params)
-        }
-        break
-      case HRNodeProps.ON_TOUCH_CANCEL:
-        break
       default:
         {
           let handled = this.setBackgroundImageProp(propKey, propValue)
@@ -186,12 +145,14 @@ export default abstract class HippyRenderBaseView {
             handled = this.setBorderProp(propKey, propValue)
           }
           if (!handled) {
-            this.setShadowProp(propKey, propValue)
+            handled = this.setShadowProp(propKey, propValue)
+          }
+          if (!handled) {
+            this.setEventProp(propKey, propValue)
           }
         }
         break
     }
-
     return true
   }
 
@@ -479,8 +440,66 @@ export default abstract class HippyRenderBaseView {
     }
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+  private setEventProp(propKey: string, propValue: HippyAny): boolean {
+    switch (propKey) {
+      case HRNodeProps.ON_CLICK:
+        this.eventClick = (event) => {
+          HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
+        }
+        break
+      case HRNodeProps.ON_LONG_CLICK:
+        this.eventLongPress = (event, state) => {
+          if(event) {
+            // let localX: number = event['localX'];
+            // let localY: number = event['localY'];
+            // (propValue as HippyRenderCallback)({
+            //   'x': localX,
+            //   'y': localY,
+            //   'state': state
+            // } as HippyRecord)
+          }
+        }
+        break
+      case HRNodeProps.ON_PRESS_IN:
+        break
+      case HRNodeProps.ON_PRESS_OUT:
+        break
+      case HRNodeProps.ON_TOUCH_DOWN:
+        this.eventTouchDown = (event) => {
+          let params = touchEventToParamRecord(event) as HippyTouchParamType
+          //(propValue as HippyRenderCallback)(params)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_MOVE:
+        this.eventTouchMove = (event) => {
+          let params = touchEventToParamRecord(event) as HippyTouchParamType
+          //(propValue as HippyRenderCallback)(params)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_END:
+        this.eventTouchUp = (event) => {
+          let params = touchEventToParamRecord(event) as HippyTouchParamType
+          //(propValue as HippyRenderCallback)(params)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_CANCEL:
+        break
+      case HRNodeProps.ON_INTERCEPT_TOUCH_EVENT:
+        break
+      case HRNodeProps.ON_INTERCEPT_PULL_UP_EVENT:
+        break
+      case HRNodeProps.ON_ATTACHED_TO_WINDOW:
+        break
+      case HRNodeProps.ON_DETACHED_FROM_WINDOW:
+        break
+      default:
+        break
+    }
+    return true
+  }
 
+  call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+    
   }
 
   onDestroy(): void {
