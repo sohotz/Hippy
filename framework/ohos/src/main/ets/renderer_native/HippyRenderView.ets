@@ -39,6 +39,7 @@ import { HRScrollContent, HRScrollContentView } from './components/scroller/HRSc
 import { HRScroll, HRScrollView } from './components/scroller/HRScrollView';
 import { HRDiv, HRDivView } from './components/view/HRDivView';
 import { HRWeb, HRWebView } from './components/web/HRWebView'
+import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
 import { NativeRenderContext } from './NativeRenderContext';
 import { HRManager } from './uimanager/HRManager';
 import { HRSize } from './utils/HRTypes';
@@ -56,13 +57,15 @@ export class HippyRenderView extends HippyRenderBaseView {
   private renderViewSize: HRSize
   private avoidArea: window.AvoidArea | null = null
   private lazyCoreTasks: Array<() => void> = []
+  private renderExceptionListener: IHippyRenderExceptionListener | null = null
 
-  constructor(ctx: NativeRenderContext, pageName: string, pageData: HippyRecord, initViewSize: HRSize, avoidArea: window.AvoidArea | null) {
+  constructor(ctx: NativeRenderContext, pageName: string, pageData: HippyRecord, initViewSize: HRSize, avoidArea: window.AvoidArea | null, renderExceptionListener: IHippyRenderExceptionListener | null) {
     super(ctx)
     this.pagerName = pageName
     this.pagerData = pageData
     this.renderViewSize = initViewSize
     this.avoidArea = avoidArea
+    this.renderExceptionListener = renderExceptionListener
 
     // TODO(hot):
     let renderManger = AppStorage.get("HRManager") as HRManager
@@ -78,10 +81,6 @@ export class HippyRenderView extends HippyRenderBaseView {
     // TODO(hot):
     let hippyEngine = AppStorage.get("HippyEngine") as HippyEngine
     hippyEngine.getNativeRenderProvider().onSizeChanged(this.tag, width, height)
-  }
-
-  sendEvent(event: string, data: HippyRecord): void {
-
   }
 
   pageDidAppear(): void {
@@ -106,6 +105,9 @@ export class HippyRenderView extends HippyRenderBaseView {
     return viewRegisterMap
   }
 
+  setRenderExceptionListener(listener: IHippyRenderExceptionListener) {
+    this.renderExceptionListener = listener
+  }
 }
 
 @Component
@@ -113,7 +115,7 @@ export struct HippyRender {
   private readonly TAG = "HippyRender"
   @ObjectLink renderView: HippyRenderView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildCustomRenderView: (renderView: HippyRenderBaseView) => void | null
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   build() {
     Stack() {

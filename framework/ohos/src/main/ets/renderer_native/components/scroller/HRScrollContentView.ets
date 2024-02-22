@@ -21,6 +21,7 @@ import { HippyAny } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
+import { HRScrollView } from './HRScrollView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
@@ -28,6 +29,7 @@ export class HRScrollContentView extends HippyRenderBaseView {
   private readonly TAG = "HRScrollContentView"
   viewWidth: number = 0;
   viewHeight: number = 0;
+  startOffset: number = 0 // content margin, used to support refresh
   constructor(ctx: NativeRenderContext) {
     super(ctx)
     LogUtils.d(this.TAG, "constructor -------------------- ")
@@ -57,6 +59,10 @@ export struct HRScrollContent {
     .onAreaChange((oldArea: Area, newArea: Area) => {
       this.renderView.viewWidth = newArea.width as number
       this.renderView.viewHeight = newArea.height as number
+    })
+    .offset({
+      x: (this.renderView.parentView as HRScrollView)?.axis == ScrollDirection.Horizontal ? this.renderView.startOffset : 0,
+      y: (this.renderView.parentView as HRScrollView)?.axis == ScrollDirection.Vertical ? this.renderView.startOffset : 0,
     })
   }
 }

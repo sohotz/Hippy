@@ -66,7 +66,8 @@ export class HRListView extends HippyRenderBaseView {
       default:
         break;
     }
-    return super.setProp(propKey, propValue)
+
+    return super.setProp(propKey, propValue as HippyAny)
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
@@ -127,7 +128,8 @@ export struct HRList {
   private readonly TAG = "HRList"
   @ObjectLink renderView: HRListView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$:HippyRenderBaseView, parent: HRComponent) => void
+
+  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
   private CURRENT_OFFSET: string = "contentOffset";
   private pullAction: ScrollAction = ScrollAction.None;
   private edgeState: EdgeAction = EdgeAction.None;

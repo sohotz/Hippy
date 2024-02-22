@@ -27,6 +27,7 @@ import { NativeRenderSerializationTag } from './NativeRenderSerializationTag';
 import {
   HippySerValue, SharedSerialization } from '../../serialization/SharedSerialization';
 import { HippyAny } from '../../support/common/HippyTypes';
+import { HippyException } from '../../support/common/HippyException';
 
 export class NativeRenderDeserializer extends PrimitiveValueDeserializer {
   TAG = "NativeRenderDeserializer"
@@ -65,8 +66,7 @@ export class NativeRenderDeserializer extends PrimitiveValueDeserializer {
       case NativeRenderSerializationTag.BEGIN_SPARSE_JS_ARRAY:
         return this.readSparseArray()
       default:
-        // TODO(hot):
-        throw new Error('error')
+        throw new HippyException(this.TAG + `: readValue3: unsupported tag(${tag})`)
     }
   }
 
@@ -92,8 +92,7 @@ export class NativeRenderDeserializer extends PrimitiveValueDeserializer {
     let read = this.readObjectProperties(map)
     let expected = this.reader_.getVarint()
     if (read != expected) {
-      // TODO(hot):
-      throw new Error('error')
+      throw new HippyException(this.TAG + ": readObject: unexpected number of properties")
     }
     return map;
   }
@@ -111,8 +110,7 @@ export class NativeRenderDeserializer extends PrimitiveValueDeserializer {
       if (typeof key == 'string' || typeof key == 'number') {
         map.set(key.toString(), value)
       } else {
-        // TODO(hot):
-        throw new Error(this.TAG + ": readObjectProperties: Object key is not of String nor Number type")
+        throw new HippyException(this.TAG + ": readObjectProperties: object key is not of String nor Number type")
       }
     }
     return count
@@ -131,8 +129,7 @@ export class NativeRenderDeserializer extends PrimitiveValueDeserializer {
     }
     let expected = this.reader_.getVarint()
     if (2 * read != expected) {
-      // TODO(hot):
-      throw new Error(this.TAG + ": readMap: unexpected number of entries")
+      throw new HippyException(this.TAG + ": readMap: unexpected number of entries")
     }
     return map
   }
@@ -140,8 +137,7 @@ export class NativeRenderDeserializer extends PrimitiveValueDeserializer {
   readDenseArray(): Array<HippyAny> {
     let totalLength = this.reader_.getVarint()
     if (totalLength < 0) {
-    // TODO(hot):
-      throw new Error('error')
+      throw new HippyException(this.TAG + ": readDenseArray: out of range")
     }
     let array: Array<HippyAny> = new Array<HippyAny>()
     this.assignId(array)
@@ -154,13 +150,11 @@ export class NativeRenderDeserializer extends PrimitiveValueDeserializer {
     let propsLength = this.readArrayProperties()
     let expected = this.reader_.getVarint()
     if (propsLength != expected) {
-      // TODO(hot):
-      throw new Error(this.TAG + ": readDenseArray: unexpected number of properties")
+      throw new HippyException(this.TAG + ": readDenseArray: unexpected number of properties")
     }
     expected = this.reader_.getVarint()
     if (totalLength != expected) {
-      // TODO(hot):
-      throw new Error(this.TAG + ": readDenseArray: length ambiguity")
+      throw new HippyException(this.TAG + ": readDenseArray: length ambiguity")
     }
     return array
   }
@@ -214,13 +208,11 @@ export class NativeRenderDeserializer extends PrimitiveValueDeserializer {
     }
     let expected = this.reader_.getVarint()
     if (read != expected) {
-      // TODO(hot):
-      throw new Error("unexpected number of properties")
+      throw new HippyException(this.TAG + ": readSparseArray: unexpected number of properties")
     }
     let length2 = this.reader_.getVarint()
     if (length != length2) {
-      // TODO(hot):
-      throw new Error("length ambiguity")
+      throw new HippyException(this.TAG + ": readSparseArray: length ambiguity")
     }
     return array
   }

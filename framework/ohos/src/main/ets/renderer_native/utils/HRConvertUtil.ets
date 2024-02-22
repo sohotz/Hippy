@@ -19,38 +19,188 @@
  */
 import display from '@ohos.display'
 import window from '@ohos.window'
+import matrix4 from '@ohos.matrix4'
+import { Hippy1Map,
+  HippyAny,
+  HippyArray, HippyMap, HippyValue } from '../../support/common/HippyTypes'
 import { HRSize, HRTransform } from './HRTypes'
+import { HRValueUtils } from './HRValueUtils'
+import { LogUtils } from '../../support/utils/LogUtils'
 
 export class HRConvertUtil {
-  public static toBorderRadius(cssString: string):  BorderRadiuses | null {
-    if (cssString.length) {
-      let splits = cssString.split(",")
-      if (splits.length == 4) {
-        return {topLeft: parseFloat( splits[0]), topRight: parseFloat(splits[1]), bottomLeft: parseFloat(splits[2]), bottomRight: parseFloat(splits[3])}
-      }
-    }
-    return null
-  }
-
-  public static toBorder(cssString: string, borderRadius: BorderRadiuses | null): BorderOptions  | undefined {
-    if (cssString) {
-       let splits = cssString.split(" ")
-      if (splits.length == 3) {
-        return {width: parseFloat(splits[0]), color: HRConvertUtil.toColor(splits[2]) , radius: borderRadius ? borderRadius: undefined , style: HRConvertUtil.toBorderStyle(splits[1])}
-      }
+  static toBorderStyle(cssString: string): BorderStyle | undefined {
+    if (cssString == 'solid') {
+      return BorderStyle.Solid
+    } else if (cssString == 'dotted') {
+      return BorderStyle.Dotted
+    } else if (cssString == 'dashed') {
+      return BorderStyle.Dashed
     }
     return undefined
   }
 
-  public static toTransform(cssString: string): HRTransform {
-    //"$rotate|$scale|$translate|$anchor|$skew"
+  public static toDegrees(value: HippyValue): number {
+    let ret = 0.0
+    let inRadians = true
+    if (typeof value == 'string') {
+      let sub: string = value
+      if (value.endsWith("deg")) {
+        inRadians = false
+        sub = value.substring(0, value.length - 3)
+      } else if (value.endsWith("rad")) {
+        sub = value.substring(0, value.length - 3)
+      }
+      ret = parseFloat(sub)
+    } else if (typeof value == 'number') {
+      ret = value
+    }
+    return inRadians ? (180 / Math.PI * ret): ret
+  }
+
+  public static toTransform(transformArray: HippyArray): HRTransform | null {
+    let arr = HRValueUtils.getArray(transformArray)
+    if (!arr) {
+      return null
+    }
+
     let transform = new HRTransform()
-    let splits = cssString.split("|")
-    transform.anchor = HRConvertUtil.toTransformAnchor(splits[3])
-    transform.rotate = HRConvertUtil.toTransformRotate(splits[0], transform.anchor )
-    transform.scale = HRConvertUtil.toTransformScale(splits[1], transform.anchor)
-    transform.translate = HRConvertUtil.toTransformTranslate(splits[2])
+    for (let i = 0, size = transformArray.length; i < size; i++) {
+      let transformObj = HRValueUtils.getMap(transformArray[i])
+      if (!transformObj || (transformObj as HippyMap).size == 0) {
+        continue
+      }
+      (transformObj as Hippy1Map).forEach((value: HippyValue, key: string) => {
+        if ("matrix" == key && value instanceof Array) {
+          if (value.length < 16) {
+            return
+          }
+          let m = new Array<number>(16)
+          for (let k = 0; k < 16; k++) {
+            if (typeof value[k] == 'number') {
+              m[k] = value[k]
+            } else {
+              return
+            }
+          }
+          transform.matrix = matrix4.init([
+            m[0], m[1], m[2], m[3],
+            m[4], m[5], m[6], m[7],
+            m[8], m[9], m[10], m[11],
+            m[12], m[13], m[14], m[15]
+          ])
+        } else if ("perspective" == key && typeof value == 'number') {
+          if (!transform.rotate) {
+            transform.rotate = { angle: 0 }
+          }
+          transform.rotate.perspective = value
+        } else if ("rotateX" == key) {
+          if (!transform.rotate) {
+            transform.rotate = { angle: 0 }
+          }
+          transform.rotate.x = 1
+          transform.rotate.y = 0
+          transform.rotate.z = 0
+          transform.rotate.angle = HRConvertUtil.toDegrees(value)
+        } else if ("rotateY" == key) {
+          if (!transform.rotate) {
+            transform.rotate = { angle: 0 }
+          }
+          transform.rotate.x = 0
+          transform.rotate.y = 1
+          transform.rotate.z = 0
+          transform.rotate.angle = HRConvertUtil.toDegrees(value)
+        } else if ("rotate" == key || "rotateZ" == key) {
+          if (!transform.rotate) {
+            transform.rotate = { angle: 0 }
+          }
+          transform.rotate.x = 0
+          transform.rotate.y = 0
+          transform.rotate.z = 1
+          transform.rotate.angle = HRConvertUtil.toDegrees(value)
+        } else if ("scale" == key && typeof value == 'number') {
+          if (!transform.scale) {
+            transform.scale = {}
+          }
+          transform.scale.x = value
+          transform.scale.y = value
+        } else if ("scaleX" == key && typeof value == 'number') {
+          if (!transform.scale) {
+            transform.scale = {}
+          }
+          transform.scale.x = value
+        } else if ("scaleY" == key && typeof value == 'number') {
+          if (!transform.scale) {
+            transform.scale = {}
+          }
+          transform.scale.y = value
+        } else if ("translate" == key && value instanceof Array) {
+          if (!transform.translate) {
+            transform.translate = {}
+          }
+          let x = 0, y = 0, z = 0
+          if (value.length > 0) {
+            let tranX = (value as HippyArray)[0]
+            if (typeof tranX == 'number') {
+              x = tranX
+            }
+          }
+          if (value.length > 1) {
+            let tranY = (value as HippyArray)[1]
+            if (typeof tranY == 'number') {
+              y = tranY
+            }
+          }
+          if (value.length > 2) {
+            let tranZ = (value as HippyArray)[2]
+            if (typeof tranZ == 'number') {
+              z = tranZ
+            }
+          }
+          transform.translate.x = x
+          transform.translate.y = y
+          transform.translate.z = z
+        } else if ("translateX" == key && typeof value == 'number') {
+          if (!transform.translate) {
+            transform.translate = {}
+          }
+          transform.translate.x = value
+          transform.translate.y = 0
+        } else if ("translateY" == key && typeof value == 'number') {
+          if (!transform.translate) {
+            transform.translate = {}
+          }
+          transform.translate.x = 0
+          transform.translate.y = value
+        } else if ("skewX" == key) {
+        } else if ("skewY" == key) {
+        } else {
+          LogUtils.e('toTransform', `unsupported transform type: ${key}`)
+        }
+      })
+    }
     return transform
+  }
+
+  public static toImageSize(cssString: HippyAny): ImageSize {
+    if (typeof cssString == 'string') {
+      switch (cssString) {
+        case "contain":
+          return ImageSize.Contain
+        case "cover":
+          return ImageSize.Cover
+        case "center":
+          break
+        case "origin":
+          break
+        case "repeat":
+          break
+        case "fitXY":
+          break
+        default:
+          break
+      }
+    }
+    return ImageSize.Auto
   }
 
   public static toTextDecorationType(cssString: string): TextDecorationType {
@@ -96,47 +246,23 @@ export class HRConvertUtil {
     return ImageFit.Cover
   }
 
-  private static toTransformRotate(cssString: string, anchor: Position | null): RotateOptions | null {
-    let anchorX = (anchor ? anchor.x as number : 0.5) * 100.0
-    let anchorY = (anchor ? anchor.y as number : 0.5) * 100.0
-    return {angle: parseFloat(cssString), centerX: (anchorX) + "%", centerY: anchorY + "%" }
+  public static toColor(colorString: string): string {
+    const rgba = parseInt(colorString)
+    return HRConvertUtil.toColorWithNumber(rgba)
   }
 
-  private static toTransformScale(cssString: string, anchor: Position | null): ScaleOptions | null {
-    let anchors = cssString.split(" ")
-    let anchorX = (anchor ? anchor.x as number : 0.5) * 100.0
-    let anchorY = (anchor ? anchor.y as number : 0.5) * 100.0
-    return {x: parseFloat(anchors[0]), y: parseFloat(anchors[1]), centerX: (anchorX) + "%", centerY: anchorY + "%" }
-  }
-
-  private static toTransformTranslate(cssString: string): TranslateOptions | null {
-    let anchors = cssString.split(" ")
-    return {x: parseFloat(anchors[0]) * 100 + "%", y: parseFloat(anchors[1]) * 100 + "%"}
-  }
-
-  private static toTransformAnchor(cssString: string): Position | null {
-    let anchors = cssString.split(" ")
-    return {x: parseFloat(anchors[0]), y: parseFloat(anchors[1])}
-  }
-
-  private static toBorderStyle(cssString: string): BorderStyle | undefined {
-    if (cssString == 'solid') {
-      return BorderStyle.Solid
-    } else if (cssString == 'dotted') {
-      return BorderStyle.Dotted
-    } else if (cssString == 'dashed') {
-      return BorderStyle.Dashed
-    }
-    return undefined
-  }
-
-  public static toColor(colorString: string) {
-    const rgba = parseInt(colorString);
+  public static toColorWithNumber(rgba: number): string {
     const a = ((rgba >> 24) & 0xFF) / 255.0;
     const r = ((rgba >> 16) & 0xFF);
     const g = ((rgba >> 8) & 0xFF);
     const b = ((rgba) & 0xFF);
     return `rgba(${r},${g},${b},${a})`
+  }
+
+  public static toColorWithNumberAndOpacity(rgba: number, opacity: number): string {
+    let rgbValue = rgba & 0xFFFFFF
+    let opacityValue = (Math.trunc(opacity * 255.0) & 0xFF) << 24
+    return HRConvertUtil.toColorWithNumber(rgbValue + opacityValue)
   }
 
   public static screenSize(): HRSize {

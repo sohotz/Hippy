@@ -17,38 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import matrix4 from '@ohos.matrix4'
+import { HippyMap } from '../common/HippyTypes';
 
-export class HRSize {
-  width: number
-  height: number
-
-  constructor(width: number, height: number) {
-    this.width = width
-    this.height = height
+export class DimensionsUtil {
+  static getDimensions(ww: number, wh: number, context: Context, shouldUseScreenDisplay: boolean): HippyMap {
+    let dimensionMap = new Map() as HippyMap
+    return dimensionMap
   }
-}
-
-export class HRRect {
-  x: number
-  y: number
-  width: number
-  height: number
-
-  static zero = new HRRect(0, 0, 0, 0)
-
-  constructor(x: number, y: number, width: number, height: number) {
-    this.x = x
-    this.y = y
-    this.width = width
-    this.height = height
-  }
-}
-
-export class HRTransform {
-  anchor: Position | null = null
-  rotate: RotateOptions | null = null
-  scale: ScaleOptions | null = null
-  translate: TranslateOptions | null = null
-  matrix: matrix4.Matrix4Transit | null = null
 }

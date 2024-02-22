@@ -21,7 +21,10 @@ import deviceInfo  from '@ohos.deviceInfo';
 import { HippyAny } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
+
+const HippyGestureTag = 'HippyGestureTag'
 
 @Observed
 export class HRDivView extends HippyRenderBaseView {
@@ -38,10 +41,21 @@ export class HRDivView extends HippyRenderBaseView {
 export struct HRDiv {
   @ObjectLink renderView: HRDivView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$:HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
+
+  shouldAddGesture() {
+    return deviceInfo.sdkApiVersion >= 11 && (
+      this.renderView.eventDoubleClick != null ||
+        this.renderView.eventLongPress != null ||
+        this.renderView.eventPan ||
+        this.renderView.eventTouchUp != null ||
+        this.renderView.eventTouchDown != null ||
+        this.renderView.eventTouchMove != null
+    )
+  }
 
   build() {
-    if(deviceInfo.sdkApiVersion >= 11){
+    if(this.shouldAddGesture()){
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
           this.buildRenderView(item, null)
@@ -63,6 +77,7 @@ export struct HRDiv {
 // base props for all components
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
   .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
@@ -71,16 +86,98 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .touchable($$.cssTouchEnable) // TODO: use new api
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
-  .borderWidth(2) // TODO:
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
   .onClick($$.eventClick)
-
 }
 
 @Extend(Stack)
 function applyGestures($$: HippyRenderBaseView) {
-
+  /*
+  .onGestureJudgeBegin((gestureInfo: GestureInfo, event: BaseGestureEvent): GestureJudgeResult => {
+    if (gestureInfo.tag != HippyGestureTag) {
+      // let other gestures continue
+      return GestureJudgeResult.CONTINUE
+    }
+    return (gestureInfo.type == GestureControl.GestureType.LONG_PRESS_GESTURE && $$.eventLongPress != null) ||
+      (gestureInfo.type == GestureControl.GestureType.TAP_GESTURE && $$.eventDoubleClick != null) ||
+      (gestureInfo.type == GestureControl.GestureType.PAN_GESTURE && $$.eventPan != null) ?
+    GestureJudgeResult.CONTINUE : GestureJudgeResult.REJECT
+  })
+  .parallelGesture(GestureGroup(GestureMode.Parallel,
+    TapGesture({ count: 2 })
+      .tag(HippyGestureTag)
+      .onAction((event?: GestureEvent) => {
+        if (event && $$.eventDoubleClick) {
+          $$.eventDoubleClick(event)
+        }
+      }) ,
+    LongPressGesture({ repeat: false })
+      .tag(HippyGestureTag)
+      .onAction((event?: GestureEvent) => {
+        if (event && $$.eventLongPress) {
+          $$.eventLongPress(event, "start")
+        }
+      })
+      .onActionEnd((event?: GestureEvent) => {
+        if (event && $$.eventLongPress) {
+          $$.eventLongPress(event, "end")
+        }
+      })
+      .onActionCancel(() => {
+        if ($$.eventLongPress) {
+          $$.eventLongPress(null, "end")
+        }
+      }),
+    PanGesture()
+      .tag(HippyGestureTag)
+      .onActionStart((event: GestureEvent) => {
+        if ($$.eventPan) {
+          $$.eventPan(event, "start")
+        }
+      })
+      .onActionUpdate((event: GestureEvent) => {
+        if ($$.eventPan) {
+          $$.eventPan(event, "move")
+        }
+      })
+      .onActionEnd((event?: GestureEvent) => {
+        if ($$.eventPan) {
+          $$.eventPan(event != undefined ? event : null, "end")
+        }
+      })
+  ))
+  .onTouch((event: TouchEvent) => {
+    switch (event.type) {
+      case TouchType.Down: {
+        if ($$.eventTouchDown) {
+          $$.eventTouchDown(event)
+        }
+      }
+        break
+      case TouchType.Up: {
+        if ($$.eventTouchUp) {
+          $$.eventTouchUp(event)
+        }
+      }
+        break
+      case TouchType.Move: {
+        if ($$.eventTouchMove) {
+          $$.eventTouchMove(event)
+        }
+      }
+        break
+    }
+  })
+  //*/
 }

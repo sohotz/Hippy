@@ -27,25 +27,25 @@
 namespace hippy {
 inline namespace vfs {
 
-class NativeDelegateHandler : public UriHandler, public std::enable_shared_from_this<NativeDelegateHandler> {
+class NapiDelegateHandler : public UriHandler, public std::enable_shared_from_this<NapiDelegateHandler> {
  public:
   using string_view = footstone::string_view;
-  struct NativeDelegateHandlerAsyncWrapper {
-    std::weak_ptr<NativeDelegateHandler> delegate;
+  struct NapiDelegateHandlerAsyncWrapper {
+    std::weak_ptr<NapiDelegateHandler> delegate;
     std::shared_ptr<RequestJob> request;
     std::function<void(std::shared_ptr<JobResponse>)> cb;
-    NativeDelegateHandlerAsyncWrapper(std::weak_ptr<NativeDelegateHandler> delegate, std::shared_ptr<RequestJob> request,
+    NapiDelegateHandlerAsyncWrapper(std::weak_ptr<NapiDelegateHandler> delegate, std::shared_ptr<RequestJob> request,
                                       const std::function<void(std::shared_ptr<JobResponse>)> &cb) {
         this->delegate = delegate;
         this->request = request;
         this->cb = cb;
     }
   };
-  using AsyncWrapperMap = footstone::PersistentObjectMap<uint32_t, std::shared_ptr<NativeDelegateHandlerAsyncWrapper>>;
-  using NativeDelegateHandlerMap = footstone::PersistentObjectMap<uint32_t, std::shared_ptr<NativeDelegateHandler>>;
+  using AsyncWrapperMap = footstone::PersistentObjectMap<uint32_t, std::shared_ptr<NapiDelegateHandlerAsyncWrapper>>;
+  using NapiDelegateHandlerMap = footstone::PersistentObjectMap<uint32_t, std::shared_ptr<NapiDelegateHandler>>;
 
-  NativeDelegateHandler(/* TODO(hot): */);
-  virtual ~NativeDelegateHandler() = default;
+  NapiDelegateHandler(/* TODO(hot): */);
+  virtual ~NapiDelegateHandler() = default;
 
   virtual void RequestUntrustedContent(
       std::shared_ptr<RequestJob> request,

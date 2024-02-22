@@ -33,8 +33,7 @@ export class HRListItemView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 
   protected updateRenderViewFrame(frame: HRRect): void {
@@ -49,7 +48,7 @@ export class HRListItemView extends HippyRenderBaseView {
 export struct HRListItem {
   @ObjectLink renderView: HRListItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$:HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
 
   build() {
     Stack() {

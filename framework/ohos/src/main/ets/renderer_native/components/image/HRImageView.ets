@@ -17,8 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyRecord, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HRNodeProps } from '../../dom_node/HRNodeProps';
 import { NativeRenderContext } from '../../NativeRenderContext';
+import { HRConvertUtil } from '../../utils/HRConvertUtil';
 import HippyRenderBaseView from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
@@ -39,6 +41,8 @@ export class HRImageView extends HippyRenderBaseView {
   private static readonly BASE64_IMAGE_PREFIX = "data:image";
   private static readonly RAWFILE_IMAGE_PREFIX = "hpfile://";
   private readonly TAG = "HRImageView"
+  private static readonly ASSETS_IMAGE_PREFIX = "assets://"
+
   cssSrc: string | null = null
   cssResizeMode: ImageFit = ImageFit.Cover
   cssBorderColor: number = 0
@@ -117,15 +121,49 @@ export class HRImageView extends HippyRenderBaseView {
       case 'alt':
         this.cssAlt = propValue as string;
         break;
+      case "tintColor":
+        return true
+      case "tintColorBlendMode":
+        return true
+      case HRNodeProps.BACKGROUND_IMAGE:
+        return true
+      case HRNodeProps.BACKGROUND_POSITION_X:
+        return true
+      case HRNodeProps.BACKGROUND_POSITION_Y:
+        return true
+      case HRNodeProps.BACKGROUND_SIZE:
+        return true
+      case HRNodeProps.RESIZE_MODE:
+        this.cssResizeMode = HRConvertUtil.toImageFit(propValue as string)
+        return true
       default:
         break
     }
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 
-  getImage(): string | null {
+  private initOnCompleteCallbackIfNeeded() {
+    if (!this.onCompleteCallback) {
+      this.onCompleteCallback = (event) => {
+        if (event?.loadingStatus !== 1) {
+          return
+        }
+        if (this.eventLoadSuccess) {
+          this.eventLoadSuccess({ 'src': this.cssSrc } as HippyRecord)
+        }
+        if (this.eventLoadResolution) {
+          this.eventLoadResolution({ 'imageWidth': event.width, 'imageHeight': event.height } as HippyRecord)
+        }
+      }
+    }
+  }
+
+  getImage(): ResourceStr | null {
     if (this.cssSrc?.startsWith(HRImageView.BASE64_IMAGE_PREFIX)) {
-      return this.getBase64Image(this.cssSrc);
+      return this.getBase64Image(this.cssSrc)
+    }
+    if (this.cssSrc?.startsWith(HRImageView.ASSETS_IMAGE_PREFIX)) {
+      return $rawfile(this.cssSrc.substring(HRImageView.ASSETS_IMAGE_PREFIX.length))
     }
     return this.cssSrc;
   }
@@ -163,7 +201,7 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
-  .clip($$.cssOverflow)
+  //.clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .touchable($$.cssTouchEnable) // TODO: use new api
   .zIndex($$.cssZIndex)

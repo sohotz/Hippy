@@ -17,38 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import matrix4 from '@ohos.matrix4'
+import { HippyException } from '../../../support/common/HippyException';
+import { HippyJsException } from '../../common/HippyJsException';
 
-export class HRSize {
-  width: number
-  height: number
+export interface HippyExceptionHandlerAdapter {
+  handleJsException(exception: HippyJsException)
 
-  constructor(width: number, height: number) {
-    this.width = width
-    this.height = height
-  }
-}
+  handleNativeException(exception: HippyException, haveCaught: boolean)
 
-export class HRRect {
-  x: number
-  y: number
-  width: number
-  height: number
-
-  static zero = new HRRect(0, 0, 0, 0)
-
-  constructor(x: number, y: number, width: number, height: number) {
-    this.x = x
-    this.y = y
-    this.width = width
-    this.height = height
-  }
-}
-
-export class HRTransform {
-  anchor: Position | null = null
-  rotate: RotateOptions | null = null
-  scale: ScaleOptions | null = null
-  translate: TranslateOptions | null = null
-  matrix: matrix4.Matrix4Transit | null = null
+  handleBackgroundTracing(details: string)
 }
