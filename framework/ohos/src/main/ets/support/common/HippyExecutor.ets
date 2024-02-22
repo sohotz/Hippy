@@ -17,21 +17,74 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import taskpool from '@ohos.taskpool';
+import { LogUtils } from '../utils/LogUtils';
 
 export type HippyTask = () => void
+export interface IExcutor {
+  execute( task: HippyTask): void
+  isShutdown(): void
+  shutdown(): void
+}
+const TAG = 'HippyExecutor'
 
-export class HippyExecutor {
-  execute(task: HippyTask) {
+export class HippyExecutor implements IExcutor{
+  private hasShutdown:boolean = false
+  private needSyncMainQueueTasksBlock: HippyTask| null = null
 
+  performingMainQueueTask: Boolean = false
+  private mainThreadTasksOnContextQueue: HippyTask[] = []
+
+  async execute(func: HippyTask) {
+    if (this.hasShutdown) {
+      return
+    }
+    let task = new taskpool.Task(func, "create task, then execute");
+    let val1 = await taskpool.execute(task );
+    console.log("taskpool.execute(task) result: " + val1);
+  }
+
+  performSyncMainQueueTasksBlockIfNeed() {
+    if (this.needSyncMainQueueTasksBlock !== null) {
+      this.needSyncMainQueueTasksBlock()
+      this.needSyncMainQueueTasksBlock = null
+    }
+  }
+
+  setNeedSyncMainQuequeTasks() {
+    if (this.needSyncMainQueueTasksBlock === null) {
+      this.needSyncMainQueueTasksBlock = () => {
+        if (this.hasShutdown) {
+          return
+        }
+        const tasks = this.mainThreadTasksOnContextQueue
+        this.mainThreadTasksOnContextQueue = []
+
+        try {
+          this.performingMainQueueTask = true
+          for (let index = 0; index < tasks.length; index++) {
+            const task = tasks[index];
+            task()
+          }
+          this.performingMainQueueTask = false
+        }catch(err){
+          LogUtils.e(TAG, `Get RdbStore failed, code is ${err.code},message is ${err.message}`);
+        }
+      }
+      this.execute( ()=> {
+        this.performSyncMainQueueTasksBlockIfNeed()
+      })
+    }
   }
 
   isShutdown():boolean{
-    //todo
-    return false
+    return this.hasShutdown
   }
 
   shutdown(){
-
+    this.hasShutdown = true
+    this.needSyncMainQueueTasksBlock = null
+    this.mainThreadTasksOnContextQueue = []
   }
 }
 

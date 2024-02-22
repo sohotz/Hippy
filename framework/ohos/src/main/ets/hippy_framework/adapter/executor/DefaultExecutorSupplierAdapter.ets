@@ -21,14 +21,32 @@ import { HippyExecutorSupplierAdapter } from './HippyExecutorSupplierAdapter';
 import { HippyExecutor } from '../../../support/common/HippyExecutor';
 
 export class DefaultExecutorSupplierAdapter implements HippyExecutorSupplierAdapter {
-  getDBExecutor(): HippyExecutor {//todo
-    return new HippyExecutor()
+  mDBExecutor: HippyExecutor | null = null
+  mBackgroundTaskExecutor: HippyExecutor | null = null
+
+  getDBExecutor(): HippyExecutor {
+    if (!this.mDBExecutor) {
+      this.mDBExecutor = new HippyExecutor()
+    }
+    return this.mDBExecutor
   }
 
   getBackgroundTaskExecutor(): HippyExecutor {
-    return new HippyExecutor()
+    if (!this.mBackgroundTaskExecutor) {
+      this.mBackgroundTaskExecutor = new HippyExecutor()
+    }
+    return this.mBackgroundTaskExecutor
   }
 
   destroyIfNeed() {
+    if (this.mDBExecutor != null && !this.mDBExecutor.isShutdown()) {
+      this.mDBExecutor.shutdown();
+      this.mDBExecutor = null;
+    }
+
+    if (this.mBackgroundTaskExecutor != null && !this.mBackgroundTaskExecutor.isShutdown()) {
+      this.mBackgroundTaskExecutor.shutdown();
+      this.mBackgroundTaskExecutor = null;
+    }
   }
 }
