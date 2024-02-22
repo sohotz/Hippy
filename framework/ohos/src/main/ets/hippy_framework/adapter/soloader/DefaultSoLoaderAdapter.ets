@@ -21,6 +21,6 @@ import { HippySoLoaderAdapter } from './HippySoLoaderAdapter';
 
 export class DefaultSoLoaderAdapter implements HippySoLoaderAdapter{
   public loadSoPath(soName: string): string {
-    return null;
+    return "";
   }
 }

@@ -19,68 +19,67 @@
  */
 import List from '@ohos.util.List';
 import fs from '@ohos.file.fs';
-import { TextUtils } from '../../../support/common/TextUtils';
+import { TextUtils } from '../../../support/utils/TextUtils';
 
 export class HippyHttpResponse {
   public static UNKNOWN_STATUS: number = -1;
   public static HTTP_RESPONSE_STATUS_CODE: string = "statusCode";
   public static HTTP_RESPONSE_RESPONSE_MESSAGE: string = "responseMessage";
   private mStatusCode: number = HippyHttpResponse.UNKNOWN_STATUS;
-  private mResponseMessage: string;
-  private mRspHeaderMap: Map<String, List<String>> = null;
-  private mInputStream: fs.Stream;
-  private mErrorStream: fs.Stream;
+  private mResponseMessage: string = ""
+  private mRspHeaderMap: Map<string, List<string>> | null = null
+  private mInputStream: fs.Stream | undefined;
+  private mErrorStream: fs.Stream | undefined;
 
   public getStatusCode(): number {
     return this.mStatusCode != null ? this.mStatusCode : HippyHttpResponse.UNKNOWN_STATUS;
   }
 
-  public setStatusCode(statusCode: number): void {
+  public setStatusCode(statusCode: number) {
     this.mStatusCode = statusCode;
   }
 
-  public setRspHeaderMap(headerMap: Map<String, List<String>>): void {
+  public setRspHeaderMap(headerMap: Map<string, List<string>>) {
     this.mRspHeaderMap = headerMap;
   }
 
-  public getRspHeaderMaps(): Map<String, List<String>> {
+  public getRspHeaderMaps(): Map<string, List<string>> | null {
     return this.mRspHeaderMap;
   }
 
-  public getHeaderFields(name: string): List<String> {
-    if (TextUtils.isEmpty(name) || this.mRspHeaderMap == null) {
-      return null;
+  public getHeaderFields(name: string): List<string> | undefined {
+    if (TextUtils.isEmpty(name) || this.mRspHeaderMap == undefined) {
+      return undefined;
     }
-
     return this.mRspHeaderMap.get(name);
   }
 
-  public getHeaderField(name: string): String {
+  public getHeaderField(name: string): string {
     if (TextUtils.isEmpty(name) || this.mRspHeaderMap == null) {
-      return null;
+      return "";
     }
 
-    let fields: List<String> = this.mRspHeaderMap.get(name);
-    return fields != null && fields.length > 0 ? fields.get(0) : null;
+    let fields = this.mRspHeaderMap.get(name);
+    return fields != null && fields.length > 0 ? fields.get(0) : "";
   }
 
-  public getInputStream(): fs.Stream {
+  public getInputStream(): fs.Stream | undefined {
     return this.mInputStream;
   }
 
-  public setInputStream(inputStream: fs.Stream): void {
+  public setInputStream(inputStream: fs.Stream) {
     this.mInputStream = inputStream;
   }
 
-  public getErrorStream(): fs.Stream {
+  public getErrorStream(): fs.Stream | undefined {
     return this.mErrorStream;
   }
 
-  public setErrorStream(errorStream: fs.Stream): void {
+  public setErrorStream(errorStream: fs.Stream) {
     this.mErrorStream = errorStream;
   }
 
-  public setResponseMessage(message: string): void {
+  public setResponseMessage(message: string) {
     this.mResponseMessage = message;
   }
 
@@ -88,15 +87,15 @@ export class HippyHttpResponse {
     return this.mResponseMessage;
   }
 
-  public close(): void {
-    if (this.mInputStream != null) {
+  public close() {
+    if (this.mInputStream != undefined) {
       try {
         this.mInputStream.close();
       } catch (e) {
         e.printStackTrace();
       }
 
-      if (this.mErrorStream != null) {
+      if (this.mErrorStream != undefined) {
         try {
           this.mErrorStream.close();
         } catch (e) {

@@ -21,23 +21,25 @@ import { HippyHttpRequest } from './HippyHttpRequest'
 import HashMap from '@ohos.util.HashMap';
 import { HippyHttpResponse } from './HippyHttpResponse';
 import { BusinessError } from '@ohos.base';
+import { ProcessorCallback } from './ProcessorCallback';
+import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
+import { HippyException } from '../../../support/common/HippyException';
 
 export interface HippyHttpAdapter {
-  destroyIfNeed(): void
+  destroyIfNeed():void
 
-  sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback): void
+  sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback):void
 
-  // fetch(holder: ResourceDataHolder, nativeParams: HashMap<string, Object>, callback: ProcessorCallback);
+  fetch(holder: ResourceDataHolder, nativeParams: HashMap<string, Object>, callback: ProcessorCallback):void
 
-  //todo 注意promise<void>泛型类
-  getCookie(url: string, promise: Promise<void>): void
+  getCookie(url: string): Promise<void>
 
-  setCookie(url: string, keyValue: string, expires: string): void
+  setCookie(url: string, keyValue: string, expires: string):void
 }
 
 export interface HttpTaskCallback {
 
-  onTaskSuccess(request: HippyHttpRequest, response: HippyHttpResponse): void
+  onTaskSuccess(request: HippyHttpRequest, response: HippyHttpResponse):void
 
-  onTaskFailed(request: HippyHttpRequest, error: BusinessError): void
+  onTaskFailed(request: HippyHttpRequest, error: HippyException):void
 }

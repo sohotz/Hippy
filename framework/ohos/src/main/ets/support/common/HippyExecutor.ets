@@ -24,6 +24,15 @@ export class HippyExecutor {
   execute(task: HippyTask) {
 
   }
+
+  isShutdown():boolean{
+    //todo
+    return false
+  }
+
+  shutdown(){
+
+  }
 }
 
 // Reference code:

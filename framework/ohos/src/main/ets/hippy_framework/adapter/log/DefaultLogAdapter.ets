@@ -17,29 +17,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import hilog from '@ohos.hilog';
+import { LogUtils } from '../../../support/utils/LogUtils';
 import { HippyLogAdapter, HippyLogSeverity } from './HippyLogAdapter';
 
-const HIPPY_LOG_DOMAIN: number = 0x0003
+// const HIPPY_LOG_DOMAIN: number = 0x0003
 
 export class DefaultLogAdapter implements HippyLogAdapter {
   onReceiveLogMessage(level: number, tag: string, msg: string) {
     switch (level) {
       case HippyLogSeverity.LOG_SEVERITY_INFO:
-        hilog.info(HIPPY_LOG_DOMAIN, tag, msg)
+        LogUtils.i( tag, msg)
         break;
       case HippyLogSeverity.LOG_SEVERITY_WARNING:
-        hilog.warn(HIPPY_LOG_DOMAIN, tag, msg)
+        LogUtils.w( tag, msg)
         break;
       case HippyLogSeverity.LOG_SEVERITY_ERROR:
         // fall through
       case HippyLogSeverity.LOG_SEVERITY_FATAL:
-        hilog.error(HIPPY_LOG_DOMAIN, tag, msg)
+        LogUtils.e( tag, msg)
         break;
       case HippyLogSeverity.LOG_SEVERITY_DEBUG:
         // fall through
       default:
-        hilog.debug(HIPPY_LOG_DOMAIN, tag, msg)
+        LogUtils.d( tag, msg)
     }
   }
 }

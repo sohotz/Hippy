@@ -21,12 +21,12 @@ import { HippyExecutorSupplierAdapter } from './HippyExecutorSupplierAdapter';
 import { HippyExecutor } from '../../../support/common/HippyExecutor';
 
 export class DefaultExecutorSupplierAdapter implements HippyExecutorSupplierAdapter {
-  getDBExecutor(): HippyExecutor {
-    throw new Error('Method not implemented.');
+  getDBExecutor(): HippyExecutor {//todo
+    return new HippyExecutor()
   }
 
   getBackgroundTaskExecutor(): HippyExecutor {
-    throw new Error('Method not implemented.');
+    return new HippyExecutor()
   }
 
   destroyIfNeed() {

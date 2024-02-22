@@ -20,7 +20,12 @@
 import { HippyMap } from '../../../support/common/HippyTypes';
 import { HttpHeaderReuqest } from './HttpHeaderRequest';
 import buffer from '@ohos.buffer';
-import { TextUtils } from '../../../support/common/TextUtils';
+import { TextUtils } from '../../../support/utils/TextUtils';
+import geoLocationManager from '@ohos.geoLocationManager';
+import I18n from '@ohos.i18n';
+import { HippyEngineContext } from '../../HippyEngineContext';
+import { featureAbility } from '@kit.AbilityKit';
+import { HashMap, util } from '@kit.ArkTS';
 
 export class HippyHttpRequest {
   public static DEFAULT_TIMEOUT_MS: number = 3000;
@@ -30,29 +35,32 @@ export class HippyHttpRequest {
   public static HTTP_METHOD: string = "method";
   public static HTTP_REDIRECT: string = "redirect";
   public static HTTP_BODY: string = "body";
-  private static USER_AGENT: string = null;
+  private static USER_AGENT = "";
   private mConnectTimeout: number = HippyHttpRequest.DEFAULT_TIMEOUT_MS;
   private mReadTimeout: number = HippyHttpRequest.DEFAULT_TIMEOUT_MS;
   private mUseCaches: boolean = true;
-  // private mRedirectTimes: AtomicInteger
-  private mUrl: string
-  private mHeaders: Map<string, string>
-  private mInitParams: Map<string, string>
-  private mNativeParams: Map<string, Object>
+  // private mRedirectTimes: number
+  private mUrl: string = ""
+  private mHeaders: HashMap<string, string>
+  private mInitParams: HashMap<string, string>
+  private mNativeParams: HashMap<string, Object>
 
-  constructor(headers: Map<string, string>,
-              initParams: Map<string, string>, nativeParams: Map<string, Object>) {
-    this.mHeaders = (headers == null) ? new Map() : headers;
+  constructor(headers: HashMap<string, string>,
+              initParams: HashMap<string, string>, nativeParams: HashMap<string, Object>) {
+    this.mHeaders = (headers == null) ? new HashMap() : headers;
     this.mInitParams = initParams;
     this.mNativeParams = nativeParams;
     this.initUserAgent();
   }
 
-  public getRequestCookies(): string {
-    return this.mHeaders.get(HttpHeaderReuqest.COOKIE);
+  public getRequestCookies(): string |undefined {
+    if (this.mHeaders != null) {
+      return this.mHeaders.get(HttpHeaderReuqest.COOKIE);
+    }
+    return undefined
   }
 
-  public getNativeParams(): Map<string, Object> {
+  public getNativeParams(): HashMap<string, Object> {
     return this.mNativeParams;
   }
 
@@ -60,27 +68,27 @@ export class HippyHttpRequest {
     this.mUrl = url;
   }
 
-  public getUrl(): string {
+  public getUrl(): string | null | undefined {
     if (this.mUrl != null) {
       return this.mUrl;
     }
     return (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_URL) : null;
   }
 
-  public addHeader(name: string, value: string): void {
+  public addHeader(name: string, value: string) {
     this.mHeaders.set(name, value);
   }
 
   public getAndIncrementRedirectTimes(): number {
     // if (this.mRedirectTimes == null) {
-      // this.mRedirectTimes = new AtomicInteger();
+    // this.mRedirectTimes = new AtomicInteger();
     // }
     // return this.mRedirectTimes.getAndIncrement();
-    return 0
+    return 1
   }
 
 
-  public getHeaders(): Map<String, String> {
+  public getHeaders(): HashMap<string, string> {
     return this.mHeaders;
   }
 
@@ -88,7 +96,7 @@ export class HippyHttpRequest {
     return this.mConnectTimeout;
   }
 
-  public setConnectTimeout(time: number): void {
+  public setConnectTimeout(time: number) {
     this.mConnectTimeout = time;
   }
 
@@ -96,7 +104,7 @@ export class HippyHttpRequest {
     return this.mReadTimeout;
   }
 
-  public setReadTimeout(time: number): void {
+  public setReadTimeout(time: number) {
     this.mReadTimeout = time;
   }
 
@@ -104,13 +112,13 @@ export class HippyHttpRequest {
     return this.mUseCaches;
   }
 
-  public setUseCaches(useCaches: boolean): void {
+  public setUseCaches(useCaches: boolean) {
     this.mUseCaches = useCaches;
   }
 
-  public getMethod(): string {
+  public getMethod(): string  {
     if (this.mInitParams != null) {
-      let method: string = this.mInitParams.get(HippyHttpRequest.HTTP_METHOD);
+      let method = this.mInitParams.get(HippyHttpRequest.HTTP_METHOD);
       if (!TextUtils.isEmpty(method)) {
         return method;
       }
@@ -119,33 +127,40 @@ export class HippyHttpRequest {
   }
 
   public isInstanceFollowRedirects(): boolean {
-    let redirect: string = (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_REDIRECT) : null;
+    let redirect = (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_REDIRECT) : null;
     return!TextUtils.isEmpty(redirect) && TextUtils.equals("follow", redirect);
   }
 
-  public getBody(): string {
+  public getBody(): string | null  {
     return (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_BODY) : null;
   }
 
   private initUserAgent(): void {
     if (HippyHttpRequest.USER_AGENT == null) {
-      // Locale locale = Locale.getDefault();
-      // let buff:buffer.Buffer= new buffer.Buffer();
-      // // Add version
-      // let version:string = build.VERSION.RELEASE;
-      // if (version.length > 0) {
-      //     // buffer.append(version);
-      // } else {// default to "1.0"
-      //     buffer.append("1.0");
-      // }
-      // buffer.append("; ");
-      // final String language = locale.getLanguage();
-      // buffer.append(language.toLowerCase());
-      // final String country = locale.getCountry();
-      // buffer.append("-");
-      // buffer.append(country.toLowerCase());
-      // final String base = "Mozilla/5.0 (Linux; U; Android %s) AppleWebKit/533.1 (KHTML, like Gecko) Mobile Safari/533.1";
-      // HippyHttpRequest.USER_AGENT = String.format(base, buffer);
+      try {
+        let language = I18n.System.getSystemLanguage();
+        let country = I18n.System.getSystemRegion(); // 获取系统当前地区设置
+
+        // Add version
+        let buffer = ""//todo context
+        // context.getAppVersionInfo((err, data) => {
+        //     console.info('getAppVersionInfo err: ' + JSON.stringify(err) + 'data: ' + JSON.stringify(data));
+        //     version =
+        // });
+        let version: string = ""
+        if (version.length > 0) {
+          buffer += version + "; "
+        } else { // default to "1.0"
+          buffer += "1.0; "
+        }
+        buffer += language.toLowerCase()
+        buffer += "-"
+        buffer += country.toLowerCase()
+        let base = "Mozilla/5.0 (Linux; U; Android %s) AppleWebKit/533.1 (KHTML, like Gecko) Mobile Safari/533.1";
+        HippyHttpRequest.USER_AGENT = util.format(base, buffer);
+      } catch (error) {
+        console.error(`call System.isSuggested failed, error code: ${error.code}, message: ${error.message}.`);
+      }
     }
 
     this.addHeader(HttpHeaderReuqest.USER_AGENT, HippyHttpRequest.USER_AGENT);

@@ -30,7 +30,7 @@ export abstract class HippyThirdPartyAdapter {
   }
 
   public getPageUrl(): string {
-    return null;
+    return "";
   }
 
   public getNightMode(): boolean {

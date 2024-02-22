@@ -21,6 +21,7 @@ import { HippyStorageAdapter } from './HippyStorageAdapter'
 import dataPreferences from '@ohos.data.preferences';
 import { Context } from '@ohos.abilityAccessCtrl';
 import { BusinessError } from '@ohos.base';
+import { HippyException } from '../../../support/common/HippyException';
 
 const PREFERENCES_NAME = 'HippyStorage'
 

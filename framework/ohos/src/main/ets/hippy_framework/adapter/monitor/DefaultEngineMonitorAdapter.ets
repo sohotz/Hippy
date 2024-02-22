@@ -23,35 +23,33 @@ import ArrayList from '@ohos.util.ArrayList';
 import { MonitorGroup, MonitorPoint } from '../../../support/utils/TimeMonitor';
 import { EngineInitStatus, ModuleLoadStatus } from '../..';
 import { HippyCallNativeParams } from '../../bridge/HippyCallNativeParams';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
-const  DOMAIN = 0x0002
-const TAG:string = "DefaultEngineMonitorAdapter"
+const TAG: string = "DefaultEngineMonitorAdapter"
 
-export class DefaultEngineMonitorAdapter implements HippyEngineMonitorAdapter{
-
-  protected printGroupTime( monitorGroup:MonitorGroup ):void {
-    let monitorPoints:ArrayList<MonitorPoint> = monitorGroup.getMonitorPoints();
+export class DefaultEngineMonitorAdapter implements HippyEngineMonitorAdapter {
+  protected printGroupTime(monitorGroup: MonitorGroup): void {
+    let monitorPoints: ArrayList<MonitorPoint> = monitorGroup.getMonitorPoints();
     if (monitorPoints != null) {
-      monitorPoints.forEach((monitorPoint:MonitorPoint) =>{
-        hilog.info(DOMAIN, TAG, monitorPoint.key + ": " + (monitorPoint.endTime - monitorPoint.startTime) + "ms");
+      monitorPoints.forEach((monitorPoint: MonitorPoint) => {
+        LogUtils.i(TAG, monitorPoint.key + ": " + (monitorPoint.endTime - monitorPoint.startTime) + "ms");
       });
     }
-    hilog.info(DOMAIN, TAG, "total time: " + monitorGroup.totalTime);
+    LogUtils.i(TAG, "total time: " + monitorGroup.totalTime);
   }
 
   onEngineInitialized(statusCode: EngineInitStatus, monitorGroup: MonitorGroup): void {
-    hilog.info(DOMAIN,TAG, "engine initialization completed with result: " + statusCode);
+    LogUtils.i(TAG, "engine initialization completed with result: " + statusCode);
     this.printGroupTime(monitorGroup);
   }
 
   onLoadModuleCompleted(statusCode: ModuleLoadStatus, componentName: string, monitorGroup: MonitorGroup): void {
-    hilog.info(DOMAIN,TAG,"load module completed with result: " + statusCode);
+    LogUtils.i(TAG, "load module completed with result: " + statusCode);
     this.printGroupTime(monitorGroup);
   }
 
   onLoadInstanceCompleted(componentName: string, monitorGroup: MonitorGroup): void {
-    hilog.info(DOMAIN,TAG,
-      componentName + " load instance completed with first view added");
+    LogUtils.i(TAG, componentName + " load instance completed with first view added");
     this.printGroupTime(monitorGroup);
   }
 
@@ -60,7 +58,6 @@ export class DefaultEngineMonitorAdapter implements HippyEngineMonitorAdapter{
   }
 
   onCallNativeFinished(componentName: string, params: HippyCallNativeParams): void {
-    throw new Error('Method not implemented.');
   }
 
   onInterceptPromiseCallback(componentName: string, moduleName: string, funcName: string, callbackId: string, callbackResult: Object): boolean {

@@ -26,5 +26,5 @@ export enum HippyLogSeverity {
 }
 
 export interface HippyLogAdapter {
-  onReceiveLogMessage(level: number, tag: string, msg: string)
+  onReceiveLogMessage(level: number, tag: string, msg: string):void
 }

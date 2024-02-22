@@ -24,7 +24,7 @@ export interface HippyFontScaleAdapter extends FontAdapter{
 
   getEmoticonText(text: string, fontSize: number): string
 
-  getCustomFontFilePath(fontFamily: string, style: number)
+  getCustomFontFilePath(fontFamily: string, style: number):string
 
-  getCustomTypeface(fontFamily: string, style: number)
+  getCustomTypeface(fontFamily: string, style: number):FontStyle
 }

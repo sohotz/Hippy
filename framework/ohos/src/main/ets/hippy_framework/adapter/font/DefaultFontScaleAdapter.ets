@@ -29,10 +29,10 @@ export class DefaultFontScaleAdapter implements HippyFontScaleAdapter{
   }
 
   public getCustomFontFilePath(fontFamilyName:string, style:number) :string {
-    return null;
+    return "";
   }
 
   public getCustomTypeface( fontFamily:string, style:number) : FontStyle{
-    return null;
+    return FontStyle.Normal;
   }
 }

@@ -21,9 +21,9 @@ import { HippyException } from '../../../support/common/HippyException';
 import { HippyJsException } from '../../common/HippyJsException';
 
 export interface HippyExceptionHandlerAdapter {
-  handleJsException(exception: HippyJsException)
+  handleJsException(exception: HippyJsException):void
 
-  handleNativeException(exception: HippyException, haveCaught: boolean)
+  handleNativeException(exception: HippyException, haveCaught: boolean):void
 
-  handleBackgroundTracing(details: string)
+  handleBackgroundTracing(details: string):void
 }
