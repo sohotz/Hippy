@@ -17,38 +17,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes'
-import { HRComponent } from '../../HippyRenderView'
-import { NativeRenderContext } from '../../NativeRenderContext'
-import { HRRect } from '../../utils/HRTypes'
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
+
+import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HRComponent } from '../../HippyRenderView';
+import { NativeRenderContext } from '../../NativeRenderContext';
+import { HREventUtils } from '../../utils/HREventUtils'
+import HippyRenderBaseView, {
+  HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
-export class HRListItemView extends HippyRenderBaseView {
-  private readonly TAG = "HRListItemView"
-
+export class HRWaterfallItemView extends HippyRenderBaseView {
+  private readonly TAG = "HRWaterfallItemView"
+  public source: string = ''
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    return super.setProp(propKey, propValue as HippyAny)
-  }
-
-  protected updateRenderViewFrame(frame: HRRect): void {
-    this.cssPositionX = 0
-    this.cssPositionY = 0
-    this.cssWidth = frame.width
-    this.cssHeight = frame.height
+    LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
+    return super.setProp(propKey, propValue)
   }
 }
 
 @Component
-export struct HRListItem {
-  @ObjectLink renderView: HRListItemView
+export struct HRWaterfallItem {
+  private readonly TAG = "HRWaterfallItem"
+  @ObjectLink renderView: HRWaterfallItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+
+  aboutToAppear(): void {
+    LogUtils.d(this.TAG, "aboutToAppear ")
+  }
 
   build() {
     Stack() {
@@ -64,11 +65,12 @@ export struct HRListItem {
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
-  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  // .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .touchable($$.cssTouchEnable) // TODO: use new api
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
   .borderWidth(1) // TODO:

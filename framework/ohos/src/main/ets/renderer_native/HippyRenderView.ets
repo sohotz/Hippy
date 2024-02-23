@@ -28,14 +28,24 @@ import { HRImage, HRImageView } from './components/image/HRImageView';
 import { HRListItem, HRListItemView } from './components/list/HRListItemView';
 import { HRList, HRListView } from './components/list/HRListView';
 import { HRModal, HRModalView } from './components/modal/HRModalView';
+import { HRViewPager, HRViewPagerView } from './components/pager/HRViewPager';
+import { HRViewPagerItem, HRViewPagerItemView } from './components/pager/HRViewPagerItem';
+import { HRWaterfall, HRWaterfallView } from './components/waterfall/HRWaterfall';
+import { HRWaterfallItem, HRWaterfallItemView } from './components/waterfall/HRWaterfallItem';
+import { HRRefreshWrapper,HRRefreshWrapperView } from './components/refreshwrapper/HRRefreshWrapper';
+import { HRRefreshWrapperItem, HRRefreshWrapperItemView } from './components/refreshwrapper/HRRefreshWrapperItem';
 import { HRRichText, HRRichTextView } from './components/richtext/HRRichTextView';
 import { HRScrollContent, HRScrollContentView } from './components/scroller/HRScrollContentView';
 import { HRScroll, HRScrollView } from './components/scroller/HRScrollView';
 import { HRDiv, HRDivView } from './components/view/HRDivView';
+import { HRWeb, HRWebView } from './components/web/HRWebView'
 import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
 import { NativeRenderContext } from './NativeRenderContext';
 import { HRManager } from './uimanager/HRManager';
 import { HRSize } from './utils/HRTypes';
+import { LogUtils } from '../support/utils/LogUtils';
+import { HRPullHeader, HRPullHeaderView } from './components/pullheader/HRPullHeader';
+import { HRPullFooter, HRPullFooterView } from './components/pullfooter/HRPullFooter';
 
 export type HRComponent = HRDivView | HRScroll | HRScrollContent | HRModal | null
 
@@ -102,6 +112,7 @@ export class HippyRenderView extends HippyRenderBaseView {
 
 @Component
 export struct HippyRender {
+  private readonly TAG = "HippyRender"
   @ObjectLink renderView: HippyRenderView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
@@ -144,6 +155,24 @@ export struct HippyRender {
       HRList({ renderView: $$ as HRListView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRListItemView) {
       HRListItem({ renderView: $$ as HRListItemView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRWebView) {
+      HRWeb({ renderView: $$ as HRWebView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRViewPagerView) {
+      HRViewPager({ renderView: $$ as HRViewPagerView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRViewPagerItemView) {
+      HRViewPagerItem({ renderView: $$ as HRViewPagerItemView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRWaterfallItemView) {
+      HRWaterfallItem({ renderView: $$ as HRWaterfallItemView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRWaterfallView) {
+      HRWaterfall({ renderView: $$ as HRWaterfallView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRRefreshWrapperView) {
+      HRRefreshWrapper({ renderView: $$ as HRRefreshWrapperView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRRefreshWrapperItemView) {
+      HRRefreshWrapperItem({ renderView: $$ as HRRefreshWrapperItemView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRPullHeaderView) {
+      HRPullHeader({ renderView: $$ as HRPullHeaderView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRPullFooterView) {
+      HRPullFooter({ renderView: $$ as HRPullFooterView, children: $$.children, buildRenderView: this.buildRenderView })
     } else {
       if (this.buildCustomRenderView !== null) {
         this.buildCustomRenderView($$)

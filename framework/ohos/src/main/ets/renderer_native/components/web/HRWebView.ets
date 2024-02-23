@@ -17,63 +17,70 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes'
-import { HRComponent } from '../../HippyRenderView'
-import { NativeRenderContext } from '../../NativeRenderContext'
-import { HRRect } from '../../utils/HRTypes'
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
-import { LogUtils } from '../../../support/utils/LogUtils';
+
+import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HRComponent } from '../../HippyRenderView';
+import { NativeRenderContext } from '../../NativeRenderContext';
+import HippyRenderBaseView, {
+  HippyObservedArray } from '../base/HippyRenderBaseView';
+import HashMap from '@ohos.util.HashMap';
+import web_webview from '@ohos.web.webview'
 
 @Observed
-export class HRListItemView extends HippyRenderBaseView {
-  private readonly TAG = "HRListItemView"
-
+export class HRWebView extends HippyRenderBaseView {
+  public source: string = ''
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    return super.setProp(propKey, propValue as HippyAny)
-  }
+    if (propKey === 'source') {
+      let map = propValue as HippyMap
+      this.source = map.get('uri') as string
+    }
 
-  protected updateRenderViewFrame(frame: HRRect): void {
-    this.cssPositionX = 0
-    this.cssPositionY = 0
-    this.cssWidth = frame.width
-    this.cssHeight = frame.height
+    return super.setProp(propKey, propValue)
   }
 }
 
 @Component
-export struct HRListItem {
-  @ObjectLink renderView: HRListItemView
+export struct HRWeb {
+  @ObjectLink renderView: HRWebView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  controller: web_webview.WebviewController = new web_webview.WebviewController()
+
+  aboutToAppear() {
+  }
+
+  aboutToDisappear() {
+  }
 
   build() {
-    Stack() {
-      ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
-      }, (item: HippyRenderBaseView) => item.tag + '')
-    }
-    .applyRenderViewBaseAttr(this.renderView)
+    Web({
+      src: this.renderView.source,
+      controller: this.controller
+    })
+      .applyRenderViewBaseAttr(this.renderView)
   }
 }
 
 // base props for all components
-@Extend(Stack)
+@Extend(Web)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
-  .position({x: $$.cssPositionX, y: $$.cssPositionY})
-  .size({width:$$.cssWidth, height: $$.cssHeight})
+  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
+  .size({ width: $$.cssWidth, height: $$.cssHeight })
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .touchable($$.cssTouchEnable) // TODO: use new api
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
-  .borderWidth(1) // TODO:
+  .borderWidth(2) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
   .onClick($$.eventClick)
 }
+

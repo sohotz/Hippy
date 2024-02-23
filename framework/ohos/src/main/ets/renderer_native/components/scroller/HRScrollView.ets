@@ -19,11 +19,14 @@
  */
 import { HippyAny, HippyRecord, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
+import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
 import { HRScrollContentView } from './HRScrollContentView';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
 export class HRScrollView extends HippyRenderBaseView {
+  private readonly TAG = "HRScrollView"
   private static readonly DEFAULT_FRICTION = 0.8
   axis: ScrollDirection = ScrollDirection.Vertical
   scrollBar: BarState = BarState.Auto
@@ -55,7 +58,13 @@ export class HRScrollView extends HippyRenderBaseView {
   private readonly PAGING_ENABLED = "pagingEnabled"
   scroller: Scroller = new Scroller()
 
+  constructor(ctx: NativeRenderContext) {
+    super(ctx)
+    LogUtils.d(this.TAG, "constructor -------------------- ")
+  }
+
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+    LogUtils.d(this.TAG, "setProp: index " + propKey + ", propValue: " + propValue)
     switch (propKey) {
       case this.DIRECTION_ROW:
         this.axis = propValue as number == 1 ? ScrollDirection.Horizontal : ScrollDirection.Vertical

@@ -17,38 +17,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes'
-import { HRComponent } from '../../HippyRenderView'
-import { NativeRenderContext } from '../../NativeRenderContext'
-import { HRRect } from '../../utils/HRTypes'
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
+
+import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HRComponent } from '../../HippyRenderView';
+import { NativeRenderContext } from '../../NativeRenderContext';
+import { HREventUtils } from '../../utils/HREventUtils'
+import HippyRenderBaseView, {
+  HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
-export class HRListItemView extends HippyRenderBaseView {
-  private readonly TAG = "HRListItemView"
-
+export class HRRefreshWrapperView extends HippyRenderBaseView {
+  private readonly TAG = "HRRefreshWrapperView"
+  public initialPage: number = 0
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    return super.setProp(propKey, propValue as HippyAny)
+    LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
+    // TODO: xxxxx
+    return super.setProp(propKey, propValue)
   }
 
-  protected updateRenderViewFrame(frame: HRRect): void {
-    this.cssPositionX = 0
-    this.cssPositionY = 0
-    this.cssWidth = frame.width
-    this.cssHeight = frame.height
+  call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+    LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
   }
 }
 
 @Component
-export struct HRListItem {
-  @ObjectLink renderView: HRListItemView
+export struct HRRefreshWrapper {
+  private readonly TAG = "HRRefreshWrapper"
+  @ObjectLink renderView: HRRefreshWrapperView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  private controller: SwiperController = new SwiperController()
+  private PAGE_ITEM_POSITION: string = "position";
+  @State index: number = 0
+
+  aboutToAppear() {
+    this.index = this.renderView.initialPage
+  }
+
+  aboutToDisappear() {
+  }
+
+  setPage(index: number) {
+    this.index = index
+  }
 
   build() {
     Stack() {
@@ -64,14 +80,15 @@ export struct HRListItem {
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
-  .position({x: $$.cssPositionX, y: $$.cssPositionY})
-  .size({width:$$.cssWidth, height: $$.cssHeight})
+  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
+  .size({ width: $$.cssWidth, height: $$.cssHeight })
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .touchable($$.cssTouchEnable) // TODO: use new api
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
-  .borderWidth(1) // TODO:
+  .borderWidth(2) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)

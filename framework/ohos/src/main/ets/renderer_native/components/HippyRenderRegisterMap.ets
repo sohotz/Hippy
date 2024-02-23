@@ -25,6 +25,15 @@ import { HRListView } from './list/HRListView'
 import { HRModalView } from './modal/HRModalView'
 import { HRRichTextView } from './richtext/HRRichTextView'
 import { HRScrollView } from './scroller/HRScrollView'
+import { HRWebView } from './web/HRWebView'
+import { HRViewPagerView } from './pager/HRViewPager'
+import { HRViewPagerItemView } from './pager/HRViewPagerItem'
+import { HRWaterfallView } from './waterfall/HRWaterfall'
+import { HRWaterfallItemView } from './waterfall/HRWaterfallItem'
+import { HRRefreshWrapperView } from './refreshwrapper/HRRefreshWrapper'
+import { HRRefreshWrapperItemView } from './refreshwrapper/HRRefreshWrapperItem'
+import { HRPullHeaderView } from './pullheader/HRPullHeader'
+import { HRPullFooterView } from './pullfooter/HRPullFooter'
 import { HRDivView } from './view/HRDivView'
 
 export type HRRenderViewCreator = (ctx: NativeRenderContext) => HippyRenderBaseView
@@ -38,6 +47,15 @@ export function hippyRenderViewCreatorRegisterMap(): Map<string, HRRenderViewCre
   registerMap.set("ListView", (ctx): HippyRenderBaseView => new HRListView(ctx))
   registerMap.set("ListViewItem", (ctx): HippyRenderBaseView => new HRListItemView(ctx))
   registerMap.set("ScrollView", (ctx): HippyRenderBaseView => new HRScrollView(ctx))
+  registerMap.set("WebView", (ctx): HippyRenderBaseView => new HRWebView(ctx))
+  registerMap.set("ViewPager", (ctx): HippyRenderBaseView => new HRViewPagerView(ctx))
+  registerMap.set("ViewPagerItem", (ctx): HippyRenderBaseView => new HRViewPagerItemView(ctx))
+  registerMap.set("WaterfallView", (ctx): HippyRenderBaseView => new HRWaterfallView(ctx))
+  registerMap.set("WaterfallItem", (ctx): HippyRenderBaseView => new HRWaterfallItemView(ctx))
+  registerMap.set("RefreshWrapper", (ctx): HippyRenderBaseView => new HRRefreshWrapperView(ctx))
+  registerMap.set("RefreshWrapperItemView", (ctx): HippyRenderBaseView => new HRRefreshWrapperItemView(ctx))
+  registerMap.set("PullHeaderView", (ctx): HippyRenderBaseView => new HRPullHeaderView(ctx))
+  registerMap.set("PullFooterView", (ctx): HippyRenderBaseView => new HRPullFooterView(ctx))
 
   return registerMap
 }

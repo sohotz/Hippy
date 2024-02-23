@@ -17,38 +17,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes'
-import { HRComponent } from '../../HippyRenderView'
-import { NativeRenderContext } from '../../NativeRenderContext'
-import { HRRect } from '../../utils/HRTypes'
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
-import { LogUtils } from '../../../support/utils/LogUtils';
+
+import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HRComponent } from '../../HippyRenderView';
+import { NativeRenderContext } from '../../NativeRenderContext';
+import { HREventUtils } from '../../utils/HREventUtils'
+import HippyRenderBaseView, {
+  HippyObservedArray } from '../base/HippyRenderBaseView';
 
 @Observed
-export class HRListItemView extends HippyRenderBaseView {
-  private readonly TAG = "HRListItemView"
-
+export class HRRefreshWrapperItemView extends HippyRenderBaseView {
+  public source: string = ''
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    return super.setProp(propKey, propValue as HippyAny)
-  }
-
-  protected updateRenderViewFrame(frame: HRRect): void {
-    this.cssPositionX = 0
-    this.cssPositionY = 0
-    this.cssWidth = frame.width
-    this.cssHeight = frame.height
+    return super.setProp(propKey, propValue)
   }
 }
 
 @Component
-export struct HRListItem {
-  @ObjectLink renderView: HRListItemView
+export struct HRRefreshWrapperItem {
+  @ObjectLink renderView: HRRefreshWrapperItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+
 
   build() {
     Stack() {
@@ -69,6 +63,7 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .touchable($$.cssTouchEnable) // TODO: use new api
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
   .borderWidth(1) // TODO:

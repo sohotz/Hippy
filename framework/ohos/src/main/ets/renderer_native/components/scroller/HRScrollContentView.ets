@@ -19,16 +19,24 @@
  */
 import { HippyAny } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
+import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
 import { HRScrollView } from './HRScrollView';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
 export class HRScrollContentView extends HippyRenderBaseView {
-  viewWidth: number = 0
-  viewHeight: number = 0
+  private readonly TAG = "HRScrollContentView"
+  viewWidth: number = 0;
+  viewHeight: number = 0;
   startOffset: number = 0 // content margin, used to support refresh
+  constructor(ctx: NativeRenderContext) {
+    super(ctx)
+    LogUtils.d(this.TAG, "constructor -------------------- ")
+  }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
+    LogUtils.d(this.TAG, "setProp: index " + propKey + ", propValue: " + propValue)
     return super.setProp(propKey, propValue)
   }
 }
