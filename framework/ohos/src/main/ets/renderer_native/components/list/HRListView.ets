@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import systemDateTime from '@ohos.systemDateTime';
 import { HippyAny, HippyMap, Hippy2Map, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
@@ -27,6 +28,7 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRPullHeaderView } from '../pullheader/HRPullHeader';
 import { HRPullFooterView } from '../pullfooter/HRPullFooter';
 import { HRRect } from '../../utils/HRTypes';
+import { PixelUtil } from '../../../support/utils/PixelUtil';
 
 @Observed
 export class HRListView extends HippyRenderBaseView {
@@ -34,7 +36,22 @@ export class HRListView extends HippyRenderBaseView {
   public flex: number = 0
   public scrollForward: number = NestedScrollMode.PARENT_FIRST
   public scrollBackward: number = NestedScrollMode.PARENT_FIRST
+  public readonly EXPOSURE_STATE_FULL_VISIBLE: number = 1;
+  public readonly EXPOSURE_STATE_INVISIBLE: number = 2;
+  public readonly EXPOSURE_STATE_PART_VISIBLE: number = 3;
   public scroller: Scroller = new Scroller()
+
+  listDirection: Axis = Axis.Vertical;
+  scrollEnabled: boolean = true;
+  initialOffset: number = 0;
+  initialIndex: number = 0;
+  cachedCount: number = 0;
+  scrollEventThrottle: number = 30;
+  preloadItemNumber: number = 0;
+  onScrollEventEnable: boolean = true;
+  exposureEventEnabled: Boolean = true;
+  exposureState: number = this.EXPOSURE_STATE_INVISIBLE;
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
@@ -62,6 +79,27 @@ export class HRListView extends HippyRenderBaseView {
         break;
       case "cssHeight":
         this.cssHeight = propValue as number;
+        break;
+      case "horizontal":
+        this.listDirection = propValue as boolean == true ? Axis.Horizontal : Axis.Vertical;
+        break;
+      case "scrollEnabled":
+        this.scrollEnabled = propValue as boolean;
+        break;
+      case "initialContentOffset":
+        this.initialOffset = propValue as number;
+        break;
+      case "itemViewCacheSize":
+        this.cachedCount = propValue as number;
+        break;
+      case "scrollEventThrottle":
+        this.scrollEventThrottle = propValue as number;
+        break;
+      case "preloadItemNumber":
+        this.preloadItemNumber = propValue as number;
+        break;
+      case "exposureEventEnabled":
+        this.exposureEventEnabled = propValue as boolean;
         break;
       default:
         break;
@@ -93,6 +131,11 @@ export class HRListView extends HippyRenderBaseView {
           })
         }
         break;
+      case "scrollToTop":
+        {
+          this.scroller.scrollToIndex(0);
+        }
+        break
       default:
         break;
     }
@@ -136,6 +179,9 @@ export struct HRList {
   private headerView: HRPullHeaderView | null = null;
   private footerView: HRPullFooterView | null = null;
   private footerYOff: number = 0;
+  private lastScrollTime: number = 0;
+  private currentOffset: number = 0;
+  private isLastTimeReachEnd: boolean = false;
 
   aboutToAppear(): void {
     LogUtils.d(this.TAG, "aboutToAppear: " )
@@ -158,6 +204,121 @@ export struct HRList {
 
   aboutToDisappear(): void {
     LogUtils.d(this.TAG, "aboutToDisappear: ")
+  }
+
+  emitScrollEvent(eventName : string){
+    let contentInset = new Map<string, number>() as HippyMap;
+    contentInset.set("top", 0);
+    contentInset.set("bottom", 0);
+    contentInset.set("left", 0);
+    contentInset.set("right", 0);
+
+    let contentOffset = new Map<string, number>() as HippyMap;
+    contentOffset.set("x",PixelUtil.px2dp(this.renderView.scroller.currentOffset().xOffset));
+    contentOffset.set("y",PixelUtil.px2dp(this.renderView.scroller.currentOffset().yOffset));
+
+    let contentSize = new Map<string, number>() as HippyMap;
+    contentSize.set("width",PixelUtil
+      .px2dp(this.renderView.children.length > 0 ? this.renderView.children[0].cssWidth : this.renderView.cssWidth));
+    contentSize.set("height",PixelUtil
+      .px2dp(this.renderView.children.length > 0 ? this.renderView.children[0].cssHeight : this.renderView.cssHeight));
+
+    let layoutMeasurement = new Map<string, number>() as HippyMap;
+    layoutMeasurement.set("width",PixelUtil.px2dp(this.renderView.cssWidth));
+    layoutMeasurement.set("height",PixelUtil.px2dp(this.renderView.cssHeight));
+
+    let params = new Map<string, HippyMap>() as Hippy2Map;
+    params.set("contentInset",contentInset);
+    params.set("contentOffset",contentOffset);
+    params.set("contentSize",contentSize);
+    params.set("layoutMeasurement",layoutMeasurement);
+
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, eventName, params as HippyMap);
+  }
+
+  checkSendOnScrollEvent(){
+    if(this.renderView.onScrollEventEnable) {
+      let currentTime = systemDateTime.getTime(true);
+      this.currentOffset = this.renderView.scroller.currentOffset().yOffset;
+      if (currentTime - this.lastScrollTime >= this.renderView.scrollEventThrottle) {
+        this.lastScrollTime = currentTime;
+        this.emitScrollEvent(HREventUtils.EVENT_REFRESH_WRAPPER_SCROLL);
+      }
+    }
+  }
+
+  //可视面积小于10%，任务view当前已经不在可视区域
+  calculateExposureState(): number {
+    // TODO
+    return this.renderView.EXPOSURE_STATE_FULL_VISIBLE;
+  }
+  moveToExposureState(state: number){
+    if (state == this.renderView.exposureState) {
+      return;
+    }
+    switch (state) {
+      case this.renderView.EXPOSURE_STATE_FULL_VISIBLE:
+        if (this.renderView.exposureState == this.renderView.EXPOSURE_STATE_INVISIBLE) {
+          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_WILL_APPEAR, null);
+        }
+        HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_APPEAR, null);
+        break;
+      case this.renderView.EXPOSURE_STATE_PART_VISIBLE:
+        if (this.renderView.exposureState == this.renderView.EXPOSURE_STATE_FULL_VISIBLE) {
+          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_WILL_DISAPPEAR, null);
+        } else {
+          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_WILL_APPEAR, null);
+        }
+        break;
+      case this.renderView.EXPOSURE_STATE_INVISIBLE:
+        if (this.renderView.exposureState == this.renderView.EXPOSURE_STATE_FULL_VISIBLE) {
+          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_WILL_DISAPPEAR, null);
+        }
+        HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_DISAPPEAR, null);
+        break;
+      default:
+        break;
+    }
+    this.renderView.exposureState = state;
+  }
+
+  checkSendExposureEvent() {
+    if(!this.renderView.exposureEventEnabled) {
+      return;
+    }
+    let newState: number = this.calculateExposureState();
+    this.moveToExposureState(newState);
+  }
+  /**
+   * 检查是否已经触底，发生onEndReached事件给前端
+   * 如果上次是没有到底，这次滑动底了，需要发事件通知，如果上一次已经是到底了，这次到底不会发事件
+   */
+  checkSendReachEndEvent(lastIndex: number) {
+    let isThisTimeReachEnd: boolean = false;
+    isThisTimeReachEnd = this.isReachEnd(lastIndex);
+
+    if (!this.isLastTimeReachEnd && isThisTimeReachEnd) {
+      this.sendOnReachedEvent();
+    }
+    this.isLastTimeReachEnd = isThisTimeReachEnd;
+  }
+
+  isReachEnd(lastIndex: number): boolean {
+    if(this.renderView.preloadItemNumber > 0 && (this.children.length - lastIndex) < this.renderView.preloadItemNumber) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  handleScrollEvent(lastIndex: number) {
+    this.checkSendOnScrollEvent();
+    this.checkSendExposureEvent();
+  }
+
+  sendOnReachedEvent() {
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_RECYCLER_END_REACHED, null);
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_RECYCLER_LOAD_MORE, null);
   }
 
   build() {
@@ -184,7 +345,9 @@ export struct HRList {
         .width('100%')
         .height('100%')
         .applyRenderViewBaseAttr(this.renderView)
-        .listDirection(Axis.Vertical)
+        .listDirection(this.renderView.listDirection)
+        .enableScrollInteraction(this.renderView.scrollEnabled)
+        .cachedCount(this.renderView.cachedCount)
         .scrollBar(BarState.Off)
         .friction(0.6)
         .divider({ strokeWidth: 2, color: 0xFFFFFF, startMargin: 0, endMargin: 0 })
@@ -194,11 +357,14 @@ export struct HRList {
           scrollBackward: this.renderView.scrollBackward})
         .onScrollIndex((firstIndex: number, lastIndex: number, centerIndex: number) => {
           LogUtils.d(this.TAG, "onScrollIndex: firstIndex=" + firstIndex +
-            ", lastIndex=" + lastIndex + ", centerIndex=" + centerIndex)
+            ", lastIndex=" + lastIndex + ", centerIndex=" + centerIndex);
+          this.checkSendReachEndEvent(lastIndex);
+          this.checkSendExposureEvent();
         })
         .onScroll((scrollOffset: number, scrollState: ScrollState) => {
           LogUtils.d(this.TAG, "onScroll: scrollOffset=" + scrollOffset +
-            ", scrollState=" + scrollState )
+            ", scrollState=" + scrollState );
+          this.handleScrollEvent(scrollOffset);
           let xOff: number = this.renderView.scroller.currentOffset().xOffset;
           let yOff: number = this.renderView.scroller.currentOffset().yOffset;
           // LogUtils.d(this.TAG, "current xOffset=" + xOff + ", yOffset=" + yOff )
@@ -295,10 +461,12 @@ export struct HRList {
           }
         })
         .onScrollStart(() => {
-          LogUtils.d(this.TAG, "onScroll: onScrollStart=" )
+          LogUtils.d(this.TAG, "onScroll: onScrollStart=" );
+          this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_BEGIN);
         })
         .onScrollStop(() => {
-          LogUtils.d(this.TAG, "onScroll: onScrollStop=" )
+          LogUtils.d(this.TAG, "onScroll: onScrollStop=" );
+          this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_END);
           let xOff: number = this.renderView.scroller.currentOffset().xOffset;
           let yOff: number = this.renderView.scroller.currentOffset().yOffset;
           let curOff = new Map<string, Number>() as HippyMap;
@@ -316,6 +484,7 @@ export struct HRList {
           }
         })
         .onReachEnd(() => {
+          this.sendOnReachedEvent();
           this.edgeState = EdgeAction.ReachEnd;
           if (this.pullAction === ScrollAction.ReleaseFooter) {
             this.pullAction = ScrollAction.None;
@@ -323,6 +492,8 @@ export struct HRList {
           }
           this.footerYOff = this.renderView.scroller.currentOffset().yOffset;
         })
+        .onDragStart(() => this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_BEGIN_DRAG))
+        .onDragEnd(() => this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_END_DRAG))
       }
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
