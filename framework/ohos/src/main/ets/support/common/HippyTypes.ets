@@ -18,10 +18,9 @@
  * limitations under the License.
  */
 export type HippyValue = number | string | boolean | Uint8Array | bigint
-export type Hippy1Map = Map<string, HippyValue>
+export type HippyMap = Map<string, HippyValue>
 export type Hippy2Map = Map<string, HippyValue | Map<string, HippyValue>>
 export type Hippy3Map = Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>
-export type HippyMap = Hippy3Map
 export type HippyRecord = Record<string, HippyValue>
 export type HippyArray = Array<HippyValue>
 export type HippyAny = HippyValue | HippyMap | HippyRecord | HippyArray | null

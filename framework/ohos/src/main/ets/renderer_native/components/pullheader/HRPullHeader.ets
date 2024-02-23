@@ -51,7 +51,7 @@ export class HRPullHeaderView extends HippyRenderBaseView {
       default:
         break;
     }
-    let ret : boolean = super.setProp(propKey, propValue)
+    let ret : boolean = super.setProp(propKey, propValue as HippyAny)
     if (propKey === "visibility") {
       LogUtils.d(this.TAG, "setProp: visibility " + this.cssVisibility)
     }
@@ -128,7 +128,6 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
-  .touchable($$.cssTouchEnable) // TODO: use new api
   // .zIndex($$.cssZIndex)
   .border($$.cssBorder)
   .borderWidth(2) // TODO:

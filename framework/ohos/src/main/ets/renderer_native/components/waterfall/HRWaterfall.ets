@@ -84,7 +84,7 @@ export class HRWaterfallView extends HippyRenderBaseView {
       break;
     }
 
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 }
 
@@ -206,7 +206,6 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
-  .touchable($$.cssTouchEnable) // TODO: use new api
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
   .borderWidth(2) // TODO:

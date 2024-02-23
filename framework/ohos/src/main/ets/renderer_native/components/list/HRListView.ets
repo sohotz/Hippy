@@ -307,7 +307,7 @@ export struct HRList {
           let params = new Map<string, HippyMap>() as Hippy2Map;
           params.set(this.CURRENT_OFFSET, curOff);
           HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
-            HREventUtils.EVENT_SCROLLER_ON_SCROLL, params);
+            HREventUtils.EVENT_SCROLLER_ON_SCROLL, params as HippyMap);
         })
         .onReachStart(() => {
           this.edgeState = EdgeAction.ReachStart;

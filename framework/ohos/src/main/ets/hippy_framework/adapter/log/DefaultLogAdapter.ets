@@ -20,8 +20,6 @@
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HippyLogAdapter, HippyLogSeverity } from './HippyLogAdapter';
 
-// const HIPPY_LOG_DOMAIN: number = 0x0003
-
 export class DefaultLogAdapter implements HippyLogAdapter {
   onReceiveLogMessage(level: number, tag: string, msg: string) {
     switch (level) {

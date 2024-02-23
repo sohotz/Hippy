@@ -20,9 +20,9 @@
 import display from '@ohos.display'
 import window from '@ohos.window'
 import matrix4 from '@ohos.matrix4'
-import { Hippy1Map,
+import { HippyMap,
   HippyAny,
-  HippyArray, HippyMap, HippyValue } from '../../support/common/HippyTypes'
+  HippyArray, HippyValue } from '../../support/common/HippyTypes'
 import { HRSize, HRTransform } from './HRTypes'
 import { HRValueUtils } from './HRValueUtils'
 import { LogUtils } from '../../support/utils/LogUtils'
@@ -69,7 +69,7 @@ export class HRConvertUtil {
       if (!transformObj || (transformObj as HippyMap).size == 0) {
         continue
       }
-      (transformObj as Hippy1Map).forEach((value: HippyValue, key: string) => {
+      transformObj.forEach((value: HippyValue, key: string) => {
         if ("matrix" == key && value instanceof Array) {
           if (value.length < 16) {
             return
