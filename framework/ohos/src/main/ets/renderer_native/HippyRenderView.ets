@@ -28,6 +28,7 @@ import { HRImage, HRImageView } from './components/image/HRImageView';
 import { HRListItem, HRListItemView } from './components/list/HRListItemView';
 import { HRList, HRListView } from './components/list/HRListView';
 import { HRModal, HRModalView } from './components/modal/HRModalView';
+import { HRTextInput, HRTextInputView } from './components/textinput/HRTextInputView'
 import { HRViewPager, HRViewPagerView } from './components/pager/HRViewPager';
 import { HRViewPagerItem, HRViewPagerItemView } from './components/pager/HRViewPagerItem';
 import { HRWaterfall, HRWaterfallView } from './components/waterfall/HRWaterfall';
@@ -155,6 +156,8 @@ export struct HippyRender {
       HRList({ renderView: $$ as HRListView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRListItemView) {
       HRListItem({ renderView: $$ as HRListItemView, children: $$.children, buildRenderView: this.buildRenderView })
+    } else if ($$ instanceof HRTextInputView) {
+      HRTextInput({ renderView: $$ as HRTextInputView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRWebView) {
       HRWeb({ renderView: $$ as HRWebView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRViewPagerView) {
