@@ -76,8 +76,8 @@ export class HRConvertUtil {
           }
           let m = new Array<number>(16)
           for (let k = 0; k < 16; k++) {
-            if (typeof value[k] == 'number') {
-              m[k] = value[k]
+            if (typeof (value as HippyArray)[k] == 'number') {
+              m[k] = (value as HippyArray)[k] as number
             } else {
               return
             }
