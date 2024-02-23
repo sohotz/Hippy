@@ -39,7 +39,7 @@ export class HRWebView extends HippyRenderBaseView {
       this.source = map.get('uri') as string
     }
 
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 }
 

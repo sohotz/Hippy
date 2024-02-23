@@ -84,7 +84,7 @@ export class HRWaterfallView extends HippyRenderBaseView {
       break;
     }
 
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 }
 

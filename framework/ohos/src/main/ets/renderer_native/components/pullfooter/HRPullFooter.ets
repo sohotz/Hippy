@@ -49,7 +49,7 @@ export class HRPullFooterView extends HippyRenderBaseView {
       default:
         break;
     }
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {

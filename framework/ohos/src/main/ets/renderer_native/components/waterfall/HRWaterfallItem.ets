@@ -36,7 +36,7 @@ export class HRWaterfallItemView extends HippyRenderBaseView {
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
-    return super.setProp(propKey, propValue)
+    return super.setProp(propKey, propValue as HippyAny)
   }
 }
 

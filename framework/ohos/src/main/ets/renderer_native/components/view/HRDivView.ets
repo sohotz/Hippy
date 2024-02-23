@@ -28,11 +28,19 @@ const HippyGestureTag = 'HippyGestureTag'
 
 @Observed
 export class HRDivView extends HippyRenderBaseView {
+  public flexDirection: string = ''
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
+    switch (propKey) {
+      case "flexDirection":
+        this.flexDirection = propValue as string;
+        break;
+      default:
+        break;
+    }
     return super.setProp(propKey, propValue)
   }
 }
@@ -64,12 +72,21 @@ export struct HRDiv {
       .applyRenderViewBaseAttr(this.renderView)
       //.applyGestures(this.renderView)
     }else {
-      Stack() {
-        ForEach(this.children, (item: HippyRenderBaseView) => {
-          this.buildRenderView(item, null)
-        }, (item: HippyRenderBaseView) => item.tag + '')
+      if (this.renderView.flexDirection === 'column') {
+        Column() {
+          ForEach(this.children, (item: HippyRenderBaseView) => {
+            this.buildRenderView(item, null)
+          }, (item: HippyRenderBaseView) => item.tag + '')
+        }
+        .applyColumnRenderViewBaseAttr(this.renderView)
+      } else {
+        Stack() {
+          ForEach(this.children, (item: HippyRenderBaseView) => {
+            this.buildRenderView(item, null)
+          }, (item: HippyRenderBaseView) => item.tag + '')
+        }
+        .applyRenderViewBaseAttr(this.renderView)
       }
-      .applyRenderViewBaseAttr(this.renderView)
     }
   }
 }
@@ -80,6 +97,32 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
   .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
+  .opacity($$.cssOpacity)
+  .clip($$.cssOverflow)
+  .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .touchable($$.cssTouchEnable) // TODO: use new api
+  .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
+  .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
+  .rotate($$.cssRotate)
+  .scale($$.cssScale)
+  .translate($$.cssTranslate)
+  .onClick($$.eventClick)
+}
+
+@Extend(Column)
+function applyColumnRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
+  .backgroundColor($$.cssBackgroundColor)
+  // .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)

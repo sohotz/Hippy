@@ -17,7 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyMap, Hippy2Map, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyMap, Hippy2Map, HippyRenderCallback,
+  HippyValue } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, {
@@ -304,10 +305,8 @@ export struct HRList {
           let curOff = new Map<string, Number>() as HippyMap;
           curOff.set("x", xOff);
           curOff.set("y", yOff);
-          let params = new Map<string, HippyMap>() as Hippy2Map;
-          params.set(this.CURRENT_OFFSET, curOff);
           HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
-            HREventUtils.EVENT_SCROLLER_ON_SCROLL, params);
+            HREventUtils.EVENT_SCROLLER_ON_SCROLL, yOff);
         })
         .onReachStart(() => {
           this.edgeState = EdgeAction.ReachStart;

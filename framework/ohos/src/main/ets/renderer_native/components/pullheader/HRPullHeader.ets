@@ -51,7 +51,7 @@ export class HRPullHeaderView extends HippyRenderBaseView {
       default:
         break;
     }
-    let ret : boolean = super.setProp(propKey, propValue)
+    let ret : boolean = super.setProp(propKey, propValue as HippyAny)
     if (propKey === "visibility") {
       LogUtils.d(this.TAG, "setProp: visibility " + this.cssVisibility)
     }
