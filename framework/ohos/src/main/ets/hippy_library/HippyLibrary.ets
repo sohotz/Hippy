@@ -19,6 +19,7 @@
  */
 import resmgr from "@ohos.resourceManager";
 import { JsDriver } from '../hippy_framework/connector/JsDriver';
+import { NativeCallback } from '../hippy_framework/connector/NativeCallback';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 import { HippyAny } from '../support/common/HippyTypes';
 
@@ -37,14 +38,14 @@ export interface HippyLibrary {
     useLowMemoryMode: boolean,
     enableV8Serialization: boolean,
     isDevModule: boolean,
-    callback: (result: number, reason: string) => void,
+    callback: NativeCallback,
     groupId: number,
     domManagerId: number,
     //v8InitParams: ,
     vfsId: number,
     devtoolsId: number
   ): number;
-  JsDriver_DestroyJsDriver(instanceId: number, useLowMemoryMode: boolean, isReload: boolean): void;
+  JsDriver_DestroyJsDriver(instanceId: number, useLowMemoryMode: boolean, isReload: boolean, callback: NativeCallback): void;
   JsDriver_LoadInstance(instanceId: number, buffer: ArrayBuffer): void;
   JsDriver_UnloadInstance(instanceId: number,str: string): void;
   JsDriver_RunScriptFromUri(
@@ -54,7 +55,7 @@ export interface HippyLibrary {
     canUseCodeCache: boolean,
     codeCacheDir: string,
     vfsId: number,
-    callback: (result: number, reason: string) => void
+    callback: NativeCallback
   ): boolean;
   JsDriver_SetRootNode(instanceId: number, rootId: number): void;
   JsDriver_SetDomManager(instanceId: number, domManagerId: number): void;
@@ -67,7 +68,7 @@ export interface HippyLibrary {
     endTime: number,
     retCode: number,
     errorMsg: string): void;
-  JsDriver_CallFunction(instanceId: number, action: string, buffer: string): void;
+  JsDriver_CallFunction(instanceId: number, action: string, callback: NativeCallback, buffer: ArrayBuffer): void;
 
   NativeRenderer_CreateNativeRenderManager(renderProvider: NativeRenderProvider, density: number): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;

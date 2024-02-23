@@ -49,6 +49,16 @@ static napi_value CallFunction(napi_env env, napi_callback_info info) {
   auto args = arkTs.GetCallbackArgs(info);
   uint32_t scope_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
   auto action_name = string_view(arkTs.GetString(args[1]));
+  auto callback_ref = arkTs.CreateReference(args[2]);
+  void *buffer_data = NULL;
+  size_t byte_length = 0;
+  if (arkTs.IsArrayBuffer(args[3])) {
+    arkTs.GetArrayBufferInfo(args[3], &buffer_data, &byte_length);
+  }
+  byte_string buffer;
+  if (buffer_data && byte_length > 0) {
+    buffer.assign(static_cast<char*>(buffer_data), byte_length);
+  }
 
   std::any scope_object;
   auto flag = hippy::global_data_holder.Find(scope_id, scope_object);
@@ -57,19 +67,26 @@ static napi_value CallFunction(napi_env env, napi_callback_info info) {
     return arkTs.GetUndefined();
   }
   auto scope = std::any_cast<std::shared_ptr<Scope>>(scope_object);
-  JsDriverUtils::CallJs(action_name, scope, [](CALLFUNCTION_CB_STATE state, const string_view& msg) {
-    // TODO(hot):
-  },byte_string(), []() {});
+  JsDriverUtils::CallJs(
+    action_name, scope,
+    [env, callback_ref](CALLFUNCTION_CB_STATE state, const string_view &msg) {
+      CallArkMethod(env, callback_ref, static_cast<int>(state), msg);
+    },
+    std::move(buffer), []() {});
   return arkTs.GetUndefined();
 }
 
 REGISTER_OH_NAPI("JsDriver", "JsDriver_CallFunction", CallFunction)
 
-void CallArkMethod(napi_env env, napi_ref callback_ref, int value, std::string msg) {
+void CallArkMethod(napi_env env, napi_ref callback_ref, int value, const string_view &msg) {
+  std::u16string msg_str = StringViewUtils::ConvertEncoding(msg, string_view::Encoding::Utf16).utf16_value();
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
-  taskRunner->RunAsyncTask([env, callback_ref, value, msg]() {
+  taskRunner->RunAsyncTask([env, callback_ref, value, msg_str]() {
     ArkTS arkTs(env);
-    std::vector<napi_value> args = { arkTs.CreateInt(value), arkTs.CreateString(msg) };
+    std::vector<napi_value> args = {
+      arkTs.CreateInt(value),
+      arkTs.CreateStringUtf16(msg_str)
+    };
     auto callback = arkTs.GetReferenceValue(callback_ref);
     arkTs.Call(callback, args);
   });
