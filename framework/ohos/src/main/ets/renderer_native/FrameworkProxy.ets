@@ -24,5 +24,5 @@ export interface FrameworkProxy {
 
   getEngineId(): number
 
-  handleNativeException(exception: HippyException)
+  handleNativeException(exception: HippyException): void
 }

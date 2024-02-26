@@ -22,6 +22,9 @@ import { NativeRenderContext } from '../../NativeRenderContext'
 import { HRGestureDispatcher } from '../../uimanager/HRGestureDispatcher'
 import { HREventType, HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
+import { LogUtils } from '../../../support/utils/LogUtils'
+import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
+const TAG: string = "HRModal";
 
 @Observed
 export class HRModalView extends HippyRenderBaseView {
@@ -30,6 +33,8 @@ export class HRModalView extends HippyRenderBaseView {
   animationType: string | null = null
   transparent: boolean = true
   supportedOrientations: string | null = null
+  immersionStatusBar: boolean = false;
+  darkStatusBarText: boolean = false;
 
   handleClose() {
     HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HREventUtils.EVENT_MODAL_REQUEST_CLOSE)
@@ -37,6 +42,29 @@ export class HRModalView extends HippyRenderBaseView {
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
+  }
+  setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+    LogUtils.i(TAG, `modalview propkey: ${propKey}, value: ${propValue}`)
+    switch (propKey) {
+      case "transparent":
+        this.transparent = propValue as boolean;
+        break;
+      case "immersionStatusBar":
+        this.immersionStatusBar = propValue as boolean;
+        break;
+      case "supportedOrientations":
+        this.supportedOrientations = propValue as string;
+        break;
+      case "animationType":
+        this.animationType = propValue as string;
+        break;
+      case "darkStatusBarText":
+        this.darkStatusBarText = propValue as boolean;
+        break;
+      default:
+        break
+    }
+    return super.setProp(propKey, propValue)
   }
 }
 
@@ -53,11 +81,14 @@ struct HippyDialog {
         this.buildRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
+    .opacity(this.renderView.transparent == true ? 0.4 : 1)
     .size({width:this.renderView.cssWidth, height: this.renderView.cssHeight})
     .backgroundColor(0x55ffffff).backdropBlur(5)
     .onClick((e:ClickEvent) => {
+      LogUtils.i(TAG, `HRModal cssWidth: ${this.renderView.cssWidth}, cssHeight: ${this.renderView.cssHeight}`);
       this.renderView.handleClose()
     })
+
   }
 }
 
@@ -67,7 +98,9 @@ export struct HRModal {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   private dialogController: CustomDialogController = {} as CustomDialogController
-
+  handleCancel(): void {
+    HRGestureDispatcher.handleClickEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_MODAL_REQUEST_CLOSE)
+  }
   aboutToAppear() {
     this.dialogController = new CustomDialogController({
       builder: HippyDialog({
@@ -80,8 +113,11 @@ export struct HRModal {
       alignment: DialogAlignment.Center,
       openAnimation: { duration: 0 },
       closeAnimation: { duration: 0 },
+      cancel: this.handleCancel,
     });
-    this.dialogController.open()
+    this.dialogController.open();
+    HRGestureDispatcher.handleClickEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_MODAL_SHOW)
+
   }
 
   aboutToDisappear() {
