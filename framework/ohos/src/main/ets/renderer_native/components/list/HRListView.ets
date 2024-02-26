@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { HippyAny, HippyMap, Hippy2Map, HippyRenderCallback,
   HippyValue } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
@@ -344,7 +345,6 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
-  .touchable($$.cssTouchEnable) // TODO: use new api
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
   .rotate($$.cssRotate)

@@ -23,8 +23,8 @@ import { BusinessError } from '@ohos.base';
 import { Context } from '@ohos.abilityAccessCtrl';
 import { ValuesBucket } from '@ohos.data.ValuesBucket';
 import hilog from '@ohos.hilog';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
-const DOMAIN = 0x0002
 const TAG = 'DefaultStorageAdapter'
 
 const STORE_DB_NAME = 'HippyStorage.db'
@@ -33,7 +33,6 @@ const COLUMN_KEY = 'storage_key'
 const COLUMN_VALUE = 'storage_value'
 
 export class DefaultStorageAdapter implements HippyStorageAdapter {
-
   private hippyStoreDb: relationalStore.RdbStore | undefined = undefined;
 
   constructor(context: Context) {
@@ -42,14 +41,17 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
       securityLevel: relationalStore.SecurityLevel.S1
     };
 
-    relationalStore.getRdbStore(context, STORE_CONFIG).then(async (rdbStore: relationalStore.RdbStore) => {
-      hilog.info(DOMAIN, TAG, 'Get RdbStore successfully.')
-      rdbStore.executeSql(`CREATE TABLE IF NOT EXISTS ${TABLE_STORAGE} (${COLUMN_KEY} TEXT PRIMARY KEY, ${COLUMN_VALUE} TEXT);`).then(() => {
-        this.hippyStoreDb = rdbStore;
+    relationalStore.getRdbStore(context, STORE_CONFIG)
+      .then(async (rdbStore: relationalStore.RdbStore) => {
+        LogUtils.i(TAG, 'Get RdbStore successfully.')
+        rdbStore.executeSql(`CREATE TABLE IF NOT EXISTS ${TABLE_STORAGE} (${COLUMN_KEY} TEXT PRIMARY KEY, ${COLUMN_VALUE} TEXT);`)
+          .then(() => {
+            this.hippyStoreDb = rdbStore;
+          })
       })
-    }).catch((err: BusinessError) => {
-      hilog.error(DOMAIN, TAG, `Get RdbStore failed, code is ${err.code},message is ${err.message}`);
-    });
+      .catch((err: BusinessError) => {
+        LogUtils.e(TAG, `Get RdbStore failed, code is ${err.code},message is ${err.message}`);
+      });
   }
 
   multiGet(keys: string[]): Promise<[key: string, value: string][]> {
@@ -69,10 +71,10 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
         [COLUMN_KEY, COLUMN_VALUE],
         (err, resultSet) => {
           if (err) {
-            hilog.error(DOMAIN, TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
+            LogUtils.e(TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
             return reject(err);
           }
-          hilog.info(DOMAIN, TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
+          LogUtils.i(TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
           let results = new Array<[key: string, value: string]>(resultSet.rowCount);
           let i = 0;
           while (resultSet.goToNextRow()) {
@@ -106,10 +108,10 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
         valueBuckets,
         (err: BusinessError, rowId: number) => {
           if (err) {
-            hilog.error(DOMAIN, TAG, `Insert is failed, code is ${err.code}, message is ${err.message}`);
+            LogUtils.e(TAG, `Insert is failed, code is ${err.code}, message is ${err.message}`);
             return reject();
           }
-          hilog.info(DOMAIN, TAG, `Insert is successful, rowId = ${rowId}`);
+          LogUtils.i(TAG, `Insert is successful, rowId = ${rowId}`);
           return resolve();
         })
     });
@@ -129,13 +131,13 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
 
       let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
       predicates.in(COLUMN_KEY, keys);
-      if(this.hippyStoreDb != undefined) {
+      if (this.hippyStoreDb != undefined) {
         (this.hippyStoreDb as relationalStore.RdbStore).delete(predicates, (err, rows) => {
           if (err) {
-            hilog.error(DOMAIN, TAG, `Delete failed, code is ${err.code}, message is ${err.message}`);
+            LogUtils.e(TAG, `Delete failed, code is ${err.code}, message is ${err.message}`);
             return reject(err);
           }
-          hilog.info(DOMAIN, TAG, `Delete rows: ${rows}`);
+          LogUtils.i(TAG, `Delete rows: ${rows}`);
           return resolve();
         })
       }
@@ -155,10 +157,10 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
         [COLUMN_KEY],
         (err, resultSet) => {
           if (err) {
-            hilog.error(DOMAIN, TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
+            LogUtils.e(TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
             return reject(err);
           }
-          hilog.info(DOMAIN, TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
+          LogUtils.i(TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
           let results = new Array<string>(resultSet.rowCount);
           let i = 0;
           while (resultSet.goToNextRow()) {

@@ -73,7 +73,6 @@ export default abstract class HippyRenderBaseView {
   cssWidth: number = 0
   cssHeight: number = 0
   cssOverflow: boolean | null = null
-  cssTouchEnable: boolean | null = null
   cssZIndex: number | null = null
   cssAccessibilityLabel: string | null = null
   cssFocusable: boolean | null = null
@@ -104,6 +103,10 @@ export default abstract class HippyRenderBaseView {
     this.eventClick = (event) => {
       HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
     }
+  }
+
+  protected handleGestureBySelf(): boolean {
+    return false
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
@@ -138,47 +141,6 @@ export default abstract class HippyRenderBaseView {
       case HRNodeProps.LINEAR_GRADIENT:
         this.setLinearGradientProp(propKey, propValue)
         break
-      // case cssTouchEnable:
-      //   this.cssTouchEnable = propValue == 1
-      //   break
-      case HRNodeProps.ON_CLICK:
-        this.eventClick = (event) => {
-          HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
-        }
-        break
-      case HRNodeProps.ON_LONG_CLICK:
-        this.eventLongPress = (event, state) => {
-          if(event) {
-            // let localX: number = event['localX'];
-            // let localY: number = event['localY'];
-            // (propValue as HippyRenderCallback)({
-            //   'x': localX,
-            //   'y': localY,
-            //   'state': state
-            // } as HippyRecord)
-          }
-        }
-        break
-      case HRNodeProps.ON_TOUCH_END:
-        this.eventTouchUp = (event) => {
-          let params = touchEventToParamRecord(event) as HippyTouchParamType
-          //(propValue as HippyRenderCallback)(params)
-        }
-        break
-      case HRNodeProps.ON_TOUCH_DOWN:
-        this.eventTouchDown = (event) => {
-          let params = touchEventToParamRecord(event) as HippyTouchParamType
-          //(propValue as HippyRenderCallback)(params)
-        }
-        break
-      case HRNodeProps.ON_TOUCH_MOVE:
-        this.eventTouchMove = (event) => {
-          let params = touchEventToParamRecord(event) as HippyTouchParamType
-          //(propValue as HippyRenderCallback)(params)
-        }
-        break
-      case HRNodeProps.ON_TOUCH_CANCEL:
-        break
       default:
         {
           let handled = this.setBackgroundImageProp(propKey, propValue)
@@ -186,12 +148,14 @@ export default abstract class HippyRenderBaseView {
             handled = this.setBorderProp(propKey, propValue)
           }
           if (!handled) {
-            this.setShadowProp(propKey, propValue)
+            handled = this.setShadowProp(propKey, propValue)
+          }
+          if (!handled) {
+            this.setEventProp(propKey, propValue)
           }
         }
         break
     }
-
     return true
   }
 
@@ -476,6 +440,176 @@ export default abstract class HippyRenderBaseView {
   private checkAndBuildCssShadow() {
     if(!this.cssShadow) {
       this.cssShadow = {radius: 0, type: ShadowType.COLOR, color: undefined, offsetX: undefined, offsetY: undefined}
+    }
+  }
+
+  private setEventProp(propKey: string, propValue: HippyAny): boolean {
+    switch (propKey) {
+      case HRNodeProps.ON_CLICK:
+        if (typeof propValue == 'boolean') {
+          this.setClickable(propValue)
+        }
+        break
+      case HRNodeProps.ON_LONG_CLICK:
+        if (typeof propValue == 'boolean') {
+          this.setLongClickable(propValue)
+        }
+        break
+      case HRNodeProps.ON_PRESS_IN:
+        if (typeof propValue == 'boolean') {
+          this.setPressIn(propValue)
+        }
+        break
+      case HRNodeProps.ON_PRESS_OUT:
+        if (typeof propValue == 'boolean') {
+          this.setPressOut(propValue)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_DOWN:
+        if (typeof propValue == 'boolean') {
+          this.setTouchDownHandle(propValue)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_MOVE:
+        if (typeof propValue == 'boolean') {
+          this.setTouchMoveHandle(propValue)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_END:
+        if (typeof propValue == 'boolean') {
+          this.setTouchEndHandle(propValue)
+        }
+        break
+      case HRNodeProps.ON_TOUCH_CANCEL:
+        if (typeof propValue == 'boolean') {
+          this.setTouchCancelHandle(propValue)
+        }
+        break
+      case HRNodeProps.ON_INTERCEPT_TOUCH_EVENT:
+        if (typeof propValue == 'boolean') {
+          this.setInterceptTouch(propValue)
+        }
+        break
+      case HRNodeProps.ON_INTERCEPT_PULL_UP_EVENT:
+        if (typeof propValue == 'boolean') {
+          this.setInterceptPullUp(propValue)
+        }
+        break
+      case HRNodeProps.ON_ATTACHED_TO_WINDOW:
+        if (typeof propValue == 'boolean') {
+          this.setAttachedToWindowHandle(propValue)
+        }
+        break
+      case HRNodeProps.ON_DETACHED_FROM_WINDOW:
+        if (typeof propValue == 'boolean') {
+          this.setDetachedFromWindowHandle(propValue)
+        }
+        break
+      default:
+        return false
+    }
+    return true
+  }
+
+  private setClickable(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+      if (flag) {
+        this.eventClick = (event) => {
+          HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
+        }
+      } else {
+        this.eventClick = null
+      }
+    }
+  }
+
+  private setLongClickable(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+
+    this.eventLongPress = (event, state) => {
+      if(event) {
+        // let localX: number = event['localX'];
+        // let localY: number = event['localY'];
+        // (propValue as HippyRenderCallback)({
+        //   'x': localX,
+        //   'y': localY,
+        //   'state': state
+        // } as HippyRecord)
+      }
+    }
+  }
+
+  private setPressIn(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+  }
+
+  private setPressOut(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+  }
+
+  private setTouchDownHandle(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+    this.eventTouchDown = (event) => {
+      let params = touchEventToParamRecord(event) as HippyTouchParamType
+      //(propValue as HippyRenderCallback)(params)
+    }
+  }
+
+  private setTouchMoveHandle(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+    this.eventTouchMove = (event) => {
+      let params = touchEventToParamRecord(event) as HippyTouchParamType
+      //(propValue as HippyRenderCallback)(params)
+    }
+  }
+
+  private setTouchEndHandle(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+    this.eventTouchUp = (event) => {
+      let params = touchEventToParamRecord(event) as HippyTouchParamType
+      //(propValue as HippyRenderCallback)(params)
+    }
+  }
+
+  private setTouchCancelHandle(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+  }
+
+  private setInterceptTouch(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+  }
+
+  private setInterceptPullUp(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+  }
+
+  private setAttachedToWindowHandle(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
+    }
+  }
+
+  private setDetachedFromWindowHandle(flag: boolean) {
+    if (!this.handleGestureBySelf()) {
+
     }
   }
 
