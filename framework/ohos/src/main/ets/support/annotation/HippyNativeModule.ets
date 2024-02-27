@@ -17,18 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
-import { HippyEngineContext } from '../../HippyEngineContext';
 
-export class HippyNativeModuleBase {
-  public static readonly NAME: string
-  protected ctx: HippyEngineContext
+interface ModuleOption {
+  name: string
+}
 
-  constructor(ctx: HippyEngineContext) {
-    this.ctx = ctx
-  }
-
-  call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
-    return null
-  }
+export function HippyNativeModule(config: ModuleOption): ClassDecorator {
+  return (target: Function) => {
+    target.prototype.moduleName = config.name;
+  };
 }

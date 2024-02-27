@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import hilog from '@ohos.hilog';
-import { HippyAny } from '../../../../support/common/HippyTypes';
+import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes';
 import { HippyEngineContext } from '../../../HippyEngineContext';
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase';
 
@@ -32,7 +32,7 @@ export class ConsoleModule extends HippyNativeModuleBase {
     super(ctx)
   }
 
-  call(method: string, params: HippyAny, callback: null): HippyAny {
+  call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
     switch (method) {
       case 'log': {
         this.log(params as string)
