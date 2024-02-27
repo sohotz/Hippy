@@ -68,8 +68,7 @@ export class HippyRenderView extends HippyRenderBaseView {
     this.avoidArea = avoidArea
     this.renderExceptionListener = renderExceptionListener
 
-    // TODO(hot):
-    let renderManger = AppStorage.get("HRManager") as HRManager
+    let renderManger = ctx.getNativeRender().getRenderManager()
     renderManger.init(this)
     this.tag = renderManger.getRootTag()
   }
@@ -78,10 +77,12 @@ export class HippyRenderView extends HippyRenderBaseView {
     if (this.renderViewSize.width == width && this.renderViewSize.height == height) {
       return
     }
+
+    let nativeRender = this.ctx.getNativeRender()
+    nativeRender.updateDimension(width, height, false, false)
+    nativeRender.onSizeChanged(this.tag, width, height, this.renderViewSize.width, this.renderViewSize.height)
+
     this.renderViewSize = new HRSize(width, height)
-    // TODO(hot):
-    let hippyEngine = AppStorage.get("HippyEngine") as HippyEngine
-    hippyEngine.getNativeRenderProvider().onSizeChanged(this.tag, width, height)
   }
 
   pageDidAppear(): void {
@@ -102,7 +103,7 @@ export class HippyRenderView extends HippyRenderBaseView {
 
   getRenderViewCreatorRegisterMap(): Map<string, HRRenderViewCreator> {
     let viewRegisterMap = hippyRenderViewCreatorRegisterMap()
-    // TODO(hot):add custom view type
+    // TODO(hotx):add custom view type
     return viewRegisterMap
   }
 

@@ -35,9 +35,7 @@ export abstract class HippyAbility extends UIAbility {
   public getHippyEngine(): HippyEngine {
     if (!this.hippyEngine) {
       this.hippyEngine = new HippyEngineImpl(libHippy, this.context.resourceManager)
-      // TODO(hot):
-      AppStorage.setOrCreate("HRManager", this.hippyEngine.getNativeRenderProvider().getNativeRenderImpl().getRenderManager())
-      AppStorage.setOrCreate("HippyEngine", this.hippyEngine)
+      // TODO(hotx):
     }
     return this.hippyEngine
   }

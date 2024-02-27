@@ -40,4 +40,10 @@ export interface NativeRender {
   getBackgroundExecutor(): HippyExecutor | null
 
   getEngineId(): number
+
+  onSizeChanged(rootId: number, width: number, height: number, oldWidth: number, oldHeight: number): void
+
+  onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void
+
+  updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean)
 }

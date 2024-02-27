@@ -54,12 +54,19 @@ export class TextMeasurerConfig {
 
 declare function px2vp(px: number): number
 
+export interface NativeRenderEventHandler {
+  onSize(rootId: number, width: number, height: number)
+  onSize2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean)
+}
+
 export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private readonly INVALID_NODE_ID = -1
 
   private static sRootIdCounter = 0
+
+  private eventHandler: NativeRenderEventHandler
 
   private frameworkProxy: FrameworkProxy | null = null
   private imageLoader: ImageLoaderAdapter | null = null
@@ -70,7 +77,8 @@ export class NativeRenderImpl implements NativeRender {
 
   private renderManager: HRManager
 
-  constructor() {
+  constructor(eventHandler: NativeRenderEventHandler) {
+    this.eventHandler = eventHandler
     NativeRenderImpl.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
     let rootId = NativeRenderImpl.sRootIdCounter
     this.ctx = new NativeRenderContext(rootId, this)
@@ -120,6 +128,23 @@ export class NativeRenderImpl implements NativeRender {
 
   getEngineId(): number {
     return this.frameworkProxy ? this.frameworkProxy.getEngineId() : -1
+  }
+
+  onSizeChanged(rootId: number, width: number, height: number, oldWidth: number, oldHeight: number): void {
+    if (this.frameworkProxy != null) {
+      this.frameworkProxy.onSizeChanged(rootId, width, height, oldWidth, oldHeight)
+    }
+    this.eventHandler.onSize(rootId, width, height)
+  }
+
+  onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void {
+    this.eventHandler.onSize2(rootId, nodeId, width, height, isSync)
+  }
+
+  updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean) {
+    if (this.frameworkProxy != null) {
+      this.frameworkProxy.updateDimension(width, height, shouldUseScreenDisplay, systemUiVisibilityChanged)
+    }
   }
 
   handleRenderException(exception: HippyException) {

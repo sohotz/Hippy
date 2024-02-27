@@ -22,7 +22,7 @@ import { NativeRender } from './NativeRender'
 export class NativeRenderContext {
   private rootId: number
   private instanceId: number
-  private nativeRender: NativeRender | null = null
+  private nativeRender: NativeRender
 
   constructor(rootId: number, nativeRender: NativeRender) {
     this.rootId = rootId
