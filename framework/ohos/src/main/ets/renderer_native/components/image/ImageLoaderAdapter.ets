@@ -17,32 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NativeRender } from './NativeRender'
-
-export class NativeRenderContext {
-  private rootId: number
-  private instanceId: number
-  private nativeRender: NativeRender | null = null
-
-  constructor(rootId: number, nativeRender: NativeRender) {
-    this.rootId = rootId
-    this.instanceId = -1
-    this.nativeRender = nativeRender
-  }
-
-  setInstanceId(instanceId: number) {
-    this.instanceId = instanceId
-  }
-
-  getRootId() {
-    return this.rootId
-  }
-
-  getInstanceId() {
-    return this.instanceId
-  }
-
-  getNativeRender() {
-    return this.nativeRender
-  }
+export interface ImageLoaderAdapter {
+  fetchImageAsync(url: string): void
 }

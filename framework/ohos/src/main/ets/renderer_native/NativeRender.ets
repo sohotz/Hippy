@@ -17,30 +17,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyException } from '../support/common/HippyException';
 import { HippyExecutor } from '../support/common/HippyExecutor';
 import { VfsManager } from '../vfs/VfsManager';
 import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter';
+import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
+import { HRManager } from './uimanager/HRManager';
 
-export interface FrameworkProxy {
-  getImageDecoderAdapter(): ImageDecoderAdapter
-
-  getFontAdapter(): FontAdapter
-
-  getVfsManager(): VfsManager
-
-  getBackgroundExecutor(): HippyExecutor
+export interface NativeRender {
+  getRenderManager(): HRManager
 
   getBundlePath(): string
 
+  getImageLoader(): ImageLoaderAdapter | null
+
+  getImageDecoderAdapter(): ImageDecoderAdapter | null
+
+  getVfsManager(): VfsManager | null
+
+  getFontAdapter(): FontAdapter | null
+
+  getBackgroundExecutor(): HippyExecutor | null
+
   getEngineId(): number
-
-  onFirstViewAdded(): void
-
-  handleNativeException(exception: HippyException): void
-
-  updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean): void
-
-  onSizeChanged(rootId: number, w: number, h: number, ow: number, oh: number): void
 }
