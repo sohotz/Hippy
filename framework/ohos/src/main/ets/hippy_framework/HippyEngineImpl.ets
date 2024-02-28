@@ -19,7 +19,13 @@
  */
 import resmgr from "@ohos.resourceManager";
 import hilog from '@ohos.hilog';
-import { HippyEngine } from '.';
+import { EngineInitParams,
+  EngineInitStatus,
+  HippyEngine, HippyEngineInitCallback,
+  HippyModuleLoadCallback,
+  ModuleLoadParams,
+  ModuleLoadStatus
+} from '.';
 import { DomManager } from './connector/DomManager';
 import { JsDriver } from './connector/JsDriver';
 import { NativeRenderer } from './connector/NativeRenderer';
@@ -39,14 +45,12 @@ export class HippyEngineImpl implements HippyEngine {
   public nativeRenderProvider: NativeRenderProvider | null = null
   public nativeRenderer: NativeRenderer | null = null
 
-  constructor(
-    libHippy: HippyLibrary,
-    resourceManager: resmgr.ResourceManager) {
-    this.libHippy = libHippy
-    this.resourceManager = resourceManager
+  constructor(params: EngineInitParams) {
+    this.libHippy = params.libHippy
+    this.resourceManager = params.context.resourceManager
   }
 
-  initEngine(): void {
+  initEngine(initCallbak: HippyEngineInitCallback): void {
     this.vfsManager = new VfsManager(this.libHippy)
     this.domMgr = new DomManager(this.libHippy)
     this.nativeRenderProvider = new NativeRenderProvider(this.libHippy)
@@ -80,12 +84,14 @@ export class HippyEngineImpl implements HippyEngine {
             //return;
           }
 
-          this.loadModule()
+          if (initCallbak) {
+            initCallbak(EngineInitStatus.STATUS_OK, "")
+          }
         })
     })
   }
 
-  loadModule() {
+  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback) {
     this.loadJsModule()
   }
 
@@ -108,14 +114,8 @@ export class HippyEngineImpl implements HippyEngine {
     this.jsDriver.loadInstance('')
   }
 
-  public async runJsBundle(resourceManager: resmgr.ResourceManager) {
-  }
-
   public getNativeRenderContext(): NativeRenderContext {
     return this.nativeRenderProvider?.getNativeRenderImpl().getNativeRenderContext() as NativeRenderContext
   }
 
-  public getNativeRenderProvider(): NativeRenderProvider {
-    return this.nativeRenderProvider as NativeRenderProvider
-  }
 }

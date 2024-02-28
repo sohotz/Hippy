@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyEngine, HippyRoot
+import { EngineInitStatus, HippyEngine, HippyRoot, ModuleLoadParams, ModuleLoadStatus
 } from 'hippy'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
@@ -34,7 +34,13 @@ struct Index {
   @State exception: string = ""
 
   aboutToAppear(): void {
-    this.hippyEngine?.initEngine()
+    this.hippyEngine?.initEngine((statusCode: EngineInitStatus, msg: string) => {
+      if (statusCode == EngineInitStatus.STATUS_OK) {
+        this.hippyEngine?.loadModule(new ModuleLoadParams(), (statusCode: ModuleLoadStatus, msg: string) => {
+
+        })
+      }
+    })
   }
 
   aboutToDisappear(): void {
