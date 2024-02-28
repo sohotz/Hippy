@@ -19,9 +19,16 @@
  */
 import TextMeasurer from "@ohos.measure"
 import { HippyException } from '../support/common/HippyException'
+import { HippyExecutor } from '../support/common/HippyExecutor'
 import { HippyAny, HippyMap, HippyRenderCallback } from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
+import { VfsManager } from '../vfs/VfsManager'
+import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter'
+import { ImageLoader } from './components/image/ImageLoader'
+import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter'
+import { FontAdapter } from './components/richtext/FontAdapter'
 import { FrameworkProxy } from './FrameworkProxy'
+import { NativeRender } from './NativeRender'
 import { NativeRenderContext } from './NativeRenderContext'
 import { HRVirtualNode } from './node/HRVirtualNode'
 import { HRManager } from './uimanager/HRManager'
@@ -47,14 +54,22 @@ export class TextMeasurerConfig {
 
 declare function px2vp(px: number): number
 
-export class NativeRenderImpl {
+export interface NativeRenderEventHandler {
+  onSize(rootId: number, width: number, height: number)
+  onSize2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean)
+}
+
+export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private readonly INVALID_NODE_ID = -1
 
   private static sRootIdCounter = 0
 
+  private eventHandler: NativeRenderEventHandler
+
   private frameworkProxy: FrameworkProxy | null = null
+  private imageLoader: ImageLoaderAdapter | null = null
 
   private ctx: NativeRenderContext
   private mutations: HRMutation[] = []
@@ -62,10 +77,11 @@ export class NativeRenderImpl {
 
   private renderManager: HRManager
 
-  constructor() {
+  constructor(eventHandler: NativeRenderEventHandler) {
+    this.eventHandler = eventHandler
     NativeRenderImpl.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
     let rootId = NativeRenderImpl.sRootIdCounter
-    this.ctx = new NativeRenderContext(rootId)
+    this.ctx = new NativeRenderContext(rootId, this)
     this.virtualNodes = new Map<number, HRVirtualNode>()
 
     this.renderManager = new HRManager(this.ctx)
@@ -81,6 +97,54 @@ export class NativeRenderImpl {
 
   getRenderManager(): HRManager {
     return this.renderManager
+  }
+
+  getBundlePath(): string {
+    return this.frameworkProxy ? this.frameworkProxy.getBundlePath() : ""
+  }
+
+  getImageLoader(): ImageLoaderAdapter | null{
+    if (this.imageLoader == null && this.getVfsManager() != null) {
+      this.imageLoader = new ImageLoader(this.getVfsManager() as VfsManager)
+    }
+    return this.imageLoader
+  }
+
+  getImageDecoderAdapter(): ImageDecoderAdapter | null {
+    return this.frameworkProxy ? this.frameworkProxy.getImageDecoderAdapter() : null
+  }
+
+  getVfsManager(): VfsManager | null {
+    return this.frameworkProxy ? this.frameworkProxy.getVfsManager() : null
+  }
+
+  getFontAdapter(): FontAdapter | null {
+    return this.frameworkProxy ? this.frameworkProxy.getFontAdapter() : null
+  }
+
+  getBackgroundExecutor(): HippyExecutor | null {
+    return this.frameworkProxy ? this.frameworkProxy.getBackgroundExecutor() : null
+  }
+
+  getEngineId(): number {
+    return this.frameworkProxy ? this.frameworkProxy.getEngineId() : -1
+  }
+
+  onSizeChanged(rootId: number, width: number, height: number, oldWidth: number, oldHeight: number): void {
+    if (this.frameworkProxy != null) {
+      this.frameworkProxy.onSizeChanged(rootId, width, height, oldWidth, oldHeight)
+    }
+    this.eventHandler.onSize(rootId, width, height)
+  }
+
+  onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void {
+    this.eventHandler.onSize2(rootId, nodeId, width, height, isSync)
+  }
+
+  updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean) {
+    if (this.frameworkProxy != null) {
+      this.frameworkProxy.updateDimension(width, height, shouldUseScreenDisplay, systemUiVisibilityChanged)
+    }
   }
 
   handleRenderException(exception: HippyException) {

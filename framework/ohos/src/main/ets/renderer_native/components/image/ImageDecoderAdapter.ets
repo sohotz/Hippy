@@ -17,18 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
-import { HippyEngineContext } from '../../HippyEngineContext';
+export interface ImageDecoderAdapter {
 
-export class HippyNativeModuleBase {
-  public static readonly NAME: string
-  protected ctx: HippyEngineContext
-
-  constructor(ctx: HippyEngineContext) {
-    this.ctx = ctx
-  }
-
-  call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
-    return null
-  }
 }

@@ -17,16 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FrameworkProxy } from './FrameworkProxy'
+import { NativeRender } from './NativeRender'
 
 export class NativeRenderContext {
   private rootId: number
   private instanceId: number
-  private frameworkProxy: FrameworkProxy | null = null
+  private nativeRender: NativeRender
 
-  constructor(rootId: number) {
+  constructor(rootId: number, nativeRender: NativeRender) {
     this.rootId = rootId
     this.instanceId = -1
+    this.nativeRender = nativeRender
   }
 
   setInstanceId(instanceId: number) {
@@ -41,10 +42,7 @@ export class NativeRenderContext {
     return this.instanceId
   }
 
-  getBundlePath(): string {
-    if (this.frameworkProxy) {
-      return this.frameworkProxy.getBundlePath()
-    }
-    return ""
+  getNativeRender() {
+    return this.nativeRender
   }
 }

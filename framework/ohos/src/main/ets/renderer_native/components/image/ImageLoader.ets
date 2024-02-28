@@ -17,18 +17,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
-import { HippyEngineContext } from '../../HippyEngineContext';
+import { VfsManager } from '../../../vfs/VfsManager';
+import { ImageLoaderAdapter } from './ImageLoaderAdapter';
 
-export class HippyNativeModuleBase {
-  public static readonly NAME: string
-  protected ctx: HippyEngineContext
+export class ImageLoader implements ImageLoaderAdapter {
+  private static TAG = "ImageLoader"
 
-  constructor(ctx: HippyEngineContext) {
-    this.ctx = ctx
+  private vfsManager: VfsManager | null = null
+
+  constructor(vfsManager: VfsManager) {
+    this.vfsManager = vfsManager
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
-    return null
+  fetchImageAsync(url: string): void {
+
   }
+
 }

@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAbility, HippyRoot
+import { HippyRoot
 } from 'hippy'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
@@ -30,7 +30,6 @@ function buildCustomRenderView($$: HippyRenderBaseView) {
 @Entry
 @Component
 struct Index {
-  @StorageLink('HippyAbility') hippyAbility: HippyAbility | undefined = undefined
   @State exception: string = ""
 
   build() {

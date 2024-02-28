@@ -28,7 +28,7 @@ namespace hippy {
 inline namespace framework {
 inline namespace bridge {
 
-void CallArkMethod(napi_env env, napi_ref callback_ref, int value, std::string msg = "");
+void CallArkMethod(napi_env env, napi_ref callback_ref, int value, const string_view &msg = "");
 
 }
 }

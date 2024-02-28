@@ -20,13 +20,14 @@
 import hilog from '@ohos.hilog';
 import resmgr from "@ohos.resourceManager";
 import { HippyLibrary } from '../../hippy_library/HippyLibrary';
+import { LogUtils } from '../../support/utils/LogUtils';
 import { HippyEngineContext } from '../HippyEngineContext';
 import { HippyModuleManager } from '../modules/HippyModuleManager';
+import { NativeCallback } from './NativeCallback';
 
 export class JsDriver {
   private libHippy: HippyLibrary
   public instanceId: number = -1
-
   public moduleManager: HippyModuleManager | null = null
 
   constructor(libHippy: HippyLibrary) {
@@ -36,7 +37,7 @@ export class JsDriver {
   initialize(
     domManagerId: number,
     vfsId: number,
-    callback: (result: number, reason: string) => void
+    callback: NativeCallback
   ) {
     // TODO(hot):
     let globalConfig = '{"Platform":{"OS":"android","PackageName":"com.openhippy.example","APILevel":31,"VersionName":"","Localization":{"country":"CN","language":"zh","direction":0},"NightMode":false,"SDKVersion":"3.0.112"},"HostConfig":{"appVersion":"","appName":"com.openhippy.example","extra":{},"url":"","nightMode":false},"Dimensions":{"screenPhysicalPixels":{"densityDpi":440.0,"width":392.7272644042969,"scale":2.75,"statusBarHeight":31.0,"navigationBarHeight":0.0,"fontScale":2.75,"height":916.3636474609375},"windowPhysicalPixels":{"densityDpi":440.0,"width":392.7272644042969,"scale":2.75,"statusBarHeight":31.0,"navigationBarHeight":0.0,"fontScale":2.75,"height":869.0908813476562}}}';
@@ -44,7 +45,7 @@ export class JsDriver {
     this.instanceId = this.onCreate(
       globalConfig,
       false,
-      true,
+      false,
       false,
       callback,
       -1,
@@ -61,7 +62,7 @@ export class JsDriver {
     useLowMemoryMode: boolean,
     enableV8Serialization: boolean,
     isDevModule: boolean,
-    callback: (result: number, reason: string) => void,
+    callback: NativeCallback,
     groupId: number,
     domManagerId: number,
     //v8InitParams: ,
@@ -86,13 +87,13 @@ export class JsDriver {
   onDestroy(
     useLowMemoryMode: boolean,
     isReload: boolean,
-    //callback
+    callback: NativeCallback
   ) {
     this.libHippy?.JsDriver_DestroyJsDriver(
       this.instanceId,
       useLowMemoryMode,
       isReload,
-      //callback
+      callback
     )
   }
 
@@ -100,7 +101,7 @@ export class JsDriver {
     str: string
   ) {
     // TODO(hot):
-    const arr = new Uint8Array([-1,13,111,34,4,110,97,109,101,34,4,68,101,109,111,34,2,105,100,73,20,34,6,112,97,114,97,109,115,111,34,13,109,115,103,70,114,111,109,78,97,116,105,118,101,34,41,72,105,32,106,115,32,100,101,118,101,108,111,112,101,114,44,32,73,32,99,111,109,101,32,102,114,111,109,32,110,97,116,105,118,101,32,99,111,100,101,33,34,10,115,111,117,114,99,101,80,97,116,104,34,21,118,117,101,50,47,105,110,100,101,120,46,97,110,100,114,111,105,100,46,106,115,123,2,123,3]);
+    const arr = new Uint8Array([-1, 13, 111, 34, 4, 110, 97, 109, 101, 34, 4, 68, 101, 109, 111, 34, 2, 105, 100, 73, 20, 34, 6, 112, 97, 114, 97, 109, 115, 111, 34, 13, 109, 115, 103, 70, 114, 111, 109, 78, 97, 116, 105, 118, 101, 34, 41, 72, 105, 32, 106, 115, 32, 100, 101, 118, 101, 108, 111, 112, 101, 114, 44, 32, 73, 32, 99, 111, 109, 101, 32, 102, 114, 111, 109, 32, 110, 97, 116, 105, 118, 101, 32, 99, 111, 100, 101, 33, 34, 10, 115, 111, 117, 114, 99, 101, 80, 97, 116, 104, 34, 21, 118, 117, 101, 50, 47, 105, 110, 100, 101, 120, 46, 97, 110, 100, 114, 111, 105, 100, 46, 106, 115, 123, 2, 123, 3]);
 
     this.libHippy?.JsDriver_LoadInstance(this.instanceId, arr.buffer as ArrayBuffer)
   }
@@ -117,7 +118,7 @@ export class JsDriver {
     canUseCodeCache: boolean,
     codeCacheDir: string,
     vfsId: number,
-    callback: (result: number, reason: string) => void
+    callback: NativeCallback
   ): boolean {
     return this.libHippy?.JsDriver_RunScriptFromUri(
       this.instanceId,
@@ -167,34 +168,33 @@ export class JsDriver {
 
   callFunction(
     action: string,
-    //callback,
-    buffer: string
+    callback: NativeCallback,
+    buffer: ArrayBuffer
   ) {
-    this.libHippy?.JsDriver_CallFunction(this.instanceId, action, /*callback,*/ buffer)
+    this.libHippy?.JsDriver_CallFunction(this.instanceId, action, callback, buffer)
   }
 
   public callNatives(
     moduleName: string,
     moduleFunc: string,
     callId: string,
-    buffer: string
+    buffer: ArrayBuffer
   ) {
-    hilog.info(0x0000, 'hippy', 'JsDriver callNatives params, %{public}s - %{public}s - %{public}s - %{public}s',
-      moduleName, moduleFunc, callId, buffer);
-
-    // TODO(hot):
-    // test code for native module
-    moduleName = 'ConsoleModule'
-    moduleFunc = 'log'
-    let param1 = 'hello native module!'
+    LogUtils.i('hippy', 'JsDriver callNatives params, '
+     + moduleName + ' - '
+     + moduleFunc + ' - '
+     + callId + ' - '
+     + buffer);
 
     if (this.moduleManager) {
+      let moduleParam = this.moduleManager.bytesToArgument(buffer, false);
+      LogUtils.i('hippy', 'JsDriver callNatives moduleParam: ' + moduleParam);
       let module = this.moduleManager.getModule(moduleName)
       if (module) {
-        module.call(moduleFunc, param1, null)
+        module.call(moduleFunc, moduleParam, null)
       }
     }
 
-    hilog.info(0x0000, 'hippy', 'JsDriver callNatives end');
+    LogUtils.i('hippy', 'JsDriver callNatives end');
   }
 }

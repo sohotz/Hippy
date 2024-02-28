@@ -74,7 +74,7 @@ void CallHost(CallbackInfo& info) {
         arkTs.CreateStringUtf16(module_str),
         arkTs.CreateStringUtf16(func_str),
         arkTs.CreateStringUtf16(cb_id_str),
-        arkTs.CreateString(buffer)
+        arkTs.CreateExternalArrayBuffer((void*)buffer.data(), buffer.size())
       };
       auto jsDriverObject = arkTs.GetObject(object_ref);
       jsDriverObject.Call("callNatives", args);
