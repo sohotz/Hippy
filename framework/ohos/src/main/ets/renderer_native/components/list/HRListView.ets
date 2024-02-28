@@ -248,10 +248,16 @@ export struct HRList {
   }
 
   //可视面积小于10%，任务view当前已经不在可视区域
-  calculateExposureState(): number {
-    // TODO
-    return this.renderView.EXPOSURE_STATE_FULL_VISIBLE;
+  calculateExposureState(currentRatio: number) {
+    if (currentRatio >= 1) {
+      this.renderView.exposureState = this.renderView.EXPOSURE_STATE_FULL_VISIBLE;
+    } else if (currentRatio > 0.1) {
+      this.renderView.exposureState = this.renderView.EXPOSURE_STATE_PART_VISIBLE;
+    } else {
+      this.renderView.exposureState = this.renderView.EXPOSURE_STATE_INVISIBLE;
+    }
   }
+
   moveToExposureState(state: number){
     if (state == this.renderView.exposureState) {
       return;
@@ -279,15 +285,13 @@ export struct HRList {
       default:
         break;
     }
-    this.renderView.exposureState = state;
   }
 
   checkSendExposureEvent() {
     if(!this.renderView.exposureEventEnabled) {
       return;
     }
-    let newState: number = this.calculateExposureState();
-    this.moveToExposureState(newState);
+    this.moveToExposureState(this.renderView.exposureState);
   }
   /**
    * 检查是否已经触底，发生onEndReached事件给前端
@@ -494,6 +498,9 @@ export struct HRList {
         })
         .onDragStart(() => this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_BEGIN_DRAG))
         .onDragEnd(() => this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_END_DRAG))
+        .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean, currentRatio: number) => {
+          this.calculateExposureState(currentRatio);
+        })
       }
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
