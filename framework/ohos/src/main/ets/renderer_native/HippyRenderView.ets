@@ -148,7 +148,7 @@ export struct HippyRender {
         yOffset: (parentComponent as HRScroll)?.yOffset
       })
     } else if ($$ instanceof HRRichTextView) {
-      HRRichText({ renderView: $$ as HRRichTextView, spans: $$.textAttr.spans })
+      HRRichText({ renderView: $$ as HRRichTextView, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRImageView) {
       HRImage({ renderView: $$ as HRImageView })
     } else if ($$ instanceof HRModalView) {
