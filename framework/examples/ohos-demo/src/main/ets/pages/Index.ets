@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyRoot
+import { HippyEngine, HippyRoot
 } from 'hippy'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
@@ -30,11 +30,21 @@ function buildCustomRenderView($$: HippyRenderBaseView) {
 @Entry
 @Component
 struct Index {
+  @StorageLink('HippyEngine') private hippyEngine: HippyEngine | null = null
   @State exception: string = ""
+
+  aboutToAppear(): void {
+    this.hippyEngine?.initEngine()
+  }
+
+  aboutToDisappear(): void {
+
+  }
 
   build() {
     Stack() {
       HippyRoot({
+        hippyEngine: this.hippyEngine,
         pagerName: 'demo',
         pagerData: {},
         buildCustomRenderView: buildCustomRenderView,

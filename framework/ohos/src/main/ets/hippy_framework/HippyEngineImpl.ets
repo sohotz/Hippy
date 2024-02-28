@@ -25,39 +25,42 @@ import { JsDriver } from './connector/JsDriver';
 import { NativeRenderer } from './connector/NativeRenderer';
 import { VfsManager } from '../vfs/VfsManager';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
-import { NativeRenderImpl } from '../renderer_native/NativeRenderImpl';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 import { PixelUtil } from '../support/utils/PixelUtil';
-import { HippyRenderView } from '../renderer_native/HippyRenderView';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 
 export class HippyEngineImpl implements HippyEngine {
   private libHippy: HippyLibrary
   private resourceManager: resmgr.ResourceManager
 
-  public vfsManager: VfsManager
-  public jsDriver: JsDriver
-  public domMgr: DomManager
-  public nativeRenderProvider: NativeRenderProvider
-  public nativeRenderer: NativeRenderer
+  public vfsManager: VfsManager | null = null
+  public jsDriver: JsDriver | null = null
+  public domMgr: DomManager | null = null
+  public nativeRenderProvider: NativeRenderProvider | null = null
+  public nativeRenderer: NativeRenderer | null = null
 
   constructor(
     libHippy: HippyLibrary,
     resourceManager: resmgr.ResourceManager) {
     this.libHippy = libHippy
     this.resourceManager = resourceManager
+  }
 
-    this.vfsManager = new VfsManager(libHippy)
-    this.domMgr = new DomManager(libHippy)
-    this.nativeRenderProvider = new NativeRenderProvider(libHippy)
-    this.nativeRenderer = new NativeRenderer(libHippy, this.nativeRenderProvider)
+  initEngine(): void {
+    this.vfsManager = new VfsManager(this.libHippy)
+    this.domMgr = new DomManager(this.libHippy)
+    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy)
+    this.nativeRenderer = new NativeRenderer(this.libHippy, this.nativeRenderProvider)
     this.nativeRenderer.attachToDom(this.domMgr.instanceId)
     this.domMgr.attachToRenderer(this.nativeRenderer.instanceId)
     let rootNodeId = this.getNativeRenderContext().getRootId()
     this.domMgr.createRootNode(rootNodeId, PixelUtil.getDensity())
     this.domMgr.attachToRoot(rootNodeId)
-    this.jsDriver = new JsDriver(libHippy)
+    this.jsDriver = new JsDriver(this.libHippy)
     this.jsDriver.initialize(this.domMgr.instanceId, this.vfsManager.instanceId, (result: number, reason: string) => {
+      if (!this.jsDriver || !this.domMgr || !this.vfsManager) {
+        return
+      }
       hilog.info(0x0000, 'hippy', 'jsDriver initialize callback, instanceId: %{public}d', this.jsDriver.instanceId);
       if (result != 0) {
         //return;
@@ -69,6 +72,9 @@ export class HippyEngineImpl implements HippyEngine {
       this.jsDriver.runScriptFromUri("asset:/vue2/vendor.android.js",
         this.resourceManager,
         false, "", this.vfsManager.instanceId, (result: number, reason: string) => {
+          if (!this.jsDriver) {
+            return
+          }
           hilog.info(0x0000, 'hippy', 'jsDriver runScriptFromUri callback, instanceId: %{public}d', this.jsDriver.instanceId);
           if (result != 0) {
             //return;
@@ -84,9 +90,15 @@ export class HippyEngineImpl implements HippyEngine {
   }
 
   loadJsModule() {
+    if (!this.jsDriver || !this.vfsManager) {
+      return
+    }
     this.jsDriver.runScriptFromUri("asset:/vue2/index.android.js",
       this.resourceManager,
       false, "", this.vfsManager.instanceId, (result: number, reason: string) => {
+        if (!this.jsDriver) {
+          return
+        }
         hilog.info(0x0000, 'hippy', 'jsDriver runScriptFromUri callback, instanceId: %{public}d', this.jsDriver.instanceId);
         if (result != 0) {
           //return;
@@ -100,10 +112,10 @@ export class HippyEngineImpl implements HippyEngine {
   }
 
   public getNativeRenderContext(): NativeRenderContext {
-    return this.nativeRenderProvider.getNativeRenderImpl().getNativeRenderContext()
+    return this.nativeRenderProvider?.getNativeRenderImpl().getNativeRenderContext() as NativeRenderContext
   }
 
   public getNativeRenderProvider(): NativeRenderProvider {
-    return this.nativeRenderProvider
+    return this.nativeRenderProvider as NativeRenderProvider
   }
 }

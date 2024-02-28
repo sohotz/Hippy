@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import window from '@ohos.window';
-import { HippyAbility, HippyEngine } from '../hippy_framework';
+import { HippyEngine } from '../hippy_framework';
 import { HippyException } from '../support/common/HippyException';
 import { HippyRecord } from '../support/common/HippyTypes';
 import HippyRenderBaseView from './components/base/HippyRenderBaseView';
@@ -149,28 +149,25 @@ class HippyRenderExceptionListener implements IHippyRenderExceptionListener {
 
 @Component
 export struct HippyRoot {
+  hippyEngine: HippyEngine | null = null
   pagerName: string = ""
   pagerData: HippyRecord = {}
-  initViewSize: HRSize | null = HRConvertUtil.screenSize()
+  initViewSize: HRSize = HRConvertUtil.screenSize()
   onRenderException: ((exception: HippyException) => void) | null = null
   private renderExceptionListener = new HippyRenderExceptionListener()
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void
   @State showRenderView: boolean = false
   private rootView: HippyRootView | null = null
 
-  // TODO(hot):
-  @StorageLink('HippyAbility') private hippyAbility: HippyAbility | null = null
-  public hippyEngine: HippyEngine | null = null
-
   aboutToAppear(): void {
-    this.hippyEngine = this.getOrCreateHippyEngine()
-    if (this.hippyEngine && this.hippyAbility) {
-      this.hippyEngine.runJsBundle(this.hippyAbility.context.resourceManager)
+    if (!this.hippyEngine) {
+      this.onRenderException?.(new HippyException("Error, hippyEngine is null."))
+      return
     }
 
-    if (!this.rootView && this.hippyEngine) {
+    if (!this.rootView) {
       this.renderExceptionListener.listener = this.onRenderException
-      this.renderExceptionListener.frameworkProxy = null // TODO(hot):
+      this.renderExceptionListener.frameworkProxy = null // TODO(hotx):
       this.rootView = new HippyRootView(this.hippyEngine.getNativeRenderContext(), this.pagerName, this.pagerData, this.renderExceptionListener)
       if (this.initViewSize && this.rootView) {
         this.rootView.onViewSizeChanged(this.initViewSize)
@@ -193,13 +190,6 @@ export struct HippyRoot {
     if (this.rootView) {
       this.rootView.onDestroy()
     }
-  }
-
-  private getOrCreateHippyEngine(): HippyEngine | null {
-    if (this.hippyAbility) {
-      return this.hippyAbility.getHippyEngine()
-    }
-    return null
   }
 
   build() {

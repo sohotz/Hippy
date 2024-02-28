@@ -18,22 +18,26 @@
  * limitations under the License.
  */
 import resmgr from "@ohos.resourceManager";
+import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { DomManager } from './connector/DomManager';
-import { JsDriver } from './connector/JsDriver';
-import { NativeRenderer } from './connector/NativeRenderer';
+import { HippyEngineImpl } from './HippyEngineImpl';
 
 export interface HippyEngine {
-  jsDriver: JsDriver
-  domMgr: DomManager
-  nativeRenderer: NativeRenderer
+  initEngine()
 
   runJsBundle(resourceManager: resmgr.ResourceManager): Promise<void>
 
   getNativeRenderContext(): NativeRenderContext
 
   getNativeRenderProvider(): NativeRenderProvider
+}
+
+export function createHippyEngine(
+  libHippy: HippyLibrary,
+  resourceManager: resmgr.ResourceManager
+): HippyEngine {
+  return new HippyEngineImpl(libHippy, resourceManager)
 }
 
 export enum EngineInitStatus {
