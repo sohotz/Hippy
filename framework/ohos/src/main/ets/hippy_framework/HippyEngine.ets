@@ -22,9 +22,9 @@ import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
 import { HippyEngineImpl } from './HippyEngineImpl';
 
 export interface HippyEngine {
-  initEngine(initCallbak: HippyEngineInitCallback)
+  initEngine(initCallbak: HippyEngineInitCallback): void
 
-  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback)
+  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): void
 
   getNativeRenderContext(): NativeRenderContext
 

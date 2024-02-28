@@ -23,7 +23,7 @@ export type Hippy2Map = Map<string, HippyValue | Map<string, HippyValue>>
 export type Hippy3Map = Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>
 export type HippyRecord = Record<string, HippyValue>
 export type HippyArray = Array<HippyValue>
-export type HippyAny = HippyValue | HippyMap | Hippy2Map | Hippy3Map | HippyRecord | HippyArray | null
+export type HippyAny = HippyValue | HippyMap | Hippy2Map | Hippy3Map | HippyRecord | HippyArray | null | undefined
 
 export type HippyRenderCallback = (result: HippyAny) => void
 export type HippyModuleCallback = (result: HippyAny) => void

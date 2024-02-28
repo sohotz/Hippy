@@ -41,6 +41,7 @@ import { HRCreateMutation,
   HRUpdateMutation
 } from './uimanager/HRMutation'
 import { HRSize } from './utils/HRTypes'
+import { HRValueUtils } from './utils/HRValueUtils'
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -55,8 +56,8 @@ export class TextMeasurerConfig {
 declare function px2vp(px: number): number
 
 export interface NativeRenderEventHandler {
-  onSize(rootId: number, width: number, height: number)
-  onSize2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean)
+  onSize(rootId: number, width: number, height: number): void
+  onSize2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void
 }
 
 export class NativeRenderImpl implements NativeRender {
@@ -149,7 +150,7 @@ export class NativeRenderImpl implements NativeRender {
 
   handleRenderException(exception: HippyException) {
     exception = HippyException.safeBuild(exception)
-    LogUtils.e(this.TAG, `message:${exception.message}`)
+    LogUtils.e(this.TAG, `handleRenderException: ${exception.message}`)
     if (this.frameworkProxy) {
       this.frameworkProxy.handleNativeException(exception)
     }
@@ -259,7 +260,19 @@ export class NativeRenderImpl implements NativeRender {
   }
 
   updateEventListener(rootId: number, eventList: Array<HippyAny>) {
+    for (let i = 0; i < eventList.length; i++) {
+      let event = eventList[i] as Map<string, HippyAny>
+      if (!(event instanceof Map)) {
+        throw new HippyException(this.TAG + ": updateEventListener: invalid event object")
+      }
+      let nodeId = HRValueUtils.getNumber2(event.get('id'), this.INVALID_NODE_ID)
+      let eventProps = HRValueUtils.getMap(event.get('props'))
+      if (nodeId < 0 || !eventProps) {
+        throw new HippyException(this.TAG + ": updateEventListener: invalid id or props")
+      }
 
+
+    }
   }
 
   callUIFunction(nodeId: number, functionName: string, params: Array<HippyAny>, callback: HippyRenderCallback | null) {

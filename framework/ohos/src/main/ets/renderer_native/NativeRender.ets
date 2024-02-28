@@ -45,5 +45,5 @@ export interface NativeRender {
 
   onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void
 
-  updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean)
+  updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean): void
 }
