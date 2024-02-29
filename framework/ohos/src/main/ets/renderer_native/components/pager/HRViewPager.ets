@@ -31,6 +31,10 @@ export class HRViewPagerView extends HippyRenderBaseView {
   private readonly TAG = "HRViewPagerView"
   public initialPage: number = 0
   public index: number = 0
+  public disableSwipe:boolean = false
+  public vertical:boolean = false
+  public controller: SwiperController = new SwiperController()
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
@@ -40,6 +44,14 @@ export class HRViewPagerView extends HippyRenderBaseView {
     if (propKey === 'initialPage') {
       this.initialPage = propValue as number
       this.index = this.initialPage
+    } else if (propKey === 'scrollEnabled') {
+      let enable = propValue as boolean
+      this.disableSwipe = !enable
+    } else if (propKey === 'direction') {
+      //todo: android has branch: props.containsKey("vertical")
+      if (propValue as string === 'vertical') {
+        this.vertical = true
+      }
     }
     return super.setProp(propKey, propValue as HippyAny)
   }
@@ -49,6 +61,17 @@ export class HRViewPagerView extends HippyRenderBaseView {
     switch (method) {
       case "setPage":
         this.index = params[0] as number
+        break;
+      case "next":
+        this.controller.showNext()
+        break;
+      case "prev":
+        this.controller.showPrevious()
+        break;
+      case "setIndex":
+        //todo: not support para 'animated'
+        let map = params[0] as HippyMap
+        this.index = map.get('index') as number
         break;
       default:
         break;
@@ -62,7 +85,7 @@ export struct HRViewPager {
   @ObjectLink renderView: HRViewPagerView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  private controller: SwiperController = new SwiperController()
+
   private PAGE_ITEM_POSITION: string = "position";
 
   handleChangeEvent(index: number) {
@@ -104,13 +127,16 @@ export struct HRViewPager {
   }
 
   build() {
-    Swiper(this.controller) {
+    Swiper(this.renderView.controller) {
       ForEach(this.children, (item: HippyRenderBaseView) => {
         this.buildRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
+    .indicator(false)
     .index(this.renderView.index)
     .applyRenderViewBaseAttr(this.renderView)
+    .disableSwipe(this.renderView.disableSwipe)
+    .vertical(this.renderView.vertical)
     .onChange((event) => this.handleChangeEvent(event))
     .onGestureSwipe((index: number, extraInfo: SwiperAnimationEvent) =>
       this.handleGestureSwipeEvent(index, extraInfo))

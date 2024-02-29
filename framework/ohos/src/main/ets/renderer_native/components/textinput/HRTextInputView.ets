@@ -189,7 +189,6 @@ export class HRTextInputView extends HippyRenderBaseView {
 
   blurTextInput(params: Array<HippyAny>) {
     //todo
-    this.multiline = !this.multiline
   }
 
   hideInputMethod(params: Array<HippyAny>) {

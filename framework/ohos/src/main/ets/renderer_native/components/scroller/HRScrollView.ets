@@ -238,8 +238,10 @@ export struct HRScroll {
 
   build() {
     Scroll(this.renderView.scroller) {
-      if (this.children.length > 0) {
-        this.buildRenderView(this.children[0], this)
+      Stack() {
+        if (this.children.length > 0) {
+          this.buildRenderView(this.children[0], this)
+        }
       }
     }
     .applyRenderViewBaseAttr(this.renderView)
