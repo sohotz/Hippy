@@ -14,7 +14,7 @@ set(HIPPY_DRIVER_JS_CPP_DIR "${PROJECT_ROOT_DIR}/driver/js")
 set(HIPPY_DOM_CPP_DIR "${PROJECT_ROOT_DIR}/dom")
 set(HIPPY_VFS_CPP_DIR "${PROJECT_ROOT_DIR}/modules/vfs")
 
-add_library(hippy SHARED
+add_library(hippy STATIC #SHARED
   "${HIPPY_CPP_DIR}/entry.cc"
 )
 
