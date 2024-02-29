@@ -60,7 +60,7 @@ export class HRValueUtils {
 
   static getMap(value: HippyAny): HippyMap | null {
     if (value instanceof Map) {
-      return value
+      return value as HippyMap
     }
     return null
   }

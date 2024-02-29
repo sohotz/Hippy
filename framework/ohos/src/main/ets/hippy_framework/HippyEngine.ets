@@ -17,30 +17,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import resmgr from "@ohos.resourceManager";
+import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
-import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { DomManager } from './connector/DomManager';
-import { JsDriver } from './connector/JsDriver';
-import { NativeRenderer } from './connector/NativeRenderer';
+import { HippyEngineImpl } from './HippyEngineImpl';
 
 export interface HippyEngine {
-  jsDriver: JsDriver
-  domMgr: DomManager
-  nativeRenderer: NativeRenderer
+  initEngine(initCallbak: HippyEngineInitCallback): void
 
-  runJsBundle(resourceManager: resmgr.ResourceManager): Promise<void>
+  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): void
 
   getNativeRenderContext(): NativeRenderContext
 
-  getNativeRenderProvider(): NativeRenderProvider
+}
+
+export function createHippyEngine(params: EngineInitParams): HippyEngine {
+  return new HippyEngineImpl(params)
+}
+
+export type HippyEngineInitCallback = (statusCode: EngineInitStatus, msg: string) => void
+export type HippyModuleLoadCallback = (statusCode: ModuleLoadStatus, msg: string) => void
+
+export class EngineInitParams {
+  libHippy: HippyLibrary
+  context: Context // UIAbilityContext
+
+  constructor(
+    libHippy: HippyLibrary,
+    context: Context
+  ) {
+    this.libHippy = libHippy
+    this.context = context
+  }
+}
+
+export class ModuleLoadParams {
+
 }
 
 export enum EngineInitStatus {
-
+  STATUS_OK = 0
 }
 
 export enum ModuleLoadStatus {
-
+  STATUS_OK = 0
 }
 

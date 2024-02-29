@@ -112,7 +112,7 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
 #ifdef JS_V8
   auto param = std::make_shared<V8VMInitParam>();
   // TODO(hot):
-  param->enable_v8_serialization = true;
+  param->enable_v8_serialization = false;
   param->is_debug = false;
 
 #else

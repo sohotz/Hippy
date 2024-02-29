@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
 import { HippyEngineContext } from '../../HippyEngineContext';
 
 export class HippyNativeModuleBase {
@@ -28,7 +28,7 @@ export class HippyNativeModuleBase {
     this.ctx = ctx
   }
 
-  call(method: string, params: HippyAny, callback: null): HippyAny {
+  call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
     return null
   }
 }

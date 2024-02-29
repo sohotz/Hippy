@@ -17,100 +17,279 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny } from '../../../support/common/HippyTypes'
+import { HippyAny, HippyMap } from '../../../support/common/HippyTypes'
 import { NativeRenderContext } from '../../NativeRenderContext'
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
-import { HRRichTextShadow, MAX_LINES } from './HRRichTextShadow'
-import { HRTextSpan } from './HRTextSpan'
-
-@Observed
-export class HRTextAttr {
-  spans: HippyObservedArray<HRTextSpan> = new HippyObservedArray()
-}
+import HippyRenderBaseView from '../base/HippyRenderBaseView'
+import { HRComponent } from '../../HippyRenderView'
+import { LogUtils } from '../../../support/utils/LogUtils'
 
 @Observed
 export class HRRichTextView extends HippyRenderBaseView {
-  textAttr: HRTextAttr = new HRTextAttr()
-  maxLines: number = MAX_LINES
+  private readonly TAG = "HRRichTextView"
+  maxLines: number = 10000000
 
   // TODO(hot):
   text: string = ""
   fontColor: number | null = null
   fontSize: number | null = null
   lineHeight: number | null = null
+  shadowColor: number = 0
+  shadowRadius: number = 0
+  shadowOffX: number = 0
+  shadowOffY: number = 0
+  fontStyle: FontStyle = FontStyle.Normal
+  fontWeight: number | FontWeight | string = FontWeight.Normal
+  fontFamily: string | null = null
+  decorationType: TextDecorationType = TextDecorationType.None
+  decorationColor: number = 0
+  letterSpacing: number = 0
+  textAlign: TextAlign = TextAlign.Start
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
-    if (propKey == "numberOfLines") {
-      this.maxLines = propValue as number
-      if (this.maxLines <= 0) {
-        this.maxLines = MAX_LINES
-      }
-      return true
-    } else if (propKey == "text") {
+    if (propKey == "text") {
       if (propValue) {
-        this.text = propValue as string
+        if (propValue.constructor.name == "String") {
+          this.text = propValue as string
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
       }
       return true
     } else if (propKey == "color") {
       if (propValue) {
-        this.fontColor = propValue as number
+        if (propValue.constructor.name == "Number") {
+          this.fontColor = propValue as number
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
       }
       return true
+    } else if (propKey == "enableScale") { //todo
+      return true;
+    } else if (propKey == "fontFamily") { //todo 不生效
+      if (propValue) {
+        if (propValue.constructor.name == "String") {
+          this.fontFamily = propValue as string;
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
     } else if (propKey == "fontSize") {
       if (propValue) {
-        this.fontSize = propValue as number
+        if (propValue.constructor.name == "Number") {
+          this.fontSize = propValue as number
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
       }
       return true
+    } else if (propKey == "fontStyle") {
+      if (propValue) {
+        if (propValue.constructor.name == "String") {
+          if (propValue as string == 'italic') {
+            this.fontStyle = FontStyle.Italic;
+          }
+          else {
+            this.fontStyle = FontStyle.Normal;
+          }
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
+    } else if (propKey == "fontWeight") {
+      if (propValue) {
+        if (propValue.constructor.name == "String") {
+          let t = propValue as string;
+          if (t == "normal") {
+            this.fontWeight = FontWeight.Normal;
+          } else if (t == "bold") {
+            this.fontWeight = FontWeight.Bold;
+          } else {
+            let n = parseInt(t);
+            if (isNaN(n)) {
+              this.fontWeight = FontWeight.Normal;
+            } else {
+              this.fontWeight = Math.min(Math.max(1, n), 1000);
+            }
+          }
+        } else if (propValue.constructor.name == "Number") {
+          this.fontWeight = propValue as number;
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
+    } else if (propKey == "letterSpacing") {
+      if (propValue) {
+        if (propValue.constructor.name == "Number") {
+          this.letterSpacing = propValue as number;
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
     } else if (propKey == "lineHeight") {
       if (propValue) {
-        this.lineHeight = propValue as number
+        if (propValue.constructor.name == "Number") {
+          this.lineHeight = propValue as number;
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
       }
       return true
+    } else if (propKey == "lineSpacingExtra") { //todo
+      return true;
+    } else if (propKey == "lineSpacingMultiplier") { //todo
+      return true;
+    } else if (propKey == "numberOfLines") {
+      if (propValue) {
+        if (propValue.constructor.name == "Number") {
+          this.maxLines = propValue as number
+          if (this.maxLines <= 0) {
+            this.maxLines = 10000000
+          }
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true
+    } else if (propKey == "textAlign") {
+      if (propValue) {
+        if (propValue.constructor.name == "String") {
+          let t = propValue as string;
+          if (t == "justify") {
+            this.textAlign = TextAlign.JUSTIFY;
+          } else if (t == "right") {
+            this.textAlign = TextAlign.End;
+          } else if (t == "center") {
+            this.textAlign = TextAlign.Center;
+          } else {
+            this.textAlign = TextAlign.Start;
+          }
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
+    } else if (propKey == "textDecorationLine") { //安卓可以同时显示下划线和删除线
+      if (propValue) {
+        if (propValue.constructor.name == "String") {
+          let t = propValue as string;
+          this.decorationType = TextDecorationType.None;
+          t.split(" ").forEach(s => {
+            if (s == 'underline') {
+              this.decorationType = TextDecorationType.Underline;
+            } else if (s == 'line-through') {
+              this.decorationType = TextDecorationType.LineThrough;
+            }
+          });
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
+    } else if (propKey == "textShadowColor") {
+      if (propValue) {
+        if (propValue.constructor.name == "Number") {
+          this.shadowColor = propValue as number;
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
+    } else if (propKey == "textShadowOffset") {
+      if (propValue) {
+        if (propValue.constructor.name == "Map") {
+          let t = propValue as HippyMap;
+          this.shadowOffX = t.get('width') as number;
+          this.shadowOffY = t.get('height') as number;
+        } else {
+          LogUtils.e(this.TAG, propKey + "" + propValue.constructor.name);
+        }
+      }
+      return true;
+    } else if (propKey == "textShadowRadius") {
+      if (propValue) {
+        if (propValue.constructor.name == "Number") {
+          this.shadowRadius = propValue as number;
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
+    } else if (propKey == "textDecorationColor") { //下划线/删除线的颜色，安卓无，next有
+      if (propValue) {
+        if (propValue.constructor.name == "Number") {
+          this.decorationColor = propValue as number;
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
+    } else if (propKey == "ellipsizeMode") { //todo 文本超长裁剪时，省略号在前/中/后，安卓有，next无
+      return true;
+    } else if (propKey == "textDecorationStyle") { //todo 下划线/删除线的类型：DOUBLE，DOTTED，DASHED，SOLID，安卓有，next无
+      return true;
+    } else if (propKey == "breakStrategy") { //todo 文本断行策略，安卓有，next无
+      if (propValue) {
+        if (propValue.constructor.name == "String") {
+          let t = propValue as string;
+          if (t == "high_quality") {
+          } else if (t == "balanced") {
+          } else { //t == "simple"
+          }
+        } else {
+          LogUtils.e(this.TAG, propKey);
+        }
+      }
+      return true;
     }
     return super.setProp(propKey, propValue)
-  }
-
-  setShadow(textShadow: HRRichTextShadow): void {
-    this.textAttr.spans.splice(0, this.textAttr.spans.length)
-    textShadow.spans.forEach((item) => {
-      this.textAttr.spans.push(item)
-    })
   }
 }
 
 @Component
 export struct HRRichText {
   @ObjectLink renderView: HRRichTextView
-  @ObjectLink spans: HippyObservedArray<HRTextSpan>
+  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
   build() {
-    Text() {
-      Span(this.renderView.text)
-        .fontColor(this.renderView.fontColor)
-        .fontSize(this.renderView.fontSize)
-        .lineHeight(this.renderView.lineHeight)
-      // ForEach(this.spans, (span: HRTextSpan) => {
-      //   Span(span.text)
-      //     .fontSize(span.fontSize)
-      //     .fontWeight(span.fontWeight)
-      //     .fontColor(span.fontColor)
-      //     .fontStyle(span.fontStyle)
-      //     .fontFamily(span.fontFamily)
-      //     .letterSpacing(span.letterSpacing)
-      //     .lineHeight(span.lineHeight)
-      //     .decoration({type:span.textDecoration})
-      //     .align(span.textAlign)
-      // })
+    Text(this.renderView.text) {
+      if (this.renderView.children.length > 0) {
+        ForEach(this.renderView.children, (item: HippyRenderBaseView) => {
+          if (item.viewType == "Text" || item.viewType == "Image")
+            this.buildRenderView(item, null)
+        }, (item: HippyRenderBaseView) => item.tag + '')
+      }
     }
-    .textOverflow({overflow: TextOverflow.Ellipsis})
+    .fontColor(this.renderView.fontColor)
+    .fontSize(this.renderView.fontSize)
+    .lineHeight(this.renderView.lineHeight)
+    .textOverflow({ overflow: TextOverflow.Ellipsis })
     .maxLines(this.renderView.maxLines)
+    .textShadow({
+      radius: this.renderView.shadowRadius,
+      color: this.renderView.shadowColor,
+      offsetX: this.renderView.shadowOffX,
+      offsetY: this.renderView.shadowOffY
+    })
+    .fontStyle(this.renderView.fontStyle)
+    .fontWeight(this.renderView.fontWeight)
+    .fontFamily(this.renderView.fontFamily)
+    .decoration({
+      type: this.renderView.decorationType,
+      color: this.renderView.decorationColor
+    })
+    .letterSpacing(this.renderView.letterSpacing)
+    .textAlign(this.renderView.textAlign)
     .applyRenderViewBaseAttr(this.renderView)
   }
-
 }
 
 // base props for all components

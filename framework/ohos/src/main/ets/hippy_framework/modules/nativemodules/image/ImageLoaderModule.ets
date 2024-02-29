@@ -17,14 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type HippyValue = number | string | boolean | Uint8Array | bigint
-export type HippyMap = Map<string, HippyValue>
-export type Hippy2Map = Map<string, HippyValue | Map<string, HippyValue>>
-export type Hippy3Map = Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>
-export type HippyRecord = Record<string, HippyValue>
-export type HippyArray = Array<HippyValue>
-export type HippyAny = HippyValue | HippyMap | Hippy2Map | Hippy3Map | HippyRecord | HippyArray | null | undefined
+import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyEngineContext } from '../../../HippyEngineContext'
+import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 
-export type HippyRenderCallback = (result: HippyAny) => void
-export type HippyModuleCallback = (result: HippyAny) => void
-export type HippyTouchParamType = Record<string, HippyValue | HippyRecord[]>
+@HippyNativeModule({ name: "ImageLoaderModule" })
+export class ImageLoaderModule extends HippyNativeModuleBase {
+  public static readonly NAME = 'ImageLoaderModule'
+
+  constructor(ctx: HippyEngineContext) {
+    super(ctx)
+  }
+}
