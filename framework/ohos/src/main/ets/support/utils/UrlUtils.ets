@@ -18,11 +18,10 @@
  * limitations under the License.
  */
 
-//todo  need to be changed to vfsFile
-export interface ProcessorCallback {
+export class UrlUtils {
 
-  goNext():void
-
-  onHandleCompleted():void
-
+  public static isWebUrl(url: string) : boolean {
+    const regex = new RegExp('^https?:\/\/.+', 'i');
+    return regex.test(url);
+  }
 }

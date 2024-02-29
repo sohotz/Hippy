@@ -21,7 +21,7 @@ import { HippyHttpRequest } from './HippyHttpRequest'
 import HashMap from '@ohos.util.HashMap';
 import { HippyHttpResponse } from './HippyHttpResponse';
 import { BusinessError } from '@ohos.base';
-import { ProcessorCallback } from './ProcessorCallback';
+import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { HippyException } from '../../../support/common/HippyException';
 

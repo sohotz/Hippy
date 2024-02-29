@@ -26,7 +26,9 @@ import { EngineInitParams,
   ModuleLoadParams,
   ModuleLoadStatus
 } from '.';
+import { DefaultProcessor } from '../vfs/DefaultProcessor'
 import { DomManager } from './connector/DomManager';
+import { FrameworkProxy } from '../renderer_native/FrameworkProxy';
 import { JsDriver } from './connector/JsDriver';
 import { NativeRenderer } from './connector/NativeRenderer';
 import { VfsManager } from '../vfs/VfsManager';
@@ -34,12 +36,14 @@ import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 import { PixelUtil } from '../support/utils/PixelUtil';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
+import { HippyException } from '../support/common/HippyException';
+import { HippyResourceLoader } from './adapter/http/HippyResourceLoader';
 
-export class HippyEngineImpl implements HippyEngine {
+export class HippyEngineImpl implements HippyEngine, FrameworkProxy {
   private libHippy: HippyLibrary
   private resourceManager: resmgr.ResourceManager
 
-  public vfsManager: VfsManager | null = null
+  public vfsManager: VfsManager
   public jsDriver: JsDriver | null = null
   public domMgr: DomManager | null = null
   public nativeRenderProvider: NativeRenderProvider | null = null
@@ -48,12 +52,15 @@ export class HippyEngineImpl implements HippyEngine {
   constructor(params: EngineInitParams) {
     this.libHippy = params.libHippy
     this.resourceManager = params.context.resourceManager
+    this.vfsManager = new VfsManager(this.libHippy)
+    const resourceLoader = new HippyResourceLoader()
+    this.vfsManager.addProcessorAtFirst(new DefaultProcessor(resourceLoader))
   }
 
   initEngine(initCallbak: HippyEngineInitCallback): void {
-    this.vfsManager = new VfsManager(this.libHippy)
     this.domMgr = new DomManager(this.libHippy)
     this.nativeRenderProvider = new NativeRenderProvider(this.libHippy)
+    this.nativeRenderProvider.getNativeRenderImpl().setFrameworkProxy(this)
     this.nativeRenderer = new NativeRenderer(this.libHippy, this.nativeRenderProvider)
     this.nativeRenderer.attachToDom(this.domMgr.instanceId)
     this.domMgr.attachToRenderer(this.nativeRenderer.instanceId)
@@ -93,6 +100,31 @@ export class HippyEngineImpl implements HippyEngine {
 
   loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback) {
     this.loadJsModule()
+  }
+
+  getVfsManager(): VfsManager {
+    return this.vfsManager;
+  }
+
+  getBundlePath(): string {
+    // TODO(eksea)
+    return "asset:/vue2";
+  }
+
+  getEngineId(): number {
+    return 0;
+  }
+
+  onFirstViewAdded(): void {
+  }
+
+  handleNativeException(exception: HippyException): void {
+  }
+
+  updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean): void {
+  }
+
+  onSizeChanged(rootId: number, w: number, h: number, ow: number, oh: number): void {
   }
 
   loadJsModule() {

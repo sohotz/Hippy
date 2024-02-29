@@ -21,7 +21,7 @@ import { HippyHttpAdapter, HttpTaskCallback } from './HippyHttpAdapter';
 import { HippyHttpRequest } from './HippyHttpRequest';
 import { HippyHttpResponse } from './HippyHttpResponse';
 import { BusinessError } from '@ohos.base';
-import { ProcessorCallback } from './ProcessorCallback';
+import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { FetchResultCode } from './HippyResourceLoader';
 import { HippyException } from '../../../support/common/HippyException';
