@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { BinaryReader } from '../serialization/reader/BinaryReader'
-import { NativeRenderImpl } from './NativeRenderImpl';
+import { NativeRenderEventHandler, NativeRenderImpl } from './NativeRenderImpl';
 import { NativeRenderDeserializer } from './serialization/NativeRenderDeserializer'
 import { BinaryWriter } from '../serialization/writer/BinaryWriter';
 import { NativeRenderSerializer } from './serialization/NativeRenderSerializer';
@@ -28,7 +28,7 @@ import { LogUtils } from '../support/utils/LogUtils';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HippyAny } from '../support/common/HippyTypes';
 
-export class NativeRenderProvider {
+export class NativeRenderProvider implements NativeRenderEventHandler {
   private readonly TAG = "NativeRenderProvider"
   private readonly EVENT_PREFIX = "on"
 
@@ -38,7 +38,7 @@ export class NativeRenderProvider {
 
   constructor(libHippy: HippyLibrary) {
     this.libHippy = libHippy
-    this.renderImpl = new NativeRenderImpl()
+    this.renderImpl = new NativeRenderImpl(this)
   }
 
   setInstanceId(instanceId: number) {
@@ -156,11 +156,11 @@ export class NativeRenderProvider {
     return this.renderImpl.measure(rootId, nodeId, width, widthMode, height, heightMode)
   }
 
-  onSizeChanged(rootId: number, width: number, height: number) {
+  onSize(rootId: number, width: number, height: number) {
     this.libHippy?.NativeRenderImpl_UpdateRootSize(this.instanceId, rootId, width, height)
   }
 
-  onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean) {
+  onSize2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean) {
     this.libHippy?.NativeRenderImpl_UpdateNodeSize(this.instanceId, rootId, nodeId, width, height, isSync)
   }
 
