@@ -17,15 +17,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProcessorCallback } from './ProcessorCallback';
-import { ResourceDataHolder } from './ResourceDataHolder';
+import { ProcessorCallback } from './ProcessorCallback'
 
-export interface ResourceLoader {
-  fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback)
+import {ResourceDataHolder} from './ResourceDataHolder'
 
-  fetchResourceSync(holder: ResourceDataHolder): boolean
+export class Processor {
+  handleRequestAsync(holder: ResourceDataHolder, callback: ProcessorCallback) {
+    callback.goNext()
+  }
+
+  handleRequestSync(holder: ResourceDataHolder): boolean {
+    return false
+  }
+
+  handleResponseAsync(holder: ResourceDataHolder, callback: ProcessorCallback) {
+    callback.onHandleCompleted()
+  }
+
+  handleResponseSync(holder: ResourceDataHolder) {
+  }
+
 }
-
-
-
-

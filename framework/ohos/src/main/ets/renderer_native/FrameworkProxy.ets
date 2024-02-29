@@ -24,13 +24,16 @@ import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
 
 export interface FrameworkProxy {
-  getImageDecoderAdapter(): ImageDecoderAdapter
+  // TODO(eksea)
+  // getImageDecoderAdapter(): ImageDecoderAdapter
 
-  getFontAdapter(): FontAdapter
+  // TODO(eksea)
+  // getFontAdapter(): FontAdapter
 
   getVfsManager(): VfsManager
 
-  getBackgroundExecutor(): HippyExecutor
+  // TODO(eksea)
+  // getBackgroundExecutor(): HippyExecutor
 
   getBundlePath(): string
 

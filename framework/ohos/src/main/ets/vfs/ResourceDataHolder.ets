@@ -17,33 +17,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Hippy1Map, HippyMap } from '../support/common/HippyTypes';
-import HashMap from '@ohos.util.HashMap';
-import fs from '@ohos.file.fs';
 
-//todo  need to be changed to vfsFile
+import fs from '@ohos.file.fs';
+import HashMap from '@ohos.util.HashMap';
+import { HippyResource } from '../support/common/HippyTypes';
+
+export interface FetchResourceCallback {
+  /**
+   * After the process chain traversal is completed, we need to call this method to
+   * return the processing results to the original request initiator.
+   *
+   * @param dataHolder holder of resources fetch result
+   */
+  onFetchCompleted(holder: ResourceDataHolder)
+
+  /**
+   * Return the current progress when loading resources.
+   *
+   * @param total the total size of resources
+   * @param loaded the current progress has loaded
+   */
+  onFetchProgress(total: number, loaded: number)
+}
+
 export class ResourceDataHolder {
   static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
   errorMessage: string | undefined
   processorTag: string | undefined
   resultCode: number = -1
+  public uri: string
+  public resource: HippyResource
   responseHeaders: HashMap<string, string> | undefined
-  requestHeaders: HashMap<string, string> | undefined
-  requestParams: HashMap<string, string> | undefined
-  uri: string = ""
-  requestFrom:RequestFrom|undefined
+  public requestHeaders: HashMap<string, string> | undefined
+  public requestParams: HashMap<string, string> | undefined
+  public callback: FetchResourceCallback | null
+  public requestFrom: RequestFrom
+  public nativeRequestId: number
+  public index: number = -1
 
-  constructor(uri: string, requestHeaders: HashMap<string, string>, requestParams: HashMap<string, string>, from: RequestFrom) {
-    this.init(uri, requestHeaders, requestParams, null, from, -1);
-  }
-
-  init(uri: string, requestHeaders: HashMap<string, string>, requestParams: HashMap<string, string>, arg3: null, from: RequestFrom, arg5: number) {
-    this.uri = uri;
-    this.requestHeaders = requestHeaders;
-    this.requestParams = requestParams;
-    // this.callback = callback;
-    this.requestFrom = from;
-    // this.nativeRequestId = nativeRequestId;
+  constructor(uri: string, requestHeaders: HashMap<string, string> | undefined,
+              requestParams: HashMap<string, string> | undefined, callback: FetchResourceCallback | null,
+              from: RequestFrom, nativeRequestId: number) {
+    this.uri = uri
+    this.resource = ""
+    this.requestHeaders = requestHeaders
+    this.requestParams = requestParams
+    this.callback = callback
+    this.requestFrom = from
+    this.nativeRequestId = nativeRequestId
   }
 
   addResponseHeaderProperty(key: string, property: string) {

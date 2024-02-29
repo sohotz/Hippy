@@ -111,21 +111,24 @@ export class NativeRenderImpl implements NativeRender {
     return this.imageLoader
   }
 
-  getImageDecoderAdapter(): ImageDecoderAdapter | null {
-    return this.frameworkProxy ? this.frameworkProxy.getImageDecoderAdapter() : null
-  }
+  // TODO(eksea)
+  // getImageDecoderAdapter(): ImageDecoderAdapter | null {
+  //   return this.frameworkProxy ? this.frameworkProxy.getImageDecoderAdapter() : null
+  // }
 
   getVfsManager(): VfsManager | null {
     return this.frameworkProxy ? this.frameworkProxy.getVfsManager() : null
   }
 
-  getFontAdapter(): FontAdapter | null {
-    return this.frameworkProxy ? this.frameworkProxy.getFontAdapter() : null
-  }
+  // TODO(eksea)
+  // getFontAdapter(): FontAdapter | null {
+  //   return this.frameworkProxy ? this.frameworkProxy.getFontAdapter() : null
+  // }
 
-  getBackgroundExecutor(): HippyExecutor | null {
-    return this.frameworkProxy ? this.frameworkProxy.getBackgroundExecutor() : null
-  }
+  // TODO(eksea)
+  // getBackgroundExecutor(): HippyExecutor | null {
+  //   return this.frameworkProxy ? this.frameworkProxy.getBackgroundExecutor() : null
+  // }
 
   getEngineId(): number {
     return this.frameworkProxy ? this.frameworkProxy.getEngineId() : -1

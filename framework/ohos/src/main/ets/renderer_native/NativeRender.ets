@@ -22,6 +22,7 @@ import { VfsManager } from '../vfs/VfsManager';
 import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter';
 import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
+import { FrameworkProxy } from './FrameworkProxy'
 import { HRManager } from './uimanager/HRManager';
 
 export interface NativeRender {
@@ -31,13 +32,16 @@ export interface NativeRender {
 
   getImageLoader(): ImageLoaderAdapter | null
 
-  getImageDecoderAdapter(): ImageDecoderAdapter | null
+  // TODO(eksea)
+  // getImageDecoderAdapter(): ImageDecoderAdapter | null
 
   getVfsManager(): VfsManager | null
 
-  getFontAdapter(): FontAdapter | null
+  // TODO(eksea)
+  // getFontAdapter(): FontAdapter | null
 
-  getBackgroundExecutor(): HippyExecutor | null
+  // TODO(eksea)
+  // getBackgroundExecutor(): HippyExecutor | null
 
   getEngineId(): number
 
@@ -46,4 +50,6 @@ export interface NativeRender {
   onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void
 
   updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean): void
+
+  setFrameworkProxy(proxy: FrameworkProxy)
 }

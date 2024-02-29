@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyResource } from '../../../support/common/HippyTypes';
 import { VfsManager } from '../../../vfs/VfsManager';
 import { ImageLoaderAdapter } from './ImageLoaderAdapter';
 
@@ -31,6 +32,11 @@ export class ImageLoader implements ImageLoaderAdapter {
 
   fetchImageAsync(url: string): void {
 
+  }
+
+  fetchImageSync(url: string) : HippyResource {
+    let dataHolder = this.vfsManager!.fetchResourceSync(url, undefined, undefined)
+    return dataHolder.resource
   }
 
 }

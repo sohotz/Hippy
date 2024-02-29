@@ -17,15 +17,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProcessorCallback } from './ProcessorCallback';
-import { ResourceDataHolder } from './ResourceDataHolder';
 
-export interface ResourceLoader {
-  fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback)
+//todo  need to be changed to vfsFile
+export interface ProcessorCallback {
 
-  fetchResourceSync(holder: ResourceDataHolder): boolean
+  goNext: () => void
+
+  onHandleCompleted: () => void
+
 }
-
-
-
-
