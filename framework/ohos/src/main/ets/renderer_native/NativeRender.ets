@@ -51,5 +51,4 @@ export interface NativeRender {
 
   updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean): void
 
-  setFrameworkProxy(proxy: FrameworkProxy)
 }

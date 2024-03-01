@@ -71,7 +71,6 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
-  .borderWidth(1) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)

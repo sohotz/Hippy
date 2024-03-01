@@ -303,7 +303,6 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
-  .borderWidth(2) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
@@ -321,7 +320,6 @@ function applyTextAreaRenderViewBaseAttr($$: HippyRenderBaseView) {
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
-  .borderWidth(2) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)

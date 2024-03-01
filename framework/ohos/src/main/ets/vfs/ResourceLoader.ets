@@ -21,7 +21,7 @@ import { ProcessorCallback } from './ProcessorCallback';
 import { ResourceDataHolder } from './ResourceDataHolder';
 
 export interface ResourceLoader {
-  fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback)
+  fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback): void
 
   fetchResourceSync(holder: ResourceDataHolder): boolean
 }
