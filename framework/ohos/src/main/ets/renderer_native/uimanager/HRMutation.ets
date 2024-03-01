@@ -26,6 +26,7 @@ export enum HRMutationType {
   MOVE2 = 4,
   DELETE = 5,
   UPDATE_LAYOUT = 6,
+  UPDATE_EVENT_LISTENER = 7,
 }
 
 export class HRCreateMutation {
@@ -98,9 +99,19 @@ export class HRUpdateLayoutMutation {
   }
 }
 
+export class HRUpdateEventListenerMutation {
+  type: HRMutationType
+  tag: number | null = null
+  props: HippyMap | null = null
+  constructor() {
+    this.type = HRMutationType.UPDATE_EVENT_LISTENER
+  }
+}
+
 export type HRMutation = HRCreateMutation
   | HRUpdateMutation
   | HRMoveMutation
   | HRMove2Mutation
   | HRDeleteMutation
   | HRUpdateLayoutMutation
+  | HRUpdateEventListenerMutation

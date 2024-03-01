@@ -98,11 +98,6 @@ export default abstract class HippyRenderBaseView {
 
   constructor(ctx: NativeRenderContext) {
     this.ctx = ctx
-
-    // TODO(hot):
-    this.eventClick = (event) => {
-      HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
-    }
   }
 
   protected handleGestureBySelf(): boolean {

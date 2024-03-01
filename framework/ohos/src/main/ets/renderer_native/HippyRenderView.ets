@@ -19,7 +19,7 @@
  */
 import window from '@ohos.window'
 import { HippyEngine } from '../hippy_framework';
-import { HippyRecord } from '../support/common/HippyTypes';
+import { HippyAny, HippyRecord } from '../support/common/HippyTypes';
 import HippyRenderBaseView, { HippyObservedArray } from './components/base/HippyRenderBaseView';
 import {
   hippyRenderViewCreatorRegisterMap,
@@ -47,6 +47,7 @@ import { HRSize } from './utils/HRTypes';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HRPullHeader, HRPullHeaderView } from './components/pullheader/HRPullHeader';
 import { HRPullFooter, HRPullFooterView } from './components/pullfooter/HRPullFooter';
+import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils';
 
 export type HRComponent = HRDivView | HRScroll | HRScrollContent | HRModal | null
 
@@ -71,6 +72,23 @@ export class HippyRenderView extends HippyRenderBaseView {
     let renderManger = ctx.getNativeRender().getRenderManager()
     renderManger.init(this)
     this.tag = renderManger.getRootTag()
+  }
+
+  setProp(propKey: string, propValue: HippyAny): boolean {
+    if (propKey != null && typeof propValue == 'boolean') {
+      this.handleRootEvent(propKey, propValue)
+    }
+    return super.setProp(propKey, propValue as HippyAny)
+  }
+
+  private handleRootEvent(event: string, enable: boolean) {
+    if (event == HRDisplaySyncUtils.DO_FRAME.toLowerCase()) {
+      if (enable) {
+        HRDisplaySyncUtils.registerDoFrameListener(this.ctx.getInstanceId(), this.tag)
+      } else {
+        HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), this.tag)
+      }
+    }
   }
 
   onSizeChanged(width: number, height: number) {

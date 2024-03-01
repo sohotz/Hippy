@@ -29,6 +29,7 @@ import { HRRect } from '../utils/HRTypes'
 import { HRCreateMutation,
   HRDeleteMutation,
   HRMutation, HRMutationType,
+  HRUpdateEventListenerMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation } from './HRMutation'
 import { LogUtils } from '../../support/utils/LogUtils';
@@ -80,6 +81,9 @@ export class HRManager {
     } else if (mutation.type === HRMutationType.UPDATE_LAYOUT) {
       let m = mutation as HRUpdateLayoutMutation
       this.setRenderViewFrame(m.tag as number, new HRRect(m.left as number, m.top as number, m.width as number, m.height as number))
+    } else if (mutation.type === HRMutationType.UPDATE_EVENT_LISTENER) {
+      let m = mutation as HRUpdateEventListenerMutation
+      this.updateProps(m.tag as number, m.props as HippyMap)
     }
   }
 
