@@ -28,7 +28,7 @@ import { HttpTaskCallbackImpl } from './HttpTaskCallbackImpl';
 import Url from '@ohos.url'
 import { TextUtils } from '../../../support/utils/TextUtils';
 import { ResourceDataHolder } from 'ets/vfs/ResourceDataHolder';
-import { ProcessorCallback } from './ProcessorCallback';
+import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { HippyExecutor, HippyTask } from '../../../support/common/HippyExecutor';
 import connection from '@ohos.net.connection';
 import { HippyException } from '../../../support/common/HippyException';

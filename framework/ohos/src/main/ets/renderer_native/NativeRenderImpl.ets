@@ -20,7 +20,7 @@
 import TextMeasurer from "@ohos.measure"
 import { HippyException } from '../support/common/HippyException'
 import { HippyExecutor } from '../support/common/HippyExecutor'
-import { HippyAny, HippyMap, HippyRenderCallback } from '../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyValue, HippyRenderCallback } from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
 import { VfsManager } from '../vfs/VfsManager'
 import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter'
@@ -111,21 +111,24 @@ export class NativeRenderImpl implements NativeRender {
     return this.imageLoader
   }
 
-  getImageDecoderAdapter(): ImageDecoderAdapter | null {
-    return this.frameworkProxy ? this.frameworkProxy.getImageDecoderAdapter() : null
-  }
+  // TODO(eksea)
+  // getImageDecoderAdapter(): ImageDecoderAdapter | null {
+  //   return this.frameworkProxy ? this.frameworkProxy.getImageDecoderAdapter() : null
+  // }
 
   getVfsManager(): VfsManager | null {
     return this.frameworkProxy ? this.frameworkProxy.getVfsManager() : null
   }
 
-  getFontAdapter(): FontAdapter | null {
-    return this.frameworkProxy ? this.frameworkProxy.getFontAdapter() : null
-  }
+  // TODO(eksea)
+  // getFontAdapter(): FontAdapter | null {
+  //   return this.frameworkProxy ? this.frameworkProxy.getFontAdapter() : null
+  // }
 
-  getBackgroundExecutor(): HippyExecutor | null {
-    return this.frameworkProxy ? this.frameworkProxy.getBackgroundExecutor() : null
-  }
+  // TODO(eksea)
+  // getBackgroundExecutor(): HippyExecutor | null {
+  //   return this.frameworkProxy ? this.frameworkProxy.getBackgroundExecutor() : null
+  // }
 
   getEngineId(): number {
     return this.frameworkProxy ? this.frameworkProxy.getEngineId() : -1
@@ -199,6 +202,16 @@ export class NativeRenderImpl implements NativeRender {
   updateNode(rootId: number, nodeList: Array<HippyAny>) {
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
+
+      let vNode = this.virtualNodes.get(node.get('id') as number)
+      if (vNode && vNode.props) {
+        (node.get('props') as HippyMap).forEach((value: HippyValue, key: string) => {
+          if (vNode && vNode.props && key && value) {
+            vNode.props.set(key, value)
+          }
+        })
+      }
+
       let m: HRUpdateMutation = new HRUpdateMutation()
       m.viewName = node.get('name') as string
       m.tag = node.get('id') as number

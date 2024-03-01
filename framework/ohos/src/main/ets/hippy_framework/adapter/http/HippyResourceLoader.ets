@@ -17,9 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ResourceDataHolder } from 'ets/vfs/ResourceDataHolder';
+import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { ResourceLoader } from '../../../vfs/ResourceLoader';
-import { ProcessorCallback } from './ProcessorCallback';
+import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
+import { UrlUtils } from '../../../support/utils/UrlUtils';
 
 export enum FetchResultCode {
   OK,
@@ -29,13 +30,30 @@ export enum FetchResultCode {
 }
 
 export class HippyResourceLoader implements ResourceLoader {
+  private static readonly RAWFILE_PREFIX = "hpfile://";
+  private static readonly ASSETS_IMAGE_PREFIX = "assets://"
+
   constructor() {
   }
 
   fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback) {
+    holder.resource = holder.uri
+    callback.onHandleCompleted()
   }
 
   fetchResourceSync(holder: ResourceDataHolder): boolean {
+    if (UrlUtils.isWebUrl(holder.uri)) {
+      // TODO(eksea)
+      holder.resource = holder.uri
+    } else if (holder.uri.startsWith(HippyResourceLoader.RAWFILE_PREFIX)) {
+      let realUri = "vue2/assets/" + holder.uri.substring(HippyResourceLoader.RAWFILE_PREFIX.length)
+      holder.resource = $rawfile(realUri)
+    }
+    else if (holder.uri.startsWith(HippyResourceLoader.ASSETS_IMAGE_PREFIX)) {
+      holder.resource = $rawfile(holder.uri.substring(HippyResourceLoader.ASSETS_IMAGE_PREFIX.length))
+    } else {
+      holder.resource = holder.uri
+    }
     return true
   }
 }
