@@ -17,12 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRecord, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyRecord, HippyRenderCallback,
+  HippyResource } from '../../../support/common/HippyTypes';
 import { HRNodeProps } from '../../dom_node/HRNodeProps';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HRConvertUtil } from '../../utils/HRConvertUtil';
 import HippyRenderBaseView from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 
 interface ImageLoadEvent {
   width: number
@@ -178,19 +180,14 @@ export class HRImageView extends HippyRenderBaseView {
     }
   }
 
-  getImage() {
-    console.log(`hrimageview getImage`)
-    if (this.cssSrc?.startsWith(HRImageView.BASE64_IMAGE_PREFIX)) {
-      return this.cssSrc
-    } else if (this.cssSrc?.startsWith(HRImageView.RAW_IMAGE_PREFIX)){
-      let splitList = this.cssSrc.split("/")
-      this.cssSrc = "vue2/assets/" + splitList[splitList.length - 1]
-      LogUtils.d(this.TAG, "hrimageview getImage: cssSrc= " + this.cssSrc)
-      this.cssAlt = this.cssSrc
-      return $rawfile(this.cssSrc)
+  getImage(): HippyResource {
+    let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
+    if (this.cssSrc) {
+      return imageLoader.fetchImageSync(this.cssSrc)
     }
-    return this.cssSrc
+    return ""
   }
+
 }
 
 @Component

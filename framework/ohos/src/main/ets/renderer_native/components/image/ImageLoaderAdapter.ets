@@ -17,6 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyResource } from '../../../support/common/HippyTypes'
+
 export interface ImageLoaderAdapter {
   fetchImageAsync(url: string): void
+
+  fetchImageSync(url: string): HippyResource
 }
