@@ -19,6 +19,7 @@
  */
 import deviceInfo  from '@ohos.deviceInfo';
 import { HippyAny } from '../../../support/common/HippyTypes';
+import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray,
@@ -45,13 +46,27 @@ export struct HRDiv {
 
   shouldAddGesture() {
     return deviceInfo.sdkApiVersion >= 11 && (
-      this.renderView.eventDoubleClick != null ||
-        this.renderView.eventLongPress != null ||
-        this.renderView.eventPan ||
+      this.renderView.eventLongPress != null ||
+        this.renderView.eventPressIn != null ||
+        this.renderView.eventPressOut != null ||
         this.renderView.eventTouchUp != null ||
         this.renderView.eventTouchDown != null ||
-        this.renderView.eventTouchMove != null
+        this.renderView.eventTouchMove != null ||
+        this.renderView.eventTouchCancel != null ||
+        this.renderView.flagInterceptPullUp
     )
+  }
+
+  aboutToAppear() {
+    if (this.renderView.eventAttachedToWindow) {
+      this.renderView.eventAttachedToWindow()
+    }
+  }
+
+  aboutToDisappear() {
+    if (this.renderView.eventDetachedFromWindow) {
+      this.renderView.eventDetachedFromWindow()
+    }
   }
 
   build() {
@@ -62,7 +77,7 @@ export struct HRDiv {
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
       .applyRenderViewBaseAttr(this.renderView)
-      //.applyGestures(this.renderView)
+      .applyGestures(this.renderView)
     }else {
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
@@ -97,66 +112,47 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
 
 @Extend(Stack)
 function applyGestures($$: HippyRenderBaseView) {
-  /*
   .onGestureJudgeBegin((gestureInfo: GestureInfo, event: BaseGestureEvent): GestureJudgeResult => {
     if (gestureInfo.tag != HippyGestureTag) {
       // let other gestures continue
       return GestureJudgeResult.CONTINUE
     }
-    return (gestureInfo.type == GestureControl.GestureType.LONG_PRESS_GESTURE && $$.eventLongPress != null) ||
-      (gestureInfo.type == GestureControl.GestureType.TAP_GESTURE && $$.eventDoubleClick != null) ||
-      (gestureInfo.type == GestureControl.GestureType.PAN_GESTURE && $$.eventPan != null) ?
+    return (gestureInfo.type == GestureControl.GestureType.LONG_PRESS_GESTURE &&
+      ($$.eventLongPress != null) || $$.eventPressIn != null || $$.eventPressOut != null) ?
     GestureJudgeResult.CONTINUE : GestureJudgeResult.REJECT
   })
   .parallelGesture(GestureGroup(GestureMode.Parallel,
-    TapGesture({ count: 2 })
-      .tag(HippyGestureTag)
-      .onAction((event?: GestureEvent) => {
-        if (event && $$.eventDoubleClick) {
-          $$.eventDoubleClick(event)
-        }
-      }) ,
     LongPressGesture({ repeat: false })
       .tag(HippyGestureTag)
       .onAction((event?: GestureEvent) => {
-        if (event && $$.eventLongPress) {
-          $$.eventLongPress(event, "start")
+        if (event && $$.eventPressIn) {
+          $$.eventPressIn(event)
         }
       })
       .onActionEnd((event?: GestureEvent) => {
+        if (event && $$.eventPressOut) {
+          $$.eventPressOut(event)
+        }
         if (event && $$.eventLongPress) {
-          $$.eventLongPress(event, "end")
+          $$.eventLongPress(event)
         }
       })
       .onActionCancel(() => {
-        if ($$.eventLongPress) {
-          $$.eventLongPress(null, "end")
+        if ($$.eventPressOut) {
+          $$.eventPressOut(null)
         }
       }),
-    PanGesture()
-      .tag(HippyGestureTag)
-      .onActionStart((event: GestureEvent) => {
-        if ($$.eventPan) {
-          $$.eventPan(event, "start")
-        }
-      })
-      .onActionUpdate((event: GestureEvent) => {
-        if ($$.eventPan) {
-          $$.eventPan(event, "move")
-        }
-      })
-      .onActionEnd((event?: GestureEvent) => {
-        if ($$.eventPan) {
-          $$.eventPan(event != undefined ? event : null, "end")
-        }
-      })
   ))
   .onTouch((event: TouchEvent) => {
+    if ($$.flagInterceptPullUp) {
+      $$.handleInterceptPullUp(event)
+    }
     switch (event.type) {
       case TouchType.Down: {
         if ($$.eventTouchDown) {
@@ -176,7 +172,12 @@ function applyGestures($$: HippyRenderBaseView) {
         }
       }
         break
+      case TouchType.Cancel: {
+        if ($$.eventTouchCancel) {
+          $$.eventTouchCancel(event)
+        }
+      }
+        break
     }
   })
-  //*/
 }

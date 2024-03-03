@@ -27,6 +27,5 @@ export type HippyAny = HippyValue | HippyMap | Hippy2Map | Hippy3Map | HippyReco
 
 export type HippyRenderCallback = (result: HippyAny) => void
 export type HippyModuleCallback = (result: HippyAny) => void
-export type HippyTouchParamType = Record<string, HippyValue | HippyRecord[]>
 export type HippyResource = PixelMap | ResourceStr| DrawableDescriptor;
 

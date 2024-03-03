@@ -23,7 +23,6 @@ import { HippyAny,
   HippyMap,
   HippyRecord,
   HippyRenderCallback,
-  HippyTouchParamType,
   HippyValue } from '../../../support/common/HippyTypes';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRNodeProps } from '../../dom_node/HRNodeProps';
@@ -34,25 +33,6 @@ import { HRRect } from '../../utils/HRTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 
 export const HIPPY_COMPONENT_KEY_PREFIX = "HippyKey"
-
-function touchEventToParamRecord(event: TouchEvent) : HippyTouchParamType {
-  let touches = event.touches.map((value)=>{
-    return {
-      'x': value.x,
-      'y': value.y,
-      'pageX': value.windowX,
-      'pageY': value.windowY,
-    } as HippyRecord
-  })
-  let param : HippyTouchParamType = {
-    'x': touches[0].x,
-    'y': touches[0].y,
-    'pageX': touches[0].pageX,
-    'pageY': touches[0].pageY,
-    'touches': touches,
-  }
-  return param
-}
 
 @Observed
 export class HippyObservedArray<T> extends Array<T> {
@@ -88,13 +68,24 @@ export default abstract class HippyRenderBaseView {
   cssScale: ScaleOptions | null = null
   cssTranslate: TranslateOptions | null = null
   cssMatrix: matrix4.Matrix4Transit | null = null
+  hitTestBehavior: HitTestMode = HitTestMode.Default
+  flagInterceptPullUp: boolean = false
   eventClick: ((event: ClickEvent) => void) | null = null
-  eventDoubleClick: ((event: GestureEvent | null) => void) | null = null
-  eventLongPress: ((event: GestureEvent | null, state: string) => void) | null = null
-  eventPan: ((event: GestureEvent | null, state: string) => void) | null = null
-  eventTouchUp: ((event: TouchEvent) => void) | null = null
+  eventLongPress: ((event: GestureEvent | null) => void) | null = null
+  eventPressIn: ((event: GestureEvent | null) => void) | null = null
+  eventPressOut: ((event: GestureEvent | null) => void) | null = null
   eventTouchDown: ((event: TouchEvent) => void) | null = null
+  eventTouchUp: ((event: TouchEvent) => void) | null = null
   eventTouchMove: ((event: TouchEvent) => void) | null = null
+  eventTouchCancel: ((event: TouchEvent) => void) | null = null
+  eventAttachedToWindow: (() => void) | null = null
+  eventDetachedFromWindow: (() => void) | null = null
+
+  // used for intercept pull up
+  hasHandledPullUp: boolean = false
+  savedTouchDownPositionX: number = 0
+  savedTouchDownPositionY: number = 0
+  savedHitTestBehavior: HitTestMode = HitTestMode.Default
 
   constructor(ctx: NativeRenderContext) {
     this.ctx = ctx
@@ -507,104 +498,176 @@ export default abstract class HippyRenderBaseView {
   }
 
   private setClickable(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-      if (flag) {
-        this.eventClick = (event) => {
-          HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
-        }
-      } else {
-        this.eventClick = null
+    if (this.handleGestureBySelf()) {
+      return
+    }
+    if (flag) {
+      this.eventClick = (event) => {
+        HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_CLICK)
       }
+    } else {
+      this.eventClick = null
     }
   }
 
   private setLongClickable(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (this.handleGestureBySelf()) {
+      return
     }
-
-    this.eventLongPress = (event, state) => {
-      if(event) {
-        // let localX: number = event['localX'];
-        // let localY: number = event['localY'];
-        // (propValue as HippyRenderCallback)({
-        //   'x': localX,
-        //   'y': localY,
-        //   'state': state
-        // } as HippyRecord)
+    if (flag) {
+      this.eventLongPress = (event) => {
+        HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_LONG_CLICK)
       }
+    } else {
+      this.eventLongPress = null
     }
   }
 
   private setPressIn(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (this.handleGestureBySelf()) {
+      return
+    }
+    if (flag) {
+      this.eventPressIn = (event) => {
+        HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_PRESS_IN)
+      }
+    } else {
+      this.eventPressIn = null
     }
   }
 
   private setPressOut(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (this.handleGestureBySelf()) {
+      return
+    }
+    if (flag) {
+      this.eventPressOut = (event) => {
+        HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HRNodeProps.ON_PRESS_OUT)
+      }
+    } else {
+      this.eventPressOut = null
     }
   }
 
   private setTouchDownHandle(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (this.handleGestureBySelf()) {
+      return
     }
-    this.eventTouchDown = (event) => {
-      let params = touchEventToParamRecord(event) as HippyTouchParamType
-      //(propValue as HippyRenderCallback)(params)
+    if (flag) {
+      this.eventTouchDown = (event) => {
+        let touch = event.touches[0]
+        HRGestureDispatcher.handleTouchEvent(this.ctx, this.tag, touch.windowX, touch.windowY, HRNodeProps.ON_TOUCH_DOWN)
+      }
+    } else {
+      this.eventTouchDown = null
     }
   }
 
   private setTouchMoveHandle(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (this.handleGestureBySelf()) {
+      return
     }
-    this.eventTouchMove = (event) => {
-      let params = touchEventToParamRecord(event) as HippyTouchParamType
-      //(propValue as HippyRenderCallback)(params)
+    if (flag) {
+      this.eventTouchMove = (event) => {
+        let touch = event.touches[0]
+        HRGestureDispatcher.handleTouchEvent(this.ctx, this.tag, touch.windowX, touch.windowY, HRNodeProps.ON_TOUCH_MOVE)
+      }
+    } else {
+      this.eventTouchMove = null
     }
   }
 
   private setTouchEndHandle(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (this.handleGestureBySelf()) {
+      return
     }
-    this.eventTouchUp = (event) => {
-      let params = touchEventToParamRecord(event) as HippyTouchParamType
-      //(propValue as HippyRenderCallback)(params)
+    if (flag) {
+      this.eventTouchUp = (event) => {
+        let touch = event.touches[0]
+        HRGestureDispatcher.handleTouchEvent(this.ctx, this.tag, touch.windowX, touch.windowY, HRNodeProps.ON_TOUCH_END)
+      }
+    } else {
+      this.eventTouchUp = null
     }
   }
 
   private setTouchCancelHandle(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (this.handleGestureBySelf()) {
+      return
+    }
+    if (flag) {
+      this.eventTouchCancel = (event) => {
+        let touch = event.touches[0]
+        HRGestureDispatcher.handleTouchEvent(this.ctx, this.tag, touch.windowX, touch.windowY, HRNodeProps.ON_TOUCH_CANCEL)
+      }
+    } else {
+      this.eventTouchCancel = null
     }
   }
 
   private setInterceptTouch(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (this.handleGestureBySelf()) {
+      return
     }
+    this.hitTestBehavior = flag ? HitTestMode.Block : HitTestMode.Default
   }
 
   private setInterceptPullUp(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
+    if (this.handleGestureBySelf()) {
+      return
+    }
+    this.flagInterceptPullUp = flag
+  }
 
+  handleInterceptPullUp(event: TouchEvent) {
+    switch (event.type) {
+      case TouchType.Down: {
+        let touch = event.touches[0]
+        this.savedTouchDownPositionX = touch.x
+        this.savedTouchDownPositionY = touch.y
+        this.savedHitTestBehavior = this.hitTestBehavior
+        this.hasHandledPullUp = false
+      }
+        break
+      case TouchType.Move: {
+        if (this.hasHandledPullUp) {
+          return
+        }
+        let touch = event.touches[0]
+        let dx = touch.x - this.savedTouchDownPositionX
+        let dy = touch.y - this.savedTouchDownPositionY
+        if (dy < 0 && Math.abs(dx) < Math.abs(dy) && Math.abs(dy) > px2vp(16)) {
+          this.hasHandledPullUp = true
+          this.hitTestBehavior = HitTestMode.Block
+        }
+      }
+        break
+      case TouchType.Up:
+      case TouchType.Cancel: {
+        this.hasHandledPullUp = false
+        this.hitTestBehavior = this.savedHitTestBehavior
+      }
+        break
     }
   }
 
   private setAttachedToWindowHandle(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (flag) {
+      this.eventAttachedToWindow = () => {
+        HRGestureDispatcher.handleAttachedToWindow(this.ctx, this.tag)
+      }
+    } else {
+      this.eventAttachedToWindow = null
     }
   }
 
   private setDetachedFromWindowHandle(flag: boolean) {
-    if (!this.handleGestureBySelf()) {
-
+    if (flag) {
+      this.eventDetachedFromWindow = () => {
+        HRGestureDispatcher.handleDetachedFromWindow(this.ctx, this.tag)
+      }
+    } else {
+      this.eventDetachedFromWindow = null
     }
   }
 
