@@ -37,9 +37,11 @@ import { HRCreateMutation,
   HRMove2Mutation,
   HRMoveMutation,
   HRMutation,
+  HRUpdateEventListenerMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation
 } from './uimanager/HRMutation'
+import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
 import { HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
 
@@ -149,6 +151,12 @@ export class NativeRenderImpl implements NativeRender {
     if (this.frameworkProxy != null) {
       this.frameworkProxy.updateDimension(width, height, shouldUseScreenDisplay, systemUiVisibilityChanged)
     }
+  }
+
+  destroyRoot(rootId: number) {
+    // TODO(hot):
+
+    HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), rootId)
   }
 
   handleRenderException(exception: HippyException) {
@@ -284,7 +292,10 @@ export class NativeRenderImpl implements NativeRender {
         throw new HippyException(this.TAG + ": updateEventListener: invalid id or props")
       }
 
-
+      let m: HRUpdateEventListenerMutation = new HRUpdateEventListenerMutation()
+      m.tag = nodeId
+      m.props = eventProps
+      this.mutations.push(m)
     }
   }
 
