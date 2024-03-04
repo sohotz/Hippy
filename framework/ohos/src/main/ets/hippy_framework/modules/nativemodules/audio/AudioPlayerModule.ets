@@ -18,14 +18,101 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyException } from '../../../../support/common/HippyException'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
+import { audio } from '@kit.AudioKit'
 
 @HippyNativeModule({ name: "AudioPlayerModule" })
 export class AudioPlayerModule extends HippyNativeModuleBase {
-  public static readonly NAME = 'AudioPlayerModule'
+  private mHippyEngineContext: HippyEngineContext
+  private mMediaPlayer: audio.AudioRenderer | null
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
+    this.mHippyEngineContext = ctx;
+    this.mMediaPlayer = this.createMediaPlayer()
+  }
+
+  createMediaPlayer(): audio.AudioRenderer | null {
+    let audioRendererOptions = null
+    // let audioStreamInfo = {
+    //   samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_44100,
+    //   channels: audio.AudioChannel.CHANNEL_1,
+    //   sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE,
+    //   encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW
+    // }
+    //
+    // let audioRendererInfo = {
+    //   content: audio.ContentType.CONTENT_TYPE_SPEECH,
+    //   usage: audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION,
+    //   rendererFlags: 0
+    // }
+    //
+    // let audioRendererOptions = {
+    //   streamInfo: audioStreamInfo,
+    //   rendererInfo: audioRendererInfo
+    // }
+
+    audio.createAudioRenderer(audioRendererOptions).then((data) => {
+      console.info('AudioFrameworkRenderLog: AudioRenderer Created : Success : Stream Type: SUCCESS');
+      return data
+    }).catch((err: HippyException) => {
+      console.error(`AudioFrameworkRenderLog: AudioRenderer Created : ERROR : ${err}`);
+    });
+    return null
+  }
+
+  play() {
+    if (this.mMediaPlayer != null) {
+      this.mMediaPlayer.start().then(() => {
+        console.info('Renderer started');
+      }).catch((err:HippyException) => {
+        console.error(`ERROR: ${err}`);
+      });
+    }
+  }
+
+  getState():string{
+    if (this.mMediaPlayer != null) {
+      return this.mMediaPlayer.state.toString()
+    }
+    return ""
+  }
+
+  goBack( seconds:number){
+
+  }
+
+  goForward( seconds:number){
+
+  }
+
+  seekTo( newPosition:number){
+
+  }
+
+  pause(){
+    if (this.mMediaPlayer != null) {
+      this.mMediaPlayer.pause().then(() => {
+        console.info('Renderer pauseed');
+      }).catch((err:HippyException) => {
+        console.error(`ERROR: ${err}`);
+      });
+    }
+  }
+
+  resume(){
+
+  }
+
+  stop(){
+    if (this.mMediaPlayer != null) {
+      this.mMediaPlayer.stop().then(() => {
+        console.info('Renderer stoped');
+      }).catch((err:HippyException) => {
+        console.error(`ERROR: ${err}`);
+      });
+    }
   }
 }

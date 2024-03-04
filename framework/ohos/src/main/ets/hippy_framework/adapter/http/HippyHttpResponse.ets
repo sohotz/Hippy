@@ -63,21 +63,21 @@ export class HippyHttpResponse {
     return fields != null && fields.length > 0 ? fields.get(0) : "";
   }
 
-  public getInputStream(): fs.Stream | undefined {
-    return this.mInputStream;
-  }
+  // public getInputStream(): fs.Stream | undefined {
+  //   return this.mInputStream;
+  // }
+  //
+  // public setInputStream(inputStream: fs.Stream) {
+  //   this.mInputStream = inputStream;
+  // }
 
-  public setInputStream(inputStream: fs.Stream) {
-    this.mInputStream = inputStream;
-  }
-
-  public getErrorStream(): fs.Stream | undefined {
-    return this.mErrorStream;
-  }
-
-  public setErrorStream(errorStream: fs.Stream) {
-    this.mErrorStream = errorStream;
-  }
+  // public getErrorStream(): fs.Stream | undefined {
+  //   return this.mErrorStream;
+  // }
+  //
+  // public setErrorStream(errorStream: fs.Stream) {
+  //   this.mErrorStream = errorStream;
+  // }
 
   public setResponseMessage(message: string) {
     this.mResponseMessage = message;
