@@ -59,7 +59,7 @@ export class HippyEngineImpl implements HippyEngine, FrameworkProxy {
 
   initEngine(initCallbak: HippyEngineInitCallback): void {
     this.domMgr = new DomManager(this.libHippy)
-    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy)
+    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, null)
     this.nativeRenderProvider.getNativeRenderImpl().setFrameworkProxy(this)
     this.nativeRenderer = new NativeRenderer(this.libHippy, this.nativeRenderProvider)
     this.nativeRenderer.attachToDom(this.domMgr.instanceId)

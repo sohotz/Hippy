@@ -27,6 +27,7 @@ import { HREventType } from './utils/HREventUtils';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HippyAny } from '../support/common/HippyTypes';
+import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 
 export class NativeRenderProvider implements NativeRenderEventHandler {
   private readonly TAG = "NativeRenderProvider"
@@ -36,9 +37,9 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
   private renderImpl: NativeRenderImpl
   private instanceId: number = 0
 
-  constructor(libHippy: HippyLibrary) {
+  constructor(libHippy: HippyLibrary, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null) {
     this.libHippy = libHippy
-    this.renderImpl = new NativeRenderImpl(this)
+    this.renderImpl = new NativeRenderImpl(this, customRenderViewCreatorMap)
   }
 
   setInstanceId(instanceId: number) {

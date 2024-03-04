@@ -23,6 +23,7 @@ import { HippyExecutor } from '../support/common/HippyExecutor'
 import { HippyAny, HippyMap, HippyValue, HippyRenderCallback } from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
 import { VfsManager } from '../vfs/VfsManager'
+import { HRRenderViewCreator } from './components/HippyRenderRegisterMap'
 import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter'
 import { ImageLoader } from './components/image/ImageLoader'
 import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter'
@@ -80,11 +81,11 @@ export class NativeRenderImpl implements NativeRender {
 
   private renderManager: HRManager
 
-  constructor(eventHandler: NativeRenderEventHandler) {
+  constructor(eventHandler: NativeRenderEventHandler, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null) {
     this.eventHandler = eventHandler
     NativeRenderImpl.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
     let rootId = NativeRenderImpl.sRootIdCounter
-    this.ctx = new NativeRenderContext(rootId, this)
+    this.ctx = new NativeRenderContext(rootId, customRenderViewCreatorMap, this)
     this.virtualNodes = new Map<number, HRVirtualNode>()
 
     this.renderManager = new HRManager(this.ctx)
