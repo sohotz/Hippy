@@ -22,7 +22,7 @@ import { EngineInitStatus, HippyEngine, HippyRoot, ModuleLoadParams, ModuleLoadS
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
 import { HippyException } from 'hippy/src/main/ets/support/common/HippyException'
-import { ExampleCustomComponent, ExampleCustomComponentView } from '../components/ExampleCustomComponentView'
+import { ExampleCustomComponent, ExampleCustomComponentView } from '../hippyExtend/ExampleCustomComponentView'
 
 @Builder
 function buildCustomRenderView($$: HippyRenderBaseView) {

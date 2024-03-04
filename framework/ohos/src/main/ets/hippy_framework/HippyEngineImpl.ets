@@ -38,10 +38,14 @@ import { PixelUtil } from '../support/utils/PixelUtil';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HippyException } from '../support/common/HippyException';
 import { HippyResourceLoader } from './adapter/http/HippyResourceLoader';
+import { HippyAPIProvider } from './HippyAPIProvider';
+import { HRRenderViewCreator } from '../renderer_native/components/HippyRenderRegisterMap';
 
 export class HippyEngineImpl implements HippyEngine, FrameworkProxy {
   private libHippy: HippyLibrary
   private resourceManager: resmgr.ResourceManager
+
+  private providers: Array<HippyAPIProvider> | null
 
   public vfsManager: VfsManager
   public jsDriver: JsDriver | null = null
@@ -52,6 +56,7 @@ export class HippyEngineImpl implements HippyEngine, FrameworkProxy {
   constructor(params: EngineInitParams) {
     this.libHippy = params.libHippy
     this.resourceManager = params.context.resourceManager
+    this.providers = params.providers
     this.vfsManager = new VfsManager(this.libHippy)
     const resourceLoader = new HippyResourceLoader()
     this.vfsManager.addProcessorAtFirst(new DefaultProcessor(resourceLoader))
@@ -59,7 +64,21 @@ export class HippyEngineImpl implements HippyEngine, FrameworkProxy {
 
   initEngine(initCallbak: HippyEngineInitCallback): void {
     this.domMgr = new DomManager(this.libHippy)
-    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, null)
+
+    let customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null = null
+    if (this.providers) {
+      customRenderViewCreatorMap = new Map()
+      for (let provider of this.providers) {
+        let map = provider.getCustomRenderViewCreatorMap()
+        if (map) {
+          map.forEach((value, key) => {
+            customRenderViewCreatorMap?.set(key, value)
+          })
+        }
+      }
+    }
+
+    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, customRenderViewCreatorMap)
     this.nativeRenderProvider.getNativeRenderImpl().setFrameworkProxy(this)
     this.nativeRenderer = new NativeRenderer(this.libHippy, this.nativeRenderProvider)
     this.nativeRenderer.attachToDom(this.domMgr.instanceId)

@@ -17,5 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from "./HippyEngine"
-export * from "./HippyAPIProvider"
+import { HRRenderViewCreator } from '../renderer_native/components/HippyRenderRegisterMap';
+import { HippyModuleCreator } from './modules/HippyModuleManager';
+
+export interface HippyAPIProvider {
+  getCustomNativeModuleCreatorMap(): Map<string, HippyModuleCreator> | null
+
+  getCustomJavaScriptModuleCreatorMap(): Map<string, HippyModuleCreator> | null
+
+  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null
+}
