@@ -52,9 +52,7 @@ export struct ExampleCustomComponent {
 
   build() {
     Stack() {
-      ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
-      }, (item: HippyRenderBaseView) => item.tag + '')
+      Text("This is a custom component.")
     }
     .applyRenderViewBaseAttr(this.renderView)
   }
