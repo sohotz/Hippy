@@ -30,6 +30,8 @@ import web_webview from '@ohos.web.webview'
 import { HttpHeaderResponse } from './HttpHeaderResponse';
 import buffer from '@ohos.buffer';
 import { util } from '@kit.ArkTS';
+import { LogUtils } from '../../../support/utils/LogUtils';
+const TAG = "HttpTaskCallbackImpl"
 
 export class HttpTaskCallbackImpl implements HttpTaskCallback {
   private mCallback: ProcessorCallback;
@@ -63,6 +65,7 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
           }
         });
       }
+      LogUtils.d("response : ", response.getResponseMessage())
       this.mCallback.onHandleCompleted()
       return
     }
@@ -111,8 +114,8 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
     this.mDataHolder.resultCode = FetchResultCode.ERR_REMOTE_REQUEST_FAILED.valueOf();
     if (error != null) {
       this.mDataHolder.errorMessage = error.message;
+      LogUtils.d(TAG, "error : " + this.mDataHolder.errorMessage)
     }
-
     this.mCallback.onHandleCompleted();
   }
 }
