@@ -22,26 +22,51 @@ import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
-import HippyRenderBaseView, {
-  HippyObservedArray } from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
 @Observed
 export class HRRefreshWrapperView extends HippyRenderBaseView {
   private readonly TAG = "HRRefreshWrapperView"
-  public initialPage: number = 0
+  public bounceTime:number = 300
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
-    // TODO: xxxxx
+    if (propKey === 'bounceTime') {
+      this.bounceTime = propValue as number
+    } else if (propKey === 'cssPositionY') {
+      this.cssPositionY = propValue as number
+    }
     return super.setProp(propKey, propValue as HippyAny)
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
     LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
+    if (method === 'refreshComplected') {
+      this.refreshComplected()
+    }
+  }
+
+  bounceToHead(posY:number) {
+    setTimeout(() => {
+      LogUtils.d(this.TAG, `timeout:${this.bounceTime}, PosY:${posY}`)
+      this.children[0].setProp('cssPositionY', -posY)
+      this.setProp('cssPositionY', posY)
+    },
+      this.bounceTime)
+  }
+
+  startRefresh() {
+    this.bounceToHead(this.children[0].cssHeight)
+    HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
+  }
+
+  refreshComplected() {
+    this.bounceToHead(0)
   }
 }
 
@@ -53,17 +78,12 @@ export struct HRRefreshWrapper {
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   private controller: SwiperController = new SwiperController()
   private PAGE_ITEM_POSITION: string = "position";
-  @State index: number = 0
+  initY: number = 0
 
   aboutToAppear() {
-    this.index = this.renderView.initialPage
   }
 
   aboutToDisappear() {
-  }
-
-  setPage(index: number) {
-    this.index = index
   }
 
   build() {
@@ -73,6 +93,41 @@ export struct HRRefreshWrapper {
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
+    .onTouch((event: TouchEvent) => {
+      let delta = 0
+      delta = event.touches[0].windowY - this.initY
+      //LogUtils.d(this.TAG, `type:${event.type}, touch:x, ${event.touches[0].x},y, ${event.touches[0].y}, WindowsY, ${event.touches[0].windowY}, DisplayY, ${event.touches[0].displayY}, cssPos:${this.renderView.cssPositionY}`)
+      switch (event.type) {
+        case TouchType.Down:
+          this.initY = event.touches[0].windowY
+          break
+        case TouchType.Up:
+          if (delta > this.children[0].cssHeight) {
+            this.renderView.startRefresh()
+          } else {
+            this.renderView.bounceToHead(0)
+          }
+          break
+        case TouchType.Move:
+        case TouchType.Cancel:
+          //LogUtils.d(this.TAG, `initY:${this.initY}, WindowsY:${event.touches[0].windowY}, detla:${delta}, delta:${delta}`)
+          if (delta > 0) {
+            this.renderView.setProp('cssPositionY', delta)
+
+            //this.children[0].cssPositionY = this.itemInitY + delta
+            if (delta > this.children[0].cssHeight) {
+              delta = this.children[0].cssHeight
+            }
+            this.children[0].setProp('cssPositionY', -delta)
+
+            //this.children[1].setProp('cssPositionY',  delta)
+
+            //this.renderView.cssPositionY = event.touches[0].windowY
+            //this.children[0].cssHeight = this.heightx
+          }
+          break
+      }
+    })
   }
 }
 

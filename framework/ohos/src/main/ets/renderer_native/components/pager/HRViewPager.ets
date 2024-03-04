@@ -31,6 +31,8 @@ export class HRViewPagerView extends HippyRenderBaseView {
   private readonly TAG = "HRViewPagerView"
   public initialPage: number = 0
   public index: number = 0
+  public prevMargin:number = 0
+  public nextMargin:number = 0
   public disableSwipe:boolean = false
   public vertical:boolean = false
   public controller: SwiperController = new SwiperController()
@@ -52,6 +54,8 @@ export class HRViewPagerView extends HippyRenderBaseView {
       if (propValue as string === 'vertical') {
         this.vertical = true
       }
+    } else if (propKey === 'pageMargin') {
+      this.prevMargin = this.nextMargin = propValue as number
     }
     return super.setProp(propKey, propValue as HippyAny)
   }
@@ -129,7 +133,9 @@ export struct HRViewPager {
   build() {
     Swiper(this.renderView.controller) {
       ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
+        Stack() {
+          this.buildRenderView(item, null)
+        }
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .indicator(false)
@@ -137,6 +143,8 @@ export struct HRViewPager {
     .applyRenderViewBaseAttr(this.renderView)
     .disableSwipe(this.renderView.disableSwipe)
     .vertical(this.renderView.vertical)
+    .prevMargin(this.renderView.prevMargin)
+    .nextMargin(this.renderView.nextMargin)
     .onChange((event) => this.handleChangeEvent(event))
     .onGestureSwipe((index: number, extraInfo: SwiperAnimationEvent) =>
       this.handleGestureSwipeEvent(index, extraInfo))

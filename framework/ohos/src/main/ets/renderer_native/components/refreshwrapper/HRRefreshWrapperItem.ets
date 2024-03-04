@@ -33,6 +33,9 @@ export class HRRefreshWrapperItemView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+    if (propKey === 'cssPositionY') {
+      this.cssPositionY = propValue as number
+    }
     return super.setProp(propKey, propValue as HippyAny)
   }
 }
