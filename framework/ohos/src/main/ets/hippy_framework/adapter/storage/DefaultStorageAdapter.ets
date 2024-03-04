@@ -38,6 +38,7 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
   private ctx: Context
 
   constructor(context: Context) {
+    //todo need tobe changed by HippyEngineContext
     this.ctx = context
     this.getStoreDb()
   }
