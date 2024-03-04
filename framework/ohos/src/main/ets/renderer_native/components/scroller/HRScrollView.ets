@@ -17,19 +17,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRecord, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import {
+  Hippy2Map,
+  HippyAny,
+  HippyArray,
+  HippyMap,
+  HippyRecord,
+  HippyRenderCallback
+} from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
 import { HRScrollContentView } from './HRScrollContentView';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HREventUtils } from '../../utils/HREventUtils';
+import systemDateTime from '@ohos.systemDateTime';
 
 @Observed
 export class HRScrollView extends HippyRenderBaseView {
   private readonly TAG = "HRScrollView"
   private static readonly DEFAULT_FRICTION = 0.8
   axis: ScrollDirection = ScrollDirection.Vertical
-  scrollBar: BarState = BarState.Auto
+  scrollBar: BarState = BarState.Off
   edgeEffect: EdgeEffect = EdgeEffect.Spring
   scrollEvent: HippyRenderCallback | null = null
   scrollEndEvent: HippyRenderCallback | null = null
@@ -40,8 +49,13 @@ export class HRScrollView extends HippyRenderBaseView {
   pageEnabled: boolean = false
   contentInset: number = 0
   contentInsetWhenDrag: number = 0
+  contentOffset: number = 0
+  enableScrollInteraction: boolean = true
+  initialContentOffset: number = 0
+  scrollEventThrottle: number = 30
+  scrollMinOffset: number = 5
   private readonly DIRECTION_ROW: string = "directionRow"
-  private readonly SHOW_SCROLLER_INDICATOR: string = "showScrollerIndicator"
+  private readonly SHOW_SCROLLER_INDICATOR: string = "showScrollIndicator"
   private readonly VERTICAL_BOUNCES: string = "verticalbounces"
   private readonly HORIZONTAL_BOUNCES: string = "horizontalbounces"
   private readonly BOUNCES_ENABLE: string = "bouncesEnable"
@@ -54,8 +68,16 @@ export class HRScrollView extends HippyRenderBaseView {
   private readonly METHOD_CONTENT_OFFSET: string = "contentOffset"
   private readonly METHOD_CONTENT_INSET_WHEN_END_DRAG: string = "contentInsetWhenEndDrag"
   private readonly METHOD_CONTENT_INSET: string = "contentInset"
+  private readonly METHOD_SCROLLTO: string = "scrollTo"
+  private readonly METHOD_SCROLLTO_OPTIONS: string = "scrollToWithOptions"
   private readonly BLANK_SEPARATOR: string = " "
   private readonly PAGING_ENABLED = "pagingEnabled"
+  private readonly CONTENT_OFFSET = "contentOffset4Reuse"
+  private readonly SCROLL_ENABLED = "scrollEnabled"
+  private readonly HORIZONTAL = "horizontal"
+  private readonly INITIAL_CONTENTOFFSET = "initialContentOffset"
+  private readonly SCROLL_EVENT_THROTTLE = "scrollEventThrottle"
+  private readonly SCROLL_MINOFFSET = "scrollMinOffset"
   scroller: Scroller = new Scroller()
 
   constructor(ctx: NativeRenderContext) {
@@ -97,8 +119,34 @@ export class HRScrollView extends HippyRenderBaseView {
       case this.PAGING_ENABLED:
         this.pageEnabled = (propValue as number == 0) ? false : true
         return true
+      case this.CONTENT_OFFSET:
+        this.setContentOffset4Reuse(propValue as HippyMap)
+        return true
+      case this.SCROLL_ENABLED:
+        this.enableScrollInteraction = propValue as boolean
+        return true
+      case this.HORIZONTAL:
+        this.axis = (propValue as boolean === true) ? ScrollDirection.Horizontal : ScrollDirection.Vertical
+        return true
+      case this.INITIAL_CONTENTOFFSET:
+        this.initialContentOffset = propValue as number
+        return true
+      case this.SCROLL_EVENT_THROTTLE:
+        this.scrollEventThrottle = propValue as number
+        return true
+      case this.SCROLL_MINOFFSET:
+        this.scrollMinOffset = propValue as number
+        return true
     }
     return super.setProp(propKey, propValue as HippyAny)
+  }
+
+  setContentOffset4Reuse(propValue: HippyMap) {
+    if (this.axis == ScrollDirection.Vertical) {
+      this.scroller.scrollTo({ xOffset: 0, yOffset: propValue.get('y') as number })
+    } else {
+      this.scroller.scrollTo({ xOffset: propValue.get('x') as number, yOffset: 0 })
+    }
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
@@ -117,6 +165,12 @@ export class HRScrollView extends HippyRenderBaseView {
         if (params.length > 0) {
           this.setContentInset(params[0])
         }
+        break
+      case this.METHOD_SCROLLTO:
+        this.hanldeScrollTo(params)
+        break
+      case this.METHOD_SCROLLTO_OPTIONS:
+        this.handleScrollToWithOptions(params[0] as HippyMap)
         break
       default:
         super.call(method, params, callback)
@@ -190,6 +244,38 @@ export class HRScrollView extends HippyRenderBaseView {
     (this.children[0] as HRScrollContentView).startOffset = this.contentInset
   }
 
+  hanldeScrollTo(params: Array<HippyAny>) {
+    let xOffset: number = params[0] as number
+    let yOffset: number = params[1] as number
+    let animated: boolean = params[2] as boolean
+    this.scroller.scrollTo({ xOffset: xOffset, yOffset: yOffset, animation: animated })
+  }
+
+  handleScrollToWithOptions(options: HippyMap) {
+    let xOffset: number = 0
+    let yOffset: number = 0
+    let duration: number = 0
+
+    if (typeof options.get('x') === 'number') {
+      xOffset = options.get('x') as number
+    }
+    if (typeof options.get('y') === 'number') {
+      yOffset = options.get('y') as number
+    }
+    if (typeof options.get('duration') === 'number') {
+      duration = options.get('duration') as number
+    }
+
+    if (duration > 0) {
+      this.scroller.scrollTo({
+        xOffset: xOffset,
+        yOffset: yOffset,
+        animation: { duration: duration }
+      })
+    } else {
+      this.scroller.scrollTo({ xOffset: xOffset, yOffset: yOffset })
+    }
+  }
 }
 
 @Component
@@ -203,6 +289,8 @@ export struct HRScroll {
   viewHeight: number = 0
   private isDragging: boolean = false
   private needFireWillEndDragEvent: boolean = false
+  private lastScrollOffset: number = 0
+  private lastScrollTime: number = 0
 
   private fireBeginDragEvent() {
     this.needFireWillEndDragEvent = true
@@ -236,6 +324,39 @@ export struct HRScroll {
     } as HippyRecord
   }
 
+  aboutToAppear() {
+
+  }
+
+  emitScrollEvent(eventName: string) {
+    let contentInset = new Map<string, number>() as HippyMap;
+    contentInset.set("top", 0);
+    contentInset.set("bottom", 0);
+    contentInset.set("left", 0);
+    contentInset.set("right", 0);
+
+    //todo: should using PixelUtil.px2dp?
+    let contentOffset = new Map<string, number>() as HippyMap;
+    contentOffset.set("x", this.renderView.scroller.currentOffset().xOffset);
+    contentOffset.set("y", this.renderView.scroller.currentOffset().yOffset);
+
+    let contentSize = new Map<string, number>() as HippyMap;
+    contentSize.set("width", this.renderView.children.length > 0 ? this.renderView.children[0].cssWidth : this.renderView.cssWidth);
+    contentSize.set("height", this.renderView.children.length > 0 ? this.renderView.children[0].cssHeight : this.renderView.cssHeight);
+
+    let layoutMeasurement = new Map<string, number>() as HippyMap;
+    layoutMeasurement.set("width", this.renderView.cssWidth);
+    layoutMeasurement.set("height", this.renderView.cssHeight);
+
+    let params = new Map<string, HippyMap>() as Hippy2Map;
+    params.set("contentInset", contentInset);
+    params.set("contentOffset", contentOffset);
+    params.set("contentSize", contentSize);
+    params.set("layoutMeasurement", layoutMeasurement);
+
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, eventName, params as HippyMap);
+  }
+
   build() {
     Scroll(this.renderView.scroller) {
       Stack() {
@@ -248,15 +369,37 @@ export struct HRScroll {
     .edgeEffect(this.renderView.edgeEffect)
     .scrollable(this.renderView.axis)
     .friction(this.renderView.friction)
-    //.enablePaging(this.renderView.pageEnabled)
+    .enablePaging(this.renderView.pageEnabled)
+    .enableScrollInteraction(this.renderView.enableScrollInteraction)
     .onScroll((xOffset: number, yOffset: number) => {
       this.xOffset = xOffset
       this.yOffset = yOffset
-      if (this.renderView.scrollEvent) {
-        this.renderView.scrollEvent(this.generateParam())
+
+      let now = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP)
+      if (this.renderView.axis == ScrollDirection.Vertical) {
+        if (this.renderView.scrollMinOffset != 0 && Math.abs(yOffset - this.lastScrollOffset) > this.renderView.scrollMinOffset) {
+          this.lastScrollOffset = yOffset
+          this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_ON_SCROLL)
+          return
+        }
+      } else {
+        if (this.renderView.scrollMinOffset != 0 && Math.abs(xOffset - this.lastScrollOffset) > this.renderView.scrollMinOffset) {
+          this.lastScrollOffset = xOffset
+          this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_ON_SCROLL)
+          return
+        }
+      }
+
+      if (this.renderView.scrollMinOffset == 0 && (now - this.lastScrollTime) > this.renderView.scrollEventThrottle) {
+        this.lastScrollTime = now
+        this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_ON_SCROLL)
       }
     })
     .onScrollStop(() => {
+      //consider for change between vertical and Horizontal
+      this.lastScrollOffset = 0
+      this.lastScrollTime = 0
+
       if (this.renderView.scrollEndEvent) {
         this.renderView.scrollEndEvent(this.generateParam())
       }
@@ -278,6 +421,19 @@ export struct HRScroll {
     .onAreaChange((oldArea: Area, newArea: Area) => {
       this.viewWidth = newArea.width as number
       this.viewHeight = newArea.height as number
+    })
+    .onAppear(() => {
+      if (this.renderView.axis == ScrollDirection.Vertical) {
+        this.renderView.scroller.scrollTo({
+          xOffset: 0,
+          yOffset: this.renderView.initialContentOffset
+        })
+      } else {
+        this.renderView.scroller.scrollTo({
+          xOffset: this.renderView.initialContentOffset,
+          yOffset: 0
+        })
+      }
     })
   }
 }

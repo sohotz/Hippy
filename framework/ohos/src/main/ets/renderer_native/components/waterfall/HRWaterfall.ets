@@ -31,15 +31,14 @@ export class HRWaterfallView extends HippyRenderBaseView {
   private readonly TAG = "HRWaterfallView"
   public flex: number = 0
   public containPullFooter: boolean = false
-  public contentInset: number = 0;
+  public padding: Padding = {top:0, right:0, bottom:0, left:0};
   public containPullHeader: boolean = false
   public containBannerView: boolean = true
   public scrollEventThrottle: number = 200
   public preloadItemNumber: number = 0
-  public iterItemSpacing: number = 0
+  public interItemSpacing: number = 0
   public columnSpacing: number = 0
-  public numberOfColumns: number = 0
-  public columnsTemplate: string = '1fr 1fr'
+  public columnsTemplate: string = '1fr'
   public x: number = 0
   public y: number = 0
 
@@ -48,7 +47,7 @@ export class HRWaterfallView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
+    LogUtils.d(this.TAG, `setProp: propKey:${propKey} , value:${propValue}`)
     switch (propKey) {
       case 'flex':
         this.flex = propValue as number;
@@ -57,7 +56,11 @@ export class HRWaterfallView extends HippyRenderBaseView {
         this.containPullFooter = propValue as boolean;
         break;
       case 'contentInset':
-        this.contentInset = propValue as number;
+        let data:HippyMap = propValue as HippyMap;
+        this.padding.top = data.get('top') as number;
+        this.padding.right = data.get('right') as number;
+        this.padding.bottom = data.get('bottom') as number;
+        this.padding.left = data.get('left') as number;
         break;
       case 'containPullHeader':
         this.containPullHeader = propValue as boolean;
@@ -71,20 +74,27 @@ export class HRWaterfallView extends HippyRenderBaseView {
       case 'preloadItemNumber':
         this.preloadItemNumber = propValue as number;
         break;
-      case 'iterItemSpacing':
-        this.iterItemSpacing = propValue as number;
+      case 'interItemSpacing':
+        this.interItemSpacing = propValue as number;
         break;
       case 'columnSpacing':
         this.columnSpacing = propValue as number;
         break;
       case 'numberOfColumns':
-        this.numberOfColumns = propValue as number;
+        let i = 1
+        for (i = 1; i < (propValue as number); i++) {
+          this.columnsTemplate += ' 1fr'
+        }
         break;
       default:
       break;
     }
 
     return super.setProp(propKey, propValue as HippyAny)
+  }
+
+  call(method: string, params: HippyAny[], callback: HippyRenderCallback): void {
+    LogUtils.d(this.TAG, `call method:${method} , value:${params}`)
   }
 }
 
@@ -142,14 +152,19 @@ export struct HRWaterfall {
 
   build() {
     Scroll() {
-      Column({ space: 2 }) {
-        ForEach(this.children, (item: HippyRenderBaseView) => {
-          if (item.viewType === 'View') {
-            Stack() {
-              this.buildRenderView(item, null)
-            }
+      Column({space:this.renderView.interItemSpacing}) {
+        // ForEach(this.children, (item: HippyRenderBaseView) => {
+        //   if (item.viewType === 'View') {
+        //     Stack() {
+        //       this.buildRenderView(item, null)
+        //     }
+        //   }
+        // }, (item: HippyRenderBaseView) => item.tag + '')
+        if (this.renderView.containBannerView) {
+          Stack() {
+            this.buildRenderView(this.children[0], null)
           }
-        }, (item: HippyRenderBaseView) => item.tag + '')
+        }
         WaterFlow() {
           ForEach(this.children, (item: HippyRenderBaseView) => {
             if (item.viewType === 'WaterfallItem') {
@@ -160,40 +175,41 @@ export struct HRWaterfall {
           }, (item: HippyRenderBaseView) => item.tag + '')
         }
         .columnsTemplate("1fr 1fr")
-        .columnsGap(10)
-        .rowsGap(5)
+        .columnsGap(this.renderView.columnSpacing)
+        .rowsGap(this.renderView.interItemSpacing)
         .width('100%')
         .height('100%')
         .nestedScroll({
           scrollForward: NestedScrollMode.PARENT_FIRST,
-          scrollBackward: NestedScrollMode.PARENT_FIRST,})
-      }
+          scrollBackward: NestedScrollMode.SELF_FIRST})
+      }.padding(this.renderView.padding)
     }
     .applyRenderViewBaseAttr(this.renderView)
     .width('100%')
     .height('100%')
-    .position({x:this.renderView.x, y: this.renderView.y})
+    .enableScrollInteraction(false)
+    //.position({x:this.renderView.x, y: this.renderView.y})
     .scrollBar(BarState.Off)
-    .edgeEffect(EdgeEffect.Spring)
-    .onScroll((xOffset:number, yOffset:number) => {
-      LogUtils.d(this.TAG, "onScroll: xOffset:" + xOffset + " yOffset:" + yOffset)
-      if (xOffset === 0 && yOffset === 0) {
-        this.renderView.x = 0
-        this.renderView.y = 0
-        HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
-          HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
-      }
-    })
-    .onScrollEdge((side: Edge) => {
-      LogUtils.d(this.TAG, "onScrollEdge: side " + side)
-      if (side === Edge.Top) {
-        this.renderView.x = 0
-        this.renderView.y = 0
-        HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
-          HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
-      }
-      // HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SELECTED, params);
-    })
+    // .edgeEffect(EdgeEffect.Spring)
+    // .onScroll((xOffset:number, yOffset:number) => {
+    //   LogUtils.d(this.TAG, "onScroll: xOffset:" + xOffset + " yOffset:" + yOffset)
+    //   if (xOffset === 0 && yOffset === 0) {
+    //     this.renderView.x = 0
+    //     this.renderView.y = 0
+    //     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
+    //       HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
+    //   }
+    // })
+    // .onScrollEdge((side: Edge) => {
+    //   LogUtils.d(this.TAG, "onScrollEdge: side " + side)
+    //   if (side === Edge.Top) {
+    //     this.renderView.x = 0
+    //     this.renderView.y = 0
+    //     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
+    //       HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
+    //   }
+    //   // HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SELECTED, params);
+    // })
   }
 }
 

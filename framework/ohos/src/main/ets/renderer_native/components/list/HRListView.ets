@@ -478,6 +478,7 @@ export struct HRList {
           curOff.set("y", yOff);
           let params = new Map<string, HippyMap>() as Hippy2Map;
           params.set(this.CURRENT_OFFSET, curOff);
+          //todo: should call emitScrollEvent?
           HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
             HREventUtils.EVENT_SCROLLER_ON_SCROLL, params as HippyMap);
         })
