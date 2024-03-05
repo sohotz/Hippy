@@ -91,10 +91,9 @@ export class HippyGlobalConfigs {
       if (this.mHttpAdapter != null) {
         this.mHttpAdapter.destroyIfNeed();
       }
-      // TODO
-      // if (this.mStorageAdapter != null) {
-      //   this.mStorageAdapter.destroyIfNeed();
-      // }
+      if (this.mStorageAdapter != null) {
+        this.mStorageAdapter.destroyIfNeed();
+      }
       if (this.mExecutorSupplierAdapter != null) {
         this.mExecutorSupplierAdapter.destroyIfNeed();
       }

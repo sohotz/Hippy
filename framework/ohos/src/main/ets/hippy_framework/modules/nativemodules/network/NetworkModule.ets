@@ -20,6 +20,7 @@
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
 import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
+import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { HippyHttpAdapter } from '../../../adapter/http/HippyHttpAdapter'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
@@ -37,7 +38,7 @@ export class NetworkModule extends HippyNativeModuleBase {
 
   public fetch(request: HippyMap): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      let vfsManager: VfsManager
+      let vfsManager: VfsManager = this.ctx.getVfsManager()
       let requestHeaders = new HashMap<string, string>();
       let requestParams = new HashMap<string, string>();
       try {
@@ -51,6 +52,14 @@ export class NetworkModule extends HippyNativeModuleBase {
         reject("Get url parameter failed!");
         return;
       }
+      vfsManager.fetchResourceAsync(uri, requestHeaders, requestParams,
+                new FetchResCallback());
+    });
+  }
+
+  public static handleFetchResult(dataHolder: ResourceDataHolder):Promise<void> {
+    return new Promise((resolve, reject)=>{
+
     })
   }
 
@@ -88,7 +97,7 @@ export class NetworkModule extends HippyNativeModuleBase {
 
   public getCookie(url: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      let adapter: HippyHttpAdapter = this.ctx.getGlobalConfigs().getHttpAdapter();
+      let adapter = this.ctx.getGlobalConfigs().getHttpAdapter();
       if (adapter != null) {
         adapter.getCookie(url);
       }
@@ -96,7 +105,7 @@ export class NetworkModule extends HippyNativeModuleBase {
   }
 
   public setCookie(url: string, keyValue: string, expires: string) {
-    let adapter: HippyHttpAdapter = this.ctx.getGlobalConfigs().getHttpAdapter();
+    let adapter = this.ctx.getGlobalConfigs().getHttpAdapter();
     if (adapter != null) {
       adapter.setCookie(url, keyValue, expires);
     }
@@ -104,6 +113,17 @@ export class NetworkModule extends HippyNativeModuleBase {
 
   call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
     return
+  }
+}
+
+class FetchResCallback implements FetchResourceCallback{
+  onFetchCompleted(holder: ResourceDataHolder): void {
+    NetworkModule.handleFetchResult(holder);
+    holder.recycle();
+  }
+
+  onFetchProgress(total: number, loaded: number): void {
+    // Nothing need to do here.
   }
 }
 

@@ -77,6 +77,19 @@ export class ResourceDataHolder {
   readResourceDataFromStream(stream: fs.Stream) {
 
   }
+
+  public recycle() {
+    // buffer = null;
+    // bytes = null;
+    // loadStartTime = 0;
+    // transferType = TransferType.NORMAL;
+    // RecycleObject.recycle(this);
+    this.errorMessage = undefined;
+    this.callback = null;
+    this.processorTag = undefined;
+    this.index = -1;
+    this.resultCode = -1;
+  }
 }
 
 export enum RequestFrom {
