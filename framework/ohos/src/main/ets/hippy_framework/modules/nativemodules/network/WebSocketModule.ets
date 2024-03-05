@@ -17,15 +17,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyObservedArray } from '../../../../renderer_native'
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyMap } from '../../../../support/common/HippyTypes'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
+import { webSocket } from '@kit.NetworkKit'
+import { HashMap } from '@kit.ArkTS'
+import { TextUtils } from '../../../../support/utils/TextUtils'
+import { HippyJsException } from '../../../common/HippyJsException'
+
+const WEBSOCKET_MODULE_TAG = "WebSocketModule";
 
 @HippyNativeModule({ name: "WebSocketModule" })
 export class WebSocketModule extends HippyNativeModuleBase {
   public static readonly NAME = 'WebSocketModule'
+  private mWebSocketConnections: Array<webSocket.WebSocket>
+  private static PARAM_KEY_SOCKET_URL = "url";
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
+    this.mWebSocketConnections = new Array<webSocket.WebSocket>();
+  }
+
+  public connect(request: HippyMap): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (request == null) {
+
+      }
+      let url = request.get(WebSocketModule.PARAM_KEY_SOCKET_URL)+"";
+      if (TextUtils.isEmpty(url)) {
+        return
+      }
+
+      let ws = webSocket.createWebSocket();
+      ws.connect(url).then((value) => {
+        console.log("connect success")
+      }).catch((err:HippyJsException) => {
+        console.log("connect fail, error:" + JSON.stringify(err))
+      });
+    })
+  }
+
+  public send(request: HippyMap) {
+
+  }
+
+  public close(request: HippyMap) {
+
+  }
+
+  public destroy() {
+
+  }
+
+  protected removeSocketConnection(socketId: number) {
+
   }
 }
