@@ -18,8 +18,14 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import { VfsManager } from '../../../../vfs/VfsManager'
+import { HippyHttpAdapter } from '../../../adapter/http/HippyHttpAdapter'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
+import { HashMap } from '@kit.ArkTS'
+import { TextUtils } from '../../../../support/utils/TextUtils'
+import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
 
 @HippyNativeModule({ name: "NetworkModule" })
 export class NetworkModule extends HippyNativeModuleBase {
@@ -28,4 +34,76 @@ export class NetworkModule extends HippyNativeModuleBase {
   constructor(ctx: HippyEngineContext) {
     super(ctx)
   }
+
+  public fetch(request: HippyMap): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      let vfsManager: VfsManager
+      let requestHeaders = new HashMap<string, string>();
+      let requestParams = new HashMap<string, string>();
+      try {
+        this.normalizeRequest(request, requestHeaders, requestParams);
+      } catch (e) {
+        reject(e.getMessage());
+        return;
+      }
+      let uri: string = requestParams.get(HippyHttpRequest.HTTP_URL);
+      if (TextUtils.isEmpty(uri)) {
+        reject("Get url parameter failed!");
+        return;
+      }
+    })
+  }
+
+  normalizeRequest(request: HippyMap, requestHeaders: HashMap<String, String>, requestParams: HashMap<String, String>) {
+    let entry = request.entries();
+    if (entry !== null) {
+      for (let header of request.entries()) {
+        let key = header[0]
+        let value = header[1]
+        if (key == null || value == null) {
+          continue;
+        }
+        // if (key == HippyHttpRequest.HTTP_HEADERS && value instanceof HippyMap) {
+        //   this.normalizeRequestHeaders(value, requestHeaders);
+        //   continue;
+        // }
+        requestParams.set(key, value.toString());
+      }
+    }
+  }
+
+  normalizeRequestHeaders(headers: HippyMap, requestHeaders: HashMap<String, String>) {
+    if (headers.entries() == null) return
+    for (let header of headers.entries()) {
+      let key = header[0]
+      let value = header[1]
+      if (key == null || value == null) {
+        continue;
+      }
+      if (value instanceof String) {
+        requestHeaders.set(key, value.toString());
+      }
+    }
+  }
+
+  public getCookie(url: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      let adapter: HippyHttpAdapter = this.ctx.getGlobalConfigs().getHttpAdapter();
+      if (adapter != null) {
+        adapter.getCookie(url);
+      }
+    })
+  }
+
+  public setCookie(url: string, keyValue: string, expires: string) {
+    let adapter: HippyHttpAdapter = this.ctx.getGlobalConfigs().getHttpAdapter();
+    if (adapter != null) {
+      adapter.setCookie(url, keyValue, expires);
+    }
+  }
+
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    return
+  }
 }
+
