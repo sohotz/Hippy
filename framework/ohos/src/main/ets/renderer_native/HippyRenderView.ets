@@ -121,7 +121,12 @@ export class HippyRenderView extends HippyRenderBaseView {
 
   getRenderViewCreatorRegisterMap(): Map<string, HRRenderViewCreator> {
     let viewRegisterMap = hippyRenderViewCreatorRegisterMap()
-    // TODO(hotx):add custom view type
+    let customCreatorMap = this.ctx.getCustomRenderViewCreatorMap()
+    if (customCreatorMap) {
+      customCreatorMap.forEach((value, key) => {
+        viewRegisterMap.set(key, value)
+      })
+    }
     return viewRegisterMap
   }
 

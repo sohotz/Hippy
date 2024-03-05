@@ -26,8 +26,13 @@ import I18n from '@ohos.i18n';
 import { HippyEngineContext } from '../../HippyEngineContext';
 import { featureAbility } from '@kit.AbilityKit';
 import { HashMap, util } from '@kit.ArkTS';
+import { http } from '@kit.NetworkKit';
+import { LogUtils } from '../../../support/utils/LogUtils';
+
+const TAG = "HippyHttpRequest"
 
 export class HippyHttpRequest {
+  private context: HippyEngineContext
   public static DEFAULT_TIMEOUT_MS: number = 3000;
   public static HTTP_HEADERS: string = "headers";
   public static HTTP_HEADERS_SEPARATOR: string = ",";
@@ -39,21 +44,24 @@ export class HippyHttpRequest {
   private mConnectTimeout: number = HippyHttpRequest.DEFAULT_TIMEOUT_MS;
   private mReadTimeout: number = HippyHttpRequest.DEFAULT_TIMEOUT_MS;
   private mUseCaches: boolean = true;
-  // private mRedirectTimes: number
+  private mRedirectTimes: number = 0
   private mUrl: string = ""
   private mHeaders: HashMap<string, string>
+  private mMethod: http.RequestMethod = http.RequestMethod.GET
   private mInitParams: HashMap<string, string>
   private mNativeParams: HashMap<string, Object>
 
-  constructor(headers: HashMap<string, string>,
+  constructor(context: HippyEngineContext, headers: HashMap<string, string>, method: http.RequestMethod,
               initParams: HashMap<string, string>, nativeParams: HashMap<string, Object>) {
+    this.context = context
     this.mHeaders = (headers == null) ? new HashMap() : headers;
+    this.mMethod = method;
     this.mInitParams = initParams;
     this.mNativeParams = nativeParams;
     this.initUserAgent();
   }
 
-  public getRequestCookies(): string |undefined {
+  public getRequestCookies(): string | undefined {
     if (this.mHeaders != null) {
       return this.mHeaders.get(HttpHeaderReuqest.COOKIE);
     }
@@ -80,11 +88,7 @@ export class HippyHttpRequest {
   }
 
   public getAndIncrementRedirectTimes(): number {
-    // if (this.mRedirectTimes == null) {
-    // this.mRedirectTimes = new AtomicInteger();
-    // }
-    // return this.mRedirectTimes.getAndIncrement();
-    return 1
+    return this.mRedirectTimes++;
   }
 
 
@@ -116,14 +120,8 @@ export class HippyHttpRequest {
     this.mUseCaches = useCaches;
   }
 
-  public getMethod(): string  {
-    if (this.mInitParams != null) {
-      let method = this.mInitParams.get(HippyHttpRequest.HTTP_METHOD);
-      if (!TextUtils.isEmpty(method)) {
-        return method;
-      }
-    }
-    return "GET";
+  public getMethod(): http.RequestMethod {
+    return this.mMethod;
   }
 
   public isInstanceFollowRedirects(): boolean {
@@ -131,8 +129,16 @@ export class HippyHttpRequest {
     return!TextUtils.isEmpty(redirect) && TextUtils.equals("follow", redirect);
   }
 
-  public getBody(): string | null  {
-    return (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_BODY) : null;
+  public getBody(): string | Object | ArrayBuffer {
+    if (this.mInitParams == null) return ""
+    let jsonObject: Record<string, Object> = {};
+    this.mInitParams.forEach((value, key) => {
+      if (key != undefined && value != undefined) {
+        jsonObject[key] = value;
+      }
+    })
+    LogUtils.d(TAG, JSON.stringify(jsonObject));
+    return JSON.stringify(jsonObject)
   }
 
   private initUserAgent(): void {
@@ -142,7 +148,7 @@ export class HippyHttpRequest {
         let country = I18n.System.getSystemRegion(); // 获取系统当前地区设置
 
         // Add version
-        let buffer = ""//todo context
+        let buffer = "" //todo context
         // context.getAppVersionInfo((err, data) => {
         //     console.info('getAppVersionInfo err: ' + JSON.stringify(err) + 'data: ' + JSON.stringify(data));
         //     version =

@@ -19,10 +19,10 @@
  */
 import hilog from '@ohos.hilog';
 import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes';
+import { LogUtils } from '../../../../support/utils/LogUtils';
 import { HippyEngineContext } from '../../../HippyEngineContext';
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase';
 
-const CONSOLE_LOG_DOMAIN: number = 0x0002
 const CONSOLE_LOG_TAG: string = 'hippy_console'
 
 export class ConsoleModule extends HippyNativeModuleBase {
@@ -57,18 +57,18 @@ export class ConsoleModule extends HippyNativeModuleBase {
   }
 
   log(message: string) {
-    hilog.debug(CONSOLE_LOG_DOMAIN, CONSOLE_LOG_TAG, '%{public}s', message)
+    LogUtils.d( CONSOLE_LOG_TAG, '%{public}s :'+ message)
   }
 
   warn(message: string) {
-    hilog.warn(CONSOLE_LOG_DOMAIN, CONSOLE_LOG_TAG, '%{public}s', message)
+    LogUtils.w( CONSOLE_LOG_TAG, '%{public}s :'+message)
   }
 
   info(message: string) {
-    hilog.info(CONSOLE_LOG_DOMAIN, CONSOLE_LOG_TAG, '%{public}s', message)
+    LogUtils.i( CONSOLE_LOG_TAG, '%{public}s :'+message)
   }
 
   error(message: string) {
-    hilog.error(CONSOLE_LOG_DOMAIN, CONSOLE_LOG_TAG, '%{public}s', message)
+    LogUtils.e( CONSOLE_LOG_TAG, '%{public}s :'+message)
   }
 }

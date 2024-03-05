@@ -30,6 +30,8 @@ import web_webview from '@ohos.web.webview'
 import { HttpHeaderResponse } from './HttpHeaderResponse';
 import buffer from '@ohos.buffer';
 import { util } from '@kit.ArkTS';
+import { LogUtils } from '../../../support/utils/LogUtils';
+const TAG = "HttpTaskCallbackImpl"
 
 export class HttpTaskCallbackImpl implements HttpTaskCallback {
   private mCallback: ProcessorCallback;
@@ -46,36 +48,37 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
       response.getStatusCode().toString());
     this.mDataHolder.addResponseHeaderProperty(HippyHttpResponse.HTTP_RESPONSE_RESPONSE_MESSAGE,
       response.getResponseMessage());
-    let inputStream = response.getInputStream();
-    if (response.getStatusCode() != 200 || inputStream == undefined) {
-      let errorStream = response.getErrorStream()
-      if (errorStream != null && errorStream != undefined) {
-        let buf = new ArrayBuffer(4096);
-        errorStream.read(buf, { offset: 5, length: 5 }, (err, readLen) => {
-          if (err) {
-            console.error("read stream failed with error message: " + err.message + ", error code: " + err.code);
-          } else {
-            console.info("read data succeed");
-            let unit8Array = new Uint8Array(buf.slice(0, readLen))
-            let decoder = util.TextDecoder.create('utf-8', { ignoreBOM: true })
-            this.mDataHolder.errorMessage = decoder.decodeWithStream(unit8Array, { stream: false })
-            console.log("response errorMessage: " + this.mDataHolder.errorMessage)
-          }
-        });
-      }
-      this.mCallback.onHandleCompleted()
-      return
-    }
-    try { //todo 处理gzip类型的数据流
-      if (DefaultHttpAdapter.isGzipRequest(request)) {
-        // inputStream = new GZIPInputStream(inputStream);
-      }
-      this.mDataHolder.readResourceDataFromStream(inputStream);
-    } catch (e) {
-      this.mDataHolder.errorMessage = e.getMessage();
-      this.mCallback.onHandleCompleted();
-      return;
-    }
+    // let inputStream = response.getInputStream();
+    // if (response.getStatusCode() != 200 || inputStream == undefined) {
+    //   let errorStream = response.getErrorStream()
+    //   if (errorStream != null && errorStream != undefined) {
+    //     let buf = new ArrayBuffer(4096);
+    //     errorStream.read(buf, { offset: 5, length: 5 }, (err, readLen) => {
+    //       if (err) {
+    //         console.error("read stream failed with error message: " + err.message + ", error code: " + err.code);
+    //       } else {
+    //         console.info("read data succeed");
+    //         let unit8Array = new Uint8Array(buf.slice(0, readLen))
+    //         let decoder = util.TextDecoder.create('utf-8', { ignoreBOM: true })
+    //         this.mDataHolder.errorMessage = decoder.decodeWithStream(unit8Array, { stream: false })
+    //         console.log("response errorMessage: " + this.mDataHolder.errorMessage)
+    //       }
+    //     });
+    //   }
+    //   LogUtils.d("response : ", response.getResponseMessage())
+    //   this.mCallback.onHandleCompleted()
+    //   return
+    // }
+    // try { //todo 处理gzip类型的数据流
+    //   if (DefaultHttpAdapter.isGzipRequest(request)) {
+    //     // inputStream = new GZIPInputStream(inputStream);
+    //   }
+    //   this.mDataHolder.readResourceDataFromStream(inputStream);
+    // } catch (e) {
+    //   this.mDataHolder.errorMessage = e.getMessage();
+    //   this.mCallback.onHandleCompleted();
+    //   return;
+    // }
 
     let headers = response.getRspHeaderMaps();
     if (headers != null) {
@@ -111,8 +114,8 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
     this.mDataHolder.resultCode = FetchResultCode.ERR_REMOTE_REQUEST_FAILED.valueOf();
     if (error != null) {
       this.mDataHolder.errorMessage = error.message;
+      LogUtils.d(TAG, "error : " + this.mDataHolder.errorMessage)
     }
-
     this.mCallback.onHandleCompleted();
   }
 }

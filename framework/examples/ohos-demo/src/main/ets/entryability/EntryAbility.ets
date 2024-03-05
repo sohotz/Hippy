@@ -24,6 +24,7 @@ import window from '@ohos.window';
 import UIAbility from '@ohos.app.ability.UIAbility';
 import libHippy from 'libhippy_app.so'
 import { createHippyEngine, EngineInitParams } from 'hippy';
+import { ExampleAPIProvider } from '../hippyExtend/ExampleAPIProvider';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
@@ -31,6 +32,7 @@ export default class EntryAbility extends UIAbility {
     hilog.info(0x0000, 'DemoTag', '%{public}s', 'Ability onCreate');
 
     let params = new EngineInitParams(libHippy, this.context)
+    params.providers = new Array(new ExampleAPIProvider())
     let hippyEngine = createHippyEngine(params)
     AppStorage.setOrCreate("HippyEngine", hippyEngine)
   }

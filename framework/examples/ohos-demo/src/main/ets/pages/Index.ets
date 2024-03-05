@@ -22,10 +22,7 @@ import { EngineInitStatus, HippyEngine, HippyRoot, ModuleLoadParams, ModuleLoadS
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
 import { HippyException } from 'hippy/src/main/ets/support/common/HippyException'
-
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-}
+import { ExampleCustomComponent, ExampleCustomComponentView } from '../hippyExtend/ExampleCustomComponentView'
 
 @Entry
 @Component
@@ -36,7 +33,17 @@ struct Index {
   aboutToAppear(): void {
     this.hippyEngine?.initEngine((statusCode: EngineInitStatus, msg: string) => {
       if (statusCode == EngineInitStatus.STATUS_OK) {
-        this.hippyEngine?.loadModule(new ModuleLoadParams(), (statusCode: ModuleLoadStatus, msg: string) => {
+        this.hippyEngine?.loadModule(
+          new ModuleLoadParams(
+            '',
+            '',
+            '',
+            '',
+            null,
+            null,
+            null,
+          ),
+          (statusCode: ModuleLoadStatus, msg: string) => {
 
         })
       }
@@ -47,13 +54,20 @@ struct Index {
 
   }
 
+  @Builder
+  buildCustomRenderView($$: HippyRenderBaseView) {
+    if ($$ instanceof ExampleCustomComponentView) {
+      ExampleCustomComponent({ renderView: $$ as ExampleCustomComponentView, children: $$.children })
+    }
+  }
+
   build() {
     Stack() {
       HippyRoot({
         hippyEngine: this.hippyEngine,
         pagerName: 'demo',
         pagerData: {},
-        buildCustomRenderView: buildCustomRenderView,
+        buildCustomRenderView: this.buildCustomRenderView,
         onRenderException: (exception: HippyException) => {
           this.exception = `${exception.message}\n${exception.stack}`
         },

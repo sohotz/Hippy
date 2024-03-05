@@ -37,7 +37,7 @@ export class TimeMonitor {
   public static MONITOR_POINT_LOAD_BUSINESS_JS: string = "loadBusinessJs";
   public static MONITOR_POINT_LOAD_INSTANCE: string = "loadInstance";
   public static MONITOR_POINT_FIRST_FRAME: string = "firstFrame";
-  mMonitorGroups: HashMap<MonitorGroupType, MonitorGroup>
+  mMonitorGroups: HashMap<MonitorGroupType, MonitorGroup> | null = null;
 
   public startPoint(groupType: MonitorGroupType, point: string): void {
     if (this.mMonitorGroups == null) {
@@ -51,7 +51,7 @@ export class TimeMonitor {
     monitorGroup.startPoint(point);
   }
 
-  public endGroup(groupType: MonitorGroupType): MonitorGroup {
+  public endGroup(groupType: MonitorGroupType): MonitorGroup | null {
     if (this.mMonitorGroups == null) {
       return null;
     }
@@ -62,7 +62,7 @@ export class TimeMonitor {
     return monitorGroup;
   }
 
-  public getMonitorGroup(groupType: MonitorGroupType): MonitorGroup {
+  public getMonitorGroup(groupType: MonitorGroupType): MonitorGroup | null {
     if (this.mMonitorGroups == null) {
       return null;
     }
@@ -75,21 +75,23 @@ export class MonitorGroup {
   public beginTime: number = -1
   public totalTime: number = -1
   public isActive: boolean;
-  private mMonitorPoints: ArrayList<MonitorPoint>
-  private mLastPoint: MonitorPoint;
+  private mMonitorPoints: ArrayList<MonitorPoint> | null = null;
+  private mLastPoint: MonitorPoint | null = null;
 
   constructor(type: MonitorGroupType) {
     this.type = type;
     this.isActive = true;
   }
 
-  private checkMonitorPoint(pointKey: string): MonitorPoint {
-
-    this.mMonitorPoints.forEach(monitorPoint => {
-      if (monitorPoint.key == pointKey) {
-        return monitorPoint
-      }
-    });
+  private checkMonitorPoint(pointKey: string): MonitorPoint | null {
+    if (this.mMonitorPoints && this.mMonitorPoints.length > 0) {
+      this.mMonitorPoints.forEach((monitorPoint) => {
+        if (monitorPoint.key == pointKey) {
+          return monitorPoint
+        }
+        return null;
+      });
+    }
     return null;
   }
 
@@ -100,7 +102,7 @@ export class MonitorGroup {
     if (this.mMonitorPoints == null) {
       this.mMonitorPoints = new ArrayList();
     }
-    let monitorPoint: MonitorPoint = this.checkMonitorPoint(pointKey);
+    let monitorPoint: MonitorPoint | null = this.checkMonitorPoint(pointKey);
     if (monitorPoint == null) {
       monitorPoint = new MonitorPoint(pointKey);
       this.mMonitorPoints.add(monitorPoint);
@@ -128,7 +130,7 @@ export class MonitorGroup {
     }
   }
 
-  public getMonitorPoints(): ArrayList<MonitorPoint> {
+  public getMonitorPoints(): ArrayList<MonitorPoint> | null {
     return this.mMonitorPoints;
   }
 
@@ -143,14 +145,14 @@ export class MonitorGroup {
     } catch (e) {
       console.info(`Failed to get currentTime. message:${e.message}, code:${e.code}`);
     }
-    return null
+    return -1
   }
 }
 
 export class MonitorPoint {
   public key: string
-  public startTime: number
-  public endTime: number
+  public startTime: number = 0
+  public endTime: number = 0
 
   constructor(key: string) {
     this.key = key;

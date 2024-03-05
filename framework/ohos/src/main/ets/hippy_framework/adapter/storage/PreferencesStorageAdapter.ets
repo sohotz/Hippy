@@ -25,7 +25,7 @@ import { HippyException } from '../../../support/common/HippyException';
 
 const PREFERENCES_NAME = 'HippyStorage'
 
-export class DefaultStorageAdapter implements HippyStorageAdapter {
+export class PreferencesStorageAdapter implements HippyStorageAdapter {
   private context: Context
 
   constructor(context: Context) {
