@@ -30,7 +30,7 @@ import { HRRect } from '../../utils/HRTypes';
 @Observed
 export class HRPullFooterView extends HippyRenderBaseView {
   private readonly TAG = "HRPullFooterView"
-  public collapseTime: number = 1000
+  //public collapseTime: number = 1000
   constructor(ctx: NativeRenderContext) {
     super(ctx)
     this.cssVisibility = Visibility.None
@@ -57,15 +57,15 @@ export class HRPullFooterView extends HippyRenderBaseView {
     switch (method) {
       case "collapsePullFooter":
         {
-          setTimeout(() => {
-            LogUtils.d(this.TAG, "delay : " + this.collapseTime)
-            this.cssVisibility = Visibility.Hidden
+          //setTimeout(() => {
+          //  LogUtils.d(this.TAG, "delay : " + this.collapseTime)
+            this.cssVisibility = Visibility.None
             if (this.parentView) {
               this.parentView.setProp("cssPositionX", 0);
               this.parentView.setProp("cssPositionY", 0);
               this.parentView.setProp("cssHeight", this.parentView.cssHeight+this.cssHeight)
             }
-          }, this.collapseTime);
+          //}, this.collapseTime);
         }
         break;
       default:
@@ -107,7 +107,7 @@ export struct HRPullFooter {
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
-    .visibility(this.renderView.cssVisibility)
+    //.visibility(this.renderView.cssVisibility)
     // .zIndex(2)
   }
 }
