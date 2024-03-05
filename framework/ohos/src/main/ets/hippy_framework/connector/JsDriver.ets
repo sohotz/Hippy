@@ -30,8 +30,9 @@ export class JsDriver {
   public instanceId: number = -1
   public moduleManager: HippyModuleManager | null = null
 
-  constructor(libHippy: HippyLibrary) {
+  constructor(libHippy: HippyLibrary, moduleManager: HippyModuleManager) {
     this.libHippy = libHippy
+    this.moduleManager = moduleManager;
   }
 
   initialize(
@@ -53,8 +54,6 @@ export class JsDriver {
       vfsId,
       0
     )
-
-    this.moduleManager = new HippyModuleManager(new HippyEngineContext())
   }
 
   onCreate(

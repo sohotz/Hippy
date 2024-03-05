@@ -19,8 +19,21 @@
  */
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
+import { HippyMap } from '../support/common/HippyTypes';
+import { HippyDeviceAdapter } from './adapter/device/HippyDeviceAdapter';
+import { HippyExceptionHandlerAdapter } from './adapter/exception/HippyExceptionHandlerAdapter';
+import { HippyExecutorSupplierAdapter } from './adapter/executor/HippyExecutorSupplierAdapter';
+import { HippyFontScaleAdapter } from './adapter/font/HippyFontScaleAdapter';
+import { HippyHttpAdapter } from './adapter/http/HippyHttpAdapter';
+import { HippyLogAdapter } from './adapter/log/HippyLogAdapter';
+import { HippyEngineMonitorAdapter } from './adapter/monitor/HippyEngineMonitorAdapter';
+import { HippySoLoaderAdapter } from './adapter/soloader/HippySoLoaderAdapter';
+import { HippyStorageAdapter } from './adapter/storage/HippyStorageAdapter';
+import { PreferencesStorageAdapter } from './adapter/storage/PreferencesStorageAdapter';
+import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdapter';
+import { HippyBundleLoader } from './bridge/bundleloader/HippyBundleLoader';
 import { HippyAPIProvider } from './HippyAPIProvider';
-import { HippyEngineImpl } from './HippyEngineImpl';
+import { HippyEngineManagerImpl } from './HippyEngineManagerImpl';
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
@@ -32,15 +45,75 @@ export interface HippyEngine {
 }
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
-  return new HippyEngineImpl(params)
+  return new HippyEngineManagerImpl(params)
 }
 
 export type HippyEngineInitCallback = (statusCode: EngineInitStatus, msg: string) => void
 export type HippyModuleLoadCallback = (statusCode: ModuleLoadStatus, msg: string) => void
 
+export class V8InitParams {
+  public initialHeapSize: number = 0;
+  public maximumHeapSize: number = 0;
+}
+
+
 export class EngineInitParams {
   libHippy: HippyLibrary
-  context: Context // UIAbilityContext
+  // 必须 宿主（Hippy的使用者）的UIAbilityContext
+  public context: Context | null;
+  // 可选参数 核心的jsbundle的assets路径（assets路径和文件路径二选一，优先使用assets路径），debugMode = false时有效
+  public coreJSAssetsPath: string = '';
+  // 可选参数 核心的jsbundle的文件路径（assets路径和文件路径二选一，优先使用assets路径）,debugMode = false时有效
+  public coreJSFilePath: string = '';
+  // 可选参数 指定需要预加载的业务模块bundle assets路径
+  public jsPreloadAssetsPath: HippyBundleLoader | null = null;
+  // 可选参数 指定需要预加载的业务模块bundle 文件路径
+  public jsPreloadFilePath: HippyBundleLoader | null = null;
+  public debugMode = false;
+  // 可选参数 是否开启调试模式，默认为false，不开启
+  // 可选参数 Hippy Server的jsbundle名字，默认为"index.bundle"。debugMode = true时有效
+  public debugBundleName = "index.bundle";
+  // 可选参数 Hippy Server的Host。默认为"localhost:38989"。debugMode = true时有效
+  public debugServerHost = "localhost:38989";
+  // optional args, Hippy Server url using remote debug in no usb (if not empty will replace debugServerHost and debugBundleName). debugMode = true take effect
+  public remoteServerUrl = "";
+  // 可选参数 自定义的，用来提供Native modules、JavaScript modules、View controllers的管理器。1个或多个
+  // public List<HippyAPIProvider> providers;
+  // public List<Processor> processors;
+  //Optional  is use V8 serialization or json
+  public enableV8Serialization = true;
+  // 可选参数 是否打印引擎的完整的log。默认为false
+  public enableLog = false;
+  // 可选参数 code cache的名字，如果设置为空，则不启用code cache，默认为 ""
+  public codeCacheTag = "";
+
+  //可选参数 接收RuntimeId
+  public thirdPartyAdapter: HippyThirdPartyAdapter | null = null;
+
+  // 可选参数 接收异常
+  public exceptionHandler: HippyExceptionHandlerAdapter | null = null;
+  // 可选参数 设置相关
+  public preferencesStorageAdapter: PreferencesStorageAdapter | null = null;
+  // 可选参数 Http request adapter
+  public httpAdapter: HippyHttpAdapter | null = null;
+  // 可选参数 Storage adapter 设置相关
+  public storageAdapter: HippyStorageAdapter | null = null;
+  // 可选参数 Executor Supplier adapter
+  public executorSupplier: HippyExecutorSupplierAdapter | null = null;
+  // 可选参数 Engine Monitor adapter
+  public engineMonitor: HippyEngineMonitorAdapter | null = null;
+  // 可选参数 font scale adapter
+  public fontScaleAdapter: HippyFontScaleAdapter | null = null;
+  // 可选参数 so加载位置
+  public soLoader: HippySoLoaderAdapter | null = null;
+  // 可选参数 device adapter
+  public deviceAdapter: HippyDeviceAdapter | null = null;
+  // 设置Hippy引擎的组，同一组的HippyEngine，会共享C层的v8 引擎实例。 默认值为-1（无效组，即不属于任何group组）
+  public groupId = -1;
+  // 可选参数 日志输出
+  public logAdapter: HippyLogAdapter | null = null;
+  public v8InitParams: V8InitParams | null = null;
+  public enableTurbo = false;
 
   providers: Array<HippyAPIProvider> | null = null
 
@@ -50,18 +123,65 @@ export class EngineInitParams {
   ) {
     this.libHippy = libHippy
     this.context = context
+
   }
 }
 
+// Hippy 业务模块jsbundle加载时的参数设置
 export class ModuleLoadParams {
+  // 必须参数
+  // public context: Context;
+  /**
+   * 必须参数 业务模块jsbundle中定义的组件名称。componentName对应的是js文件中的"appName"，比如： var hippy = new Hippy({
+   * appName: "Demo", entryPage: App });
+   */
+  public componentName: string;
 
+  // 可选参数 二选一设置 自己开发的业务模块的jsbundle的assets路径（assets路径和文件路径二选一，优先使用assets路径）
+  public jsAssetsPath: string;
+  // 可选参数 二选一设置 自己开发的业务模块的文件路径（assets路径和文件路径二选一，优先使用assets路径）
+  public jsFilePath: string;
+  // 可选参数 传递给前端的rootview：比如：Hippy.entryPage: class App extends Component
+  public jsParams: HippyMap | null = null;
+  // 可选参数 目前只有一个用处：映射："CustomViewCreator" <==> 宿主自定义的一个HippyCustomViewCreator(这个creator还得通过ModuleParams.Builder.setCustomViewCreator来指定才行)
+  public nativeParams: HippyMap | null = null;
+  // 可选参数 Bundle加载器，老式用法，不建议使用（若一定要使用，则会覆盖jsAssetsPath，jsFilePath的值）。参见jsAssetsPath，jsFilePath
+  // 可选参数 code cache的名字，如果设置为空，则不启用code cache，默认为 ""
+  public codeCacheTag = "";
+  public bundleLoader: HippyBundleLoader | null = null;
+
+  public constructor(
+    jsAssetsPath = '',
+    jsFilePath = '',
+    componentName = '',
+    codeCacheTag = '',
+    jsParams: HippyMap | null,
+    nativeParams: HippyMap | null,
+    bundleLoader: HippyBundleLoader | null,
+  ) {
+    this.jsAssetsPath = jsAssetsPath;
+    this.jsFilePath = jsFilePath;
+    this.componentName = componentName;
+    this.jsParams = jsParams;
+    this.nativeParams = nativeParams;
+    this.codeCacheTag = codeCacheTag;
+    this.bundleLoader = bundleLoader;
+}
 }
 
 export enum EngineInitStatus {
-  STATUS_OK = 0
+  STATUS_OK = 0,                     // 加载正常
+  STATUS_ERR_BRIDGE = -101,          // 初始化过程，initBridge错误
+  STATUS_ERR_DEVSERVER = -102,       // 初始化过程，devServer错误
+  STATUS_WRONG_STATE = -103,         // 状态错误。调用init函数时，引擎不在未初始化的状态
+  STATUS_INIT_EXCEPTION = -104,      // 初始化过程，抛出了未知的异常，详情需要查看传回的Throwable
 }
 
 export enum ModuleLoadStatus {
-  STATUS_OK = 0
+  STATUS_OK = 0,                     // 加载正常
+  STATUS_ENGINE_UNINIT = -201,       // 引擎未完成初始化就加载JSBundle
+  STATUS_VARIABLE_NULL = -202,       // check变量(bundleUniKey, loader, rootView)引用为空
+  STATUS_ERR_RUN_BUNDLE = -203,      // 业务JSBundle执行错误
+  STATUS_REPEAT_LOAD = -204,         // 重复加载同一JSBundle
 }
 

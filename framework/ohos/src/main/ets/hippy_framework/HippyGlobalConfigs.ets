@@ -17,6 +17,138 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class HippyGlobalConfigs {
+import { LogUtils } from '../support/utils/LogUtils';
+import { HippyDeviceAdapter } from './adapter/device/HippyDeviceAdapter';
+import { HippyExceptionHandlerAdapter } from './adapter/exception/HippyExceptionHandlerAdapter';
+import { HippyExecutorSupplierAdapter } from './adapter/executor/HippyExecutorSupplierAdapter';
+import { HippyFontScaleAdapter } from './adapter/font/HippyFontScaleAdapter';
+import { HippyHttpAdapter } from './adapter/http/HippyHttpAdapter';
+import { HippyLogAdapter } from './adapter/log/HippyLogAdapter';
+import { HippyEngineMonitorAdapter } from './adapter/monitor/HippyEngineMonitorAdapter';
+import { HippySoLoaderAdapter } from './adapter/soloader/HippySoLoaderAdapter';
+import { HippyStorageAdapter } from './adapter/storage/HippyStorageAdapter';
+import { PreferencesStorageAdapter } from './adapter/storage/PreferencesStorageAdapter';
+import { EngineInitParams } from './HippyEngine';
 
+export class HippyGlobalConfigs {
+  /**
+   * SharedPreferences
+   */
+  private mPreferencesStorageAdapter: PreferencesStorageAdapter | null;
+  private mContext: Context | null;
+  /**
+   * Crash Handler
+   */
+  private mExceptionHandler: HippyExceptionHandlerAdapter | null;
+  /**
+   * Http request adapter
+   */
+  private mHttpAdapter: HippyHttpAdapter | null;
+  /**
+   * Storage adapter
+   */
+  private mStorageAdapter: HippyStorageAdapter | null;
+  /**
+   * Executor Supplier adapter
+   */
+  private mExecutorSupplierAdapter: HippyExecutorSupplierAdapter | null;
+  /**
+   * Engine Monitor adapter
+   */
+  private mEngineMonitorAdapter: HippyEngineMonitorAdapter | null;
+  /**
+   * font scale adapter
+   */
+  private mFontScaleAdapter: HippyFontScaleAdapter | null;
+  /**
+   * font so loader adapter
+   */
+  private mSoLoaderAdapter: HippySoLoaderAdapter | null;
+  /**
+   * device adapter
+   */
+  private mDeviceAdapter: HippyDeviceAdapter | null;
+  private mLogAdapter: HippyLogAdapter | null;
+  private mEnableTurbo: boolean;
+
+  constructor(params: EngineInitParams) {
+    this.mContext = params.context;
+    this.mPreferencesStorageAdapter = params.preferencesStorageAdapter;
+    this.mExceptionHandler = params.exceptionHandler;
+    this.mHttpAdapter = params.httpAdapter;
+    this.mStorageAdapter = params.storageAdapter;
+    this.mExecutorSupplierAdapter = params.executorSupplier;
+    this.mEngineMonitorAdapter = params.engineMonitor;
+    this.mFontScaleAdapter = params.fontScaleAdapter;
+    this.mSoLoaderAdapter = params.soLoader;
+    this.mDeviceAdapter = params.deviceAdapter;
+    this.mLogAdapter = params.logAdapter;
+    this.mEnableTurbo = params.enableTurbo;
+  }
+
+  public destroyIfNeed() {
+    try {
+      if (this.mHttpAdapter != null) {
+        this.mHttpAdapter.destroyIfNeed();
+      }
+      // TODO
+      // if (this.mStorageAdapter != null) {
+      //   this.mStorageAdapter.destroyIfNeed();
+      // }
+      if (this.mExecutorSupplierAdapter != null) {
+        this.mExecutorSupplierAdapter.destroyIfNeed();
+      }
+      this.mContext = null;
+    } catch (e) {
+      LogUtils.d("HippyGlobalConfigs", "destroyIfNeed: " + e.getMessage());
+    }
+  }
+
+  public getLogAdapter(): HippyLogAdapter | null {
+    return this.mLogAdapter;
+  }
+
+  public getSoLoaderAdapter(): HippySoLoaderAdapter | null {
+    return this.mSoLoaderAdapter;
+  }
+
+  public getSharedPreferencesAdapter(): PreferencesStorageAdapter | null {
+    return this.mPreferencesStorageAdapter;
+  }
+
+  public getExceptionHandler(): HippyExceptionHandlerAdapter | null {
+    return this.mExceptionHandler;
+  }
+
+  public getFontScaleAdapter(): HippyFontScaleAdapter | null {
+    return this.mFontScaleAdapter;
+  }
+
+  public getDeviceAdapter(): HippyDeviceAdapter | null {
+    return this.mDeviceAdapter;
+  }
+
+  public getHttpAdapter(): HippyHttpAdapter | null {
+    return this.mHttpAdapter;
+  }
+
+  public getContext(): Context | null {
+    return this.mContext;
+  }
+
+  public getStorageAdapter(): HippyStorageAdapter | null {
+    return this.mStorageAdapter;
+  }
+
+  public getExecutorSupplierAdapter(): HippyExecutorSupplierAdapter | null {
+    return this.mExecutorSupplierAdapter;
+  }
+
+  public getEngineMonitorAdapter(): HippyEngineMonitorAdapter | null {
+    return this.mEngineMonitorAdapter;
+  }
+
+  public enableTurbo(): boolean {
+    return this.mEnableTurbo;
+  }
 }

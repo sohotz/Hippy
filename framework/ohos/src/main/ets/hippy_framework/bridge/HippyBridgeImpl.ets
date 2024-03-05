@@ -20,11 +20,37 @@
 import { HippyBridge } from './HippyBridge';
 import { JsDriver } from '../connector/JsDriver';
 import { HippyAny } from '../../support/common/HippyTypes';
+import { NativeCallback } from '../connector/NativeCallback';
 
 export class HippyBridgeImpl implements HippyBridge {
+  private URI_SCHEME_ASSETS: string = '';
+  private URI_SCHEME_FILE: string = '';
   private jsDriver: JsDriver
 
-  callFunction(functionId: number, callback: HippyAny, buffer: Uint8Array) {
+  public constructor(jsDriver: JsDriver) {
+    this.jsDriver = jsDriver;
+  }
+  initJSBridge(gobalConfig: string, callback: NativeCallback, groupId: number): void {
+    throw new Error('Method not implemented.');
+  }
+
+  runScriptFromUri(uri: string, canUseCodeCache: boolean, codeCacheTag: string, callback: NativeCallback): boolean {
+    throw new Error('Method not implemented.');
+  }
+
+  onDestroy(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  destroy(callback: NativeCallback, isReload: boolean): void {
+    throw new Error('Method not implemented.');
+  }
+
+  getV8RuntimeId(): number {
+    throw new Error('Method not implemented.');
+  }
+
+  callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array) {
   }
 
 }

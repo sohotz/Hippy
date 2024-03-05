@@ -17,9 +17,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Context } from '@kit.AbilityKit';
+import { TimeMonitor } from '../support/utils/TimeMonitor';
+import { VfsManager } from '../vfs/VfsManager';
+import { HippyBridgeManager } from './bridge/HippyBridgeManager';
+import { JsDriver } from './connector/JsDriver';
+import { HippyGlobalConfigs } from './HippyGlobalConfigs';
+import { HippyModuleManager } from './modules/HippyModuleManager';
 
-export class HippyEngineContext {
-  constructor() {
-  }
+export interface HippyEngineContext {
+
+  getComponentName(): string
+
+  // @Nullable
+  // HashMap<String, Object> getNativeParams();
+
+  getVfsManager(): VfsManager
+
+  getJsDriver(): JsDriver
+
+  getMonitor(): TimeMonitor
+
+  getGlobalConfigs(): HippyGlobalConfigs
+
+  getModuleManager(): HippyModuleManager
+
+  getBridgeManager(): HippyBridgeManager
+
+  // TODO
+  // DevSupportManager getDevSupportManager();
+  //
+  // DevtoolsManager getDevtoolsManager();
+
+  // ViewGroup getRootView();
+  //
+  // View getRootView(int rootId);
+  //
+  // @Nullable
+  // View findViewById(int nodeId);
+
+  // void addEngineLifecycleEventListener(HippyEngineLifecycleEventListener listener);
+  //
+  // void removeEngineLifecycleEventListener(HippyEngineLifecycleEventListener listener);
+  //
+  // void handleException(Throwable throwable);
+
+  // int getEngineId();
+  //
+  // int getDomManagerId();
+  //
+  // int getVfsId();
+  //
+  // int getDevtoolsId();
+  //
+  // void onRuntimeInitialized();
+  //
+  // void onBridgeDestroyed(boolean isReload, Throwable e);
+  //
+  // void onLoadModuleCompleted(ModuleLoadStatus statusCode, @Nullable String msg);
+  //
+  // void onLoadInstanceCompleted(long result, String reason);
 }

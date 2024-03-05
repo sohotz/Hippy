@@ -33,7 +33,17 @@ struct Index {
   aboutToAppear(): void {
     this.hippyEngine?.initEngine((statusCode: EngineInitStatus, msg: string) => {
       if (statusCode == EngineInitStatus.STATUS_OK) {
-        this.hippyEngine?.loadModule(new ModuleLoadParams(), (statusCode: ModuleLoadStatus, msg: string) => {
+        this.hippyEngine?.loadModule(
+          new ModuleLoadParams(
+            '',
+            '',
+            '',
+            '',
+            null,
+            null,
+            null,
+          ),
+          (statusCode: ModuleLoadStatus, msg: string) => {
 
         })
       }
