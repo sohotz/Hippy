@@ -32,6 +32,7 @@ import { FrameworkProxy } from './FrameworkProxy'
 import { NativeRender } from './NativeRender'
 import { NativeRenderContext } from './NativeRenderContext'
 import { HRVirtualNode } from './node/HRVirtualNode'
+import { HRVirtualNodeManager } from './node/HRVirtualNodeManager'
 import { HRManager } from './uimanager/HRManager'
 import { HRCreateMutation,
   HRDeleteMutation,
@@ -77,18 +78,18 @@ export class NativeRenderImpl implements NativeRender {
 
   private ctx: NativeRenderContext
   private mutations: HRMutation[] = []
-  private virtualNodes: Map<number, HRVirtualNode>
 
   private renderManager: HRManager
+  private virtualNodeManager: HRVirtualNodeManager
 
   constructor(eventHandler: NativeRenderEventHandler, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null) {
     this.eventHandler = eventHandler
     NativeRenderImpl.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
     let rootId = NativeRenderImpl.sRootIdCounter
     this.ctx = new NativeRenderContext(rootId, customRenderViewCreatorMap, this)
-    this.virtualNodes = new Map<number, HRVirtualNode>()
 
     this.renderManager = new HRManager(this.ctx)
+    this.virtualNodeManager = new HRVirtualNodeManager()
   }
 
   setFrameworkProxy(proxy: FrameworkProxy) {
@@ -168,35 +169,17 @@ export class NativeRenderImpl implements NativeRender {
     }
   }
 
-  createVirtualNode(rootId: number, id: number, pid: number, index: number, props: HippyMap): HRVirtualNode {
-    let node = new HRVirtualNode()
-    node.rootId = rootId
-    node.id = id
-    node.pid = pid
-    node.index = index
-    node.props = props
-    return node
-  }
-
-  addVirtualNode(id: number, node: HRVirtualNode) {
-    this.virtualNodes.set(id, node)
-  }
-
-  removeVirtualNode(id: number) {
-    this.virtualNodes.delete(id)
-  }
-
   createNode(rootId: number, nodeList: Array<HippyAny>) {
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
 
-      let vNode = this.createVirtualNode(
+      let vNode = this.virtualNodeManager.createVirtualNode(
         rootId,
         node.get('id') as number,
         node.get('pId') as number,
         node.get('index') as number,
         node.get('props') as HippyMap)
-      this.addVirtualNode(node.get('id') as number, vNode)
+      this.virtualNodeManager.addVirtualNode(node.get('id') as number, vNode)
 
       let m: HRCreateMutation = new HRCreateMutation()
       m.viewName = node.get('name') as string
@@ -212,7 +195,7 @@ export class NativeRenderImpl implements NativeRender {
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
 
-      let vNode = this.virtualNodes.get(node.get('id') as number)
+      let vNode = this.virtualNodeManager.getVirtualNode(node.get('id') as number)
       if (vNode && vNode.props) {
         (node.get('props') as HippyMap).forEach((value: HippyValue, key: string) => {
           if (vNode && vNode.props && key && value) {
@@ -306,7 +289,7 @@ export class NativeRenderImpl implements NativeRender {
   }
 
   measure(rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
-    let vNode = this.virtualNodes.get(nodeId)
+    let vNode = this.virtualNodeManager.getVirtualNode(nodeId)
     if (vNode && vNode.props) {
       let config: TextMeasurerConfig = new TextMeasurerConfig();
       config.textContent = vNode.props.get('text') as string
