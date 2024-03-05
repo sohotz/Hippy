@@ -177,6 +177,7 @@ export struct HRViewPager {
     .vertical(this.renderView.vertical)
     .prevMargin(this.renderView.prevMargin)
     .nextMargin(this.renderView.nextMargin)
+    .loop(false)
     .onChange((event) => this.handleChangeEvent(event))
     .onGestureSwipe((index: number, extraInfo: SwiperAnimationEvent) =>
       this.handleGestureSwipeEvent(index, extraInfo))
