@@ -17,16 +17,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HRRenderViewCreator } from './components/HippyRenderRegisterMap'
 import { NativeRender } from './NativeRender'
 
 export class NativeRenderContext {
   private rootId: number
   private instanceId: number
+  private customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null
   private nativeRender: NativeRender
 
-  constructor(rootId: number, nativeRender: NativeRender) {
+  constructor(rootId: number, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null, nativeRender: NativeRender) {
     this.rootId = rootId
     this.instanceId = -1
+    this.customRenderViewCreatorMap = customRenderViewCreatorMap
     this.nativeRender = nativeRender
   }
 
@@ -40,6 +43,10 @@ export class NativeRenderContext {
 
   getInstanceId() {
     return this.instanceId
+  }
+
+  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
+    return this.customRenderViewCreatorMap
   }
 
   getNativeRender() {

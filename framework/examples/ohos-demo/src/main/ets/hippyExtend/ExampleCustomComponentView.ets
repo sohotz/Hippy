@@ -17,44 +17,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes'
-import { HRComponent } from '../../HippyRenderView'
-import { NativeRenderContext } from '../../NativeRenderContext'
-import { HRRect } from '../../utils/HRTypes'
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
-import { LogUtils } from '../../../support/utils/LogUtils';
+import HippyRenderBaseView, {
+  HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX
+}  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import { HRComponent } from 'hippy/src/main/ets/renderer_native/HippyRenderView'
+import { NativeRenderContext } from 'hippy/src/main/ets/renderer_native/NativeRenderContext'
+import { HippyAny } from 'hippy/src/main/ets/support/common/HippyTypes'
 
 @Observed
-export class HRListItemView extends HippyRenderBaseView {
-  private readonly TAG = "HRListItemView"
-
+export class ExampleCustomComponentView extends HippyRenderBaseView {
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
-  setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    return super.setProp(propKey, propValue as HippyAny)
-  }
-
-  protected updateRenderViewFrame(frame: HRRect): void {
-    this.cssPositionX = 0
-    this.cssPositionY = 0
-    this.cssWidth = frame.width
-    this.cssHeight = frame.height
+  setProp(propKey: string, propValue: HippyAny): boolean {
+    return super.setProp(propKey, propValue)
   }
 }
 
 @Component
-export struct HRListItem {
-  @ObjectLink renderView: HRListItemView
+export struct ExampleCustomComponent {
+  @ObjectLink renderView: ExampleCustomComponentView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
 
+  aboutToAppear() {
+
+  }
+
+  aboutToDisappear() {
+
+  }
+
   build() {
     Stack() {
-      ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
-      }, (item: HippyRenderBaseView) => item.tag + '')
+      Text("This is a custom component.")
     }
     .applyRenderViewBaseAttr(this.renderView)
   }
@@ -63,6 +61,7 @@ export struct HRListItem {
 // base props for all components
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
   .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
@@ -70,9 +69,18 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }

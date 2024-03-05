@@ -19,6 +19,7 @@
  */
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
+import { HippyAPIProvider } from './HippyAPIProvider';
 import { HippyEngineImpl } from './HippyEngineImpl';
 
 export interface HippyEngine {
@@ -40,6 +41,8 @@ export type HippyModuleLoadCallback = (statusCode: ModuleLoadStatus, msg: string
 export class EngineInitParams {
   libHippy: HippyLibrary
   context: Context // UIAbilityContext
+
+  providers: Array<HippyAPIProvider> | null = null
 
   constructor(
     libHippy: HippyLibrary,

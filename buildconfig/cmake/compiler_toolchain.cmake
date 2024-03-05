@@ -46,11 +46,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") # based on LLVM 12
       -pipe
       -Os)
 
-  # TODO(hot):
-  if (OHOS)
-    set(COMPILE_OPTIONS ${COMPILE_OPTIONS} -fno-rtti -fno-exceptions)
-  endif ()
-
   if (ANDROID_NDK)
     # Android NDK default to -fno-addrsig
     # in order to support linkers other than LLD [1],

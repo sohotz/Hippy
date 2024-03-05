@@ -22,8 +22,9 @@ import relationalStore from '@ohos.data.relationalStore';
 import { BusinessError } from '@ohos.base';
 import { Context } from '@ohos.abilityAccessCtrl';
 import { ValuesBucket } from '@ohos.data.ValuesBucket';
-import hilog from '@ohos.hilog';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HippyEngineContext } from '../../HippyEngineContext';
+import { ArrayList } from '@kit.ArkTS';
 
 const TAG = 'DefaultStorageAdapter'
 
@@ -33,143 +34,115 @@ const COLUMN_KEY = 'storage_key'
 const COLUMN_VALUE = 'storage_value'
 
 export class DefaultStorageAdapter implements HippyStorageAdapter {
-  private hippyStoreDb: relationalStore.RdbStore | undefined = undefined;
+  private hippyStoreDb: relationalStore.RdbStore | undefined
+  private ctx: Context
 
   constructor(context: Context) {
-    const STORE_CONFIG: relationalStore.StoreConfig = {
-      name: STORE_DB_NAME,
-      securityLevel: relationalStore.SecurityLevel.S1
-    };
+    //todo need tobe changed by HippyEngineContext
+    this.ctx = context
+    this.getStoreDb()
+  }
 
-    relationalStore.getRdbStore(context, STORE_CONFIG)
-      .then(async (rdbStore: relationalStore.RdbStore) => {
+  async getStoreDb() {
+    if (this.hippyStoreDb === undefined) {
+      const STORE_CONFIG: relationalStore.StoreConfig = {
+        name: STORE_DB_NAME,
+        securityLevel: relationalStore.SecurityLevel.S1
+      };
+
+      try {
+        this.hippyStoreDb = await relationalStore.getRdbStore(this.ctx, STORE_CONFIG)
         LogUtils.i(TAG, 'Get RdbStore successfully.')
-        rdbStore.executeSql(`CREATE TABLE IF NOT EXISTS ${TABLE_STORAGE} (${COLUMN_KEY} TEXT PRIMARY KEY, ${COLUMN_VALUE} TEXT);`)
-          .then(() => {
-            this.hippyStoreDb = rdbStore;
-          })
+        await this.hippyStoreDb.executeSql(`CREATE TABLE IF NOT EXISTS ${TABLE_STORAGE} (${COLUMN_KEY} TEXT PRIMARY KEY, ${COLUMN_VALUE} TEXT);`)
+        LogUtils.i(TAG, `CREATE TABLE SUCC`)
+      } catch (e) {
+        LogUtils.e(TAG, `CREATE TABLE FAIL` + e);
+      }
+    }
+    return this.hippyStoreDb
+  }
+
+  async multiGet(keys: string[]): Promise<[key: string, value: string][]> {
+    await this.getStoreDb();
+    let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
+    predicates.in(COLUMN_KEY, keys);
+    let resultSet: relationalStore.ResultSet = await (this.hippyStoreDb as relationalStore.RdbStore).query(
+      predicates,
+      [COLUMN_KEY, COLUMN_VALUE]
+    );
+    LogUtils.i(TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
+    let results = new Array<[key: string, value: string]>(resultSet.rowCount);
+    let i = 0;
+    while (resultSet.goToNextRow()) {
+      results[i] = [
+        resultSet.getString(resultSet.getColumnIndex(COLUMN_KEY)),
+        resultSet.getString(resultSet.getColumnIndex(COLUMN_VALUE))
+      ];
+      i++;
+    }
+    resultSet.close();
+    return results;
+  }
+
+
+  async multiSet(pairs: [key: string, value: string][]): Promise<void> {
+    if (pairs === null || pairs === undefined || pairs.length === 0) {
+      return
+    }
+    await this.getStoreDb();
+
+    const valueBuckets = pairs.map<ValuesBucket>((pair) => {
+      return { 'storage_key': pair[0], 'storage_value': pair[1] }
+    });
+
+    (this.hippyStoreDb as relationalStore.RdbStore).batchInsert(
+      TABLE_STORAGE,
+      valueBuckets,
+      (err: BusinessError, rowId: number) => {
+        if (err) {
+          LogUtils.e(TAG, `Insert is failed, code is ${err.code}, message is ${err.message}`);
+          return
+        }
+        LogUtils.i(TAG, `Insert is successful, rowId = ${rowId}`);
+        return
       })
-      .catch((err: BusinessError) => {
-        LogUtils.e(TAG, `Get RdbStore failed, code is ${err.code},message is ${err.message}`);
-      });
   }
 
-  multiGet(keys: string[]): Promise<[key: string, value: string][]> {
-    return new Promise((resolve, reject) => {
-      if (this.hippyStoreDb === undefined) {
-        return reject("database is not ready");
-      }
+  async multiRemove(keys: string[]): Promise<void> {
+    if (keys === null || keys === undefined || keys.length === 0) {
+      return
+    }
+    await this.getStoreDb();
 
-      if (keys === null || keys === undefined || keys.length === 0) {
-        return resolve([]);
+    let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
+    predicates.in(COLUMN_KEY, keys);
+    (this.hippyStoreDb as relationalStore.RdbStore).delete(predicates, (err, rows) => {
+      if (err) {
+        LogUtils.e(TAG, `Delete failed, code is ${err.code}, message is ${err.message}`);
+        return
       }
-
-      let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
-      predicates.in(COLUMN_KEY, keys);
-      (this.hippyStoreDb as relationalStore.RdbStore).query(
-        predicates,
-        [COLUMN_KEY, COLUMN_VALUE],
-        (err, resultSet) => {
-          if (err) {
-            LogUtils.e(TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
-            return reject(err);
-          }
-          LogUtils.i(TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
-          let results = new Array<[key: string, value: string]>(resultSet.rowCount);
-          let i = 0;
-          while (resultSet.goToNextRow()) {
-            results[i] = [
-              resultSet.getString(resultSet.getColumnIndex(COLUMN_KEY)),
-              resultSet.getString(resultSet.getColumnIndex(COLUMN_VALUE))
-            ];
-            i++;
-          }
-          resultSet.close();
-          return resolve(results);
-        });
-    });
+      LogUtils.i(TAG, `Delete rows: ${rows}`);
+      return
+    })
   }
 
-  multiSet(pairs: [key: string, value: string][]): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.hippyStoreDb === undefined) {
-        return reject("database is not ready");
-      }
-      if (pairs === null || pairs === undefined || pairs.length === 0) {
-        return resolve();
-      }
-
-      const valueBuckets = pairs.map<ValuesBucket>((pair) => {
-        return { 'storage_key': pair[0], 'storage_value': pair[1] }
-      });
-
-      (this.hippyStoreDb as relationalStore.RdbStore).batchInsert(
-        TABLE_STORAGE,
-        valueBuckets,
-        (err: BusinessError, rowId: number) => {
-          if (err) {
-            LogUtils.e(TAG, `Insert is failed, code is ${err.code}, message is ${err.message}`);
-            return reject();
-          }
-          LogUtils.i(TAG, `Insert is successful, rowId = ${rowId}`);
-          return resolve();
-        })
-    });
-  }
-
-  multiRemove(keys: string[]): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.hippyStoreDb === undefined) {
-        reject("database is not ready");
-        return;
-      }
-
-      if (keys === null || keys === undefined || keys.length === 0) {
-        resolve();
-        return;
-      }
-
-      let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
-      predicates.in(COLUMN_KEY, keys);
-      if (this.hippyStoreDb != undefined) {
-        (this.hippyStoreDb as relationalStore.RdbStore).delete(predicates, (err, rows) => {
-          if (err) {
-            LogUtils.e(TAG, `Delete failed, code is ${err.code}, message is ${err.message}`);
-            return reject(err);
-          }
-          LogUtils.i(TAG, `Delete rows: ${rows}`);
-          return resolve();
-        })
-      }
-    });
-  }
-
-  getAllKeys(): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      if (this.hippyStoreDb === undefined) {
-        reject("database is not ready");
-        return;
-      }
-
-      let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
-      (this.hippyStoreDb as relationalStore.RdbStore).query(
-        predicates,
-        [COLUMN_KEY],
-        (err, resultSet) => {
-          if (err) {
-            LogUtils.e(TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
-            return reject(err);
-          }
-          LogUtils.i(TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
-          let results = new Array<string>(resultSet.rowCount);
-          let i = 0;
-          while (resultSet.goToNextRow()) {
-            results[i] = resultSet.getString(resultSet.getColumnIndex(COLUMN_KEY));
-            i++;
-          }
-          resultSet.close();
-          return resolve(results);
-        })
-    });
+  async getAllKeys(): Promise<string[]> {
+    await this.getStoreDb();
+    let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
+    let resultSet: relationalStore.ResultSet = await (this.hippyStoreDb as relationalStore.RdbStore).query(
+      predicates, [COLUMN_KEY])
+    LogUtils.i(TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
+    let results = new Array<string>(resultSet.rowCount);
+    let i = 0;
+    while (resultSet.goToNextRow()) {
+      results[i] = resultSet.getString(resultSet.getColumnIndex(COLUMN_KEY));
+      i++;
+    }
+    resultSet.close();
+    return results
+    //       if (err) {
+    //         LogUtils.e(TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
+    //         return reject(err);
+    //       }
   }
 }

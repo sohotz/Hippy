@@ -20,9 +20,10 @@
 import TextMeasurer from "@ohos.measure"
 import { HippyException } from '../support/common/HippyException'
 import { HippyExecutor } from '../support/common/HippyExecutor'
-import { HippyAny, HippyMap, HippyRenderCallback } from '../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyValue, HippyRenderCallback } from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
 import { VfsManager } from '../vfs/VfsManager'
+import { HRRenderViewCreator } from './components/HippyRenderRegisterMap'
 import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter'
 import { ImageLoader } from './components/image/ImageLoader'
 import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter'
@@ -37,9 +38,11 @@ import { HRCreateMutation,
   HRMove2Mutation,
   HRMoveMutation,
   HRMutation,
+  HRUpdateEventListenerMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation
 } from './uimanager/HRMutation'
+import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
 import { HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
 
@@ -78,11 +81,11 @@ export class NativeRenderImpl implements NativeRender {
 
   private renderManager: HRManager
 
-  constructor(eventHandler: NativeRenderEventHandler) {
+  constructor(eventHandler: NativeRenderEventHandler, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null) {
     this.eventHandler = eventHandler
     NativeRenderImpl.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
     let rootId = NativeRenderImpl.sRootIdCounter
-    this.ctx = new NativeRenderContext(rootId, this)
+    this.ctx = new NativeRenderContext(rootId, customRenderViewCreatorMap, this)
     this.virtualNodes = new Map<number, HRVirtualNode>()
 
     this.renderManager = new HRManager(this.ctx)
@@ -151,6 +154,12 @@ export class NativeRenderImpl implements NativeRender {
     }
   }
 
+  destroyRoot(rootId: number) {
+    // TODO(hot):
+
+    HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), rootId)
+  }
+
   handleRenderException(exception: HippyException) {
     exception = HippyException.safeBuild(exception)
     LogUtils.e(this.TAG, `handleRenderException: ${exception.message}`)
@@ -202,6 +211,16 @@ export class NativeRenderImpl implements NativeRender {
   updateNode(rootId: number, nodeList: Array<HippyAny>) {
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
+
+      let vNode = this.virtualNodes.get(node.get('id') as number)
+      if (vNode && vNode.props) {
+        (node.get('props') as HippyMap).forEach((value: HippyValue, key: string) => {
+          if (vNode && vNode.props && key && value) {
+            vNode.props.set(key, value)
+          }
+        })
+      }
+
       let m: HRUpdateMutation = new HRUpdateMutation()
       m.viewName = node.get('name') as string
       m.tag = node.get('id') as number
@@ -274,7 +293,10 @@ export class NativeRenderImpl implements NativeRender {
         throw new HippyException(this.TAG + ": updateEventListener: invalid id or props")
       }
 
-
+      let m: HRUpdateEventListenerMutation = new HRUpdateEventListenerMutation()
+      m.tag = nodeId
+      m.props = eventProps
+      this.mutations.push(m)
     }
   }
 
