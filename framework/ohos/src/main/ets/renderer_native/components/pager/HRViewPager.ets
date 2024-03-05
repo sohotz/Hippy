@@ -42,7 +42,7 @@ export class HRViewPagerView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    // TODO: xxxxx
+    console.log(`HRViewPagerView: propKey is : ${propKey},propValue is : ${propValue}`)
     if (propKey === 'initialPage') {
       this.initialPage = propValue as number
       this.index = this.initialPage
@@ -91,37 +91,69 @@ export struct HRViewPager {
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
   private PAGE_ITEM_POSITION: string = "position";
+  private PAGE_SCROLL_STATE: string = "PageScrollState";
+  private PAGE_POSITION_OFFSET: string = "PagePositionOffset"
 
   handleChangeEvent(index: number) {
     LogUtils.d(this.TAG, "handleChangeEvent: index " + index)
     let params = new Map<string, number>() as HippyMap;
     params.set(this.PAGE_ITEM_POSITION, index);
     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SELECTED, params);
+    LogUtils.d(this.TAG, "EVENT_PAGE_SELECTED ")
+
+    params.clear()
+    params.set(this.PAGE_SCROLL_STATE, 4);//todo
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SCROLL_STATE_CHANGED, params);
+    LogUtils.d(this.TAG, "EVENT_PAGE_SCROLL_STATE_CHANGED 4 ")
   }
 
   handleGestureSwipeEvent(index: number, extraInfo: SwiperAnimationEvent) {
     LogUtils.d(this.TAG, "handleGestureSwipeEvent: index " + index)
     let params = new Map<string, Number>() as HippyMap;
     params.set(this.PAGE_ITEM_POSITION, index);
-    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SELECTED, params);
+    params.set(this.PAGE_POSITION_OFFSET, extraInfo.currentOffset);
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SCROLL, params);
+    LogUtils.d(this.TAG, "EVENT_PAGE_SCROLL ")
   }
 
   handleAnimationStartEvent(index: number, targetIndex: number, extraInfo: SwiperAnimationEvent) {
     LogUtils.d(this.TAG, "handleAnimationStartEvent: index " + targetIndex)
-    let params = new Map<string, Number>() as HippyMap;
-    params.set(this.PAGE_ITEM_POSITION, targetIndex);
-    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SELECTED, params);
-    params.set(this.PAGE_ITEM_POSITION, targetIndex);
-    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_ITEM_WILL_APPEAR, params);
-    params.set(this.PAGE_ITEM_POSITION, index);
-    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_ITEM_WILL_DISAPPEAR, params);
   }
 
   handleAnimationEnd(index: number, extraInfo: SwiperAnimationEvent) {
     LogUtils.d(this.TAG, "handleAnimationEnd: index " + index)
-    let params = new Map<string, Number>() as HippyMap;
-    params.set(this.PAGE_ITEM_POSITION, index);
-    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SELECTED, params);
+  }
+
+  handleTouchEvent(event:TouchEvent){
+    LogUtils.d(this.TAG, "handleTouchEvent: " + event.type)
+    switch (event.type){
+      case TouchType.Move:
+        LogUtils.d(this.TAG, "handleTouchEvent: move ")
+      break
+      case TouchType.Down:
+        {
+          LogUtils.d(this.TAG, "handleTouchEvent: Down ")
+          let params = new Map<string, number>() as HippyMap;
+          params.set(this.PAGE_SCROLL_STATE, event.type);
+          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SCROLL_STATE_CHANGED, params);
+          LogUtils.d(this.TAG, "EVENT_PAGE_SCROLL_STATE_CHANGED  Down ")
+        }
+      break
+      case TouchType.Up:
+        {
+          LogUtils.d(this.TAG, "handleTouchEvent: Up ")
+          let params = new Map<string, number>() as HippyMap;
+          params.set(this.PAGE_SCROLL_STATE, event.type);
+          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SCROLL_STATE_CHANGED, params);
+          LogUtils.d(this.TAG, "EVENT_PAGE_SCROLL_STATE_CHANGED Up")
+        }
+      break
+      case TouchType.Cancel:
+        LogUtils.d(this.TAG, "handleTouchEvent: Cancel ")
+        break
+      default:
+      break;
+    }
   }
 
   aboutToAppear() {
@@ -152,6 +184,7 @@ export struct HRViewPager {
       this.handleAnimationStartEvent(index, targetIndex, extraInfo))
     .onAnimationEnd((index: number, extraInfo: SwiperAnimationEvent) =>
       this.handleAnimationEnd(index, extraInfo))
+    .onTouch((event:TouchEvent) => this.handleTouchEvent(event))
   }
 }
 
