@@ -35,7 +35,7 @@ struct Index {
       if (statusCode == EngineInitStatus.STATUS_OK) {
         this.hippyEngine?.loadModule(
           new ModuleLoadParams(
-            '',
+            'vue2/index.android.js',
             '',
             '',
             '',

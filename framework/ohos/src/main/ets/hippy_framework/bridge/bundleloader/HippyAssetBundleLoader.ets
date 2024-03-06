@@ -21,7 +21,7 @@ import { HippyBundleLoader } from './HippyBundleLoader';
 
 export class HippyAssetBundleLoader implements HippyBundleLoader {
 
-  private ASSETS_STR = "assets://";
+  private ASSETS_STR = "asset:/";
   private mContext: Context;
 
   private mAssetPath = '';

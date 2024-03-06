@@ -20,7 +20,7 @@
 
 export class TextUtils {
   static isEmpty(value: string | null | undefined) {
-    if (value as undefined || value == "" || value?.length == 0)
+    if (value === undefined || value == "" || value?.length == 0)
       return true;
     return false;
   }
