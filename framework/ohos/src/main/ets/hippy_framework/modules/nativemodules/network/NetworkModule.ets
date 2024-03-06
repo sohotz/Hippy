@@ -18,15 +18,26 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import {
+  HippyAny,
+  HippyMap,
+  HippyModuleCallback,
+  HippyValue
+} from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
 import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { HippyHttpAdapter } from '../../../adapter/http/HippyHttpAdapter'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
-import { HashMap } from '@kit.ArkTS'
+import { HashMap, HashSet } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
 import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
+import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
+import { LogUtils } from '../../../../support/utils/LogUtils'
+import util from '@ohos.util';
+import { HippyException } from '../../../../support/common/HippyException'
+
+const NETWORK_MODULE_TAG = "NetworkModule"
 
 @HippyNativeModule({ name: "NetworkModule" })
 export class NetworkModule extends HippyNativeModuleBase {
@@ -52,15 +63,72 @@ export class NetworkModule extends HippyNativeModuleBase {
         reject("Get url parameter failed!");
         return;
       }
+
       vfsManager.fetchResourceAsync(uri, requestHeaders, requestParams,
-                new FetchResCallback());
+        new FetchResCallback(this.ctx));
     });
   }
 
-  public static handleFetchResult(dataHolder: ResourceDataHolder):Promise<void> {
-    return new Promise((resolve, reject)=>{
-
+  public handleFetchResult(dataHolder: ResourceDataHolder): Promise<HippyAny> {
+    return new Promise((resolve, reject) => {
+      try {
+        if (dataHolder.resultCode == ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE) {
+          let responseObject = this.handleFetchResponse(dataHolder);
+          resolve(responseObject);
+        } else {
+          let errorMessage =
+            (dataHolder.errorMessage == null) ? "Load remote resource failed!" : dataHolder.errorMessage;
+          reject(errorMessage);
+        }
+      } catch (e) {
+        reject("Handle response failed: " + e.getMessage());
+      }
     })
+  }
+
+  handleFetchResponse(dataHolder: ResourceDataHolder): HippyAny {
+    let resHeader = dataHolder.responseHeaders
+    let headerMap: HippyAny = new Map();
+    let responseMap: HippyAny = new Map();
+    let statusCode = -1;
+    let responseMessage = "";
+    if (resHeader != null) {
+      try {
+        statusCode = Number.parseInt(
+          resHeader.get(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE));
+      } catch (e) {
+        LogUtils.e(NETWORK_MODULE_TAG, "parse status code error!")
+      }
+      responseMessage = resHeader.get(HippyHttpResponse.HTTP_RESPONSE_RESPONSE_MESSAGE);
+      for (let header of resHeader.entries()) {
+        let key = header[0]
+        let value = header[1]
+        if (key == null || value == null) {
+          continue;
+        }
+        headerMap.set(key, value);
+      }
+    }
+    if (responseMessage == "") {
+      responseMessage = (dataHolder.errorMessage == null) ? "" : dataHolder.errorMessage;
+    }
+    responseMap.set(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE, statusCode);
+    responseMap.set("statusLine", responseMessage);
+    responseMap.set("respHeaders", headerMap.toString());
+    let body = "";
+    // let result = util.TextDecoder.create('utf-8', dataHolder)
+    // let retStr = result.encoding
+    try {
+      let bytes = dataHolder.getBytes();
+      if (bytes != null) {
+        let textDecoder = util.TextDecoder.create("utf-8");
+        // let body = textDecoder.decodeWithStream( bytes , {stream: false});
+      }
+    } catch (e) {
+        LogUtils.e(NETWORK_MODULE_TAG,e)
+    }
+    responseMap.set("respBody", body);
+    return responseMap
   }
 
   normalizeRequest(request: HippyMap, requestHeaders: HashMap<String, String>, requestParams: HashMap<String, String>) {
@@ -72,10 +140,10 @@ export class NetworkModule extends HippyNativeModuleBase {
         if (key == null || value == null) {
           continue;
         }
-        // if (key == HippyHttpRequest.HTTP_HEADERS && value instanceof HippyMap) {
-        //   this.normalizeRequestHeaders(value, requestHeaders);
-        //   continue;
-        // }
+        if (key == HippyHttpRequest.HTTP_HEADERS && value instanceof Map) {
+          this.normalizeRequestHeaders(value, requestHeaders);
+          continue;
+        }
         requestParams.set(key, value.toString());
       }
     }
@@ -116,9 +184,15 @@ export class NetworkModule extends HippyNativeModuleBase {
   }
 }
 
-class FetchResCallback implements FetchResourceCallback{
+class FetchResCallback implements FetchResourceCallback {
+  private netModule: NetworkModule
+
+  constructor(ctx: HippyEngineContext) {
+    this.netModule = new NetworkModule(ctx)
+  }
+
   onFetchCompleted(holder: ResourceDataHolder): void {
-    NetworkModule.handleFetchResult(holder);
+    this.netModule.handleFetchResult(holder);
     holder.recycle();
   }
 
