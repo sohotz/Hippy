@@ -17,13 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyObservedArray } from '../../../../renderer_native'
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
 import {
   HippyAny,
-  HippyMap,
-  HippySocketMessage,
-  HippyValue
+  HippyMap
 } from '../../../../support/common/HippyTypes'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
@@ -32,7 +29,6 @@ import { HashMap } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
 import { HippyJsException } from '../../../common/HippyJsException'
 import { LogUtils } from '../../../../support/utils/LogUtils'
-import { HippyException } from '../../../../support/common/HippyException'
 
 const WEBSOCKET_MODULE_TAG = "WebSocketModule";
 
@@ -107,7 +103,8 @@ export class WebSocketModule extends HippyNativeModuleBase {
       return;
     }
     let socketId = param.get(WebSocketModule.PARAM_KEY_SOCKET_ID);
-    let socketClient = this.mWebSocketConnections.get(socketId);
+    let socketClient = this.mWebSocketConnections.get(0);
+    // let socketClient = this.mWebSocketConnections.get(socketId);
 
     if (socketClient == null) {
       LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: specified socket not found, or not connected yet");

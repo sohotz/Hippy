@@ -35,11 +35,10 @@ const COLUMN_VALUE = 'storage_value'
 
 export class DefaultStorageAdapter implements HippyStorageAdapter {
   private hippyStoreDb: relationalStore.RdbStore | undefined
-  private ctx: Context
+  private ctx: Context|null
 
-  constructor(context: Context) {
-    //todo need tobe changed by HippyEngineContext
-    this.ctx = context
+  constructor(context: HippyEngineContext) {
+    this.ctx = context.getGlobalConfigs().getContext()
     this.getStoreDb()
   }
 
@@ -51,7 +50,7 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
       };
 
       try {
-        this.hippyStoreDb = await relationalStore.getRdbStore(this.ctx, STORE_CONFIG)
+        this.hippyStoreDb = await relationalStore.getRdbStore(this.ctx==null?getContext():this.ctx, STORE_CONFIG)
         LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, 'Get RdbStore successfully.')
         await this.hippyStoreDb.executeSql(`CREATE TABLE IF NOT EXISTS ${TABLE_STORAGE} (${COLUMN_KEY} TEXT PRIMARY KEY, ${COLUMN_VALUE} TEXT);`)
         LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `CREATE TABLE SUCC`)
@@ -140,19 +139,10 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
     }
     resultSet.close();
     return results
-    //       if (err) {
-    //         LogUtils.e(TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
-    //         return reject(err);
-    //       }
   }
 
   destroyIfNeed(): void {
     if (this.hippyStoreDb !== undefined) {
-      // relationalStore.deleteRdbStore(this.ctx, STORE_DB_NAME).then(()=>{
-      //   LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG,`Delete RdbStore successfully.`);
-      // }).catch((err:BusinessError) => {
-      //   LogUtils.e(DEFAULT_STORAGE_ADAPTER_TAG,`Delete RdbStore failed, code is ${err.code},message is ${err.message}`);
-      // })
       this.hippyStoreDb == null
     }
   }
