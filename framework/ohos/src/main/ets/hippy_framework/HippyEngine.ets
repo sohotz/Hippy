@@ -20,14 +20,23 @@
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
 import { HippyMap } from '../support/common/HippyTypes';
+import { DefaultDeviceAdapter } from './adapter/device/DefaultDeviceAdapter';
 import { HippyDeviceAdapter } from './adapter/device/HippyDeviceAdapter';
+import { DefaultExceptionHandler } from './adapter/exception/DefaultExceptionHandler';
 import { HippyExceptionHandlerAdapter } from './adapter/exception/HippyExceptionHandlerAdapter';
+import { DefaultExecutorSupplierAdapter } from './adapter/executor/DefaultExecutorSupplierAdapter';
 import { HippyExecutorSupplierAdapter } from './adapter/executor/HippyExecutorSupplierAdapter';
+import { DefaultFontScaleAdapter } from './adapter/font/DefaultFontScaleAdapter';
 import { HippyFontScaleAdapter } from './adapter/font/HippyFontScaleAdapter';
+import { DefaultHttpAdapter } from './adapter/http/DefaultHttpAdapter';
 import { HippyHttpAdapter } from './adapter/http/HippyHttpAdapter';
+import { DefaultLogAdapter } from './adapter/log/DefaultLogAdapter';
 import { HippyLogAdapter } from './adapter/log/HippyLogAdapter';
+import { DefaultEngineMonitorAdapter } from './adapter/monitor/DefaultEngineMonitorAdapter';
 import { HippyEngineMonitorAdapter } from './adapter/monitor/HippyEngineMonitorAdapter';
+import { DefaultSoLoaderAdapter } from './adapter/soloader/DefaultSoLoaderAdapter';
 import { HippySoLoaderAdapter } from './adapter/soloader/HippySoLoaderAdapter';
+import { DefaultStorageAdapter } from './adapter/storage/DefaultStorageAdapter';
 import { HippyStorageAdapter } from './adapter/storage/HippyStorageAdapter';
 import { PreferencesStorageAdapter } from './adapter/storage/PreferencesStorageAdapter';
 import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdapter';
@@ -45,6 +54,7 @@ export interface HippyEngine {
 }
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
+  params.check()
   return new HippyEngineManagerImpl(params)
 }
 
@@ -124,6 +134,39 @@ export class EngineInitParams {
     this.libHippy = libHippy
     this.context = context
 
+  }
+
+  check() {
+    if (this.httpAdapter === null) {
+      this.httpAdapter = new DefaultHttpAdapter()
+    }
+    if (this.fontScaleAdapter === null) {
+      this.fontScaleAdapter = new DefaultFontScaleAdapter()
+    }
+    if (this.storageAdapter === null) {
+      this.storageAdapter = new DefaultStorageAdapter(this.context!)
+    }
+    if (this.soLoader === null) {
+      this.soLoader = new DefaultSoLoaderAdapter()
+    }
+    if (this.exceptionHandler === null) {
+      this.exceptionHandler = new DefaultExceptionHandler()
+    }
+    if (this.executorSupplier === null) {
+      this.executorSupplier = new DefaultExecutorSupplierAdapter()
+    }
+    if (this.deviceAdapter === null) {
+      this.deviceAdapter = new DefaultDeviceAdapter()
+    }
+    if (this.logAdapter === null) {
+      this.logAdapter = new DefaultLogAdapter()
+    }
+    if (this.engineMonitor === null) {
+      this.engineMonitor = new DefaultEngineMonitorAdapter()
+    }
+    if (this.preferencesStorageAdapter === null) {
+      this.preferencesStorageAdapter = new PreferencesStorageAdapter(this.context!)
+    }
   }
 }
 

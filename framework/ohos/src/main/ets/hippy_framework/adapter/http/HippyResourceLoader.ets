@@ -17,10 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { HippyHttpAdapter } from './HippyHttpAdapter';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { ResourceLoader } from '../../../vfs/ResourceLoader';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { UrlUtils } from '../../../support/utils/UrlUtils';
+import { HippyEngineContext } from '../../HippyEngineContext';
+import { http } from '@kit.NetworkKit';
 
 export enum FetchResultCode {
   OK,
@@ -32,13 +36,19 @@ export enum FetchResultCode {
 export class HippyResourceLoader implements ResourceLoader {
   private static readonly RAWFILE_PREFIX = "hpfile://";
   private static readonly ASSETS_IMAGE_PREFIX = "assets://"
+  private readonly engineContext: HippyEngineContext
 
-  constructor() {
+  constructor(engineContext: HippyEngineContext) {
+    this.engineContext = engineContext
   }
 
   fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback) {
-    holder.resource = holder.uri
-    callback.onHandleCompleted()
+    if (UrlUtils.isWebUrl(holder.uri)) {
+      let httpAdapter = this.engineContext.getGlobalConfigs().getHttpAdapter()
+      if (httpAdapter) {
+        httpAdapter.fetch(holder, http.RequestMethod.GET, this.engineContext.getNativeParams(), callback)
+      }
+    }
   }
 
   fetchResourceSync(holder: ResourceDataHolder): boolean {

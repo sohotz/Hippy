@@ -26,6 +26,9 @@ import HippyRenderBaseView, { HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRe
 import { LogUtils } from '../../../support/utils/LogUtils';
 import {HRDownloadUtils} from '../../utils/HRDownloadUtils'
 import { HREventUtils } from '../../utils/HREventUtils';
+import { ImageRequestListener } from './ImageRequestListener';
+import { ImageDataSupplier } from './ImageDataSupplier';
+import { HashMap } from '@kit.ArkTS';
 
 interface ImageLoadEvent {
   width: number
@@ -336,6 +339,14 @@ export class HRImageView extends HippyRenderBaseView {
             this.imageLoader.downloadTask(src,filePath)
           }
           this.cssSrc = propValue as string
+          let listener: ImageRequestListener = {
+            onRequestStart: (imageData: ImageDataSupplier) => {},
+            onRequestSuccess: (imageData: ImageDataSupplier) => {},
+            onRequestFail: () => {},
+            onRequestProgress: (total: number, loaded: number) => {}
+          }
+          let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
+          imageLoader.fetchImageAsync(this.cssSrc, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
         }
         return true
       case 'resizeMode':
