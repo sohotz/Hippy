@@ -18,14 +18,42 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyMap, HippyValue } from '../../../../support/common/HippyTypes'
+import { VfsManager } from '../../../../vfs/VfsManager'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
+import { HashMap } from '@kit.ArkTS'
 
 @HippyNativeModule({ name: "ImageLoaderModule" })
 export class ImageLoaderModule extends HippyNativeModuleBase {
   public static readonly NAME = 'ImageLoaderModule'
+  private mVfsManager: VfsManager;
+  private static ERROR_KEY_MESSAGE = "message";
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
+    this.mVfsManager = ctx.getVfsManager();
+  }
+
+  private decodeImageData(url: string, data: ArrayBuffer): Promise<void> {
+    return new Promise<void>(() => {
+
+    })
+  }
+
+  private generateRequestParams(): HashMap<string, string> {
+    let requestParams = new HashMap<string, string>();
+    requestParams.set("Content-Type", "image");
+    return requestParams;
+  }
+
+  public getSize(url: string): Promise<void> {
+    return new Promise<void>(() => {
+
+    })
+  }
+
+  public prefetch(url: string) {
+
   }
 }
