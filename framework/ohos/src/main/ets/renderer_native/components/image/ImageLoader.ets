@@ -17,12 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyResource } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyMap, HippyResource } from '../../../support/common/HippyTypes';
 import { VfsManager } from '../../../vfs/VfsManager';
 import { ImageLoaderAdapter } from './ImageLoaderAdapter';
+import { HashMap } from '@kit.ArkTS';
+import { ImageRequestListener } from './ImageRequestListener';
+import { FetchResourceCallback, ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 
 export class ImageLoader implements ImageLoaderAdapter {
   private static TAG = "ImageLoader"
+  private static REQUEST_CONTENT_TYPE = "Content-Type"
+  private static REQUEST_CONTENT_TYPE_IMAGE = "image"
 
   private vfsManager: VfsManager | null = null
 
@@ -30,8 +35,23 @@ export class ImageLoader implements ImageLoaderAdapter {
     this.vfsManager = vfsManager
   }
 
-  fetchImageAsync(url: string): void {
+  private generateRequestParams(width: number, height: number): HashMap<string, string> {
+    let requestParams = new HashMap<string, string>()
+    requestParams.set("width", String(width))
+    requestParams.set("height", String(height))
+    requestParams.set(ImageLoader.REQUEST_CONTENT_TYPE, ImageLoader.REQUEST_CONTENT_TYPE_IMAGE)
+    return requestParams
+  }
 
+  fetchImageAsync(url: string, listener: ImageRequestListener,
+                  initProps: HashMap<string, HippyAny>, width: number, height: number): void {
+    if (this.vfsManager) {
+      const cb: FetchResourceCallback = {
+        onFetchCompleted: (dataholder: ResourceDataHolder) => {},
+        onFetchProgress: (total:number, loaded: number) => {}
+      }
+      this.vfsManager.fetchResourceAsync(url, this.generateRequestParams(width, height), undefined, cb)
+    }
   }
 
   fetchImageSync(url: string) : HippyResource {

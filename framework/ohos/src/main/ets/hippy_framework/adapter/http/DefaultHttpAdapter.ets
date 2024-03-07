@@ -27,7 +27,7 @@ import Url from '@ohos.url'
 import { TextUtils } from '../../../support/utils/TextUtils';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { HttpTaskCallbackImpl } from './HttpTaskCallbackImpl';
-import { ResourceDataHolder } from 'ets/vfs/ResourceDataHolder';
+import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { HippyExecutor, HippyTask } from '../../../support/common/HippyExecutor';
 import { HippyException } from '../../../support/common/HippyException';
 import { LogUtils } from '../../../support/utils/LogUtils';
@@ -39,7 +39,7 @@ import { http } from '@kit.NetworkKit';
 const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
 export class DefaultHttpAdapter implements HippyHttpAdapter {
   private mExecutorService: HippyExecutor | null = null
-  private mContext: HippyEngineContext
+  private mContext: HippyEngineContext | null = null
 
   protected execute(task: HippyTask) {
     if (this.mExecutorService == null) {
@@ -48,8 +48,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     this.mExecutorService.execute(task);
   }
 
-  constructor(ctx: HippyEngineContext) {
-    this.mContext = ctx
+  constructor() {
   }
 
   public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback) {
@@ -61,7 +60,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
 
   protected generateHttpRequest(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams:
     HashMap<string, Object>): HippyHttpRequest {
-    if (holder.responseHeaders == null || holder.requestHeaders == undefined)
+    if (holder.requestHeaders == null || holder.requestHeaders == undefined)
       holder.requestHeaders = new HashMap<string, string>()
     if (holder.requestParams == null || holder.requestParams == undefined)
       holder.requestParams = new HashMap<string, string>()

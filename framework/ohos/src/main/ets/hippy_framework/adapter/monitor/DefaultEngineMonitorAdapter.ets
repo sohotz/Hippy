@@ -29,7 +29,7 @@ const DEFAULT_ENGIN_MONITOR_TAG: string = "DefaultEngineMonitorAdapter"
 
 export class DefaultEngineMonitorAdapter implements HippyEngineMonitorAdapter {
   protected printGroupTime(monitorGroup: MonitorGroup): void {
-    let monitorPoints: ArrayList<MonitorPoint> = monitorGroup.getMonitorPoints();
+    let monitorPoints = monitorGroup.getMonitorPoints();
     if (monitorPoints != null) {
       monitorPoints.forEach((monitorPoint: MonitorPoint) => {
         LogUtils.i(DEFAULT_ENGIN_MONITOR_TAG, monitorPoint.key + ": " + (monitorPoint.endTime - monitorPoint.startTime) + "ms");

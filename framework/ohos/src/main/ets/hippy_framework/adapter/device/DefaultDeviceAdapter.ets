@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyMap } from 'ets/support/common/HippyTypes';
+import { HippyMap } from '../../../support/common/HippyTypes';
 import { DimensionsUtil } from '../../../support/utils/DimensionsUtil';
 import { HippyDeviceAdapter } from './HippyDeviceAdapter';
 

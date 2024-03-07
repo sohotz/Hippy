@@ -29,7 +29,7 @@ export interface FetchResourceCallback {
    *
    * @param dataHolder holder of resources fetch result
    */
-  onFetchCompleted(holder: ResourceDataHolder): void
+  onFetchCompleted : (holder: ResourceDataHolder) => void
 
   /**
    * Return the current progress when loading resources.
@@ -37,7 +37,7 @@ export interface FetchResourceCallback {
    * @param total the total size of resources
    * @param loaded the current progress has loaded
    */
-  onFetchProgress(total: number, loaded: number): void
+  onFetchProgress : (total: number, loaded: number) => void
 }
 
 export class ResourceDataHolder {

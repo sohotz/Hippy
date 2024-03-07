@@ -51,6 +51,7 @@ import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdap
 import { HippyEngineContextImpl } from './HippyEngineContextImpl';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 import { LogUtils } from '../support/utils/LogUtils';
+import { HippyMap } from '../support/common/HippyTypes';
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   private libHippy: HippyLibrary
@@ -58,7 +59,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
 
   private providers: Array<HippyAPIProvider> | null = null
 
-  public vfsManager: VfsManager
   public jsDriver: JsDriver | null = null
   public domMgr: DomManager | null = null
   public nativeRenderProvider: NativeRenderProvider | null = null
@@ -76,16 +76,13 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   public mServerHost: string;
   public mThirdPartyAdapter: HippyThirdPartyAdapter | null;
   public v8InitParams: V8InitParams | null;
+  public nativeParams: HippyMap | null = null;
   public mEngineContext: HippyEngineContextImpl | null = null;
   public moduleManager: HippyModuleManager | null = null;
 
   constructor(params: EngineInitParams) {
     this.libHippy = params.libHippy
-    this.libHippy = params.libHippy
     this.providers = params.providers
-    this.vfsManager = new VfsManager(this.libHippy)
-    const resourceLoader = new HippyResourceLoader()
-    this.vfsManager.addProcessorAtFirst(new DefaultProcessor(resourceLoader))
     this.mGlobalConfigs = new HippyGlobalConfigs(params)
     this.mDebugMode = params.debugMode;
     this.mServerBundleName = params.debugMode ? params.debugBundleName : "";
@@ -120,7 +117,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
 
   initEngine(initCallbak: HippyEngineInitCallback): void {
     this.domMgr = new DomManager(this.libHippy)
-    this.mEngineContext = new HippyEngineContextImpl(this.domMgr, this.mGlobalConfigs);
+    this.mEngineContext = new HippyEngineContextImpl(this.libHippy, this.domMgr, this.mGlobalConfigs);
     this.moduleManager = new HippyModuleManager(this.mEngineContext)
     let customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null = null
     if (this.providers) {
@@ -144,8 +141,8 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     this.domMgr.createRootNode(rootNodeId, PixelUtil.getDensity())
     this.domMgr.attachToRoot(rootNodeId)
     this.jsDriver = new JsDriver(this.libHippy, this.moduleManager)
-    this.jsDriver.initialize(this.domMgr.instanceId, this.vfsManager.instanceId, (result: number, reason: string) => {
-      if (!this.jsDriver || !this.domMgr || !this.vfsManager || !this.resourceManager) {
+    this.jsDriver.initialize(this.domMgr.instanceId, this.getVfsManager().instanceId, (result: number, reason: string) => {
+      if (!this.jsDriver || !this.domMgr || !this.getVfsManager() || !this.resourceManager) {
         return
       }
       hilog.info(0x0000, 'hippy', 'jsDriver initialize callback, instanceId: %{public}d', this.jsDriver.instanceId);
@@ -158,7 +155,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
 
       this.jsDriver.runScriptFromUri(this.getBundlePath(),
         this.resourceManager,
-        false, "", this.vfsManager.instanceId, (result: number, reason: string) => {
+        false, "", this.getVfsManager().instanceId, (result: number, reason: string) => {
           if (!this.jsDriver) {
             return
           }
@@ -179,7 +176,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   }
 
   getVfsManager(): VfsManager {
-    return this.vfsManager;
+    return this.mEngineContext!.getVfsManager();
   }
 
   getBundlePath(): string {
@@ -206,7 +203,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   }
 
   loadJsModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback) {
-    if (!this.jsDriver || !this.vfsManager || !this.resourceManager) {
+    if (!this.jsDriver || !this.getVfsManager() || !this.resourceManager) {
       return
     }
     let coreBundleLoader: HippyBundleLoader | null = null;
@@ -220,7 +217,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     this.mJsBundleLoader = coreBundleLoader;
     this.jsDriver.runScriptFromUri(this.mJsBundleLoader!.getPath(),
       this.resourceManager,
-      false, "", this.vfsManager.instanceId, (result: number, reason: string) => {
+      false, "", this.getVfsManager().instanceId, (result: number, reason: string) => {
         if (!this.jsDriver) {
           return
         }
