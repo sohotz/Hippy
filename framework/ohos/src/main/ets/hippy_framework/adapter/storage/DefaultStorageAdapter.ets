@@ -26,7 +26,7 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 import { HippyEngineContext } from '../../HippyEngineContext';
 import { ArrayList } from '@kit.ArkTS';
 
-const TAG = 'DefaultStorageAdapter'
+const DEFAULT_STORAGE_ADAPTER_TAG = 'DefaultStorageAdapter'
 
 const STORE_DB_NAME = 'HippyStorage.db'
 const TABLE_STORAGE = 'hippy_engine_storage'
@@ -35,11 +35,10 @@ const COLUMN_VALUE = 'storage_value'
 
 export class DefaultStorageAdapter implements HippyStorageAdapter {
   private hippyStoreDb: relationalStore.RdbStore | undefined
-  private ctx: Context
+  private ctx: Context|null
 
-  constructor(context: Context) {
-    //todo need tobe changed by HippyEngineContext
-    this.ctx = context
+  constructor(context: HippyEngineContext) {
+    this.ctx = context.getGlobalConfigs().getContext()
     this.getStoreDb()
   }
 
@@ -51,12 +50,12 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
       };
 
       try {
-        this.hippyStoreDb = await relationalStore.getRdbStore(this.ctx, STORE_CONFIG)
-        LogUtils.i(TAG, 'Get RdbStore successfully.')
+        this.hippyStoreDb = await relationalStore.getRdbStore(this.ctx==null?getContext():this.ctx, STORE_CONFIG)
+        LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, 'Get RdbStore successfully.')
         await this.hippyStoreDb.executeSql(`CREATE TABLE IF NOT EXISTS ${TABLE_STORAGE} (${COLUMN_KEY} TEXT PRIMARY KEY, ${COLUMN_VALUE} TEXT);`)
-        LogUtils.i(TAG, `CREATE TABLE SUCC`)
+        LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `CREATE TABLE SUCC`)
       } catch (e) {
-        LogUtils.e(TAG, `CREATE TABLE FAIL` + e);
+        LogUtils.e(DEFAULT_STORAGE_ADAPTER_TAG, `CREATE TABLE FAIL` + e);
       }
     }
     return this.hippyStoreDb
@@ -70,7 +69,7 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
       predicates,
       [COLUMN_KEY, COLUMN_VALUE]
     );
-    LogUtils.i(TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
+    LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
     let results = new Array<[key: string, value: string]>(resultSet.rowCount);
     let i = 0;
     while (resultSet.goToNextRow()) {
@@ -100,10 +99,10 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
       valueBuckets,
       (err: BusinessError, rowId: number) => {
         if (err) {
-          LogUtils.e(TAG, `Insert is failed, code is ${err.code}, message is ${err.message}`);
+          LogUtils.e(DEFAULT_STORAGE_ADAPTER_TAG, `Insert is failed, code is ${err.code}, message is ${err.message}`);
           return
         }
-        LogUtils.i(TAG, `Insert is successful, rowId = ${rowId}`);
+        LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `Insert is successful, rowId = ${rowId}`);
         return
       })
   }
@@ -118,10 +117,10 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
     predicates.in(COLUMN_KEY, keys);
     (this.hippyStoreDb as relationalStore.RdbStore).delete(predicates, (err, rows) => {
       if (err) {
-        LogUtils.e(TAG, `Delete failed, code is ${err.code}, message is ${err.message}`);
+        LogUtils.e(DEFAULT_STORAGE_ADAPTER_TAG, `Delete failed, code is ${err.code}, message is ${err.message}`);
         return
       }
-      LogUtils.i(TAG, `Delete rows: ${rows}`);
+      LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `Delete rows: ${rows}`);
       return
     })
   }
@@ -131,7 +130,7 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
     let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
     let resultSet: relationalStore.ResultSet = await (this.hippyStoreDb as relationalStore.RdbStore).query(
       predicates, [COLUMN_KEY])
-    LogUtils.i(TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
+    LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
     let results = new Array<string>(resultSet.rowCount);
     let i = 0;
     while (resultSet.goToNextRow()) {
@@ -140,9 +139,11 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
     }
     resultSet.close();
     return results
-    //       if (err) {
-    //         LogUtils.e(TAG, `Query failed, code is ${err.code}, message is ${err.message}`);
-    //         return reject(err);
-    //       }
+  }
+
+  destroyIfNeed(): void {
+    if (this.hippyStoreDb !== undefined) {
+      this.hippyStoreDb == null
+    }
   }
 }

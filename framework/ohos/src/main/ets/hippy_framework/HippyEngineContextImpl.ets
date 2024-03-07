@@ -7,7 +7,6 @@ import { HippyEngineContext } from './HippyEngineContext';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 
-
 export class HippyEngineContextImpl implements HippyEngineContext {
   private mGlobalConfigs: HippyGlobalConfigs;
 

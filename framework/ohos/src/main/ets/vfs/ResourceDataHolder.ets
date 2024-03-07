@@ -20,7 +20,7 @@
 
 import fs from '@ohos.file.fs';
 import HashMap from '@ohos.util.HashMap';
-import { HippyResource } from '../support/common/HippyTypes';
+import { HippyAny, HippyResource } from '../support/common/HippyTypes';
 
 export interface FetchResourceCallback {
   /**
@@ -54,6 +54,10 @@ export class ResourceDataHolder {
   public requestFrom: RequestFrom
   public nativeRequestId: number
   public index: number = -1
+  public transferType:TransferType = TransferType.NORMAL;
+  // public buffer:ArrayBuffer = new ArrayBuffer(100)
+  // public bytes:Uint8Array = new Uint8Array()
+  public loadStartTime = 0;
 
   constructor(uri: string, requestHeaders: HashMap<string, string> | undefined,
               requestParams: HashMap<string, string> | undefined, callback: FetchResourceCallback | null,
@@ -76,6 +80,31 @@ export class ResourceDataHolder {
 
   readResourceDataFromStream(stream: fs.Stream) {
 
+  }
+
+  public recycle() {
+    // this.buffer = null;
+    // this.bytes = null;
+    this.loadStartTime = 0;
+    this.transferType = TransferType.NORMAL;
+    this.errorMessage = undefined;
+    this.callback = null;
+    this.processorTag = undefined;
+    this.index = -1;
+    this.resultCode = -1;
+    // RecycleObject.recycle(this);
+  }
+
+  public getBytes():ArrayBuffer {//todo
+    // if (this.transferType == TransferType.NORMAL) {
+    //   return bytes;
+    // } else if (this.buffer != null) {
+    //     buffer.flip();
+    //     byte[] bytes = new byte[buffer.remaining()];
+    //     buffer.get(bytes);
+    //     return bytes;
+    // }
+    return new ArrayBuffer(100);
   }
 }
 

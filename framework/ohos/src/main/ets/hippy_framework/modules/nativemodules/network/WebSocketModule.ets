@@ -18,14 +18,149 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import {
+  HippyAny,
+  HippyMap
+} from '../../../../support/common/HippyTypes'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
+import { webSocket } from '@kit.NetworkKit'
+import { HashMap } from '@kit.ArkTS'
+import { TextUtils } from '../../../../support/utils/TextUtils'
+import { HippyJsException } from '../../../common/HippyJsException'
+import { LogUtils } from '../../../../support/utils/LogUtils'
+
+const WEBSOCKET_MODULE_TAG = "WebSocketModule";
 
 @HippyNativeModule({ name: "WebSocketModule" })
 export class WebSocketModule extends HippyNativeModuleBase {
   public static readonly NAME = 'WebSocketModule'
+  private mWebSocketConnections: HashMap<number, webSocket.WebSocket>
+  private static PARAM_KEY_SOCKET_URL = "url";
+  private static PARAM_KEY_SOCKET_ID = "id";
+  private static PARAM_KEY_CODE = "code";
+  private static PARAM_KEY_REASON = "reason";
+  private static PARAM_KEY_HEADERS = "headers";
+  private static PARAM_KEY_TYPE = "type";
+  private static PARAM_KEY_DATA = "data";
+  private sWebSocketIds = 0
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
+    this.mWebSocketConnections = new HashMap<number, webSocket.WebSocket>();
+  }
+
+  public connect(request: HippyMap): Promise<HippyAny> {
+    let returnValue: HippyMap = new Map();
+    return new Promise((resolve, reject) => {
+      if (request == null) {
+        returnValue.set(WebSocketModule.PARAM_KEY_CODE, -1);
+        returnValue.set(WebSocketModule.PARAM_KEY_REASON, "invalid connect param");
+        resolve(returnValue);
+        return;
+      }
+
+      let url = request.get(WebSocketModule.PARAM_KEY_SOCKET_URL) + "";
+      if (TextUtils.isEmpty(url)) {
+        returnValue.set(WebSocketModule.PARAM_KEY_CODE, -1);
+        returnValue.set(WebSocketModule.PARAM_KEY_REASON, "no valid url for websocket");
+        resolve(returnValue);
+        return;
+      }
+
+      let webSocketId = this.addAndGet(this.sWebSocketIds);
+      let ws = webSocket.createWebSocket();
+      ws.connect(url).then((value) => {
+        LogUtils.i(WEBSOCKET_MODULE_TAG, "connect success")
+        this.mWebSocketConnections.set(webSocketId, ws);
+
+        returnValue.set(WebSocketModule.PARAM_KEY_CODE, 0);
+        returnValue.set(WebSocketModule.PARAM_KEY_REASON, "");
+        returnValue.set(WebSocketModule.PARAM_KEY_SOCKET_ID, webSocketId);
+        resolve(returnValue);
+      }).catch((err: HippyJsException) => {
+        LogUtils.e(WEBSOCKET_MODULE_TAG, "connect fail, error:" + JSON.stringify(err))
+      });
+    })
+  }
+
+  public send(param: HippyMap) {
+    this.handleSocket(param, "open")
+  }
+
+  public close(param: HippyMap) {
+    this.handleSocket(param, "close")
+  }
+
+  handleSocket(param: HippyMap, status: string) {
+    if (param == null) {
+      LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: request is null");
+      return;
+    }
+
+    if (!param.has(WebSocketModule.PARAM_KEY_SOCKET_ID)) {
+      LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: no socket id specified");
+      return;
+    }
+    let socketId = param.get(WebSocketModule.PARAM_KEY_SOCKET_ID);
+    let socketClient = this.mWebSocketConnections.get(0);
+    // let socketClient = this.mWebSocketConnections.get(socketId);
+
+    if (socketClient == null) {
+      LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: specified socket not found, or not connected yet");
+      return;
+    }
+
+    let textData = param.get(WebSocketModule.PARAM_KEY_DATA);
+    if (textData == null) {
+      LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: no data specified to be sent");
+      return;
+    }
+
+    if (status == "open") {
+      // 当收到on('open')事件时，可以通过send()方法与服务器进行通信
+      // todo textData数据类型支持string|ArrayBuffer
+      socketClient.send(textData.toString(), (err1, value1) => {
+        if (!err1) {
+          LogUtils.d(WEBSOCKET_MODULE_TAG, "send success");
+        } else {
+          LogUtils.d(WEBSOCKET_MODULE_TAG, "send fail, err:" + JSON.stringify(err1));
+        }
+      });
+    } else if (status == "close") {
+      // 当收到服务器的`bye`消息时（此消息字段仅为示意，具体字段需要与服务器协商），主动断开连接
+      //if (value === 'bye') {
+      socketClient.close((err1, value1) => {
+        if (!err1) {
+          LogUtils.d(WEBSOCKET_MODULE_TAG, "close success");
+        } else {
+          LogUtils.d(WEBSOCKET_MODULE_TAG, "close fail, err is " + JSON.stringify(err1));
+        }
+      });
+    }
+  }
+
+  public destroy() {
+    let size = this.mWebSocketConnections.length;
+    if (size == 0) {
+      return;
+    }
+
+    for (let key of this.mWebSocketConnections.keys()) {
+      let value = this.mWebSocketConnections.get(key)
+      if (value != null) {
+        value.close();
+      }
+    }
+
+    this.mWebSocketConnections.clear();
+  }
+
+  protected removeSocketConnection(socketId: number) {
+    this.mWebSocketConnections.remove(socketId);
+  }
+
+  private addAndGet(num: number): number {
+    return num + 1
   }
 }

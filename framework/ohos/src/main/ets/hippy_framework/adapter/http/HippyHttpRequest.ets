@@ -29,7 +29,7 @@ import { HashMap, util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
-const TAG = "HippyHttpRequest"
+const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
 
 export class HippyHttpRequest {
   private context: HippyEngineContext
@@ -137,7 +137,7 @@ export class HippyHttpRequest {
         jsonObject[key] = value;
       }
     })
-    LogUtils.d(TAG, JSON.stringify(jsonObject));
+    LogUtils.d(HIPPY_HTTP_REQUEST_TAG, JSON.stringify(jsonObject));
     return JSON.stringify(jsonObject)
   }
 

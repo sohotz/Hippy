@@ -21,7 +21,9 @@ import { HippyEngineContext } from '../../../HippyEngineContext';
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase';
 import { DefaultStorageAdapter } from '../../../adapter/storage/DefaultStorageAdapter';
 import { HippyStorageAdapter } from '../../../adapter/storage/HippyStorageAdapter';
+import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule';
 
+@HippyNativeModule({ name: "StorageModule" })
 export class StorageModule extends HippyNativeModuleBase {
   public static readonly NAME = 'StorageModule';
   // private adapter: HippyStorageAdapter;

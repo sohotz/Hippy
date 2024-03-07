@@ -25,4 +25,13 @@ export interface HippyStorageAdapter {
   multiRemove(keys: string[]): Promise<void>
 
   getAllKeys(): Promise<string[]>
+
+  destroyIfNeed():void
+}
+
+export interface Callback<T extends Object> {
+
+   onSuccess(data:T):void
+
+   onError( mseeage:string):void
 }

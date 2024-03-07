@@ -22,15 +22,15 @@ import { HippyException } from '../../../../support/common/HippyException'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { audio } from '@kit.AudioKit'
+import { LogUtils } from '../../../../support/utils/LogUtils'
 
+const AUDIO_MODULE_TAG: string = 'AudioPlayerModule'
 @HippyNativeModule({ name: "AudioPlayerModule" })
 export class AudioPlayerModule extends HippyNativeModuleBase {
-  private mHippyEngineContext: HippyEngineContext
   private mMediaPlayer: audio.AudioRenderer | null
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
-    this.mHippyEngineContext = ctx;
     this.mMediaPlayer = this.createMediaPlayer()
   }
 
@@ -55,10 +55,10 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     // }
 
     audio.createAudioRenderer(audioRendererOptions).then((data) => {
-      console.info('AudioFrameworkRenderLog: AudioRenderer Created : Success : Stream Type: SUCCESS');
+      LogUtils.i(AUDIO_MODULE_TAG,'AudioFrameworkRenderLog: AudioRenderer Created : Success : Stream Type: SUCCESS')
       return data
     }).catch((err: HippyException) => {
-      console.error(`AudioFrameworkRenderLog: AudioRenderer Created : ERROR : ${err}`);
+      LogUtils.e(AUDIO_MODULE_TAG,`AudioFrameworkRenderLog: AudioRenderer Created : ERROR : ${err}`)
     });
     return null
   }
@@ -66,9 +66,9 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
   play() {
     if (this.mMediaPlayer != null) {
       this.mMediaPlayer.start().then(() => {
-        console.info('Renderer started');
+        LogUtils.i(AUDIO_MODULE_TAG,'Renderer started')
       }).catch((err:HippyException) => {
-        console.error(`ERROR: ${err}`);
+        LogUtils.e(AUDIO_MODULE_TAG,`ERROR: ${err}`)
       });
     }
   }
@@ -95,9 +95,9 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
   pause(){
     if (this.mMediaPlayer != null) {
       this.mMediaPlayer.pause().then(() => {
-        console.info('Renderer pauseed');
+        LogUtils.i(AUDIO_MODULE_TAG,'Renderer pauseed')
       }).catch((err:HippyException) => {
-        console.error(`ERROR: ${err}`);
+        LogUtils.e(AUDIO_MODULE_TAG,`ERROR: ${err}`)
       });
     }
   }
@@ -109,9 +109,9 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
   stop(){
     if (this.mMediaPlayer != null) {
       this.mMediaPlayer.stop().then(() => {
-        console.info('Renderer stoped');
+        LogUtils.i(AUDIO_MODULE_TAG,'Renderer stoped')
       }).catch((err:HippyException) => {
-        console.error(`ERROR: ${err}`);
+        LogUtils.e(AUDIO_MODULE_TAG,`ERROR: ${err}`)
       });
     }
   }
