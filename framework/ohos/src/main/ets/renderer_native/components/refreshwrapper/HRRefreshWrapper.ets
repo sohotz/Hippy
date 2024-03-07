@@ -24,11 +24,16 @@ import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { ComposeListItem } from '@ohos.arkui.advanced.ComposeListItem';
 
 @Observed
 export class HRRefreshWrapperView extends HippyRenderBaseView {
   private readonly TAG = "HRRefreshWrapperView"
   public bounceTime:number = 300
+  public scroller: Scroller = new Scroller()
+  public needRefresh:boolean = false
+  public refreshBarVisible = false
+  public uiCtx:UIContext|null = null
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -51,22 +56,25 @@ export class HRRefreshWrapperView extends HippyRenderBaseView {
     }
   }
 
-  bounceToHead(posY:number) {
+  bounceToHead() {
     setTimeout(() => {
-      LogUtils.d(this.TAG, `timeout:${this.bounceTime}, PosY:${posY}`)
-      this.children[0].setProp('cssPositionY', -posY)
-      this.setProp('cssPositionY', posY)
+      LogUtils.d(this.TAG, `timeout:${this.bounceTime}`)
+      this.scroller.scrollToIndex(1, true)
+      this.refreshBarVisible = false
     },
       this.bounceTime)
   }
 
   startRefresh() {
-    this.bounceToHead(this.children[0].cssHeight)
     HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
   }
 
   refreshComplected() {
-    this.bounceToHead(0)
+    this.uiCtx?.runScopedTask(()=>{
+      this.bounceToHead()
+    })
+
+    this.needRefresh = false
   }
 }
 
@@ -76,63 +84,47 @@ export struct HRRefreshWrapper {
   @ObjectLink renderView: HRRefreshWrapperView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  private controller: SwiperController = new SwiperController()
-  private PAGE_ITEM_POSITION: string = "position";
-  initY: number = 0
 
   aboutToAppear() {
+    this.renderView.uiCtx = this.getUIContext()
   }
 
   aboutToDisappear() {
   }
 
   build() {
-    Stack() {
+    List({ initialIndex: 1, scroller: this.renderView.scroller }) {
       ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
+        ListItem() {
+          this.buildRenderView(item, null)
+        }
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
-    .onTouch((event: TouchEvent) => {
-      let delta = 0
-      delta = event.touches[0].windowY - this.initY
-      //LogUtils.d(this.TAG, `type:${event.type}, touch:x, ${event.touches[0].x},y, ${event.touches[0].y}, WindowsY, ${event.touches[0].windowY}, DisplayY, ${event.touches[0].displayY}, cssPos:${this.renderView.cssPositionY}`)
-      switch (event.type) {
-        case TouchType.Down:
-          this.initY = event.touches[0].windowY
-          break
-        case TouchType.Up:
-          if (delta > this.children[0].cssHeight) {
-            this.renderView.startRefresh()
-          } else {
-            this.renderView.bounceToHead(0)
-          }
-          break
-        case TouchType.Move:
-        case TouchType.Cancel:
-          //LogUtils.d(this.TAG, `initY:${this.initY}, WindowsY:${event.touches[0].windowY}, detla:${delta}, delta:${delta}`)
-          if (delta > 0) {
-            this.renderView.setProp('cssPositionY', delta)
-
-            //this.children[0].cssPositionY = this.itemInitY + delta
-            if (delta > this.children[0].cssHeight) {
-              delta = this.children[0].cssHeight
-            }
-            this.children[0].setProp('cssPositionY', -delta)
-
-            //this.children[1].setProp('cssPositionY',  delta)
-
-            //this.renderView.cssPositionY = event.touches[0].windowY
-            //this.children[0].cssHeight = this.heightx
-          }
-          break
+    .scrollBar(BarState.Off)
+    .onScrollIndex((start)=>{
+      LogUtils.d(this.TAG, `onScrollIndex, start:${start}`)
+      if (start === 0) {
+        this.renderView.refreshBarVisible = true
+      }
+    })
+    .onReachStart(() => {
+      LogUtils.d(this.TAG, 'onReachStart')
+      this.renderView.needRefresh = true
+    })
+    .onScrollStop(() => {
+      LogUtils.d(this.TAG, `onReachStop, needfresh:${this.renderView.needRefresh}, visible:${this.renderView.refreshBarVisible}`)
+      if (this.renderView.needRefresh) {
+        this.renderView.startRefresh()
+      } else if (this.renderView.refreshBarVisible){
+        this.renderView.bounceToHead()
       }
     })
   }
 }
 
 // base props for all components
-@Extend(Stack)
+@Extend(List)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
   .position({ x: $$.cssPositionX, y: $$.cssPositionY })
