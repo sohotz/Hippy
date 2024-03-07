@@ -36,10 +36,6 @@ export class HRModalView extends HippyRenderBaseView {
   immersionStatusBar: boolean = false;
   darkStatusBarText: boolean = false;
 
-  handleClose() {
-    HRGestureDispatcher.handleClickEvent(this.ctx, this.tag, HREventUtils.EVENT_MODAL_REQUEST_CLOSE)
-  }
-
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
@@ -81,14 +77,8 @@ struct HippyDialog {
         this.buildRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
-    .opacity(this.renderView.transparent == true ? 0.4 : 1)
-    .size({width:this.renderView.cssWidth, height: this.renderView.cssHeight})
-    .backgroundColor(0x55ffffff).backdropBlur(5)
-    .onClick((e:ClickEvent) => {
-      LogUtils.i(TAG, `HRModal cssWidth: ${this.renderView.cssWidth}, cssHeight: ${this.renderView.cssHeight}`);
-      this.renderView.handleClose()
-    })
-
+    .applyRenderViewBaseAttr(this.renderView)
+    .backgroundColor(this.renderView.transparent ? Color.Transparent : this.renderView.cssBackgroundColor)
   }
 }
 
@@ -98,9 +88,12 @@ export struct HRModal {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   private dialogController: CustomDialogController = {} as CustomDialogController
+
   handleCancel(): void {
-    HRGestureDispatcher.handleClickEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_MODAL_REQUEST_CLOSE)
+    LogUtils.d(TAG, `handleCancel EVENT_MODAL_REQUEST_CLOSE`)
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_MODAL_REQUEST_CLOSE, null)
   }
+
   aboutToAppear() {
     this.dialogController = new CustomDialogController({
       builder: HippyDialog({
@@ -116,15 +109,32 @@ export struct HRModal {
       cancel: this.handleCancel,
     });
     this.dialogController.open();
-    HRGestureDispatcher.handleClickEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_MODAL_SHOW)
-
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_MODAL_SHOW, null)
   }
 
   aboutToDisappear() {
+    LogUtils.d(TAG, `aboutToDisappear`)
     this.dialogController.close()
   }
 
   build() {
 
   }
+}
+
+// base props for all components
+@Extend(Stack)
+function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  //.backgroundColor($$.cssBackgroundColor)
+  //.position({ x: $$.cssPositionX, y: $$.cssPositionY })
+  //.size({ width: $$.cssWidth, height: $$.cssHeight })
+  .opacity($$.cssOpacity)
+  .clip($$.cssOverflow)
+  .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .zIndex($$.cssZIndex)
+  .border($$.cssBorder)
+  .rotate($$.cssRotate)
+  .scale($$.cssScale)
+  .translate($$.cssTranslate)
+  //.onClick($$.eventClick)
 }

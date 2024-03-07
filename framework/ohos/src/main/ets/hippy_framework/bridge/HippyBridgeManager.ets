@@ -17,7 +17,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyMap } from '../../support/common/HippyTypes';
+import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAdapter';
+import { HippyBundleLoader } from './bundleloader/HippyBundleLoader';
 
 export interface HippyBridgeManager {
+  initBridge(): void;
 
+  runBundle(id: number, loader: HippyBundleLoader): void;
+
+  loadInstance(name: string, id: number, params: HippyMap): void;
+
+  resumeInstance(id: number): void;
+
+  pauseInstance(id: number): void;
+
+  destroyInstance(id: number): void;
+
+  execCallback(params: HippyMap): void;
+
+  destroyBridge(isReload: boolean): void;
+
+  destroy(): void;
+
+  callJavaScriptModule(mName: string, name: string, params: HippyMap): void;
+
+  getThirdPartyAdapter(): HippyThirdPartyAdapter;
 }

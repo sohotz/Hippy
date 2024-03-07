@@ -17,7 +17,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NativeCallback } from '../connector/NativeCallback';
 
 export interface HippyBridge {
+
+  initJSBridge(gobalConfig: string, callback: NativeCallback, groupId: number): void;
+
+  runScriptFromUri(uri: string, canUseCodeCache: boolean, codeCacheTag: string, callback: NativeCallback): boolean;
+
+  onDestroy(): void;
+
+  destroy(callback: NativeCallback, isReload: boolean): void;
+
+  callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array): void;
+
+  getV8RuntimeId(): number;
+}
+
+export interface BridgeCallback {
+
+  callNatives(moduleName: string, moduleFunc: string, callId: string, params: Uint8Array): void;
+
+  reportException(message: string, stackTrace: string): void;
 
 }

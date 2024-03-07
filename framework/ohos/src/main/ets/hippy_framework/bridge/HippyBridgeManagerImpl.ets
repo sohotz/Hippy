@@ -21,10 +21,52 @@ import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
 import { HippyAny, HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { ArgumentUtils } from '../../support/utils/ArgumentUtils';
 import { I18nUtil } from '../../support/utils/I18nUtil';
+import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAdapter';
 import { Serializer } from '../serialization/Serializer';
+import { HippyBundleLoader } from './bundleloader/HippyBundleLoader';
 import { HippyBridgeManager } from './HippyBridgeManager';
 
 export class HippyBridgeManagerImpl implements HippyBridgeManager {
+  initBridge(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  runBundle(id: number, loader: HippyBundleLoader): void {
+    throw new Error('Method not implemented.');
+  }
+
+  resumeInstance(id: number): void {
+    throw new Error('Method not implemented.');
+  }
+
+  pauseInstance(id: number): void {
+    throw new Error('Method not implemented.');
+  }
+
+  destroyInstance(id: number): void {
+    throw new Error('Method not implemented.');
+  }
+
+  execCallback(params: HippyMap): void {
+    throw new Error('Method not implemented.');
+  }
+
+  destroyBridge(isReload: boolean): void {
+    throw new Error('Method not implemented.');
+  }
+
+  destroy(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  callJavaScriptModule(mName: string, name: string, params: HippyMap): void {
+    throw new Error('Method not implemented.');
+  }
+
+  getThirdPartyAdapter(): HippyThirdPartyAdapter {
+    throw new Error('Method not implemented.');
+  }
+
 
   loadInstance(name: string, id: number, params: HippyMap) {
     // TODO(hot):
