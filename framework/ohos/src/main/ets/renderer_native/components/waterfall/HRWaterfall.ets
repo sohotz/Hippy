@@ -105,6 +105,8 @@ export struct HRWaterfall {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   private PAGE_ITEM_POSITION: string = "position";
+  private WATERFALL_INDEX_FIRST: string = "first";
+  private WATERFALL_INDEX_LAST: string = "last";
   @State index: number = 0
 
   handleChangeEvent(index: number) {
@@ -137,6 +139,14 @@ export struct HRWaterfall {
     let params = new Map<string, Number>() as HippyMap;
     params.set(this.PAGE_ITEM_POSITION, index);
     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SELECTED, params);
+  }
+
+  handleScrollToIndex(first: number, last: number){
+    LogUtils.d(this.TAG, "handleScrollToIndex: first: " + first + "last: " + last)
+    let params = new Map<string, number>() as HippyMap;
+    params.set(this.WATERFALL_INDEX_FIRST, first);
+    params.set(this.WATERFALL_INDEX_LAST, last);
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_WATERFALL_SCROLL_REPORT, params);
   }
 
   aboutToAppear() {
@@ -177,6 +187,7 @@ export struct HRWaterfall {
         .columnsTemplate("1fr 1fr")
         .columnsGap(this.renderView.columnSpacing)
         .rowsGap(this.renderView.interItemSpacing)
+        .onScrollIndex((first: number, last: number) => this.handleScrollToIndex(first,last))
         .width('100%')
         .height('100%')
         .nestedScroll({
