@@ -17,15 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyRecord, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HippyAny,
+  HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRNodeProps } from '../../dom_node/HRNodeProps';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HRConvertUtil } from '../../utils/HRConvertUtil';
-import HippyRenderBaseView from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import {HRDownloadUtils} from '../../utils/HRDownloadUtils'
-import common from '@ohos.app.ability.common';
-
+import { HREventUtils } from '../../utils/HREventUtils';
 
 interface ImageLoadEvent {
   width: number
@@ -66,36 +66,27 @@ export class HRImageView extends HippyRenderBaseView {
   private static readonly RAW_IMAGE_PREFIX = "hpfile://"
   private static readonly INTERNET_IMAGE_PREFIX = "http"
   private readonly TAG = "HRImageView"
-  private imageLoader:HRDownloadUtils = new HRDownloadUtils
+  private imageLoader: HRDownloadUtils = new HRDownloadUtils
   tempDir:string = getContext().tempDir
 
   cssSrc: string | null = null
-  //cssBackgroundColor: number = 0
-  //cssBackgroundColorArray: number[] = [0]
-  cssResizeMode: ImageFit = ImageFit.Cover
-  cssBorderColor: number = 0
-  cssBorderStyle: BorderStyle = BorderStyle.Solid
-  cssBorderWidth: number = 0
   cssAlt: string = ""
-  cssFillColor: ResourceColor = 0
-  cssMargin: number = 0
-  cssHeight: number = 0
-  cssWidth: number = 0
-  cssTintColor: number[] = [0]  //RGBA
+  cssResizeMode: ImageFit = ImageFit.Cover
+  cssTintColor: number[] = [0] // RGBA
   cssColorFilter: ColorFilter = [0]
   cssTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.DST
   cssPreTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.DST
   onCompleteCallback: ((event?: ImageLoadEvent) => void) | null = null
-  eventLoadSuccess: HippyRenderCallback | null = null
-  eventLoadResolution: HippyRenderCallback | null = null
+  onErrorCallback: ((error: ImageError) => void) | null = null
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
-    LogUtils.d(this.TAG,"constructor")
+    LogUtils.d(this.TAG, "constructor")
+    this.initCallbacks()
   }
 
-  setResizeMode(pvalue: string) {
-    LogUtils.d(this.TAG,"setResizeMode")
+  private setResizeMode(pvalue: string) {
+    LogUtils.d(this.TAG, "setResizeMode")
     switch (pvalue) {
       case 'contain':
         this.cssResizeMode = ImageFit.Contain
@@ -106,27 +97,21 @@ export class HRImageView extends HippyRenderBaseView {
       case 'center':
         this.cssResizeMode = ImageFit.Contain
         break;
+      case 'origin':
+        this.cssResizeMode = ImageFit.None
+        break;
+      case 'repeat':
+        this.cssResizeMode = ImageFit.Contain
+        break;
+      case 'fitXY':
+        this.cssResizeMode = ImageFit.Fill
+        break;
       default:
         console.log(`unknown resizeMode : ${pvalue}`)
+        this.cssResizeMode = ImageFit.Fill
         break;
     }
   }
-
-  setBorderStyle(pvalue: string) {
-    LogUtils.d(this.TAG,"setBorderStyle")
-    switch (pvalue) {
-      case 'solid':
-        this.cssBorderStyle = BorderStyle.Solid
-        break;
-      default:
-        console.log(`unknown BorderStyle : ${pvalue}`)
-        break;
-    }
-  }
-
-  private saturate(x:number):number {
-      return Math.max(0.0, Math.min(1.0, x));
-}
 
   private setTintColorBlendMode(propValue: HippyAny){
     LogUtils.d(this.TAG,"setTintColorBlendMode")
@@ -359,23 +344,6 @@ export class HRImageView extends HippyRenderBaseView {
           this.setResizeMode(pvalue)
         }
         return true
-      case 'borderStyle':
-        {
-          let pvalue = propValue as string
-          this.setBorderStyle(pvalue)
-        }
-        return true
-      case 'borderColor':
-        {
-          let borderColor = propValue as number
-          this.cssOpacity = (borderColor >> 24) & 0xff
-          this.cssBorderColor = borderColor & 0xffffff
-          LogUtils.d(this.TAG, "borderColor: cssOpacity " + this.cssOpacity  + " cssBorderColor: " + this.cssBorderColor)
-        }
-        return true
-      case 'borderWidth':
-        this.cssBorderWidth = propValue as number
-        return true
       case 'defaultSource':
         {
           this.cssAlt = propValue as string
@@ -402,40 +370,39 @@ export class HRImageView extends HippyRenderBaseView {
           this.setColorFilterMatrix()
         }
         return true
-      case 'margin':
-        this.cssMargin = propValue as number
-        return true
-      case 'height':
-        this.cssHeight = propValue as number
-        return true
-      case 'width':
-        this.cssWidth = propValue as number
-        return true
-      // case 'backgroundColor':
-      //   this.cssBackgroundColor = propValue as number
-      //   this.cssBackgroundColorArray[0] = (this.cssBackgroundColor >> 16) & 0xff   //red
-      //   this.cssBackgroundColorArray[1] = (this.cssBackgroundColor >> 8) & 0xff    //green
-      //   this.cssBackgroundColorArray[2] = this.cssBackgroundColor & 0xff           //blue
-      //   this.cssBackgroundColorArray[3] = (this.cssBackgroundColor >> 24) & 0xff   //alpha
-      //   return true
       default:
         break
     }
     return super.setProp(propKey, propValue as HippyAny)
   }
 
-  private initOnCompleteCallbackIfNeeded() {
+  private initCallbacks() {
     if (!this.onCompleteCallback) {
       this.onCompleteCallback = (event) => {
         if (event?.loadingStatus !== 1) {
           return
         }
-        if (this.eventLoadSuccess) {
-          this.eventLoadSuccess({ 'src': this.cssSrc } as HippyRecord)
-        }
-        if (this.eventLoadResolution) {
-          this.eventLoadResolution({ 'imageWidth': event.width, 'imageHeight': event.height } as HippyRecord)
-        }
+        // send onLoad event
+        HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_IMAGE_ON_LOAD, null)
+        let params = new Map<string, HippyAny>()
+        params.set("success", 1)
+        let imageSize = new Map<string, number>()
+        imageSize.set("width", event?.width)
+        imageSize.set("height", event?.height)
+        params.set("image", imageSize)
+        // send onLoadEnd event
+        HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_IMAGE_LOAD_END, params as HippyAny)
+      }
+    }
+    if (!this.onErrorCallback) {
+      this.onErrorCallback = (error: ImageError) => {
+        LogUtils.d(this.TAG, `onErrorCallback, w: ${error.componentWidth}, h: ${error.componentHeight}, msg: ${error.message}`)
+        // send onError event
+        HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_IMAGE_LOAD_ERROR, null)
+        let params = new Map<string, number>()
+        params.set("success", 0)
+        // send onLoadEnd event
+        HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_IMAGE_LOAD_END, params)
       }
     }
   }
@@ -461,27 +428,18 @@ export struct HRImage {
   build() {
     Image(this.renderView.getImage())
       .applyRenderViewBaseAttr(this.renderView)
-      .objectFit(this.renderView.cssResizeMode)
-      .onComplete(this.renderView.onCompleteCallback)
-      .borderWidth(this.renderView.cssBorderWidth)
-      .borderColor(this.renderView.cssBorderColor)
-      .borderStyle(this.renderView.cssBorderStyle)
       .alt($rawfile(this.renderView.cssAlt))
+      .objectFit(this.renderView.cssResizeMode)
       .colorFilter(this.renderView.cssColorFilter)
-      .width(this.renderView.cssWidth)
-      .height(this.renderView.cssHeight)
-      // .onComplete(() => {
-      //   console.log(`hrimageview setTintColorBlendMode`)
-      // })
-      // .onError(() => {
-      //   console.log(`hrimageview setTintColorBlendMode`)
-      // })
+      .onComplete(this.renderView.onCompleteCallback)
+      .onError(this.renderView.onErrorCallback)
   }
 }
 
 // base props for all components
 @Extend(Image)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
   .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
@@ -489,9 +447,18 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }

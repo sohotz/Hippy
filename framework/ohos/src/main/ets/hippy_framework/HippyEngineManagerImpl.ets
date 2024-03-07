@@ -50,6 +50,7 @@ import { HippyFileBundleLoader } from './bridge/bundleloader/HippyFileBundleLoad
 import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdapter';
 import { HippyEngineContextImpl } from './HippyEngineContextImpl';
 import { HippyModuleManager } from './modules/HippyModuleManager';
+import { LogUtils } from '../support/utils/LogUtils';
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   private libHippy: HippyLibrary
@@ -65,6 +66,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
 
   public mGlobalConfigs: HippyGlobalConfigs
   public mCoreBundleLoader: HippyBundleLoader | null = null;
+  public mJsBundleLoader: HippyBundleLoader | null = null;
   public mDebugMode: boolean;
   public mServerBundleName: string;
   public enableV8Serialization: boolean;
@@ -154,7 +156,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
       this.jsDriver.attachToDom(this.domMgr.instanceId)
       this.jsDriver.attachToRoot(rootNodeId)
 
-      this.jsDriver.runScriptFromUri("asset:/vue2/vendor.android.js",
+      this.jsDriver.runScriptFromUri(this.getBundlePath(),
         this.resourceManager,
         false, "", this.vfsManager.instanceId, (result: number, reason: string) => {
           if (!this.jsDriver) {
@@ -173,7 +175,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   }
 
   loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback) {
-    this.loadJsModule()
+    this.loadJsModule(loadParams, loadCallback)
   }
 
   getVfsManager(): VfsManager {
@@ -181,8 +183,10 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   }
 
   getBundlePath(): string {
-    // TODO(eksea)
-    return "asset:/vue2";
+    if (this.mCoreBundleLoader) {
+      return this.mCoreBundleLoader.getPath()
+    }
+    return ""
   }
 
   getEngineId(): number {
@@ -201,11 +205,20 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   onSizeChanged(rootId: number, w: number, h: number, ow: number, oh: number): void {
   }
 
-  loadJsModule() {
+  loadJsModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback) {
     if (!this.jsDriver || !this.vfsManager || !this.resourceManager) {
       return
     }
-    this.jsDriver.runScriptFromUri("asset:/vue2/index.android.js",
+    let coreBundleLoader: HippyBundleLoader | null = null;
+    if (!TextUtils.isEmpty(loadParams.jsAssetsPath)) {
+      coreBundleLoader = new HippyAssetBundleLoader(this.mGlobalConfigs.getContext()!, loadParams.jsAssetsPath,
+        !TextUtils.isEmpty(loadParams.codeCacheTag), loadParams.codeCacheTag);
+    } else if (!TextUtils.isEmpty(loadParams.jsFilePath)) {
+      coreBundleLoader = new HippyFileBundleLoader(loadParams.jsFilePath,
+        !TextUtils.isEmpty(loadParams.codeCacheTag), loadParams.codeCacheTag);
+    }
+    this.mJsBundleLoader = coreBundleLoader;
+    this.jsDriver.runScriptFromUri(this.mJsBundleLoader!.getPath(),
       this.resourceManager,
       false, "", this.vfsManager.instanceId, (result: number, reason: string) => {
         if (!this.jsDriver) {
