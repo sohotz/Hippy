@@ -22,6 +22,7 @@ import { NativeRenderContext } from '../../NativeRenderContext'
 import HippyRenderBaseView from '../base/HippyRenderBaseView'
 import { HRComponent } from '../../HippyRenderView'
 import { LogUtils } from '../../../support/utils/LogUtils'
+import { HRImageView } from '../image/HRImageView'
 
 @Observed
 export class HRRichTextView extends HippyRenderBaseView {
@@ -44,6 +45,7 @@ export class HRRichTextView extends HippyRenderBaseView {
   decorationColor: number = 0
   letterSpacing: number = 0
   textAlign: TextAlign = TextAlign.Start
+  wordBreak: WordBreak = WordBreak.BREAK_WORD
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -241,8 +243,11 @@ export class HRRichTextView extends HippyRenderBaseView {
         if (propValue.constructor.name == "String") {
           let t = propValue as string;
           if (t == "high_quality") {
+            this.wordBreak = WordBreak.BREAK_ALL;
           } else if (t == "balanced") {
+            this.wordBreak = WordBreak.BREAK_WORD;
           } else { //t == "simple"
+            this.wordBreak = WordBreak.BREAK_WORD;//如果使用WordBreak.NORMAL，超过行宽的连续字符不会换行(被裁剪)
           }
         } else {
           LogUtils.e(this.TAG, propKey);
@@ -259,12 +264,43 @@ export struct HRRichText {
   @ObjectLink renderView: HRRichTextView
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
+  @Builder TextSpan(txt: HRRichTextView) {
+    Span(txt.text)
+      .fontColor(txt.fontColor)
+      .fontSize(txt.fontSize)
+      .lineHeight(txt.lineHeight)
+      .textShadow({
+        radius: txt.shadowRadius,
+        color: txt.shadowColor,
+        offsetX: txt.shadowOffX,
+        offsetY: txt.shadowOffY
+      })
+      .fontStyle(txt.fontStyle)
+      .fontWeight(txt.fontWeight)
+      .fontFamily(txt.fontFamily)
+      .decoration({
+        type: txt.decorationType,
+        color: txt.decorationColor
+      })
+      .letterSpacing(txt.letterSpacing)
+      .applyRenderViewBaseAttr_TextSpan(txt)
+  }
+
+  @Builder ImageSpan(img: HRImageView) {
+    ImageSpan(img.getImage())
+      //todo image attrs
+      .applyRenderViewBaseAttr_ImageSpan(img)
+  }
   build() {
     Text(this.renderView.text) {
       if (this.renderView.children.length > 0) {
         ForEach(this.renderView.children, (item: HippyRenderBaseView) => {
-          if (item.viewType == "Text" || item.viewType == "Image")
-            this.buildRenderView(item, null)
+          if (item.viewType == "Text") {
+            this.TextSpan(item as HRRichTextView)
+          }
+          if (item.viewType == "Image") {
+            this.ImageSpan(item as HRImageView)
+          }
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
     }
@@ -288,7 +324,9 @@ export struct HRRichText {
     })
     .letterSpacing(this.renderView.letterSpacing)
     .textAlign(this.renderView.textAlign)
+    .wordBreak(this.renderView.wordBreak)
     .applyRenderViewBaseAttr(this.renderView)
+    // .align(Alignment.Center)
   }
 }
 
@@ -303,6 +341,41 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
+  .borderWidth(0.5) // TODO:
+  .rotate($$.cssRotate)
+  .scale($$.cssScale)
+  .translate($$.cssTranslate)
+  .onClick($$.eventClick)
+}
+
+@Extend(Span)
+function applyRenderViewBaseAttr_TextSpan($$: HippyRenderBaseView) {
+  .backgroundColor($$.cssBackgroundColor)
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
+  .opacity($$.cssOpacity)
+  .clip($$.cssOverflow)
+  .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .zIndex($$.cssZIndex)
+  .border($$.cssBorder)
+  .borderWidth(0.5) // TODO:
+  .rotate($$.cssRotate)
+  .scale($$.cssScale)
+  .translate($$.cssTranslate)
+  .onClick($$.eventClick)
+}
+
+@Extend(ImageSpan)
+function applyRenderViewBaseAttr_ImageSpan($$: HippyRenderBaseView) {
+  .backgroundColor($$.cssBackgroundColor)
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
+  .opacity($$.cssOpacity)
+  .clip($$.cssOverflow)
+  .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .zIndex($$.cssZIndex)
+  .border($$.cssBorder)
+  .borderWidth(0.5) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
