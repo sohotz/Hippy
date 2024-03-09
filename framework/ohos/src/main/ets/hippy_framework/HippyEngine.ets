@@ -70,7 +70,7 @@ export class V8InitParams {
 export class EngineInitParams {
   libHippy: HippyLibrary
   // 必须 宿主（Hippy的使用者）的UIAbilityContext
-  public context: Context | null;
+  public context: Context
   // 可选参数 核心的jsbundle的assets路径（assets路径和文件路径二选一，优先使用assets路径），debugMode = false时有效
   public coreJSAssetsPath: string = '';
   // 可选参数 核心的jsbundle的文件路径（assets路径和文件路径二选一，优先使用assets路径）,debugMode = false时有效
@@ -144,7 +144,7 @@ export class EngineInitParams {
       this.fontScaleAdapter = new DefaultFontScaleAdapter()
     }
     if (this.storageAdapter === null) {
-      this.storageAdapter = new DefaultStorageAdapter(this.context!)
+      this.storageAdapter = new DefaultStorageAdapter(this.context)
     }
     if (this.soLoader === null) {
       this.soLoader = new DefaultSoLoaderAdapter()

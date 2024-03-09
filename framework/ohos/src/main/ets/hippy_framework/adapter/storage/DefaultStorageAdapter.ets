@@ -37,8 +37,8 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
   private hippyStoreDb: relationalStore.RdbStore | undefined
   private ctx: Context|null
 
-  constructor(context: HippyEngineContext) {
-    this.ctx = context.getGlobalConfigs().getContext()
+  constructor(context: Context) {
+    this.ctx = context
     this.getStoreDb()
   }
 
