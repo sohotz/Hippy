@@ -283,6 +283,7 @@ export struct HRScroll {
   @ObjectLink renderView: HRScrollView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   @State xOffset: number = 0
   @State yOffset: number = 0
   viewWidth: number = 0

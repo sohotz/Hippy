@@ -84,6 +84,7 @@ export struct HRRefreshWrapper {
   @ObjectLink renderView: HRRefreshWrapperView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   aboutToAppear() {
     this.renderView.uiCtx = this.getUIContext()

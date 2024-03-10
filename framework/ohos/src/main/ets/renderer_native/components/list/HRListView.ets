@@ -173,6 +173,7 @@ export struct HRList {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
 
   @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   private CURRENT_OFFSET: string = "contentOffset";
   private pullAction: ScrollAction = ScrollAction.None;
   private edgeState: EdgeAction = EdgeAction.None;

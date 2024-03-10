@@ -87,6 +87,7 @@ export struct HRModal {
   @ObjectLink renderView: HRModalView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   private dialogController: CustomDialogController = {} as CustomDialogController
 
   handleCancel(): void {

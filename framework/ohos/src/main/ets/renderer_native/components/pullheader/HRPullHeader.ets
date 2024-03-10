@@ -102,6 +102,7 @@ export struct HRPullHeader {
   @ObjectLink renderView: HRPullHeaderView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   private controller: SwiperController = new SwiperController()
   private PAGE_ITEM_POSITION: string = "position";
   @State index: number = 0

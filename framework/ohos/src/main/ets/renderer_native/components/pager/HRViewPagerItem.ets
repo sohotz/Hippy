@@ -44,7 +44,7 @@ export struct HRViewPagerItem {
   @ObjectLink renderView: HRViewPagerItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   build() {
     Stack() {
