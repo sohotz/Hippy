@@ -28,4 +28,5 @@ export class HRVirtualNode {
   children: HRVirtualNode[] | null = null
   parent: HRVirtualNode | null = null
   props: HippyMap | null = null
+  viewName: string | null = null
 }

@@ -49,4 +49,14 @@ export class HRVirtualNodeManager {
     let node = this.virtualNodes.get(id)
     return node ? node : null
   }
+
+  getVirtualChildrenNode(id: number): HRVirtualNode[] {
+    let ret: HRVirtualNode[] = [];
+    this.virtualNodes.forEach((value: HRVirtualNode, key: number) => {
+      if (value.pid == id) {
+        ret.push(value);
+      }
+    })
+    return ret;
+  }
 }

@@ -154,7 +154,7 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
   }
 
   measure(rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
-    return this.renderImpl.measure(rootId, nodeId, width, widthMode, height, heightMode)
+    return this.renderImpl.measure(this.libHippy, this.instanceId, rootId, nodeId, width, widthMode, height, heightMode)
   }
 
   onSize(rootId: number, width: number, height: number) {

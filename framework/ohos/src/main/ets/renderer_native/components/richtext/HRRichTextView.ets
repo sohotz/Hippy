@@ -238,7 +238,7 @@ export class HRRichTextView extends HippyRenderBaseView {
       return true;
     } else if (propKey == "textDecorationStyle") { //todo 下划线/删除线的类型：DOUBLE，DOTTED，DASHED，SOLID，安卓有，next无
       return true;
-    } else if (propKey == "breakStrategy") { //todo 文本断行策略，安卓有，next无
+    } else if (propKey == "breakStrategy") { //todo 文本断行策略，不完全匹配
       if (propValue) {
         if (propValue.constructor.name == "String") {
           let t = propValue as string;
@@ -326,6 +326,7 @@ export struct HRRichText {
     .textAlign(this.renderView.textAlign)
     .wordBreak(this.renderView.wordBreak)
     .applyRenderViewBaseAttr(this.renderView)
+    // .alignRules(?)
     // .align(Alignment.Center)
   }
 }

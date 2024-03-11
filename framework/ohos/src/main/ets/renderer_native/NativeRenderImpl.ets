@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 import TextMeasurer from "@ohos.measure"
+import { HippyLibrary } from '../hippy_library/HippyLibrary'
 import { HippyException } from '../support/common/HippyException'
 import { HippyExecutor } from '../support/common/HippyExecutor'
 import { HippyAny, HippyMap, HippyValue, HippyRenderCallback } from '../support/common/HippyTypes'
@@ -179,6 +180,7 @@ export class NativeRenderImpl implements NativeRender {
         node.get('pId') as number,
         node.get('index') as number,
         node.get('props') as HippyMap)
+      vNode.viewName = node.get('name') as string
       this.virtualNodeManager.addVirtualNode(node.get('id') as number, vNode)
 
       let m: HRCreateMutation = new HRCreateMutation()
@@ -198,8 +200,12 @@ export class NativeRenderImpl implements NativeRender {
       let vNode = this.virtualNodeManager.getVirtualNode(node.get('id') as number)
       if (vNode && vNode.props) {
         (node.get('props') as HippyMap).forEach((value: HippyValue, key: string) => {
-          if (vNode && vNode.props && key && value) {
-            vNode.props.set(key, value)
+          if (vNode && vNode.props && key) {
+            if(value) {
+              vNode.props.set(key, value)
+            } else {
+              vNode.props.delete(key)
+            }
           }
         })
       }
@@ -288,8 +294,121 @@ export class NativeRenderImpl implements NativeRender {
     this.renderManager.callViewMethod(nodeId, functionName, params, callback)
   }
 
-  measure(rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
+  private textPropsOnly:string[] = ["textAlign","numberOfLines","breakStrategy","ellipsizeMode"];//只有text有，span没有的属性
+  private textMarginProps:string[]=["marginLeft","marginRight","marginTop","marginBottom","margin","lineHeight"];//和边框相关的，在最后参与计算
+  private spanDropProps:string[]=["backgroundColor",
+    "textShadowColor","textShadowOffset","textShadowRadius",
+    "borderColor", "borderWidth",
+    "verticalAlign","paddingVertical","paddingHorizontal",];//在OH_Drawing里面没有的属性，不知如何处理
+  measureAddStartPropsToStream(stream:string[], props:HippyMap) {
+    let count=0;
+    let tmpStr:string[] = [];
+    this.textPropsOnly.forEach((value:string)=>{
+      let p = props.get(value);
+      if(p) {
+        count++;
+        tmpStr.push(value);
+        tmpStr.push(p.toString());
+      }
+    })
+    stream.push("measure_add_start");
+    stream.push(count.toString());
+    stream.push(...tmpStr);
+  }
+  measureAddEndPropsToStream(stream:string[], props:HippyMap) {
+    let count=0;
+    let tmpStr:string[] = [];
+    this.textMarginProps.forEach((value:string)=>{
+      let p = props.get(value);
+      if(p) {
+        count++;
+        tmpStr.push(value);
+        tmpStr.push(p.toString());
+      }
+    })
+    stream.push("measure_add_end");
+    stream.push(count.toString());
+    stream.push(...tmpStr);
+  }
+  measureAddTextPropsToStream(stream:string[], props:HippyMap) {
+    let count=0;
+    let tmpStr:string[] = [];
+    props.forEach((value: HippyValue, key: string) => {
+      if (key && value && this.textPropsOnly.indexOf(key)<0 && this.textMarginProps.indexOf(key)<0 && this.spanDropProps.indexOf(key)<0) {
+        count++;
+        tmpStr.push(key);
+        tmpStr.push(value.toString());
+      }
+    })
+    stream.push("measure_add_text");
+    stream.push(count.toString());//属性数量
+    stream.push(...tmpStr);
+  }
+
+  measure(libHippy:HippyLibrary, instanceId: number, rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
+    let ret:bigint = BigInt(0);
     let vNode = this.virtualNodeManager.getVirtualNode(nodeId)
+    if (vNode && vNode.props) {
+      let stream:string[]=[];
+      this.measureAddStartPropsToStream(stream,vNode.props);
+      let vChildren = this.virtualNodeManager.getVirtualChildrenNode(nodeId);
+      if(vChildren.length>0){//测量文文，文图
+        LogUtils.d("Measure Text",`measureC : ${vChildren.length}`)
+        vChildren.forEach((value:HRVirtualNode)=>{
+          if(value.viewName=="Text") {
+            if(value.props){
+              this.measureAddTextPropsToStream(stream,value.props);
+            }
+          }
+          else if(value.viewName=="Image") {
+            if(value.props){
+              let imgW=value.props.get("width");
+              let imgH=value.props.get("height");
+              if(imgW && imgH){
+                stream.push("measure_add_image");
+                stream.push("2");//属性数量
+                stream.push("width");
+                stream.push(imgW.toString());
+                stream.push("height");
+                stream.push(imgH.toString());
+              }
+            }
+            else {
+              LogUtils.d("Measure Text","unknow image wh");
+            }
+          }
+        })
+      }
+      else if(vNode.props.get('text')) {//测量单独的文字
+        LogUtils.d("Measure Text",`measureA : ${nodeId},${vNode.props.get('text')}`)
+        this.measureAddTextPropsToStream(stream,vNode.props);
+      } else {
+        LogUtils.d("Measure Text",`measureB : ${nodeId},空`)
+        return ret;
+      }
+      this.measureAddEndPropsToStream(stream, vNode.props);
+      /* 创建字符串序列，在native_render_impl_napi.cc的DoMeasureText中解析处理:
+measure_add_start <prop数量>            携带只有text有的属性，如textAlign,numberOfLines,breakStrategy,ellipsizeMode
+key1               value1
+.....
+measure_add_text  <prop数量>            携带TextSpan的属性，如fontSize等
+key1               value1
+.....
+measure_add_image <prop数量>            携带ImageSpan的属性，只需宽高，使用OH_Drawing_TypographyHandlerAddPlaceholder添加
+width              xxx
+height             xxx
+measure_add_end   <prop数量>            携带边框类型的属性，和Text测量无关，测量完后增加到整体宽高中，如marginLeft,margin,lineHeight等
+key1               value1
+...
+       * */
+      let wh = libHippy.NativeRenderImpl_DoMeasureText(instanceId, stream, width, widthMode, height, heightMode);
+      let w = wh[0];
+      let h = wh[1];
+      w=Math.ceil(w)
+      h=Math.ceil(h)
+      LogUtils.d("Measure Text",`    new ${w}x${h}`);
+      ret = (BigInt(w) << BigInt(32)) | BigInt(h)
+    }
     if (vNode && vNode.props) {
       let config: TextMeasurerConfig = new TextMeasurerConfig();
       config.textContent = vNode.props.get('text') as string
@@ -297,9 +416,11 @@ export class NativeRenderImpl implements NativeRender {
       config.lineHeight = vNode.props.get('lineHeight') as number
       config.numberOfLines = 1
       let result = this.measureText(config)
-      return (BigInt(result.width) << BigInt(32)) | BigInt(result.height)
+      LogUtils.d("Measure Text",`    old ${result.width}x${result.height}`)
+      // 原measure text方法，这里只打印作比较
+      //ret = (BigInt(result.width) << BigInt(32)) | BigInt(result.height)
     }
-    return BigInt(0)
+    return ret
   }
 
   private measureText(config: TextMeasurerConfig): HRSize {

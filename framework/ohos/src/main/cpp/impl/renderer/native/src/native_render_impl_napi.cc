@@ -24,6 +24,7 @@
 #include "oh_napi/oh_napi_object.h"
 #include "oh_napi/oh_napi_task_runner.h"
 #include "oh_napi/oh_napi_register.h"
+#include "oh_napi/oh_measure_text.h"
 #include "footstone/deserializer.h"
 #include "footstone/hippy_value.h"
 #include "dom/render_manager.h"
@@ -386,10 +387,62 @@ static napi_value DoCallBack(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
+static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+
+//   auto al = arkTs.GetArrayLength(args[1]);//把属性解析到map
+
+  int width=arkTs.GetInteger(args[2]);
+  int widthMode = arkTs.GetInteger(args[3]);
+  int height = arkTs.GetInteger(args[4]);
+  int heightMode = arkTs.GetInteger(args[5]);
+  float density = render_manager->GetDensity();
+    
+  uint32_t p = 0;
+  OhMeasureText measureInst;
+  OhMeasureResult result;
+  while (true) {
+    auto measureFlag = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));
+    int propCount=std::stoi(arkTs.GetString(arkTs.GetArrayElement(args[1], p++)));
+    std::map<std::string, std::string> propMap;
+    for (int i = 0; i < propCount; i++) {
+      auto propName = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));
+      auto propValue = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));
+      propMap[propName] = propValue;
+    }
+    if(measureFlag=="measure_add_start"){
+      measureInst.StartMeasure(propMap);
+    } else if(measureFlag=="measure_add_text"){
+      measureInst.AddText(propMap);
+    } else if(measureFlag=="measure_add_image"){
+      measureInst.AddImage(propMap);
+    } else if(measureFlag=="measure_add_end"){
+      result = measureInst.EndMeasure(propMap, width, widthMode, height, heightMode, density);
+      break;
+    }
+  }
+
+  std::vector<napi_value> pack;
+  pack.push_back(arkTs.CreateDouble(result.width));
+  pack.push_back(arkTs.CreateDouble(result.height));
+  return arkTs.CreateArray(pack);
+}
+
 REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_UpdateRootSize", UpdateRootSize)
 REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_UpdateNodeSize", UpdateNodeSize)
 REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_OnReceivedEvent", OnReceivedEvent)
 REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_DoCallBack", DoCallBack)
+REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_DoMeasureText", DoMeasureText)
 
 }
 }
