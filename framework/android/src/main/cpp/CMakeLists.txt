@@ -72,7 +72,7 @@ set(SOURCE_SET
 
 # This is a top-level shared library,
 # so the source code visibility is always PRIVATE
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_SET})
+target_sources(${PROJECT_NAME} PUBLIC ${SOURCE_SET})
 # endregion
 
 # region export modules
