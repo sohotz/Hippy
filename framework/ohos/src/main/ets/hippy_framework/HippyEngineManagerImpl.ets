@@ -52,6 +52,7 @@ import { HippyEngineContextImpl } from './HippyEngineContextImpl';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyMap } from '../support/common/HippyTypes';
+import { URI_SCHEME_ASSETS } from './bridge/HippyBridge';
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   private libHippy: HippyLibrary
@@ -153,7 +154,18 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
       this.jsDriver.attachToDom(this.domMgr.instanceId)
       this.jsDriver.attachToRoot(rootNodeId)
 
-      this.jsDriver.runScriptFromUri(this.getBundlePath(),
+      // TODO:
+      let assetPath = "vue2/vendor.android.js"
+      let uri = assetPath
+      if (!assetPath.startsWith(URI_SCHEME_ASSETS)) {
+        if (assetPath.startsWith("/")) {
+          uri = URI_SCHEME_ASSETS + assetPath
+        } else {
+          uri = URI_SCHEME_ASSETS + "/" + assetPath
+        }
+      }
+
+      this.jsDriver.runScriptFromUri(uri,
         this.resourceManager,
         false, "", this.getVfsManager().instanceId, (result: number, reason: string) => {
           if (!this.jsDriver) {
@@ -215,7 +227,19 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
         !TextUtils.isEmpty(loadParams.codeCacheTag), loadParams.codeCacheTag);
     }
     this.mJsBundleLoader = coreBundleLoader;
-    this.jsDriver.runScriptFromUri(this.mJsBundleLoader!.getPath(),
+
+    // TODO:
+    let assetPath = "vue2/index.android.js"
+    let uri = assetPath
+    if (!assetPath.startsWith(URI_SCHEME_ASSETS)) {
+      if (assetPath.startsWith("/")) {
+        uri = URI_SCHEME_ASSETS + assetPath
+      } else {
+        uri = URI_SCHEME_ASSETS + "/" + assetPath
+      }
+    }
+
+    this.jsDriver.runScriptFromUri(uri,
       this.resourceManager,
       false, "", this.getVfsManager().instanceId, (result: number, reason: string) => {
         if (!this.jsDriver) {

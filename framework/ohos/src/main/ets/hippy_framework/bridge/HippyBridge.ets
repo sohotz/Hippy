@@ -19,6 +19,9 @@
  */
 import { NativeCallback } from '../connector/NativeCallback';
 
+export const URI_SCHEME_ASSETS = "asset:"
+export const URI_SCHEME_FILE = "file:"
+
 export interface HippyBridge {
 
   initJSBridge(gobalConfig: string, callback: NativeCallback, groupId: number): void;

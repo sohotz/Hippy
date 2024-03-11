@@ -67,18 +67,19 @@ enum TintColorBlendMode {
 export class HRImageView extends HippyRenderBaseView {
   private static readonly BASE64_IMAGE_PREFIX = "data:image"
   private static readonly RAW_IMAGE_PREFIX = "hpfile://"
+  private static readonly ASSETS_PREFIX = "assets://"
   private static readonly INTERNET_IMAGE_PREFIX = "http"
   private readonly TAG = "HRImageView"
   private imageLoader: HRDownloadUtils = new HRDownloadUtils
   tempDir:string = getContext().tempDir
 
-  cssSrc: string | null = null
-  cssAlt: string = ""
-  cssResizeMode: ImageFit = ImageFit.Cover
+  cssSrc: string | Resource | null = null
+  cssAlt: string | Resource | null = null
+  cssResizeMode: ImageFit = ImageFit.Fill
   cssTintColor: number[] = [0] // RGBA
   cssColorFilter: ColorFilter = [0]
-  cssTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.DST
-  cssPreTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.DST
+  cssTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.SRC_ATOP
+  cssPreTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.SRC_ATOP
   onCompleteCallback: ((event?: ImageLoadEvent) => void) | null = null
   onErrorCallback: ((error: ImageError) => void) | null = null
 
@@ -197,117 +198,52 @@ export class HRImageView extends HippyRenderBaseView {
         break
         case TintColorBlendMode.SRC:
           this.cssColorFilter = [
+            0,  0,  0,  0,  matrixColor[0],
+            0,  0,  0,  0,  matrixColor[1],
+            0,  0,  0,  0,  matrixColor[2],
+            0,  0,  0,  0,  matrixColor[3]]
+          break
+        case TintColorBlendMode.DST:
+          this.cssColorFilter = [
             1,  0,  0,  0,  0,
             0,  1,  0,  0,  0,
             0,  0,  1,  0,  0,
             0,  0,  0,  1,  0]
           break
-        case TintColorBlendMode.DST:
-          this.cssColorFilter = [
-            matrixColor[0], 0, 0, 0, 0,
-            0, matrixColor[1], 0, 0, 0,
-            0, 0, matrixColor[2], 0, 0,
-            0, 0, 0, matrixColor[3], 0]
-          break
         case TintColorBlendMode.SRC_OVER:
-          this.cssColorFilter = [
-            1,  0,  0,  0-matrixColor[0],  matrixColor[0],
-            0,  1,  0,  0-matrixColor[1],  matrixColor[1],
-            0,  0,  1,  0-matrixColor[2],  matrixColor[2],
-            0,  0,  0,  1-matrixColor[3],  matrixColor[3]]
           break
         case TintColorBlendMode.DST_OVER:
-          this.cssColorFilter = [
-            1-matrixColor[3],  0,  0,  0,  matrixColor[0],
-            0,  1-matrixColor[3],  0,  0,  matrixColor[1],
-            0,  0,  1-matrixColor[3],  0,  matrixColor[2],
-            0,  0,  0,  1-matrixColor[3],  matrixColor[3]]
           break
         case TintColorBlendMode.SRC_IN:
-          this.cssColorFilter = [
-            matrixColor[3],  0,  0,  0,  0,
-            0, matrixColor[3] , 0,  0,  0,
-            0, 0, matrixColor[3],  0,  0,
-            0, 0, 0,  matrixColor[3],  0]
           break
         case TintColorBlendMode.DST_IN:
-          this.cssColorFilter = [
-            0,  0,  0,  matrixColor[0],  0,
-            0,  0,  0,  matrixColor[1],  0,
-            0,  0,  0,  matrixColor[2],  0,
-            0,  0,  0,  matrixColor[3],  0]
           break
         case TintColorBlendMode.SRC_OUT:
-          this.cssColorFilter = [
-            1-matrixColor[3], 0, 0, 0, 0,
-            0, 1-matrixColor[3], 0, 0, 0,
-            0, 0,  1-matrixColor[3], 0,  0,
-            0, 0, 0, 1-matrixColor[3],  0]
           break
         case TintColorBlendMode.DST_OUT:
-          this.cssColorFilter = [
-            0,  0,  0,  0-matrixColor[0],  matrixColor[0],
-            0,  0,  0,  0-matrixColor[1], matrixColor[1],
-            0,  0,  0,  0-matrixColor[2],  matrixColor[2],
-            0,  0,  0,  0-matrixColor[3],  matrixColor[3]]
           break
         case TintColorBlendMode.DST_ATOP:
-          this.cssColorFilter = [
-            1-matrixColor[0],  0,  0,  matrixColor[0],  0,
-            0,  1-matrixColor[1],  0,  matrixColor[1],  0,
-            0,  0,  1-matrixColor[2],  matrixColor[2],  0,
-            0,  0,  0,  1,  0]
           break
         case TintColorBlendMode.XOR:
-          this.cssColorFilter = [
-            1-matrixColor[3],  0,  0,  0-matrixColor[0],  matrixColor[0],
-            0,  1-matrixColor[3],  0,  0-matrixColor[1],  matrixColor[1],
-            0,  0,  1-matrixColor[3],  0-matrixColor[2],  matrixColor[2],
-            0,  0,  0,  1-2*matrixColor[3],  matrixColor[3]]
+          break
         case TintColorBlendMode.MULTIPLY:
-          this.cssColorFilter = [
-            matrixColor[0],  0,  0,  0,  0,
-            0,  matrixColor[1],  0,  0,  0,
-            0,  0,  matrixColor[2],  0,  0,
-            0,  0,  0,  matrixColor[3],  0]
           break
         case TintColorBlendMode.SCREEN:
-          this.cssColorFilter = [
-            1-matrixColor[0],  0,  0,  0,  matrixColor[0],
-            0,  1-matrixColor[1],  0,  0,  matrixColor[1],
-            0,  0,  1-matrixColor[2],  0,  matrixColor[2],
-            0,  0,  0,  1-matrixColor[3],  matrixColor[3]]
           break
-        case TintColorBlendMode.ADD://TODO
-        case TintColorBlendMode.OVERLAY://TODO
-          this.cssColorFilter = [
-            0,  0,  0,  0,  0,
-            0,  0,  0,  0,  0,
-            0,  0,  0,  0,  0,
-            0,  0,  0,  0,  0]
+        case TintColorBlendMode.ADD:
           break
-        case TintColorBlendMode.DARKEN://TODO
-          {
-            this.cssColorFilter = [
-              0,  0,  0,  0,  0,
-              0,  0,  0,  0,  0,
-              0,  0,  0,  0,  0,
-              0,  0,  0,  0,  0]
-          }
+        case TintColorBlendMode.OVERLAY:
           break
-        case TintColorBlendMode.LIGHTEN://TODO
-          this.cssColorFilter = [
-            0,  0,  0,  0,  0,
-            0,  0,  0,  0,  0,
-            0,  0,  0,  0,  0,
-            0,  0,  0,  0,  0]
+        case TintColorBlendMode.DARKEN:
+          break
+        case TintColorBlendMode.LIGHTEN:
           break
         case TintColorBlendMode.SRC_ATOP:
           this.cssColorFilter = [
-            matrixColor[3],  0,  0,  0-matrixColor[0],  matrixColor[0],
-            0,  matrixColor[3],  0,  0-matrixColor[1],  matrixColor[1],
-            0,  0,  matrixColor[3],  0-matrixColor[2],  matrixColor[2],
-            0,  0,  0,  0,  matrixColor[3]]
+            1-matrixColor[3], 0, 0, 0, matrixColor[0]*matrixColor[3],
+            0, 1-matrixColor[3], 0, 0, matrixColor[1]*matrixColor[3],
+            0, 0, 1-matrixColor[3], 0, matrixColor[2]*matrixColor[3],
+            0, 0, 0, 1, 0]
           break
         default:
           break
@@ -320,6 +256,15 @@ export class HRImageView extends HippyRenderBaseView {
     switch (propKey) {
       case 'src':
         {
+          this.cssSrc = propValue as string
+          if (this.cssSrc?.startsWith(HRImageView.RAW_IMAGE_PREFIX)) {
+            this.cssSrc = this.convertToLocalPath(this.cssSrc)
+            this.cssSrc = $rawfile(this.cssSrc)
+            return true
+          }
+
+          // TODO(hot): to delete?
+          /*
           let src = propValue as string
           if (src?.startsWith(HRImageView.INTERNET_IMAGE_PREFIX)) {
             let splitList = src.split("/")
@@ -338,7 +283,7 @@ export class HRImageView extends HippyRenderBaseView {
             this.imageLoader.setCbProgress(progressCallback)
             this.imageLoader.downloadTask(src,filePath)
           }
-          this.cssSrc = propValue as string
+          */
           let listener: ImageRequestListener = {
             onRequestStart: (imageData: ImageDataSupplier) => {},
             onRequestSuccess: (imageData: ImageDataSupplier) => {},
@@ -346,7 +291,7 @@ export class HRImageView extends HippyRenderBaseView {
             onRequestProgress: (total: number, loaded: number) => {}
           }
           let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
-          imageLoader.fetchImageAsync(this.cssSrc, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
+          imageLoader.fetchImageAsync(this.cssSrc as string, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
         }
         return true
       case 'resizeMode':
@@ -358,14 +303,15 @@ export class HRImageView extends HippyRenderBaseView {
       case 'defaultSource':
         {
           this.cssAlt = propValue as string
-          let splitList = this.cssAlt.split("/")
-          this.cssAlt = "vue2/assets/" + splitList[splitList.length - 1]
+          if (this.cssAlt?.startsWith(HRImageView.RAW_IMAGE_PREFIX)) {
+            this.cssAlt = this.convertToLocalPath(this.cssAlt)
+            this.cssAlt = $rawfile(this.cssAlt)
+            return true
+          }
         }
         return true
       case 'tintColor'://ARGB
         {
-          let rgb = [0]
-          let matrixColor = [0]
           let intColor = propValue as number
           this.cssTintColor[0] = (intColor >> 16) & 0xff   //red
           this.cssTintColor[1] = (intColor >> 8) & 0xff    //green
@@ -420,16 +366,27 @@ export class HRImageView extends HippyRenderBaseView {
 
   getImage() {
     LogUtils.d(this.TAG,"getImage")
-    if (this.cssSrc?.startsWith(HRImageView.BASE64_IMAGE_PREFIX)) {
-      return this.cssSrc
-    } else if (this.cssSrc?.startsWith(HRImageView.RAW_IMAGE_PREFIX)){
-      let splitList = this.cssSrc.split("/")
-      this.cssSrc = "vue2/assets/" + splitList[splitList.length - 1]
-      LogUtils.d(this.TAG, "getImage: cssSrc= " + this.cssSrc)
-      this.cssAlt = this.cssSrc
-      return $rawfile(this.cssSrc)
+    if (typeof this.cssSrc == 'string') {
+      if (this.cssSrc.startsWith(HRImageView.BASE64_IMAGE_PREFIX)) {
+        return this.cssSrc
+      } else if (this.cssSrc.startsWith(HRImageView.RAW_IMAGE_PREFIX)) {
+        this.cssSrc = this.convertToLocalPath(this.cssSrc)
+        LogUtils.d(this.TAG, "getImage: cssSrc= " + this.cssSrc)
+        return $rawfile(this.cssSrc)
+      }
     }
     return this.cssSrc
+  }
+
+  convertToLocalPath(uri: string): string {
+    // hpfile://./assets/file_banner02.jpg
+    let relativePath = uri.replace(HRImageView.RAW_IMAGE_PREFIX + "./", "")
+    let bundlePath = this.ctx.getNativeRender().getBundlePath()
+    let resultUrl = bundlePath ? bundlePath.substring(0, bundlePath.lastIndexOf("/") + 1) + relativePath : ""
+    if (resultUrl.startsWith(HRImageView.ASSETS_PREFIX)) {
+      resultUrl = resultUrl.substring(HRImageView.ASSETS_PREFIX.length)
+    }
+    return resultUrl
   }
 }
 
@@ -437,9 +394,9 @@ export class HRImageView extends HippyRenderBaseView {
 export struct HRImage {
   @ObjectLink renderView: HRImageView
   build() {
-    Image(this.renderView.getImage())
+    Image(this.renderView.cssSrc)
       .applyRenderViewBaseAttr(this.renderView)
-      .alt($rawfile(this.renderView.cssAlt))
+      .alt(this.renderView.cssAlt)
       .objectFit(this.renderView.cssResizeMode)
       .colorFilter(this.renderView.cssColorFilter)
       .onComplete(this.renderView.onCompleteCallback)
