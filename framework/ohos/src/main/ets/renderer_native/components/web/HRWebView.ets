@@ -26,15 +26,17 @@ import {
 } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import web_webview from '@ohos.web.webview';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
 
 @Observed
 export class HRWebView extends HippyRenderBaseView {
+  public url : string | null = null
   public source: HippyMap = new Map<string, HippyValue>() as HippyMap;
-  public update:boolean = false
+  public update: boolean = false
   public controller: web_webview.WebviewController = new web_webview.WebviewController()
 
   constructor(ctx: NativeRenderContext) {
@@ -42,7 +44,10 @@ export class HRWebView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
-    if (propKey === 'source') {
+    if (propKey === 'url') {
+
+      return true
+    } else if (propKey === 'source') {
       this.source = propValue as HippyMap;
 
       let map = propValue as HippyMap
@@ -52,12 +57,13 @@ export class HRWebView extends HippyRenderBaseView {
       if (this.update) {
         this.updateController(this.source, this.controller)
       }
+      return true
     }
 
     return super.setProp(propKey, propValue)
   }
 
-  updateController(source:HippyMap, controller:web_webview.WebviewController) {
+  updateController(source: HippyMap, controller: web_webview.WebviewController) {
     if (source.has('uri')) {
       if (source.has('userAgent')) {
         controller.setCustomUserAgent(source.get('userAgent') as string)
@@ -90,6 +96,15 @@ export class HRWebView extends HippyRenderBaseView {
       } else {
         controller.loadData(html, "text/html; charset=utf-8", "UTF-8");
       }
+    }
+  }
+
+  call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+    switch (method) {
+      case "loadUrl":
+        break
+      default:
+        break
     }
   }
 }
@@ -159,17 +174,26 @@ export struct HRWeb {
 // base props for all components
 @Extend(Web)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
-
