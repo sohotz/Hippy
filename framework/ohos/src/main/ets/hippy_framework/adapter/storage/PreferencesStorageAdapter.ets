@@ -22,7 +22,9 @@ import dataPreferences from '@ohos.data.preferences';
 import { Context } from '@ohos.abilityAccessCtrl';
 import { BusinessError } from '@ohos.base';
 import { HippyException } from '../../../support/common/HippyException';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
+const PREFERENCES_TAG = 'DefaultStorageAdapter'
 const PREFERENCES_NAME = 'HippyStorage'
 
 export class PreferencesStorageAdapter implements HippyStorageAdapter {
@@ -91,5 +93,21 @@ export class PreferencesStorageAdapter implements HippyStorageAdapter {
   getObjKeys(obj: Object): string[] {
     let keys = Object.keys(obj);
     return keys;
+  }
+
+  destroyIfNeed(): void {
+    if (this.getHippyPreferences() !== null) {
+      try { //从内存移除指定的Preferences实例。调用该接口后，应用不允许再使用该Preferences实例
+        // 进行数据操作，否则会出现数据一致性问题。
+        dataPreferences.removePreferencesFromCache(this.context, PREFERENCES_NAME)
+          .then(() => {
+            LogUtils.i(PREFERENCES_TAG, "Succeeded in removing preferences.");
+          }).catch((err: BusinessError) => {
+          LogUtils.e(PREFERENCES_TAG, "Failed to remove preferences. code =" + err.code + ", message =" + err.message);
+        })
+      } catch (err) {
+        LogUtils.e(PREFERENCES_TAG, "Failed to remove preferences. code =" + err.code + ", message =" + err.message);
+      }
+    }
   }
 }

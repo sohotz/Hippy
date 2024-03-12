@@ -49,6 +49,7 @@ export struct HRListItem {
   @ObjectLink renderView: HRListItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   build() {
     Stack() {

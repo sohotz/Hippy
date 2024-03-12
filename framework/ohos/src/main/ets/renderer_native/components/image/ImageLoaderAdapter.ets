@@ -17,10 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyResource } from '../../../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyResource } from '../../../support/common/HippyTypes'
+import { ImageRequestListener } from './ImageRequestListener';
+import { HashMap } from '@kit.ArkTS';
 
 export interface ImageLoaderAdapter {
-  fetchImageAsync(url: string): void
+  fetchImageAsync(url: string, listener: ImageRequestListener,
+                  initProps: HashMap<string, HippyAny>, width: number, height: number): void;
 
   fetchImageSync(url: string): HippyResource
 }

@@ -17,31 +17,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyEngineContext } from '../../HippyEngineContext';
+import { ImageDataSupplier } from './ImageDataSupplier';
 
-export abstract class HippyThirdPartyAdapter {
-  constructor(ctx:HippyEngineContext ) {
-  }
+export interface ImageRequestListener {
 
-  public onRuntimeInit(runtimeId: number) {
-  }
+  /**
+   * Notify image request start
+   */
+  onRequestStart: (imageData: ImageDataSupplier) => void
 
-  public onRuntimeDestroy() {
-  }
+  /**
+   * Notify image request success
+   */
+  onRequestSuccess: (imageData: ImageDataSupplier ) => void
 
-  public getExtraData(): ESObject {
-    return null;
-  }
+  /**
+   * Notify image request failed
+   */
+  onRequestFail : () => void
 
-  public getPageUrl(): string {
-    return "";
-  }
-
-  public getNightMode(): boolean {
-    return false;
-  }
-
-  public abstract getPackageName(): string
-
-  public abstract getAppVersion(): string
+  /**
+   * Notify image request on progress
+   */
+  onRequestProgress: (total: number, loaded: number) => void
 }

@@ -27,7 +27,7 @@ import Url from '@ohos.url'
 import { TextUtils } from '../../../support/utils/TextUtils';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { HttpTaskCallbackImpl } from './HttpTaskCallbackImpl';
-import { ResourceDataHolder } from 'ets/vfs/ResourceDataHolder';
+import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { HippyExecutor, HippyTask } from '../../../support/common/HippyExecutor';
 import { HippyException } from '../../../support/common/HippyException';
 import { LogUtils } from '../../../support/utils/LogUtils';
@@ -36,11 +36,10 @@ import { HippyHttpResponse } from './HippyHttpResponse';
 import { HippyEngineContext } from '../../HippyEngineContext';
 import { http } from '@kit.NetworkKit';
 
-const TAG = 'DefaultHttpAdapter'
-
+const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
 export class DefaultHttpAdapter implements HippyHttpAdapter {
   private mExecutorService: HippyExecutor | null = null
-  private mContext: HippyEngineContext
+  private mContext: HippyEngineContext | null = null
 
   protected execute(task: HippyTask) {
     if (this.mExecutorService == null) {
@@ -49,8 +48,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     this.mExecutorService.execute(task);
   }
 
-  constructor(ctx: HippyEngineContext) {
-    this.mContext = ctx
+  constructor() {
   }
 
   public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback) {
@@ -62,7 +60,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
 
   protected generateHttpRequest(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams:
     HashMap<string, Object>): HippyHttpRequest {
-    if (holder.responseHeaders == null || holder.requestHeaders == undefined)
+    if (holder.requestHeaders == null || holder.requestHeaders == undefined)
       holder.requestHeaders = new HashMap<string, string>()
     if (holder.requestParams == null || holder.requestParams == undefined)
       holder.requestParams = new HashMap<string, string>()
@@ -84,7 +82,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
   }
 
   public sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback) {
-    LogUtils.d(TAG, `sendRequest: `)
+    LogUtils.d(DEFAULT_HTTP_ADAPTER_TAG, `sendRequest: `)
     try {
       let httpRequest = http.createHttp();
       httpRequest.request(request.getUrl(),
@@ -104,18 +102,18 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
               // let res = JSON.parse(`${data.result}`);
               callback.onTaskSuccess(request, this.createResponse(data));
             }
-            LogUtils.i(TAG, 'Result:' + data.result);
-            LogUtils.i(TAG, 'code:' + data.responseCode);
-            LogUtils.i(TAG, 'header:' + JSON.stringify(data.header));
-            LogUtils.i(TAG, 'cookies:' + data.cookies); // 8+
-            LogUtils.i(TAG, 'header.Content-Type:' + data.header['Content-Type']);
-            LogUtils.i(TAG, 'header.Status-Line:' + data.header['Status-Line']);
+            LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'Result:' + data.result);
+            LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'code:' + data.responseCode);
+            LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'header:' + JSON.stringify(data.header));
+            LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'cookies:' + data.cookies); // 8+
+            LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'header.Content-Type:' + data.header['Content-Type']);
+            LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'header.Status-Line:' + data.header['Status-Line']);
           } else {
-            LogUtils.i(TAG, 'error:' + JSON.stringify(err));
+            LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'error:' + JSON.stringify(err));
           }
         });
     } catch (e) {
-      LogUtils.i(TAG, 'error1:' + e);
+      LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'error1:' + e);
     }
   }
 
@@ -198,7 +196,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
       }
       return web_webview.WebCookieManager
     } catch (err) {
-      LogUtils.e(TAG, "getCookieManager: " + err.getMessage());
+      LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, "getCookieManager: " + err.getMessage());
       // https://bugs.chromium.org/p/chromium/issues/detail?id=559720
       return false
     }
@@ -218,7 +216,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
             reject(err)
           })
       } catch (error) {
-        LogUtils.e(TAG, `ErrorCode: ${error.code}` + `;  Message: ${error.message}`);
+        LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, `ErrorCode: ${error.code}` + `;  Message: ${error.message}`);
         console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
       }
     });

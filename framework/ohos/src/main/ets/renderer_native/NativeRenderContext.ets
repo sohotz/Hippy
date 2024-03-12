@@ -49,7 +49,7 @@ export class NativeRenderContext {
     return this.customRenderViewCreatorMap
   }
 
-  getNativeRender() {
+  getNativeRender(): NativeRender {
     return this.nativeRender
   }
 }

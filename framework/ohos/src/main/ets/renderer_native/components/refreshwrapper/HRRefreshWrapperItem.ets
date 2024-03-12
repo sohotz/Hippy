@@ -45,7 +45,7 @@ export struct HRRefreshWrapperItem {
   @ObjectLink renderView: HRRefreshWrapperItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   build() {
     Stack() {

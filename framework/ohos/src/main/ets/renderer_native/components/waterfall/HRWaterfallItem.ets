@@ -46,6 +46,7 @@ export struct HRWaterfallItem {
   @ObjectLink renderView: HRWaterfallItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   aboutToAppear(): void {
     LogUtils.d(this.TAG, "aboutToAppear ")

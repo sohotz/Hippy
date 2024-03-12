@@ -29,10 +29,10 @@ import { HashMap, util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
-const TAG = "HippyHttpRequest"
+const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
 
 export class HippyHttpRequest {
-  private context: HippyEngineContext
+  private context: HippyEngineContext | null
   public static DEFAULT_TIMEOUT_MS: number = 3000;
   public static HTTP_HEADERS: string = "headers";
   public static HTTP_HEADERS_SEPARATOR: string = ",";
@@ -51,7 +51,7 @@ export class HippyHttpRequest {
   private mInitParams: HashMap<string, string>
   private mNativeParams: HashMap<string, Object>
 
-  constructor(context: HippyEngineContext, headers: HashMap<string, string>, method: http.RequestMethod,
+  constructor(context: HippyEngineContext | null, headers: HashMap<string, string>, method: http.RequestMethod,
               initParams: HashMap<string, string>, nativeParams: HashMap<string, Object>) {
     this.context = context
     this.mHeaders = (headers == null) ? new HashMap() : headers;
@@ -137,7 +137,7 @@ export class HippyHttpRequest {
         jsonObject[key] = value;
       }
     })
-    LogUtils.d(TAG, JSON.stringify(jsonObject));
+    LogUtils.d(HIPPY_HTTP_REQUEST_TAG, JSON.stringify(jsonObject));
     return JSON.stringify(jsonObject)
   }
 

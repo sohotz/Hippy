@@ -26,7 +26,7 @@ export interface IExcutor {
   isShutdown(): void
   shutdown(): void
 }
-const TAG = 'HippyExecutor'
+const HIPPY_EXECUTOR_TAG = 'HippyExecutor'
 
 export class HippyExecutor implements IExcutor{
   private hasShutdown:boolean = false
@@ -41,7 +41,7 @@ export class HippyExecutor implements IExcutor{
     }
     let task = new taskpool.Task(func, "create task, then execute");
     let val1 = await taskpool.execute(task );
-    console.log("taskpool.execute(task) result: " + val1);
+    LogUtils.i(HIPPY_EXECUTOR_TAG,"taskpool.execute(task) result: " + val1);
   }
 
   performSyncMainQueueTasksBlockIfNeed() {
@@ -68,7 +68,7 @@ export class HippyExecutor implements IExcutor{
           }
           this.performingMainQueueTask = false
         }catch(err){
-          LogUtils.e(TAG, `Get RdbStore failed, code is ${err.code},message is ${err.message}`);
+          LogUtils.e(HIPPY_EXECUTOR_TAG, `Get RdbStore failed, code is ${err.code},message is ${err.message}`);
         }
       }
       this.execute( ()=> {

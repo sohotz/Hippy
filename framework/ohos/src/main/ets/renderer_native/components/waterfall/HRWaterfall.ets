@@ -104,6 +104,7 @@ export struct HRWaterfall {
   @ObjectLink renderView: HRWaterfallView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   private PAGE_ITEM_POSITION: string = "position";
   private WATERFALL_INDEX_FIRST: string = "first";
   private WATERFALL_INDEX_LAST: string = "last";

@@ -158,15 +158,22 @@ export struct HippyRender {
       HRDiv({
         renderView: $$ as HRDivView,
         children: $$.children,
-        buildRenderView: this.buildRenderView
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
       })
     } else if ($$ instanceof HRScrollView) {
-      HRScroll({ renderView: $$ as HRScrollView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRScroll({
+        renderView: $$ as HRScrollView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRScrollContentView) {
       HRScrollContent({
         renderView: $$ as HRScrollContentView,
         children: $$.children,
         buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView,
         xOffset: (parentComponent as HRScroll)?.xOffset,
         yOffset: (parentComponent as HRScroll)?.yOffset
       })
@@ -175,33 +182,88 @@ export struct HippyRender {
     } else if ($$ instanceof HRImageView) {
       HRImage({ renderView: $$ as HRImageView })
     } else if ($$ instanceof HRModalView) {
-      HRModal({ renderView: $$ as HRModalView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRModal({
+        renderView: $$ as HRModalView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRListView) {
-      HRList({ renderView: $$ as HRListView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRList({
+        renderView: $$ as HRListView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRListItemView) {
-      HRListItem({ renderView: $$ as HRListItemView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRListItem({
+        renderView: $$ as HRListItemView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRTextInputView) {
       HRTextInput({ renderView: $$ as HRTextInputView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRWebView) {
       HRWeb({ renderView: $$ as HRWebView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRViewPagerView) {
-      HRViewPager({ renderView: $$ as HRViewPagerView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRViewPager({
+        renderView: $$ as HRViewPagerView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRViewPagerItemView) {
-      HRViewPagerItem({ renderView: $$ as HRViewPagerItemView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRViewPagerItem({
+        renderView: $$ as HRViewPagerItemView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRWaterfallItemView) {
-      HRWaterfallItem({ renderView: $$ as HRWaterfallItemView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRWaterfallItem({
+        renderView: $$ as HRWaterfallItemView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRWaterfallView) {
-      HRWaterfall({ renderView: $$ as HRWaterfallView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRWaterfall({
+        renderView: $$ as HRWaterfallView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRRefreshWrapperView) {
-      HRRefreshWrapper({ renderView: $$ as HRRefreshWrapperView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRRefreshWrapper({
+        renderView: $$ as HRRefreshWrapperView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRRefreshWrapperItemView) {
-      HRRefreshWrapperItem({ renderView: $$ as HRRefreshWrapperItemView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRRefreshWrapperItem({
+        renderView: $$ as HRRefreshWrapperItemView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRPullHeaderView) {
-      HRPullHeader({ renderView: $$ as HRPullHeaderView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRPullHeader({
+        renderView: $$ as HRPullHeaderView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else if ($$ instanceof HRPullFooterView) {
-      HRPullFooter({ renderView: $$ as HRPullFooterView, children: $$.children, buildRenderView: this.buildRenderView })
+      HRPullFooter({
+        renderView: $$ as HRPullFooterView,
+        children: $$.children,
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
+      })
     } else {
-      if (this.buildCustomRenderView !== null) {
+      if (this.buildCustomRenderView) {
         this.buildCustomRenderView($$)
       }
     }

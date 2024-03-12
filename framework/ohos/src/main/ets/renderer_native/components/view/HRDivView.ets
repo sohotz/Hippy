@@ -43,6 +43,7 @@ export struct HRDiv {
   @ObjectLink renderView: HRDivView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   shouldAddGesture() {
     return deviceInfo.sdkApiVersion >= 11 && (
