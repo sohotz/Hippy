@@ -23,6 +23,9 @@ import { ImageLoaderAdapter } from './ImageLoaderAdapter';
 import { HashMap } from '@kit.ArkTS';
 import { ImageRequestListener } from './ImageRequestListener';
 import { FetchResourceCallback, ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
+import { LogUtils } from '../../../support/utils/LogUtils';
+import { image } from '@kit.ImageKit';
+import { HippyResourceLoader } from '../../../hippy_framework/adapter/http/HippyResourceLoader';
 
 export class ImageLoader implements ImageLoaderAdapter {
   private static TAG = "ImageLoader"
@@ -47,16 +50,25 @@ export class ImageLoader implements ImageLoaderAdapter {
                   initProps: HashMap<string, HippyAny>, width: number, height: number): void {
     if (this.vfsManager) {
       const cb: FetchResourceCallback = {
-        onFetchCompleted: (dataholder: ResourceDataHolder) => {},
+        onFetchCompleted: (dataHolder: ResourceDataHolder) => {
+          if (dataHolder.resultCode == ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE) {
+            const r = image.createImageSource(dataHolder.buffer)
+            r.createPixelMap().then(value => {
+              listener.onRequestSuccess(value)
+            })
+          } else {
+            listener.onRequestFail()
+          }
+        },
         onFetchProgress: (total:number, loaded: number) => {}
       }
       this.vfsManager.fetchResourceAsync(url, this.generateRequestParams(width, height), undefined, cb)
     }
   }
 
-  fetchImageSync(url: string) : HippyResource {
+  async fetchImageSync(url: string) : Promise<HippyResource> {
     let dataHolder = this.vfsManager!.fetchResourceSync(url, undefined, undefined)
-    return dataHolder.resource
+    return await image.createImageSource(dataHolder.buffer).createPixelMap()
   }
 
 }

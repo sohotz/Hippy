@@ -25,6 +25,9 @@ import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { UrlUtils } from '../../../support/utils/UrlUtils';
 import { HippyEngineContext } from '../../HippyEngineContext';
 import { http } from '@kit.NetworkKit';
+import { HippyAssetBundleLoader } from '../../bridge/bundleloader/HippyAssetBundleLoader';
+import { image } from '@kit.ImageKit';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
 export enum FetchResultCode {
   OK,
@@ -34,9 +37,10 @@ export enum FetchResultCode {
 }
 
 export class HippyResourceLoader implements ResourceLoader {
-  private static readonly RAWFILE_PREFIX = "hpfile://";
+  public static readonly RAWFILE_PREFIX = "hpfile://./";
   private static readonly ASSETS_IMAGE_PREFIX = "assets://"
   private readonly engineContext: HippyEngineContext
+  private readonly TAG = "HippyResourceLoader"
 
   constructor(engineContext: HippyEngineContext) {
     this.engineContext = engineContext
@@ -48,22 +52,27 @@ export class HippyResourceLoader implements ResourceLoader {
       if (httpAdapter) {
         httpAdapter.fetch(holder, http.RequestMethod.GET, this.engineContext.getNativeParams(), callback)
       }
+    } else if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
+      const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager
+      const rawPath = holder.uri.substring(HippyAssetBundleLoader.ASSETS_STR.length)
+      resManager.getRawFileContent(rawPath).then((value:Uint8Array) => {
+        holder.buffer = value.buffer as ArrayBuffer
+        holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE
+        callback.onHandleCompleted()
+      })
     }
   }
 
   fetchResourceSync(holder: ResourceDataHolder): boolean {
     if (UrlUtils.isWebUrl(holder.uri)) {
-      // TODO(eksea)
-      holder.resource = holder.uri
-    } else if (holder.uri.startsWith(HippyResourceLoader.RAWFILE_PREFIX)) {
-      let realUri = "vue2/assets/" + holder.uri.substring(HippyResourceLoader.RAWFILE_PREFIX.length)
-      holder.resource = $rawfile(realUri)
+      return false
+    } else if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
+      const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager
+      const rawPath = holder.uri.substring(HippyAssetBundleLoader.ASSETS_STR.length)
+      holder.buffer = resManager.getRawFileContentSync(rawPath)
+      holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE
+      return true
     }
-    else if (holder.uri.startsWith(HippyResourceLoader.ASSETS_IMAGE_PREFIX)) {
-      holder.resource = $rawfile(holder.uri.substring(HippyResourceLoader.ASSETS_IMAGE_PREFIX.length))
-    } else {
-      holder.resource = holder.uri
-    }
-    return true
+    return false
   }
 }

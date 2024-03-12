@@ -21,7 +21,7 @@ import { HippyBundleLoader } from './HippyBundleLoader';
 
 export class HippyAssetBundleLoader implements HippyBundleLoader {
 
-  private ASSETS_STR = "assets://";
+  public static readonly ASSETS_STR = "asset:/";
   private mContext: Context;
 
   private mAssetPath = '';
@@ -69,8 +69,8 @@ export class HippyAssetBundleLoader implements HippyBundleLoader {
   }
 
   public getPath(): string {
-    if (this.mAssetPath != null && !this.mAssetPath.startsWith(this.ASSETS_STR)) {
-      return this.ASSETS_STR + this.mAssetPath;
+    if (this.mAssetPath != null && !this.mAssetPath.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
+      return HippyAssetBundleLoader.ASSETS_STR + this.mAssetPath;
     } else {
       return this.mAssetPath;
     }

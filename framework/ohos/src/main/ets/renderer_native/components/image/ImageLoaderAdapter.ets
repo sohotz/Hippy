@@ -25,5 +25,5 @@ export interface ImageLoaderAdapter {
   fetchImageAsync(url: string, listener: ImageRequestListener,
                   initProps: HashMap<string, HippyAny>, width: number, height: number): void;
 
-  fetchImageSync(url: string): HippyResource
+  fetchImageSync(url: string): Promise<HippyResource>
 }

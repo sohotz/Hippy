@@ -30,6 +30,7 @@ export class HippyHttpResponse {
   private mRspHeaderMap: Map<string, List<string>> | null = null
   private mInputStream: fs.Stream | undefined;
   private mErrorStream: fs.Stream | undefined;
+  public buffer: ArrayBuffer | null = null
 
   public getStatusCode(): number {
     return this.mStatusCode != null ? this.mStatusCode : HippyHttpResponse.UNKNOWN_STATUS;

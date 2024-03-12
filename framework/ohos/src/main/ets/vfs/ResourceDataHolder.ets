@@ -46,7 +46,7 @@ export class ResourceDataHolder {
   processorTag: string | undefined
   resultCode: number = -1
   public uri: string
-  public resource: HippyResource
+  public buffer: ArrayBuffer | null = null
   responseHeaders: HashMap<string, string> | undefined
   public requestHeaders: HashMap<string, string> | undefined
   public requestParams: HashMap<string, string> | undefined
@@ -63,7 +63,6 @@ export class ResourceDataHolder {
               requestParams: HashMap<string, string> | undefined, callback: FetchResourceCallback | null,
               from: RequestFrom, nativeRequestId: number) {
     this.uri = uri
-    this.resource = ""
     this.requestHeaders = requestHeaders
     this.requestParams = requestParams
     this.callback = callback

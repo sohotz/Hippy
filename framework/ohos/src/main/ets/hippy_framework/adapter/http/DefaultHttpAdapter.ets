@@ -122,6 +122,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     response.setStatusCode(res.responseCode);
     // response.setRspHeaderMap(urlConnection.getHeaderFields());
     try {
+      response.buffer = res.result as ArrayBuffer
       response.setResponseMessage(`${res.result}`);
     } catch (e) {
       e.printStackTrace();
