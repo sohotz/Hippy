@@ -64,13 +64,13 @@ export interface HippyEngineContext {
 
   // int getEngineId();
   //
-  // int getDomManagerId();
+  getDomManagerId(): number;
   //
-  // int getVfsId();
+  getVfsId(): number;
   //
   // int getDevtoolsId();
   //
-  // void onRuntimeInitialized();
+  onRuntimeInitialized(): void;
   //
   // void onBridgeDestroyed(boolean isReload, Throwable e);
   //

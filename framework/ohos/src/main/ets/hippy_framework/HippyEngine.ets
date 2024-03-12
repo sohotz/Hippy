@@ -66,11 +66,20 @@ export class V8InitParams {
   public maximumHeapSize: number = 0;
 }
 
+export enum EngineState {
+  UNINIT = 0,
+  INITING = 1,
+  ONRESTART = 2,
+  INITERRORED = 3,
+  INITED = 4,
+  DESTROYED = 5,
+}
+
 
 export class EngineInitParams {
   libHippy: HippyLibrary
   // 必须 宿主（Hippy的使用者）的UIAbilityContext
-  public context: Context
+  public context: Context;
   // 可选参数 核心的jsbundle的assets路径（assets路径和文件路径二选一，优先使用assets路径），debugMode = false时有效
   public coreJSAssetsPath: string = '';
   // 可选参数 核心的jsbundle的文件路径（assets路径和文件路径二选一，优先使用assets路径）,debugMode = false时有效
@@ -96,10 +105,8 @@ export class EngineInitParams {
   public enableLog = false;
   // 可选参数 code cache的名字，如果设置为空，则不启用code cache，默认为 ""
   public codeCacheTag = "";
-
   //可选参数 接收RuntimeId
   public thirdPartyAdapter: HippyThirdPartyAdapter | null = null;
-
   // 可选参数 接收异常
   public exceptionHandler: HippyExceptionHandlerAdapter | null = null;
   // 可选参数 设置相关
@@ -124,7 +131,6 @@ export class EngineInitParams {
   public logAdapter: HippyLogAdapter | null = null;
   public v8InitParams: V8InitParams | null = null;
   public enableTurbo = false;
-
   providers: Array<HippyAPIProvider> | null = null
 
   constructor(
@@ -133,7 +139,6 @@ export class EngineInitParams {
   ) {
     this.libHippy = libHippy
     this.context = context
-
   }
 
   check() {
@@ -165,7 +170,7 @@ export class EngineInitParams {
       this.engineMonitor = new DefaultEngineMonitorAdapter()
     }
     if (this.preferencesStorageAdapter === null) {
-      this.preferencesStorageAdapter = new PreferencesStorageAdapter(this.context!)
+      this.preferencesStorageAdapter = new PreferencesStorageAdapter(this.context)
     }
   }
 }

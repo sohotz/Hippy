@@ -35,11 +35,11 @@ const COLUMN_VALUE = 'storage_value'
 
 export class DefaultStorageAdapter implements HippyStorageAdapter {
   private hippyStoreDb: relationalStore.RdbStore | undefined
-  private ctx: Context|null
+  private ctx: Context;
 
   constructor(context: Context) {
-    this.ctx = context
-    this.getStoreDb()
+    this.ctx = context;
+    this.getStoreDb();
   }
 
   async getStoreDb() {

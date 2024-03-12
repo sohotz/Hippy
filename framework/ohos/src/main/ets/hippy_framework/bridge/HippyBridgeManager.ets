@@ -19,14 +19,15 @@
  */
 import { HippyMap } from '../../support/common/HippyTypes';
 import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAdapter';
+import { NativeCallback } from '../connector/NativeCallback';
 import { HippyBundleLoader } from './bundleloader/HippyBundleLoader';
 
 export interface HippyBridgeManager {
-  initBridge(): void;
+  initBridge(initBridgeCallback: NativeCallback): void;
 
   runBundle(id: number, loader: HippyBundleLoader): void;
 
-  loadInstance(name: string, id: number, params: HippyMap): void;
+  loadInstance(name: string, id: number, params: HippyMap | null): void;
 
   resumeInstance(id: number): void;
 

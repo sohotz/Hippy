@@ -31,7 +31,7 @@ export interface HippyHttpAdapter {
 
   sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback):void
 
-  fetch(holder: ResourceDataHolder,method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback):void
+  fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback):void
 
   getCookie(url: string): Promise<void>
 

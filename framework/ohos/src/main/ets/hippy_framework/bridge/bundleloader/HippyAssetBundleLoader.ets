@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LogUtils } from '../../../support/utils/LogUtils';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import { NativeCallback } from '../../connector/NativeCallback';
-import { HippyBridge } from '../HippyBridge';
+import { HippyBridge, URI_SCHEME_ASSETS } from '../HippyBridge';
 import { HippyBundleLoader } from './HippyBundleLoader';
 
 
@@ -53,19 +54,18 @@ export class HippyAssetBundleLoader implements HippyBundleLoader {
       return;
     }
 
-    // AssetManager assetManager = mContext.getAssets();
-    // String uri = mAssetPath;
-    // if (!mAssetPath.startsWith(URI_SCHEME_ASSETS)) {
-    //   if (mAssetPath.startsWith("/")) {
-    //     uri = URI_SCHEME_ASSETS + mAssetPath;
-    //   } else {
-    //     uri = URI_SCHEME_ASSETS + "/" + mAssetPath;
-    //   }
-    // }
-    //
-    // boolean ret = bridge
-    //     .runScriptFromUri(uri, assetManager, mCanUseCodeCache, mCodeCacheTag, callback);
-    // LogUtils.d("HippyAssetBundleLoader", "load: ret" + ret);
+    let uri: string = this.mAssetPath;
+    if (!this.mAssetPath.startsWith(URI_SCHEME_ASSETS)) {
+      if (this.mAssetPath.startsWith("/")) {
+        uri = URI_SCHEME_ASSETS + this.mAssetPath;
+      } else {
+        uri = URI_SCHEME_ASSETS + "/" + this.mAssetPath;
+      }
+    }
+
+    const ret: boolean = bridge
+        .runScriptFromUri(uri, this.mCanUseCodeCache, this.mCodeCacheTag, callback);
+    LogUtils.d("HippyAssetBundleLoader", "load: ret" + ret);
   }
 
   public getPath(): string {

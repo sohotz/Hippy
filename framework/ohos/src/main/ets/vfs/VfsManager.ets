@@ -170,4 +170,8 @@ export class VfsManager {
   performNativeTraversals(holder: ResourceDataHolder) {
     //TODO(eksea)
   }
+
+  getVfsId(): number {
+    return this.instanceId
+  }
 }

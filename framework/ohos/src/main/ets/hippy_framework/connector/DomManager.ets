@@ -68,4 +68,8 @@ export class DomManager {
   ) {
     this.libHippy?.DomManager_SetDomManager(rootId, this.instanceId)
   }
+
+  getDomManagerId(): number {
+    return this.instanceId;
+  }
 }

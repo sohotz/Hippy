@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LogUtils } from '../../../support/utils/LogUtils';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import { NativeCallback } from '../../connector/NativeCallback';
-import { HippyBridge } from '../HippyBridge';
+import { HippyBridge, URI_SCHEME_FILE } from '../HippyBridge';
 import { HippyBundleLoader } from './HippyBundleLoader';
 
 
@@ -45,10 +46,10 @@ export class HippyFileBundleLoader implements HippyBundleLoader {
       return;
     }
 
-    // String uri =
-    //     (!mFilePath.startsWith(URI_SCHEME_FILE)) ? (URI_SCHEME_FILE + mFilePath) : mFilePath;
-    // boolean ret = bridge.runScriptFromUri(uri, null, mCanUseCodeCache, mCodeCacheTag, callback);
-    // LogUtils.d("HippyFileBundleLoader", "load: ret" + ret);
+    const uri: string =
+        (!this.mFilePath.startsWith(URI_SCHEME_FILE)) ? (URI_SCHEME_FILE + this.mFilePath) : this.mFilePath;
+    const ret = bridge.runScriptFromUri(uri, this.mCanUseCodeCache, this.mCodeCacheTag, callback);
+    LogUtils.d("HippyFileBundleLoader", "load: ret" + ret);
   }
 
   public getPath(): string {

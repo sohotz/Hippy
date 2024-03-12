@@ -21,18 +21,102 @@ import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
 import { HippyAny, HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { ArgumentUtils } from '../../support/utils/ArgumentUtils';
 import { I18nUtil } from '../../support/utils/I18nUtil';
+import { LogUtils } from '../../support/utils/LogUtils';
+import { MonitorGroupType, TimeMonitor } from '../../support/utils/TimeMonitor';
 import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAdapter';
+import { JsDriver } from '../connector/JsDriver';
+import { NativeCallback } from '../connector/NativeCallback';
+import { V8InitParams } from '../HippyEngine';
+import { HippyEngineContext } from '../HippyEngineContext';
 import { Serializer } from '../serialization/Serializer';
 import { HippyBundleLoader } from './bundleloader/HippyBundleLoader';
+import { BridgeCallback } from './HippyBridge';
+import { HippyBridgeImpl } from './HippyBridgeImpl';
 import { HippyBridgeManager } from './HippyBridgeManager';
 
-export class HippyBridgeManagerImpl implements HippyBridgeManager {
-  initBridge(): void {
-    throw new Error('Method not implemented.');
+export enum BridgeState {
+  UNINITIALIZED = 0,
+  INITIALIZED = 1,
+  DESTROYED = 2,
+}
+
+export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallback {
+  // Bridge 状态
+  public static MSG_CODE_INIT_BRIDGE = 10;
+  public static MSG_CODE_RUN_BUNDLE = 11;
+  public static MSG_CODE_CALL_FUNCTION = 12;
+  public static MSG_CODE_DESTROY_BRIDGE = 13;
+  public static MSG_CODE_ON_BRIDGE_DESTROYED = 14;
+  // Instance 状态
+  public static FUNCTION_ACTION_LOAD_INSTANCE = 1;
+  public static FUNCTION_ACTION_RESUME_INSTANCE = 2;
+  public static FUNCTION_ACTION_PAUSE_INSTANCE = 3;
+  public static FUNCTION_ACTION_DESTROY_INSTANCE = 4;
+  public static FUNCTION_ACTION_CALLBACK = 5;
+  public static FUNCTION_ACTION_CALL_JS_MODULE = 6;
+  public static FUNCTION_ACTION_ON_WEBSOCKET_MESSAGE = 7;
+  // Bridge状态定义
+  public static BRIDGE_TYPE_SINGLE_THREAD = 2;
+  public static BRIDGE_TYPE_NORMAL = 1;
+  // 销毁状态
+  public static DESTROY_CLOSE = 0;
+  public static DESTROY_RELOAD = 1;
+  public mContext: HippyEngineContext;
+  public mCoreBundleLoader: HippyBundleLoader | null;
+  public mEnableV8Serialization: boolean;
+  public mIsDevModule: boolean;
+  public mDebugServerHost: string;
+  public mGroupId: number;
+  public mThirdPartyAdapter: HippyThirdPartyAdapter | null;
+  public mV8InitParams: V8InitParams | null;
+  public mJsDriver: JsDriver;
+  public mHippyBridge: HippyBridgeImpl;
+  public mBridgeState: BridgeState = BridgeState.UNINITIALIZED;
+
+  public constructor(
+    context: HippyEngineContext,
+    coreBundleLoader: HippyBundleLoader | null,
+    enableV8Serialization: boolean,
+    isDevModule: boolean,
+    debugServerHost: string,
+    groupId: number,
+    thirdPartyAdapter: HippyThirdPartyAdapter | null,
+    v8InitParams: V8InitParams | null,
+    jsDriver: JsDriver) {
+
+    this.mContext = context;
+    this.mCoreBundleLoader = coreBundleLoader;
+    this.mGroupId = groupId;
+    this.mThirdPartyAdapter = thirdPartyAdapter;
+    this.mEnableV8Serialization = enableV8Serialization;
+    this.mIsDevModule = isDevModule;
+    this.mDebugServerHost = debugServerHost;
+    this.mJsDriver = jsDriver;
+    this.mV8InitParams = v8InitParams;
+    this.mHippyBridge = new HippyBridgeImpl(
+      context,
+      this,
+      enableV8Serialization,
+      isDevModule,
+      debugServerHost,
+      v8InitParams,
+      jsDriver);
+    if (enableV8Serialization) {
+      // compatibleSerializer = new Serializer();
+      // recommendSerializer = new com.tencent.mtt.hippy.serialization.recommend.Serializer();
+    } else {
+      // mStringBuilder = new StringBuilder(1024);
+    }
   }
 
   runBundle(id: number, loader: HippyBundleLoader): void {
-    throw new Error('Method not implemented.');
+    loader.load(this.mHippyBridge, (result: number, reason: string) => {
+        this.bundleIndexLoaderCallback(result, reason);
+      });
+  }
+
+  bundleIndexLoaderCallback = (result: number, reason: string) => {
+      LogUtils.i('hippy bundleIndexLoaderCallback', result + reason)
   }
 
   resumeInstance(id: number): void {
@@ -67,6 +151,73 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager {
     throw new Error('Method not implemented.');
   }
 
+  callNatives(moduleName: string, moduleFunc: string, callId: string, params: Uint8Array): void {
+    throw new Error('Method not implemented.');
+  }
+
+  reportException(message: string, stackTrace: string): void {
+    throw new Error('Method not implemented.');
+  }
+
+  initBridge(initBridgeCallback: NativeCallback): void {
+    this.mHippyBridge.initJSBridge(this.getGlobalConfigsString(), (result: number, reason: string) => {
+        this.initJSDriverCallback(result, reason, initBridgeCallback);
+    }, this.mGroupId);
+  }
+
+  initJSDriverCallback(result: number, reason: string, initBridgeCallback: NativeCallback): void {
+    LogUtils.i('hippy', 'jsDriver initialize callback, instanceId: %{public}d' + this.mJsDriver.instanceId);
+    if (result != 0) {
+      LogUtils.e('hippy', 'jsDriver initialize error ' + reason);
+    }
+
+    if (this.mContext != null) {
+      this.mContext.onRuntimeInitialized();
+    }
+    // TODO
+    if (this.enableTurbo()) {
+      // mTurboModuleManager = new TurboModuleManager(mContext);
+      // mTurboModuleManager.install(runtimeId);
+    }
+    // if (mThirdPartyAdapter != null) {
+    //   mThirdPartyAdapter.onRuntimeInit(runtimeId);
+    // }
+    if (this.mCoreBundleLoader != null) {
+      const timeMonitor = this.mContext.getMonitor();
+      timeMonitor.startPoint(MonitorGroupType.ENGINE_INITIALIZE,
+        TimeMonitor.MONITOR_POINT_LOAD_COMMON_JS);
+      this.mCoreBundleLoader
+        .load(this.mHippyBridge, () => {
+          this.bundleVendorLoaderCallback(result, reason, initBridgeCallback);
+      });
+    } else {
+      this.mBridgeState = BridgeState.INITIALIZED;
+      initBridgeCallback(1, '');
+    }
+  }
+
+  public bundleVendorLoaderCallback = (result: number, reason: string, initBridgeCallback: NativeCallback) => {
+    if (this.mBridgeState == BridgeState.DESTROYED) {
+      return;
+    }
+    if (result == 0) {
+      this.mBridgeState = BridgeState.INITIALIZED;
+    } else {
+      throw new Error("load coreJsBundle failed, check your core jsBundle:"
+        + reason);
+    }
+    const timeMonitor = this.mContext.getMonitor();
+    timeMonitor.startPoint(
+      MonitorGroupType.ENGINE_INITIALIZE,
+      TimeMonitor.MONITOR_POINT_NOTIFY_ENGINE_INITIALIZED);
+    initBridgeCallback(result, reason);
+  }
+
+  private enableTurbo(): boolean {
+    return this.mContext.getGlobalConfigs() != null && this.mContext.getGlobalConfigs()
+      .enableTurbo();
+  }
+
 
   loadInstance(name: string, id: number, params: HippyMap) {
     // TODO(hot):
@@ -80,9 +231,15 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager {
     serializer.writeHeader()
     serializer.writeValue(params)
     let buffer = binaryWriter.chunked().buffer
+
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, binaryWriter.chunked());
   }
 
-  getGlobalConfigs(): string {
+  callFunctionCallBack = (result: number, reason: string) => {
+    LogUtils.i('hippy callFunctionCallBack', result + reason)
+  }
+
+  getGlobalConfigsString(): string {
     // TODO(hot):
     let globalParams = new Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>()
     let dimensionMap = new Map<string, HippyValue>()
