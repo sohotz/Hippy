@@ -29,6 +29,7 @@ import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 type LocalFontWeight = number | FontWeight
 
@@ -61,34 +62,34 @@ export class HRTextInputView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny): boolean {
     LogUtils.d("HRTextInput", `propKey:${propKey}, propValue:${propValue}`)
     if (propKey === 'caret-color') {
-      this.caretColor = propValue as number
+      this.caretColor = HRValueUtils.getNumber(propValue as HippyAny)
     } else if (propKey === 'color') {
-      this.color = propValue as number
+      this.color = HRValueUtils.getNumber(propValue as HippyAny)
     } else if (propKey === 'defaultValue') {
-      this.defaultValue = propValue as string
+      this.defaultValue = HRValueUtils.getString(propValue as HippyAny)
     } else if (propKey === 'fontFamily') {
-      this.fontFamily = propValue as string
+      this.fontFamily = HRValueUtils.getString(propValue as HippyAny)
     } else if (propKey === 'fontSize') {
-      this.fontSize = propValue as number
+      this.fontSize = HRValueUtils.getNumber(propValue as HippyAny)
     } else if (propKey === 'fontStyle') {
-      let fontStyle = propValue as string
+      let fontStyle = HRValueUtils.getString(propValue as HippyAny)
       if (fontStyle === 'italic') {
         this.fontStyle = FontStyle.Italic
       }
     } else if (propKey === 'fontWeight') {
       this.setFontWeight(propValue)
     } else if (propKey === 'maxLength') {
-      this.maxLength = propValue as number
+      this.maxLength = HRValueUtils.getNumber(propValue as HippyAny)
     } else if (propKey === 'multiline') {
-      this.multiline = propValue as boolean
+      this.multiline = HRValueUtils.getBoolean(propValue as HippyAny,true)
     } else if (propKey === 'textAlign') {
       this.setTextAlign(propValue)
     } else if (propKey === 'textAlignVertical') {
       this.setTextAlignVertical(propValue)
     } else if (propKey === 'placeholder') {
-      this.placeholder = propValue as string
+      this.placeholder = HRValueUtils.getString(propValue as HippyAny)
     } else if (propKey === 'placeholderTextColor') {
-      this.placeholderTextColor = propValue as number
+      this.placeholderTextColor = HRValueUtils.getNumber(propValue as HippyAny)
     } else if (propKey === 'keyboardType') {
       this.setKeyBoardType(propValue)
     } else if (propKey === 'returnKeyType') {
@@ -99,7 +100,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   }
 
   setFontWeight(propValue: HippyAny) {
-    let value = propValue as string
+    let value = HRValueUtils.getString(propValue as HippyAny)
 
     if (value === '' || value === 'normal') {
       this.fontWeight = FontWeight.Normal
@@ -116,7 +117,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   }
 
   setTextAlign(propValue: HippyAny) {
-    let value = propValue as string
+    let value = HRValueUtils.getString(propValue as HippyAny)
 
     //no Gravity.NO_GRAVITY like android
     this.textAlign = TextAlign.Start
@@ -128,7 +129,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   }
 
   setTextAlignVertical(propValue: HippyAny) {
-    let value = propValue as string
+    let value = HRValueUtils.getString(propValue as HippyAny)
 
     //no Gravity.NO_GRAVITY like android
     this.textAlignVertical = Alignment.Center
@@ -142,7 +143,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   setKeyBoardType(propValue: HippyAny) {
     this.keyboardType = InputType.Normal
 
-    let type = propValue as string
+    let type = HRValueUtils.getString(propValue as HippyAny)
     LogUtils.d('HRTextInput', "keyboardType:" + propValue)
     if (type === "numeric") {
       this.keyboardType = InputType.Number
@@ -158,7 +159,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   setEntryKeyType(propValue:HippyAny) {
     this.returnKeyType = EnterKeyType.Done
 
-    let type = propValue as string
+    let type = HRValueUtils.getString(propValue as HippyAny)
     LogUtils.d('HRTextInput', "returnKeyType:" + type)
     if (type === "go") {
       this.returnKeyType = EnterKeyType.Go

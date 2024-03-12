@@ -24,6 +24,7 @@ import { HREventType, HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
 import { LogUtils } from '../../../support/utils/LogUtils'
 import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 const TAG: string = "HRModal";
 
 @Observed
@@ -43,19 +44,19 @@ export class HRModalView extends HippyRenderBaseView {
     LogUtils.i(TAG, `modalview propkey: ${propKey}, value: ${propValue}`)
     switch (propKey) {
       case "transparent":
-        this.transparent = propValue as boolean;
+        this.transparent = HRValueUtils.getBoolean(propValue as HippyAny,true);
         break;
       case "immersionStatusBar":
-        this.immersionStatusBar = propValue as boolean;
+        this.immersionStatusBar = HRValueUtils.getBoolean(propValue as HippyAny,true);
         break;
       case "supportedOrientations":
-        this.supportedOrientations = propValue as string;
+        this.supportedOrientations = HRValueUtils.getString(propValue as HippyAny);
         break;
       case "animationType":
-        this.animationType = propValue as string;
+        this.animationType = HRValueUtils.getString(propValue as HippyAny);
         break;
       case "darkStatusBarText":
-        this.darkStatusBarText = propValue as boolean;
+        this.darkStatusBarText = HRValueUtils.getBoolean(propValue as HippyAny,true);
         break;
       default:
         break

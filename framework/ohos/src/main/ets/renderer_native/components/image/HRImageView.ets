@@ -29,6 +29,7 @@ import { HREventUtils } from '../../utils/HREventUtils';
 import { ImageRequestListener } from './ImageRequestListener';
 import { ImageDataSupplier } from './ImageDataSupplier';
 import { HashMap } from '@kit.ArkTS';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 interface ImageLoadEvent {
   width: number
@@ -119,8 +120,8 @@ export class HRImageView extends HippyRenderBaseView {
 
   private setTintColorBlendMode(propValue: HippyAny){
     LogUtils.d(this.TAG,"setTintColorBlendMode")
-    this.cssPreTintColorBlendMode = this.cssTintColorBlendMode;
-    let blendMode = propValue as number
+    this.cssPreTintColorBlendMode = this.cssTintColorBlendMode
+    let blendMode = HRValueUtils.getNumber(propValue)
     switch (blendMode){
       case 0:
         this.cssTintColorBlendMode = TintColorBlendMode.CLEAR
@@ -256,7 +257,7 @@ export class HRImageView extends HippyRenderBaseView {
     switch (propKey) {
       case 'src':
         {
-          this.cssSrc = propValue as string
+          this.cssSrc = HRValueUtils.getString(propValue as HippyAny)
           if (this.cssSrc?.startsWith(HRImageView.RAW_IMAGE_PREFIX)) {
             this.cssSrc = this.convertToLocalPath(this.cssSrc)
             this.cssSrc = $rawfile(this.cssSrc)
@@ -296,13 +297,13 @@ export class HRImageView extends HippyRenderBaseView {
         return true
       case 'resizeMode':
         {
-          let pvalue = propValue as string
+          let pvalue = HRValueUtils.getString(propValue as HippyAny)
           this.setResizeMode(pvalue)
         }
         return true
       case 'defaultSource':
         {
-          this.cssAlt = propValue as string
+          this.cssAlt = HRValueUtils.getString(propValue as HippyAny)
           if (this.cssAlt?.startsWith(HRImageView.RAW_IMAGE_PREFIX)) {
             this.cssAlt = this.convertToLocalPath(this.cssAlt)
             this.cssAlt = $rawfile(this.cssAlt)
@@ -312,7 +313,7 @@ export class HRImageView extends HippyRenderBaseView {
         return true
       case 'tintColor'://ARGB
         {
-          let intColor = propValue as number
+          let intColor = HRValueUtils.getNumber(propValue as HippyAny)
           this.cssTintColor[0] = (intColor >> 16) & 0xff   //red
           this.cssTintColor[1] = (intColor >> 8) & 0xff    //green
           this.cssTintColor[2] = intColor & 0xff           //blue
@@ -321,7 +322,7 @@ export class HRImageView extends HippyRenderBaseView {
         }
         return true
       case 'tintColorBlendMode':
-        let blendMode = propValue as number
+        let blendMode = HRValueUtils.getNumber(propValue as HippyAny)
         this.setTintColorBlendMode(blendMode)
         if (this.cssTintColorBlendMode != this.cssPreTintColorBlendMode) {
           this.setColorFilterMatrix()

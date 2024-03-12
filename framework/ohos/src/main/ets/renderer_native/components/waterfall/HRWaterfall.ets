@@ -25,6 +25,7 @@ import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
   HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRWaterfallView extends HippyRenderBaseView {
@@ -50,39 +51,39 @@ export class HRWaterfallView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, `setProp: propKey:${propKey} , value:${propValue}`)
     switch (propKey) {
       case 'flex':
-        this.flex = propValue as number;
+        this.flex = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case 'containPullFooter':
-        this.containPullFooter = propValue as boolean;
+        this.containPullFooter = HRValueUtils.getBoolean(propValue as HippyAny,true);
         break;
       case 'contentInset':
-        let data:HippyMap = propValue as HippyMap;
+        let data:HippyMap = HRValueUtils.getMap(propValue as HippyAny) as HippyMap;
         this.padding.top = data.get('top') as number;
         this.padding.right = data.get('right') as number;
         this.padding.bottom = data.get('bottom') as number;
         this.padding.left = data.get('left') as number;
         break;
       case 'containPullHeader':
-        this.containPullHeader = propValue as boolean;
+        this.containPullHeader = HRValueUtils.getBoolean(propValue as HippyAny,true);
         break;
       case 'containBannerView':
-        this.containBannerView = propValue as boolean;
+        this.containBannerView = HRValueUtils.getBoolean(propValue as HippyAny,true);
         break;
       case 'scrollEventThrottle':
-        this.scrollEventThrottle = propValue as number;
+        this.scrollEventThrottle = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case 'preloadItemNumber':
-        this.preloadItemNumber = propValue as number;
+        this.preloadItemNumber = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case 'interItemSpacing':
-        this.interItemSpacing = propValue as number;
+        this.interItemSpacing = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case 'columnSpacing':
-        this.columnSpacing = propValue as number;
+        this.columnSpacing = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case 'numberOfColumns':
         let i = 1
-        for (i = 1; i < (propValue as number); i++) {
+        for (i = 1; i < HRValueUtils.getNumber(propValue as HippyAny); i++) {
           this.columnsTemplate += ' 1fr'
         }
         break;

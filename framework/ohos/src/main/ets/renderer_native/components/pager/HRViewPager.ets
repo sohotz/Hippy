@@ -25,6 +25,7 @@ import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
   HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRViewPagerView extends HippyRenderBaseView {
@@ -44,10 +45,10 @@ export class HRViewPagerView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     console.log(`HRViewPagerView: propKey is : ${propKey},propValue is : ${propValue}`)
     if (propKey === 'initialPage') {
-      this.initialPage = propValue as number
+      this.initialPage = HRValueUtils.getNumber(propValue as HippyAny);
       this.index = this.initialPage
     } else if (propKey === 'scrollEnabled') {
-      let enable = propValue as boolean
+      let enable = HRValueUtils.getBoolean(propValue as HippyAny,true)
       this.disableSwipe = !enable
     } else if (propKey === 'direction') {
       //todo: android has branch: props.containsKey("vertical")
@@ -55,7 +56,7 @@ export class HRViewPagerView extends HippyRenderBaseView {
         this.vertical = true
       }
     } else if (propKey === 'pageMargin') {
-      this.prevMargin = this.nextMargin = propValue as number
+      this.prevMargin = this.nextMargin = HRValueUtils.getNumber(propValue as HippyAny)
     }
     return super.setProp(propKey, propValue as HippyAny)
   }

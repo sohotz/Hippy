@@ -25,6 +25,7 @@ import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { ComposeListItem } from '@ohos.arkui.advanced.ComposeListItem';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRRefreshWrapperView extends HippyRenderBaseView {
@@ -42,9 +43,9 @@ export class HRRefreshWrapperView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
     if (propKey === 'bounceTime') {
-      this.bounceTime = propValue as number
+      this.bounceTime = HRValueUtils.getNumber(propValue as HippyAny)
     } else if (propKey === 'cssPositionY') {
-      this.cssPositionY = propValue as number
+      this.cssPositionY = HRValueUtils.getNumber(propValue as HippyAny)
     }
     return super.setProp(propKey, propValue as HippyAny)
   }
