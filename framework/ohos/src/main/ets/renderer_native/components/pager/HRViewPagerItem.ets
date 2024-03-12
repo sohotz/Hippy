@@ -22,12 +22,13 @@ import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
+import { HRRect } from '../../utils/HRTypes';
 import HippyRenderBaseView, {
-  HippyObservedArray } from '../base/HippyRenderBaseView';
+  HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 
 @Observed
 export class HRViewPagerItemView extends HippyRenderBaseView {
-  public source: string = ''
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
@@ -35,12 +36,17 @@ export class HRViewPagerItemView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     return super.setProp(propKey, propValue as HippyAny)
   }
+
+  protected updateRenderViewFrame(frame: HRRect): void {
+    this.cssPositionX = 0
+    this.cssPositionY = 0
+    this.cssWidth = frame.width
+    this.cssHeight = frame.height
+  }
 }
 
 @Component
 export struct HRViewPagerItem {
-  ctx!: NativeRenderContext
-  tag!: number
   @ObjectLink renderView: HRViewPagerItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
@@ -59,6 +65,7 @@ export struct HRViewPagerItem {
 // base props for all components
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
   .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
@@ -66,9 +73,18 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }

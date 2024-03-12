@@ -23,7 +23,8 @@ import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
-  HippyObservedArray } from '../base/HippyRenderBaseView';
+  HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 
@@ -32,10 +33,10 @@ export class HRViewPagerView extends HippyRenderBaseView {
   private readonly TAG = "HRViewPagerView"
   public initialPage: number = 0
   public index: number = 0
-  public prevMargin:number = 0
-  public nextMargin:number = 0
-  public disableSwipe:boolean = false
-  public vertical:boolean = false
+  public prevMargin: number = 0
+  public nextMargin: number = 0
+  public disableSwipe: boolean = false
+  public vertical: boolean = false
   public controller: SwiperController = new SwiperController()
 
   constructor(ctx: NativeRenderContext) {
@@ -48,13 +49,14 @@ export class HRViewPagerView extends HippyRenderBaseView {
       this.initialPage = HRValueUtils.getNumber(propValue as HippyAny);
       this.index = this.initialPage
     } else if (propKey === 'scrollEnabled') {
-      let enable = HRValueUtils.getBoolean(propValue as HippyAny,true)
+      let enable = HRValueUtils.getBoolean(propValue as HippyAny, true)
       this.disableSwipe = !enable
     } else if (propKey === 'direction') {
-      //todo: android has branch: props.containsKey("vertical")
-      if (propValue as string === 'vertical') {
+      if (HRValueUtils.getString(propValue as HippyAny) === 'vertical') {
         this.vertical = true
       }
+    } else if (propKey === 'vertical') {
+      this.vertical = true
     } else if (propKey === 'pageMargin') {
       this.prevMargin = this.nextMargin = HRValueUtils.getNumber(propValue as HippyAny)
     }
@@ -65,7 +67,10 @@ export class HRViewPagerView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
     switch (method) {
       case "setPage":
-        this.index = params[0] as number
+        this.index = HRValueUtils.getNumber(params[0])
+        break;
+      case "setPageWithoutAnimation":
+        this.index = HRValueUtils.getNumber(params[0])
         break;
       case "next":
         this.controller.showNext()
@@ -74,9 +79,14 @@ export class HRViewPagerView extends HippyRenderBaseView {
         this.controller.showPrevious()
         break;
       case "setIndex":
-        //todo: not support para 'animated'
-        let map = params[0] as HippyMap
-        this.index = map.get('index') as number
+        // TODO: ohos not support para 'animated'
+        let map = HRValueUtils.getMap(params[0])
+        if (map) {
+          let i = map.get('index')
+          if (i && typeof i == 'number') {
+            this.index = i
+          }
+        }
         break;
       default:
         break;
@@ -93,8 +103,11 @@ export struct HRViewPager {
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   private PAGE_ITEM_POSITION: string = "position";
-  private PAGE_SCROLL_STATE: string = "PageScrollState";
-  private PAGE_POSITION_OFFSET: string = "PagePositionOffset"
+  private PAGE_ITEM_OFFSET: string = "offset";
+  private PAGE_SCROLL_STATE: string = "pageScrollState";
+  private SCROLL_STATE_IDLE: string = "idle";
+  private SCROLL_STATE_DRAGGING: string = "dragging";
+  private SCROLL_STATE_SETTLING: string = "settling";
 
   handleChangeEvent(index: number) {
     LogUtils.d(this.TAG, "handleChangeEvent: index " + index)
@@ -104,7 +117,7 @@ export struct HRViewPager {
     LogUtils.d(this.TAG, "EVENT_PAGE_SELECTED ")
 
     params.clear()
-    params.set(this.PAGE_SCROLL_STATE, 4);//todo
+    params.set(this.PAGE_SCROLL_STATE, this.SCROLL_STATE_IDLE);
     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SCROLL_STATE_CHANGED, params);
     LogUtils.d(this.TAG, "EVENT_PAGE_SCROLL_STATE_CHANGED 4 ")
   }
@@ -113,7 +126,7 @@ export struct HRViewPager {
     LogUtils.d(this.TAG, "handleGestureSwipeEvent: index " + index)
     let params = new Map<string, Number>() as HippyMap;
     params.set(this.PAGE_ITEM_POSITION, index);
-    params.set(this.PAGE_POSITION_OFFSET, extraInfo.currentOffset);
+    params.set(this.PAGE_ITEM_OFFSET, extraInfo.currentOffset);
     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SCROLL, params);
     LogUtils.d(this.TAG, "EVENT_PAGE_SCROLL ")
   }
@@ -131,30 +144,30 @@ export struct HRViewPager {
     switch (event.type){
       case TouchType.Move:
         LogUtils.d(this.TAG, "handleTouchEvent: move ")
-      break
+        break
       case TouchType.Down:
         {
           LogUtils.d(this.TAG, "handleTouchEvent: Down ")
           let params = new Map<string, number>() as HippyMap;
-          params.set(this.PAGE_SCROLL_STATE, event.type);
+          params.set(this.PAGE_SCROLL_STATE, this.SCROLL_STATE_DRAGGING);
           HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SCROLL_STATE_CHANGED, params);
           LogUtils.d(this.TAG, "EVENT_PAGE_SCROLL_STATE_CHANGED  Down ")
         }
-      break
+        break
       case TouchType.Up:
         {
           LogUtils.d(this.TAG, "handleTouchEvent: Up ")
           let params = new Map<string, number>() as HippyMap;
-          params.set(this.PAGE_SCROLL_STATE, event.type);
+          params.set(this.PAGE_SCROLL_STATE, this.SCROLL_STATE_SETTLING);
           HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_PAGE_SCROLL_STATE_CHANGED, params);
           LogUtils.d(this.TAG, "EVENT_PAGE_SCROLL_STATE_CHANGED Up")
         }
-      break
+        break
       case TouchType.Cancel:
         LogUtils.d(this.TAG, "handleTouchEvent: Cancel ")
         break
       default:
-      break;
+        break;
     }
   }
 
@@ -172,9 +185,9 @@ export struct HRViewPager {
         }
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
+    .applyRenderViewBaseAttr(this.renderView)
     .indicator(false)
     .index(this.renderView.index)
-    .applyRenderViewBaseAttr(this.renderView)
     .disableSwipe(this.renderView.disableSwipe)
     .vertical(this.renderView.vertical)
     .prevMargin(this.renderView.prevMargin)
@@ -194,16 +207,26 @@ export struct HRViewPager {
 // base props for all components
 @Extend(Swiper)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
