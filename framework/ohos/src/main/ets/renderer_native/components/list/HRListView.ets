@@ -29,6 +29,7 @@ import { HRPullHeaderView } from '../pullheader/HRPullHeader';
 import { HRPullFooterView } from '../pullfooter/HRPullFooter';
 import { HRRect } from '../../utils/HRTypes';
 import { PixelUtil } from '../../../support/utils/PixelUtil';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRListView extends HippyRenderBaseView {
@@ -60,14 +61,14 @@ export class HRListView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
     switch (propKey) {
       case "cssPositionX":
-        this.cssPositionX = propValue as number;
+        this.cssPositionX = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case "cssPositionY":
-        this.cssPositionY = propValue as number;
+        this.cssPositionY = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case 'nestedScrollTopPriority':
         {
-          let pvalue = propValue as string
+          let pvalue = HRValueUtils.getString(propValue as HippyAny)
           if (pvalue === 'parent') {
             this.scrollForward = NestedScrollMode.PARENT_FIRST
             this.scrollBackward = NestedScrollMode.PARENT_FIRST
@@ -78,28 +79,28 @@ export class HRListView extends HippyRenderBaseView {
         }
         break;
       case "cssHeight":
-        this.cssHeight = propValue as number;
+        this.cssHeight = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case "horizontal":
-        this.listDirection = propValue as boolean == true ? Axis.Horizontal : Axis.Vertical;
+        this.listDirection = HRValueUtils.getBoolean(propValue as HippyAny,true) == true ? Axis.Horizontal : Axis.Vertical;
         break;
       case "scrollEnabled":
-        this.scrollEnabled = propValue as boolean;
+        this.scrollEnabled = HRValueUtils.getBoolean(propValue as HippyAny,true);
         break;
       case "initialContentOffset":
-        this.initialOffset = propValue as number;
+        this.initialOffset = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case "itemViewCacheSize":
-        this.cachedCount = propValue as number;
+        this.cachedCount = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case "scrollEventThrottle":
-        this.scrollEventThrottle = propValue as number;
+        this.scrollEventThrottle = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case "preloadItemNumber":
-        this.preloadItemNumber = propValue as number;
+        this.preloadItemNumber = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case "exposureEventEnabled":
-        this.exposureEventEnabled = propValue as boolean;
+        this.exposureEventEnabled = HRValueUtils.getBoolean(propValue as HippyAny,true);
         break;
       default:
         break;

@@ -32,6 +32,7 @@ import { HRScrollContentView } from './HRScrollContentView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
 import systemDateTime from '@ohos.systemDateTime';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRScrollView extends HippyRenderBaseView {
@@ -89,18 +90,18 @@ export class HRScrollView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, "setProp: index " + propKey + ", propValue: " + propValue)
     switch (propKey) {
       case this.DIRECTION_ROW:
-        this.axis = propValue as number == 1 ? ScrollDirection.Horizontal : ScrollDirection.Vertical
+        this.axis = HRValueUtils.getNumber(propValue as HippyAny) == 1 ? ScrollDirection.Horizontal : ScrollDirection.Vertical
         return true
       case this.SHOW_SCROLLER_INDICATOR:
-        this.scrollBar = propValue as number == 1 ? BarState.On : BarState.Off
+        this.scrollBar = HRValueUtils.getNumber(propValue as HippyAny) == 1 ? BarState.On : BarState.Off
         return true
       case this.VERTICAL_BOUNCES:
       case this.HORIZONTAL_BOUNCES:
       case this.BOUNCES_ENABLE:
-        this.edgeEffect = propValue as number == 1 ? EdgeEffect.Spring : EdgeEffect.None
+        this.edgeEffect = HRValueUtils.getNumber(propValue as HippyAny) == 1 ? EdgeEffect.Spring : EdgeEffect.None
         return true;
       case this.FLING_ENABLE:
-        this.friction = (propValue as number == 1) ? 20 : 0.6 // no params in ohos
+        this.friction = (HRValueUtils.getNumber(propValue as HippyAny) == 1) ? 20 : 0.6 // no params in ohos
       case this.SCROLL:
         this.scrollEvent = propValue as HippyRenderCallback
         return true
@@ -117,25 +118,25 @@ export class HRScrollView extends HippyRenderBaseView {
         this.willDragEndEvent = propValue as HippyRenderCallback
         return true
       case this.PAGING_ENABLED:
-        this.pageEnabled = (propValue as number == 0) ? false : true
+        this.pageEnabled = (HRValueUtils.getNumber(propValue as HippyAny) == 0) ? false : true
         return true
       case this.CONTENT_OFFSET:
-        this.setContentOffset4Reuse(propValue as HippyMap)
+        this.setContentOffset4Reuse(HRValueUtils.getMap(propValue as HippyAny) as HippyMap)
         return true
       case this.SCROLL_ENABLED:
-        this.enableScrollInteraction = propValue as boolean
+        this.enableScrollInteraction = HRValueUtils.getBoolean(propValue as HippyAny,true)
         return true
       case this.HORIZONTAL:
-        this.axis = (propValue as boolean === true) ? ScrollDirection.Horizontal : ScrollDirection.Vertical
+        this.axis =HRValueUtils.getBoolean(propValue as HippyAny,true) ? ScrollDirection.Horizontal : ScrollDirection.Vertical
         return true
       case this.INITIAL_CONTENTOFFSET:
-        this.initialContentOffset = propValue as number
+        this.initialContentOffset = HRValueUtils.getNumber(propValue as HippyAny)
         return true
       case this.SCROLL_EVENT_THROTTLE:
-        this.scrollEventThrottle = propValue as number
+        this.scrollEventThrottle = HRValueUtils.getNumber(propValue as HippyAny)
         return true
       case this.SCROLL_MINOFFSET:
-        this.scrollMinOffset = propValue as number
+        this.scrollMinOffset = HRValueUtils.getNumber(propValue as HippyAny)
         return true
     }
     return super.setProp(propKey, propValue as HippyAny)

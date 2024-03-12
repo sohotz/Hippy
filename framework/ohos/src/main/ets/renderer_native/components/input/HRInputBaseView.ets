@@ -20,6 +20,7 @@
 import { HippyAny, HippyRecord, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRConvertUtil } from '../../utils/HRConvertUtil';
 import HippyRenderBaseView from '../base/HippyRenderBaseView';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 // attr
 export const kText = "text"
@@ -73,37 +74,37 @@ export default abstract class HRInputBaseView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyRenderCallback | HippyAny): boolean {
     switch (propKey) {
       case kText:
-        this.cssText = propValue as string
+        this.cssText = HRValueUtils.getString(propValue as HippyAny)
         return true;
       case kFontSize:
-        this.setFontSize(propValue as number)
+        this.setFontSize(HRValueUtils.getNumber(propValue as HippyAny))
         return true;
       case kFontWeight:
-        this.setFontWeight(propValue as string)
+        this.setFontWeight(HRValueUtils.getString(propValue as HippyAny))
         return true;
       case kTintColor:
-        this.cssCursorColor = HRConvertUtil.toColor(propValue as string)
+        this.cssCursorColor = HRConvertUtil.toColor(HRValueUtils.getString(propValue as HippyAny))
         return true;
       case kColor:
-        this.cssColor = HRConvertUtil.toColor(propValue as string)
+        this.cssColor = HRConvertUtil.toColor(HRValueUtils.getString(propValue as HippyAny))
         return true;
       case kPlaceholderColor:
-        this.cssPlaceholderColor = HRConvertUtil.toColor(propValue as string)
+        this.cssPlaceholderColor = HRConvertUtil.toColor(HRValueUtils.getString(propValue as HippyAny))
         return true;
       case kPlaceholder:
-        this.cssPlaceholder = propValue as string
+        this.cssPlaceholder = HRValueUtils.getString(propValue as HippyAny)
         return true;
       case kKeyboardType:
-        this.setKeyboardType(propValue as string)
+        this.setKeyboardType(HRValueUtils.getString(propValue as HippyAny))
         return true;
       case kReturnKeyType:
-        this.setReturnKeyType(propValue as string)
+        this.setReturnKeyType(HRValueUtils.getString(propValue as HippyAny))
         return true;
       case kTextAlign:
-        this.setTextAlign(propValue as string)
+        this.setTextAlign(HRValueUtils.getString(propValue as HippyAny))
         return true;
       case kMaxTextLength:
-        this.cssMaxTextLength = propValue as number
+        this.cssMaxTextLength = HRValueUtils.getNumber(propValue as HippyAny)
         return true;
       case kEditable:
         this.cssEditable = propValue == 1

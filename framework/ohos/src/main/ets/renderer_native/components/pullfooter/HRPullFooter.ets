@@ -26,6 +26,7 @@ import HippyRenderBaseView, {
   HippyObservedArray } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRRect } from '../../utils/HRTypes';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRPullFooterView extends HippyRenderBaseView {
@@ -41,10 +42,10 @@ export class HRPullFooterView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
     switch (propKey) {
       case "cssPositionX":
-        this.cssPositionX = propValue as number;
+        this.cssPositionX = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case "cssPositionY":
-        this.cssPositionY = propValue as number;
+        this.cssPositionY = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       default:
         break;
