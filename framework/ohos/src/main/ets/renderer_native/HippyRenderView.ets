@@ -60,6 +60,7 @@ export class HippyRenderView extends HippyRenderBaseView {
   private avoidArea: window.AvoidArea | null = null
   private lazyCoreTasks: Array<() => void> = []
   private renderExceptionListener: IHippyRenderExceptionListener | null = null
+  uiContext: UIContext | null = null
 
   constructor(ctx: NativeRenderContext, pageName: string, pageData: HippyRecord, initViewSize: HRSize, avoidArea: window.AvoidArea | null, renderExceptionListener: IHippyRenderExceptionListener | null) {
     super(ctx)
@@ -83,10 +84,12 @@ export class HippyRenderView extends HippyRenderBaseView {
 
   private handleRootEvent(event: string, enable: boolean) {
     if (event == HRDisplaySyncUtils.DO_FRAME.toLowerCase()) {
-      if (enable) {
-        HRDisplaySyncUtils.registerDoFrameListener(this.ctx.getInstanceId(), this.tag)
-      } else {
-        HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), this.tag)
+      if (this.uiContext) {
+        if (enable) {
+          HRDisplaySyncUtils.registerDoFrameListener(this.uiContext, this.ctx.getInstanceId(), this.tag)
+        } else {
+          HRDisplaySyncUtils.unregisterDoFrameListener(this.uiContext, this.ctx.getInstanceId(), this.tag)
+        }
       }
     }
   }
@@ -109,6 +112,12 @@ export class HippyRenderView extends HippyRenderBaseView {
 
   pageDidDisappear(): void {
 
+  }
+
+  aboutToDisappear(): void {
+    if (this.uiContext) {
+      HRDisplaySyncUtils.unregisterDoFrameListener(this.uiContext, this.ctx.getInstanceId(), this.tag)
+    }
   }
 
   destroy(): void {
@@ -141,6 +150,15 @@ export struct HippyRender {
   @ObjectLink renderView: HippyRenderView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
+
+  aboutToAppear() {
+    this.renderView.uiContext = this.getUIContext()
+  }
+
+  aboutToDisappear(): void {
+    this.renderView.aboutToDisappear()
+    this.renderView.uiContext = null
+  }
 
   build() {
     Stack() {
