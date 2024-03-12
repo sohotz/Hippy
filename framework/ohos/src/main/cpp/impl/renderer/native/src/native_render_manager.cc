@@ -28,6 +28,9 @@
 #include "footstone/logging.h"
 #include "footstone/macros.h"
 #include "dom/root_node.h"
+#include "oh_napi/oh_measure_text.h"
+
+#define USE_C_MEASURE 0
 
 constexpr char kId[] = "id";
 constexpr char kPid[] = "pId";
@@ -123,7 +126,11 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   if (!root) {
     return;
   }
+
+#if USE_C_MEASURE
+#else
   uint32_t root_id = root->GetId();
+#endif
 
   serializer_->Release();
   serializer_->WriteHeader();
@@ -140,22 +147,41 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
     dom_node[kName] = footstone::value::HippyValue(nodes[i]->GetViewName());
 
     if (IsMeasureNode(nodes[i]->GetViewName())) {
-      int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
-      MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,
-                                                                  float height, LayoutMeasureMode height_measure_mode,
-                                                                  void* layoutContext) -> LayoutSize {
+#if USE_C_MEASURE
+      auto weak_node = nodes[i]->weak_from_this();
+      MeasureFunction measure_function = [WEAK_THIS, root_node, weak_node](float width, LayoutMeasureMode width_measure_mode,
+                                                                           float height, LayoutMeasureMode height_measure_mode,
+                                                                           void *layoutContext) -> LayoutSize {
         DEFINE_SELF(NativeRenderManager)
         if (!self) {
           return LayoutSize{0, 0};
         }
         int64_t result;
-        self->CallNativeMeasureMethod(root_id, id, self->DpToPx(width), static_cast<int32_t>(width_measure_mode), self->DpToPx(height),
-                                      static_cast<int32_t>(height_measure_mode), result);
+        self->DoMeasureText(root_node, weak_node, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
+                            self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
         LayoutSize layout_result;
         layout_result.width = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32))));
         layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
         return layout_result;
       };
+#else
+      int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
+      MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,
+                                                                  float height, LayoutMeasureMode height_measure_mode,
+                                                                  void *layoutContext) -> LayoutSize {
+        DEFINE_SELF(NativeRenderManager)
+        if (!self) {
+          return LayoutSize{0, 0};
+        }
+        int64_t result;
+        self->CallNativeMeasureMethod(root_id, id, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
+                                      self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
+        LayoutSize layout_result;
+        layout_result.width = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32))));
+        layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
+        return layout_result;
+      };
+#endif
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     }
 
@@ -175,13 +201,13 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
       props[iter->first] = *(iter->second);
       iter++;
     }
-
+  
     dom_node[kProps] = props;
     dom_node_array[i] = dom_node;
   }
   serializer_->WriteValue(HippyValue(dom_node_array));
-  std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
-
+  std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
+  
   CallNativeMethod("createNode", root->GetId(), buffer_pair);
 }
 
@@ -636,6 +662,66 @@ void NativeRenderManager::CallNativeMeasureMethod(const uint32_t root_id, const 
   result = static_cast<int64_t>(measure_result);
   j_env->DeleteLocalRef(j_class);
 */
+}
+
+void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node, const std::weak_ptr<hippy::dom::DomNode> dom_node,
+                   const float width, const int32_t width_mode,
+                   const float height, const int32_t height_mode, int64_t &result) {
+  auto dom_manager = dom_manager_.lock();
+  FOOTSTONE_DCHECK(dom_manager != nullptr);
+  if (dom_manager == nullptr) {
+    return;
+  }
+
+  auto root = root_node.lock();
+  FOOTSTONE_DCHECK(root != nullptr);
+  if (root == nullptr) {
+    return;
+  }
+  
+  auto node = dom_node.lock();
+  if (node == nullptr) {
+    return;
+  }
+
+  footstone::value::HippyValue::HippyValueObjectType props;
+  // 样式属性
+  auto style = node->GetStyleMap();
+  auto iter = style->begin();
+  while (iter != style->end()) {
+    props[iter->first] = *(iter->second);
+    iter++;
+  }
+  // 用户自定义属性
+  auto dom_ext = *node->GetExtStyle();
+  iter = dom_ext.begin();
+  while (iter != dom_ext.end()) {
+    props[iter->first] = *(iter->second);
+    iter++;
+  }
+  
+  OhMeasureText measureInst;
+  OhMeasureResult measureResult;
+
+  std::map<std::string, std::string> propMap;
+  auto textValue = props["text"];
+  if (textValue.IsString()) {
+    std::string text;
+    textValue.ToString(text);
+    propMap["text"] = text;
+  }
+  
+  measureInst.StartMeasure(propMap);
+  measureInst.AddText(propMap);
+  //measureInst.AddImage(propMap);
+  measureResult = measureInst.EndMeasure(propMap,
+    static_cast<int>(width),
+    static_cast<int>(width_mode),
+    static_cast<int>(height),
+    static_cast<int>(height_mode),
+    1.f);
+
+  result = static_cast<int64_t>(measureResult.width) << 32 | static_cast<int64_t>(measureResult.height);
 }
 
 void NativeRenderManager::HandleListenerOps(std::weak_ptr<RootNode> root_node,

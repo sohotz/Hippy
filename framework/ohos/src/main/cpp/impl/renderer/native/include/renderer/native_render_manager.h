@@ -98,6 +98,10 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   void CallNativeMeasureMethod(const uint32_t root_id, const int32_t id, const float width, const int32_t width_mode, const float height,
                                const int32_t height_mode, int64_t& result);
 
+  void DoMeasureText(const std::weak_ptr<RootNode> root_node, const std::weak_ptr<hippy::dom::DomNode> dom_node,
+                     const float width, const int32_t width_mode,
+                     const float height, const int32_t height_mode, int64_t &result);
+
   struct ListenerOp {
     bool add;
     std::weak_ptr<DomNode> dom_node;
