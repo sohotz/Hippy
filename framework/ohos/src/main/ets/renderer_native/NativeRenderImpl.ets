@@ -158,8 +158,7 @@ export class NativeRenderImpl implements NativeRender {
 
   destroyRoot(rootId: number) {
     // TODO(hot):
-
-    HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), rootId)
+    //HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), rootId)
   }
 
   handleRenderException(exception: HippyException) {

@@ -68,42 +68,46 @@ export class HRDisplaySyncUtils {
   }
 
   // Register frame callback listener, should call in ui thread.
-  public static registerDoFrameListener(rendererId: number, rootId: number): void {
-    if (HRDisplaySyncUtils.sListeners == null) {
-      HRDisplaySyncUtils.sListeners = new HashMap<number, ArrayList<number>>()
-    }
-    let roots = HRDisplaySyncUtils.sListeners.get(rendererId)
-    if (roots == null) {
-      roots = new ArrayList<number>()
-      roots.add(rootId)
-      HRDisplaySyncUtils.sListeners.set(rendererId, roots)
-    } else {
-      roots.add(rootId)
-    }
-    if (!HRDisplaySyncUtils.sEnablePostFrame) {
-      HRDisplaySyncUtils.sEnablePostFrame = true
-      HRDisplaySyncUtils.startPostFrame()
-    }
+  public static registerDoFrameListener(uiContext: UIContext, rendererId: number, rootId: number): void {
+    uiContext.runScopedTask(() => {
+      if (HRDisplaySyncUtils.sListeners == null) {
+        HRDisplaySyncUtils.sListeners = new HashMap<number, ArrayList<number>>()
+      }
+      let roots = HRDisplaySyncUtils.sListeners.get(rendererId)
+      if (roots == null) {
+        roots = new ArrayList<number>()
+        roots.add(rootId)
+        HRDisplaySyncUtils.sListeners.set(rendererId, roots)
+      } else {
+        roots.add(rootId)
+      }
+      if (!HRDisplaySyncUtils.sEnablePostFrame) {
+        HRDisplaySyncUtils.sEnablePostFrame = true
+        HRDisplaySyncUtils.startPostFrame()
+      }
+    })
   }
 
   // Unregister frame callback listener, should call in ui thread.
-  public static unregisterDoFrameListener(rendererId: number, rootId: number): void {
-    if (HRDisplaySyncUtils.sListeners == null) {
-      return
-    }
-    let roots = HRDisplaySyncUtils.sListeners.get(rendererId)
-    if (roots != null) {
-      roots.remove(rootId)
-      if (roots.isEmpty()) {
+  public static unregisterDoFrameListener(uiContext: UIContext, rendererId: number, rootId: number): void {
+    uiContext.runScopedTask(() => {
+      if (HRDisplaySyncUtils.sListeners == null) {
+        return
+      }
+      let roots = HRDisplaySyncUtils.sListeners.get(rendererId)
+      if (roots != null) {
+        roots.remove(rootId)
+        if (roots.isEmpty()) {
+          HRDisplaySyncUtils.sListeners.remove(rendererId)
+        }
+      } else {
         HRDisplaySyncUtils.sListeners.remove(rendererId)
       }
-    } else {
-      HRDisplaySyncUtils.sListeners.remove(rendererId)
-    }
-    if (HRDisplaySyncUtils.sListeners.isEmpty()) {
-      HRDisplaySyncUtils.sEnablePostFrame = false
-      HRDisplaySyncUtils.stopPostFrame()
-    }
+      if (HRDisplaySyncUtils.sListeners.isEmpty()) {
+        HRDisplaySyncUtils.sEnablePostFrame = false
+        HRDisplaySyncUtils.stopPostFrame()
+      }
+    })
   }
 
 }
