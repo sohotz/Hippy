@@ -50,6 +50,7 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
     this.mDataHolder.addResponseHeaderProperty(HippyHttpResponse.HTTP_RESPONSE_RESPONSE_MESSAGE,
       response.getResponseMessage());
     //todo maybe still need to add response parseLogic
+    this.mDataHolder.buffer = response.buffer
     let headers = response.getRspHeaderMaps();
     if (headers != null) {
       for (let header of headers.entries()) {

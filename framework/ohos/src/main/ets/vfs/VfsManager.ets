@@ -156,7 +156,7 @@ export class VfsManager {
   }
 
   onFetchResourceEnd(holder: ResourceDataHolder) {
-    //TODO(eksea)
+    holder.callback?.onFetchCompleted(holder)
   }
 
   onTraversalsEndAsync(holder: ResourceDataHolder) {

@@ -29,7 +29,7 @@ export interface ImageRequestListener {
   /**
    * Notify image request success
    */
-  onRequestSuccess: (imageData: ImageDataSupplier ) => void
+  onRequestSuccess: (imageData: PixelMap ) => void
 
   /**
    * Notify image request failed
