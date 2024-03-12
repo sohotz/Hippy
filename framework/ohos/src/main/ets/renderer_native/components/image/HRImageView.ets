@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { HippyAny,
-  HippyRenderCallback } from '../../../support/common/HippyTypes';
+  HippyRenderCallback, HippyResource } from '../../../support/common/HippyTypes';
 import { HRNodeProps } from '../../dom_node/HRNodeProps';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HRConvertUtil } from '../../utils/HRConvertUtil';
@@ -30,6 +30,7 @@ import { ImageRequestListener } from './ImageRequestListener';
 import { ImageDataSupplier } from './ImageDataSupplier';
 import { HashMap } from '@kit.ArkTS';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { HippyResourceLoader } from '../../../hippy_framework/adapter/http/HippyResourceLoader';
 
 interface ImageLoadEvent {
   width: number
@@ -74,6 +75,7 @@ export class HRImageView extends HippyRenderBaseView {
   private imageLoader: HRDownloadUtils = new HRDownloadUtils
   tempDir:string = getContext().tempDir
 
+  src: string | PixelMap | Resource
   cssSrc: string | Resource | null = null
   cssAlt: string | Resource | null = null
   cssResizeMode: ImageFit = ImageFit.Fill
@@ -88,6 +90,7 @@ export class HRImageView extends HippyRenderBaseView {
     super(ctx)
     LogUtils.d(this.TAG, "constructor")
     this.initCallbacks()
+    this.src = ""
   }
 
   private setResizeMode(pvalue: string) {
@@ -293,6 +296,8 @@ export class HRImageView extends HippyRenderBaseView {
           }
           let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
           imageLoader.fetchImageAsync(this.cssSrc as string, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
+          this.cssSrc = HRValueUtils.getString(propValue as HippyAny)
+          this.fetchImage()
         }
         return true
       case 'resizeMode':
@@ -365,6 +370,29 @@ export class HRImageView extends HippyRenderBaseView {
     }
   }
 
+  fetchImage() {
+    if (!this.cssSrc || typeof this.cssSrc !== 'string') {
+      return
+    }
+    if (this.cssSrc?.startsWith(HRImageView.BASE64_IMAGE_PREFIX)) {
+      this.src = this.cssSrc
+      return
+    }
+    let src = this.convertToLocalPath(this.cssSrc)
+    let listener: ImageRequestListener = {
+      onRequestStart: (imageData: ImageDataSupplier) => {},
+      onRequestSuccess: (imageData: PixelMap) => {
+        this.src = imageData
+      },
+      onRequestFail: () => {
+        // this.src = src
+      },
+      onRequestProgress: (total: number, loaded: number) => {}
+    }
+    let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
+    imageLoader.fetchImageAsync(src, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
+  }
+
   getImage() {
     LogUtils.d(this.TAG,"getImage")
     if (typeof this.cssSrc == 'string') {
@@ -381,13 +409,13 @@ export class HRImageView extends HippyRenderBaseView {
 
   convertToLocalPath(uri: string): string {
     // hpfile://./assets/file_banner02.jpg
-    let relativePath = uri.replace(HRImageView.RAW_IMAGE_PREFIX + "./", "")
-    let bundlePath = this.ctx.getNativeRender().getBundlePath()
-    let resultUrl = bundlePath ? bundlePath.substring(0, bundlePath.lastIndexOf("/") + 1) + relativePath : ""
-    if (resultUrl.startsWith(HRImageView.ASSETS_PREFIX)) {
-      resultUrl = resultUrl.substring(HRImageView.ASSETS_PREFIX.length)
+    if (uri.startsWith(HippyResourceLoader.RAWFILE_PREFIX)) {
+      const bundlePath = this.ctx.getNativeRender().getBundlePath()
+      const pathParts = bundlePath.split('/')
+      pathParts.pop()
+      return pathParts.join('/') + '/' + uri.substring(HippyResourceLoader.RAWFILE_PREFIX.length)
     }
-    return resultUrl
+    return uri
   }
 }
 
@@ -395,7 +423,7 @@ export class HRImageView extends HippyRenderBaseView {
 export struct HRImage {
   @ObjectLink renderView: HRImageView
   build() {
-    Image(this.renderView.cssSrc)
+    Image(this.renderView.src)
       .applyRenderViewBaseAttr(this.renderView)
       .alt(this.renderView.cssAlt)
       .objectFit(this.renderView.cssResizeMode)
