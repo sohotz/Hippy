@@ -21,21 +21,24 @@ import { HRComponent } from '../../HippyRenderView'
 import { NativeRenderContext } from '../../NativeRenderContext'
 import { HRGestureDispatcher } from '../../uimanager/HRGestureDispatcher'
 import { HREventType, HREventUtils } from '../../utils/HREventUtils'
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView'
+import HippyRenderBaseView, { HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView'
 import { LogUtils } from '../../../support/utils/LogUtils'
 import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+
 const TAG: string = "HRModal";
 
 @Observed
 export class HRModalView extends HippyRenderBaseView {
   static readonly VIEW_NAME = "HRModalView"
 
-  animationType: string | null = null
   transparent: boolean = true
-  supportedOrientations: string | null = null
-  immersionStatusBar: boolean = false;
-  darkStatusBarText: boolean = false;
+  animationType: string | null = null
+  immersionStatusBar: boolean = false
+  darkStatusBarText: boolean = false
+  autoHideStatusBar: boolean = false
+  autoHideNavigationBar: boolean = false
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -44,19 +47,22 @@ export class HRModalView extends HippyRenderBaseView {
     LogUtils.i(TAG, `modalview propkey: ${propKey}, value: ${propValue}`)
     switch (propKey) {
       case "transparent":
-        this.transparent = HRValueUtils.getBoolean(propValue as HippyAny,true);
-        break;
-      case "immersionStatusBar":
-        this.immersionStatusBar = HRValueUtils.getBoolean(propValue as HippyAny,true);
-        break;
-      case "supportedOrientations":
-        this.supportedOrientations = HRValueUtils.getString(propValue as HippyAny);
+        this.transparent = HRValueUtils.getBoolean(propValue as HippyAny, true);
         break;
       case "animationType":
         this.animationType = HRValueUtils.getString(propValue as HippyAny);
         break;
+      case "immersionStatusBar":
+        this.immersionStatusBar = HRValueUtils.getBoolean(propValue as HippyAny, false);
+        break;
       case "darkStatusBarText":
-        this.darkStatusBarText = HRValueUtils.getBoolean(propValue as HippyAny,true);
+        this.darkStatusBarText = HRValueUtils.getBoolean(propValue as HippyAny, false);
+        break;
+      case "autoHideStatusBar":
+        this.autoHideStatusBar = HRValueUtils.getBoolean(propValue as HippyAny, false);
+        break;
+      case "autoHideNavigationBar":
+        this.autoHideNavigationBar = HRValueUtils.getBoolean(propValue as HippyAny, false);
         break;
       default:
         break
@@ -71,6 +77,7 @@ struct HippyDialog {
   @ObjectLink renderView: HRModalView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
+  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   build() {
     Stack() {
@@ -101,7 +108,8 @@ export struct HRModal {
       builder: HippyDialog({
         renderView: this.renderView,
         children: this.children,
-        buildRenderView: this.buildRenderView
+        buildRenderView: this.buildRenderView,
+        buildCustomRenderView: this.buildCustomRenderView
       }),
       autoCancel: true,
       customStyle: true,
@@ -127,16 +135,26 @@ export struct HRModal {
 // base props for all components
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
-  //.backgroundColor($$.cssBackgroundColor)
-  //.position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  //.size({ width: $$.cssWidth, height: $$.cssHeight })
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
+  .backgroundColor($$.cssBackgroundColor)
+  // .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
-  //.onClick($$.eventClick)
+  .hitTestBehavior($$.hitTestBehavior)
+  .onClick($$.eventClick)
 }
