@@ -261,42 +261,6 @@ export class HRImageView extends HippyRenderBaseView {
       case 'src':
         {
           this.cssSrc = HRValueUtils.getString(propValue as HippyAny)
-          if (this.cssSrc?.startsWith(HRImageView.RAW_IMAGE_PREFIX)) {
-            this.cssSrc = this.convertToLocalPath(this.cssSrc)
-            this.cssSrc = $rawfile(this.cssSrc)
-            return true
-          }
-
-          // TODO(hot): to delete?
-          /*
-          let src = propValue as string
-          if (src?.startsWith(HRImageView.INTERNET_IMAGE_PREFIX)) {
-            let splitList = src.split("/")
-            let filePath = this.tempDir +"/" + splitList[splitList.length - 1]
-            let failCallback = (err: number) => {
-              console.error(`HRImageView:Failed to download the task. Code: ${err}`);
-            };
-            let progressCallback = (receivedSize: number, totalSize: number) => {
-              console.info("HRImageView:download receivedSize:" + receivedSize + " totalSize:" + totalSize);
-            };
-            let completeCallback = () => {
-              console.info('HRImageView:Download task completed.');
-            };
-            this.imageLoader.setCbFail(failCallback)
-            this.imageLoader.setCbComplete(completeCallback)
-            this.imageLoader.setCbProgress(progressCallback)
-            this.imageLoader.downloadTask(src,filePath)
-          }
-          */
-          let listener: ImageRequestListener = {
-            onRequestStart: (imageData: ImageDataSupplier) => {},
-            onRequestSuccess: (imageData: ImageDataSupplier) => {},
-            onRequestFail: () => {},
-            onRequestProgress: (total: number, loaded: number) => {}
-          }
-          let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
-          imageLoader.fetchImageAsync(this.cssSrc as string, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
-          this.cssSrc = HRValueUtils.getString(propValue as HippyAny)
           this.fetchImage()
         }
         return true
