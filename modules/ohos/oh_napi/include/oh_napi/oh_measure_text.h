@@ -26,6 +26,10 @@ public:
     OhMeasureResult EndMeasure(std::map<std::string, std::string> propMap, int width, int widthMode, int height,
                                int heightMode, float density);
 
+    static std::vector<std::string> textPropsOnly;   // 只有text有，span没有的属性
+    static std::vector<std::string> textMarginProps; // 和边框相关的，在最后参与计算
+    static std::vector<std::string> spanDropProps;   // 在OH_Drawing里面没有的属性，不知如何处理
+    static std::vector<std::string> textSpanProps;   // 已处理的TextSpan属性
 
 private:
     OH_Drawing_TypographyStyle *typoStyle_;

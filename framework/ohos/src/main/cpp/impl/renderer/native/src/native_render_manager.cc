@@ -30,7 +30,7 @@
 #include "dom/root_node.h"
 #include "oh_napi/oh_measure_text.h"
 
-#define USE_C_MEASURE 0
+#define USE_C_MEASURE 1
 
 constexpr char kId[] = "id";
 constexpr char kPid[] = "pId";
@@ -664,6 +664,73 @@ void NativeRenderManager::CallNativeMeasureMethod(const uint32_t root_id, const 
 */
 }
 
+std::string HippyValueToString(const HippyValue &value) {
+  std::string sv;
+  if (value.IsString()) {
+    value.ToString(sv);
+  } else if(value.IsDouble()) {
+    double d;
+    value.ToDouble(d);
+    sv = std::to_string(d);
+  } else {
+    FOOTSTONE_LOG(ERROR) << "Measure Text : unknow value type";
+  }
+  return sv;
+}
+
+void CollectStartProps(std::map<std::string, std::string> &propMap, footstone::value::HippyValue::HippyValueObjectType &props) {
+  propMap.clear();
+  for (const auto &key : OhMeasureText::textPropsOnly) {
+    auto it = props.find(key);
+    if (it != props.end()) {
+      propMap[key] = HippyValueToString(it->second);
+    }
+  }
+}
+
+void CollectEndProps(std::map<std::string, std::string> &propMap,
+                       footstone::value::HippyValue::HippyValueObjectType &props) {
+  propMap.clear();
+  for (const auto &key : OhMeasureText::textMarginProps) {
+    auto it = props.find(key);
+    if (it != props.end()) {
+      propMap[key] = HippyValueToString(it->second);
+    }
+  }
+}
+
+void CollectTextSpanProps(std::map<std::string, std::string> &propMap,
+                       footstone::value::HippyValue::HippyValueObjectType &props) {
+  propMap.clear();
+  for (auto it = props.begin(); it != props.end(); ++it) {
+    const std::string &key = it->first;
+
+    if (std::find(OhMeasureText::textPropsOnly.begin(), OhMeasureText::textPropsOnly.end(), key) == OhMeasureText::textPropsOnly.end() &&
+        std::find(OhMeasureText::textMarginProps.begin(), OhMeasureText::textMarginProps.end(), key) == OhMeasureText::textMarginProps.end() &&
+        std::find(OhMeasureText::spanDropProps.begin(), OhMeasureText::spanDropProps.end(), key) == OhMeasureText::spanDropProps.end()) {
+      propMap[key] = HippyValueToString(it->second);
+    }
+  }
+}
+
+void CollectAllProps(footstone::value::HippyValue::HippyValueObjectType &props, std::shared_ptr<DomNode> node) {
+  props.clear();
+  // 样式属性
+  auto style = node->GetStyleMap();
+  auto iter = style->begin();
+  while (iter != style->end()) {
+    props[iter->first] = *(iter->second);
+    iter++;
+  }
+  // 用户自定义属性
+  auto dom_ext = *node->GetExtStyle();
+  iter = dom_ext.begin();
+  while (iter != dom_ext.end()) {
+    props[iter->first] = *(iter->second);
+    iter++;
+  }
+}
+
 void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node, const std::weak_ptr<hippy::dom::DomNode> dom_node,
                    const float width, const int32_t width_mode,
                    const float height, const int32_t height_mode, int64_t &result) {
@@ -685,41 +752,42 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   }
 
   footstone::value::HippyValue::HippyValueObjectType props;
-  // 样式属性
-  auto style = node->GetStyleMap();
-  auto iter = style->begin();
-  while (iter != style->end()) {
-    props[iter->first] = *(iter->second);
-    iter++;
-  }
-  // 用户自定义属性
-  auto dom_ext = *node->GetExtStyle();
-  iter = dom_ext.begin();
-  while (iter != dom_ext.end()) {
-    props[iter->first] = *(iter->second);
-    iter++;
-  }
-  
+  CollectAllProps(props, node);
+
+  float density = GetDensity();
   OhMeasureText measureInst;
   OhMeasureResult measureResult;
-
   std::map<std::string, std::string> propMap;
-  auto textValue = props["text"];
-  if (textValue.IsString()) {
-    std::string text;
-    textValue.ToString(text);
-    propMap["text"] = text;
-  }
-  
+
+  CollectStartProps(propMap, props);
   measureInst.StartMeasure(propMap);
-  measureInst.AddText(propMap);
-  //measureInst.AddImage(propMap);
-  measureResult = measureInst.EndMeasure(propMap,
-    static_cast<int>(width),
-    static_cast<int>(width_mode),
-    static_cast<int>(height),
-    static_cast<int>(height_mode),
-    1.f);
+    
+  if (node->GetChildCount() == 0) {
+    CollectTextSpanProps(propMap, props);
+    measureInst.AddText(propMap);
+  } else {
+    for(uint32_t i = 0; i < node->GetChildCount(); i++) {
+      auto child = node->GetChildAt(i);
+      footstone::value::HippyValue::HippyValueObjectType spanProps;
+      CollectAllProps(spanProps, child);
+      if (child->GetViewName() == "Text") {
+        CollectTextSpanProps(propMap, spanProps);
+        measureInst.AddText(propMap);
+      } else if (child->GetViewName() == "Image") {
+        if (spanProps.find("width") != spanProps.end() && spanProps.find("height") != spanProps.end()) {
+          propMap.clear();
+          propMap["width"] = HippyValueToString(spanProps["width"]);
+          propMap["height"] = HippyValueToString(spanProps["height"]);
+          measureInst.AddImage(propMap);
+        } else {
+          FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
+        }
+      }
+    }
+  }
+  CollectEndProps(propMap, props);
+  measureResult = measureInst.EndMeasure(propMap, static_cast<int>(width), static_cast<int>(width_mode),
+                                         static_cast<int>(height), static_cast<int>(height_mode), density);
 
   result = static_cast<int64_t>(measureResult.width) << 32 | static_cast<int64_t>(measureResult.height);
 }
