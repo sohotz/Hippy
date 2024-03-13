@@ -24,7 +24,8 @@ import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import { HRRect } from '../../utils/HRTypes';
 import HippyRenderBaseView, {
-  HippyObservedArray } from '../base/HippyRenderBaseView';
+  HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 
@@ -66,19 +67,28 @@ export class HRPullHeaderView extends HippyRenderBaseView {
         break
       case "collapsePullHeaderWithOptions":
         {
-          let map = params[0] as HippyMap
-          let collapseTime = map.get('time') as number;
-          setTimeout(() => {
-            LogUtils.d(this.TAG, "delay : " + collapseTime)
-            // let params = new Map<string, Number>() as HippyMap;
-            // params.set(this.CURRENT_OFFSET, this.cssHeight);
-            //HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_HEADER_PULLING, params);
+          let map = HRValueUtils.getMap(params[0])
+          if (!map) {
+            break
+          }
+          let collapseTime = HRValueUtils.getNumber(map.get('time'))
+          if (collapseTime > 0) {
+            setTimeout(() => {
+              LogUtils.d(this.TAG, "delay : " + collapseTime)
+              // let params = new Map<string, Number>() as HippyMap;
+              // params.set(this.CURRENT_OFFSET, this.cssHeight);
+              //HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_HEADER_PULLING, params);
+              this.onHeadRefreshFinish()
+            }, collapseTime);
+          } else {
             this.onHeadRefreshFinish()
-          }, collapseTime);
+          }
         }
-        break;
+        break
+      case 'expandPullHeader':
+        break
       default:
-        break;
+        break
     }
   }
 
@@ -122,23 +132,32 @@ export struct HRPullHeader {
     }
     .applyRenderViewBaseAttr(this.renderView)
     .zIndex(2)
-    // .visibility(this.renderView.cssVisibility)
   }
 }
 
 // base props for all components
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   // .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }

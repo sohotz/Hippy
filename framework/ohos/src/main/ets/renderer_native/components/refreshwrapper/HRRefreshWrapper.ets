@@ -22,7 +22,8 @@ import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { ComposeListItem } from '@ohos.arkui.advanced.ComposeListItem';
 import { HRValueUtils } from '../../utils/HRValueUtils';
@@ -30,11 +31,11 @@ import { HRValueUtils } from '../../utils/HRValueUtils';
 @Observed
 export class HRRefreshWrapperView extends HippyRenderBaseView {
   private readonly TAG = "HRRefreshWrapperView"
-  public bounceTime:number = 300
+  public bounceTime: number = 300
   public scroller: Scroller = new Scroller()
-  public needRefresh:boolean = false
+  public needRefresh: boolean = false
   public refreshBarVisible = false
-  public uiCtx:UIContext|null = null
+  public uiCtx: UIContext | null = null
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -128,16 +129,26 @@ export struct HRRefreshWrapper {
 // base props for all components
 @Extend(List)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }

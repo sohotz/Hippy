@@ -23,7 +23,8 @@ import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
-  HippyObservedArray } from '../base/HippyRenderBaseView';
+  HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRRect } from '../../utils/HRTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
@@ -31,6 +32,7 @@ import { HRValueUtils } from '../../utils/HRValueUtils';
 @Observed
 export class HRPullFooterView extends HippyRenderBaseView {
   private readonly TAG = "HRPullFooterView"
+  public sticky: boolean = false
   //public collapseTime: number = 1000
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -41,6 +43,8 @@ export class HRPullFooterView extends HippyRenderBaseView {
     // TODO: xxxxx
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
     switch (propKey) {
+      case "sticky":
+        this.sticky = HRValueUtils.getBoolean(propValue as HippyAny, false);
       case "cssPositionX":
         this.cssPositionX = HRValueUtils.getNumber(propValue as HippyAny);
         break;
@@ -109,7 +113,6 @@ export struct HRPullFooter {
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
-    //.visibility(this.renderView.cssVisibility)
     // .zIndex(2)
   }
 }
@@ -117,16 +120,26 @@ export struct HRPullFooter {
 // base props for all components
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   // .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
