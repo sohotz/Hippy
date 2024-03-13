@@ -68,6 +68,7 @@ export default abstract class HippyRenderBaseView {
   cssScale: ScaleOptions | null = null
   cssTranslate: TranslateOptions | null = null
   cssMatrix: matrix4.Matrix4Transit | null = null
+  cssPadding: Padding = { top: 0, left: 0, bottom: 0, right: 0 }
   hitTestBehavior: HitTestMode = HitTestMode.Default
   flagInterceptPullUp: boolean = false
   eventClick: ((event: ClickEvent) => void) | null = null
@@ -97,6 +98,43 @@ export default abstract class HippyRenderBaseView {
 
   setProp(propKey: string, propValue: HippyAny): boolean {
     switch (propKey) {
+      case HRNodeProps.WIDTH:
+        if (this.isImageSpan()) {
+          this.cssWidth = HRValueUtils.getNumber(propValue);
+        }
+        break;
+      case HRNodeProps.HEIGHT:
+        if (this.isImageSpan()) {
+          this.cssHeight = HRValueUtils.getNumber(propValue);
+        }
+        break;
+      case HRNodeProps.PADDING:
+        this.cssPadding.top = HRValueUtils.getNumber(propValue);
+        this.cssPadding.bottom = HRValueUtils.getNumber(propValue);
+        this.cssPadding.left = HRValueUtils.getNumber(propValue);
+        this.cssPadding.right = HRValueUtils.getNumber(propValue);
+        break;
+      case HRNodeProps.PADDING_VERTICAL:
+        this.cssPadding.top = HRValueUtils.getNumber(propValue);
+        this.cssPadding.bottom = HRValueUtils.getNumber(propValue);
+        break;
+      case HRNodeProps.PADDING_HORIZONTAL:
+        this.cssPadding.left = HRValueUtils.getNumber(propValue);
+        this.cssPadding.right = HRValueUtils.getNumber(propValue);
+        break;
+      case HRNodeProps.PADDING_TOP:
+        this.cssPadding.top = HRValueUtils.getNumber(propValue);
+        break;
+      case HRNodeProps.PADDING_BOTTOM:
+        this.cssPadding.bottom = HRValueUtils.getNumber(propValue);
+        break;
+      case HRNodeProps.PADDING_LEFT:
+        this.cssPadding.left = HRValueUtils.getNumber(propValue);
+        break;
+      case HRNodeProps.PADDING_RIGHT:
+        this.cssPadding.right = HRValueUtils.getNumber(propValue);
+        break;
+
       case HRNodeProps.VISIBILITY:
         this.cssVisibility = HRValueUtils.getString(propValue) != HRNodeProps.HIDDEN ? Visibility.Visible : Visibility.Hidden
         break
@@ -701,7 +739,17 @@ export default abstract class HippyRenderBaseView {
     }
   }
 
+  isImageSpan(): boolean {
+    if(this.parentView && this.parentView.viewType == "Text" && this.viewType == "Image") {
+      return true;
+    }
+    return false;
+  }
+
   protected updateRenderViewFrame(frame: HRRect): void {
+    if(this.isImageSpan()) {
+      return;
+    }
     this.cssPositionX = frame.x
     this.cssPositionY = frame.y
     this.cssWidth = frame.width
