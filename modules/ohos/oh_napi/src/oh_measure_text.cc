@@ -1,21 +1,6 @@
 #include "oh_napi/oh_measure_text.h"
 #include "footstone/logging.h"
 
-
-// Text父节点独有的属性
-const static std::vector<std::string> propsStart = {"textAlign", "numberOfLines", "breakStrategy", "ellipsizeMode"};
-
-// 已处理的TextSpan属性:
-const static std::vector<std::string> propsSpan = {
-    "text",       "color",         "fontSize",           "fontWeight",          "fontStyle",
-    "fontFamily", "letterSpacing", "textDecorationLine", "textDecorationStyle", "textDecorationColor",
-};
-
-// 已处理的边框:
-const static std::vector<std::string> propsEnd = {
-    "marginLeft", "marginRight", "marginTop", "marginBottom", "margin", "lineHeight",
-};
-
 void CheckProps(std::vector<std::string> vec, std::map<std::string, std::string> propMap) {
     for (auto it = propMap.begin(); it != propMap.end(); it++) {
         if (std::find(vec.begin(), vec.end(), it->first) == vec.end()) {
@@ -23,6 +8,22 @@ void CheckProps(std::vector<std::string> vec, std::map<std::string, std::string>
         }
     }
 }
+
+std::vector<std::string> OhMeasureText::textPropsOnly = {"textAlign", "numberOfLines", "breakStrategy",
+                                                         "ellipsizeMode"};
+std::vector<std::string> OhMeasureText::textMarginProps = {
+    "margin",      "marginVertical", "marginHorizontal", "marginLeft",      "marginRight",
+    "marginTop",   "marginBottom",   "padding",          "paddingVertical", "paddingHorizontal",
+    "paddingLeft", "paddingRight",   "paddingTop",       "paddingBottom",   "lineHeight",
+};
+std::vector<std::string> OhMeasureText::spanDropProps = {
+    "backgroundColor", "textShadowColor", "textShadowOffset", "textShadowRadius",
+    "borderColor",     "borderWidth",     "verticalAlign",
+};
+std::vector<std::string> OhMeasureText::textSpanProps = {
+    "text",       "color",         "fontSize",           "fontWeight",          "fontStyle",
+    "fontFamily", "letterSpacing", "textDecorationLine", "textDecorationStyle", "textDecorationColor",
+};
 
 OhMeasureText::OhMeasureText() {}
 
@@ -72,7 +73,7 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> propMap) {
 
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, OH_Drawing_CreateFontCollection());
 
-    CheckProps(propsStart, propMap);
+    CheckProps(textPropsOnly, propMap);
 }
 
 void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
@@ -149,7 +150,7 @@ void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
     OH_Drawing_TypographyHandlerPopTextStyle(handler_);
     OH_Drawing_DestroyTextStyle(txtStyle);
 
-    CheckProps(propsSpan, propMap);
+    CheckProps(textSpanProps, propMap);
 }
 
 void OhMeasureText::AddImage(std::map<std::string, std::string> propMap) {
@@ -165,7 +166,7 @@ OhMeasureResult OhMeasureText::EndMeasure(std::map<std::string, std::string> pro
 
     {
         auto typography = OH_Drawing_CreateTypography(handler_);
-        double maxWidth = width;
+        double maxWidth = float(width) / density;
         OH_Drawing_TypographyLayout(typography, maxWidth); // todo2 constraintWidth
 
         ret.height = OH_Drawing_TypographyGetHeight(typography);     // 高度
@@ -177,6 +178,16 @@ OhMeasureResult OhMeasureText::EndMeasure(std::map<std::string, std::string> pro
 
     ret.width *= density;
     ret.height *= density;
+    if (propMap.find("margin") != propMap.end()) {
+        ret.width += std::stod(propMap["margin"]) * 2;
+        ret.height += std::stod(propMap["margin"]) * 2;
+    }
+    if (propMap.find("marginHorizontal") != propMap.end()) {
+        ret.width += std::stod(propMap["marginHorizontal"]) * 2;
+    }
+    if (propMap.find("marginVertical") != propMap.end()) {
+        ret.height += std::stod(propMap["marginVertical"]) * 2;
+    }
     if (propMap.find("marginLeft") != propMap.end()) {
         ret.width += std::stod(propMap["marginLeft"]);
     }
@@ -189,13 +200,34 @@ OhMeasureResult OhMeasureText::EndMeasure(std::map<std::string, std::string> pro
     if (propMap.find("marginBottom") != propMap.end()) {
         ret.height += std::stod(propMap["marginBottom"]);
     }
-    if (propMap.find("margin") != propMap.end()) {
-        ret.width += std::stod(propMap["margin"]) * 2;
-        ret.height += std::stod(propMap["margin"]) * 2;
+
+
+    if (propMap.find("padding") != propMap.end()) {
+        ret.width += std::stod(propMap["padding"]) * 2;
+        ret.height += std::stod(propMap["padding"]) * 2;
     }
+    if (propMap.find("paddingHorizontal") != propMap.end()) {
+        ret.width += std::stod(propMap["paddingHorizontal"]) * 2;
+    }
+    if (propMap.find("paddingVertical") != propMap.end()) {
+        ret.height += std::stod(propMap["paddingVertical"]) * 2;
+    }
+    if (propMap.find("paddingLeft") != propMap.end()) {
+        ret.width += std::stod(propMap["paddingLeft"]);
+    }
+    if (propMap.find("paddingRight") != propMap.end()) {
+        ret.width += std::stod(propMap["paddingRight"]);
+    }
+    if (propMap.find("paddingTop") != propMap.end()) {
+        ret.height += std::stod(propMap["paddingTop"]);
+    }
+    if (propMap.find("paddingBottom") != propMap.end()) {
+        ret.height += std::stod(propMap["paddingBottom"]);
+    }
+
     if (propMap.find("lineHeight") != propMap.end()) {
         ret.height = std::stod(propMap["lineHeight"]) * density;
     }
-    CheckProps(propsEnd, propMap);
+    CheckProps(textMarginProps, propMap);
     return ret;
 }
