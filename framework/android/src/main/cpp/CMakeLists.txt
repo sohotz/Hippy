@@ -72,7 +72,7 @@ set(SOURCE_SET
 
 # This is a top-level shared library,
 # so the source code visibility is always PRIVATE
-target_sources(${PROJECT_NAME} PUBLIC ${SOURCE_SET})
+target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_SET})
 # endregion
 
 # region export modules
@@ -90,4 +90,11 @@ foreach (MODULE IN LISTS MODULES)
     target_link_libraries(${PROJECT_NAME} PUBLIC connector_${TARGET_NAME})
   endif()
 endforeach()
+# endregion
+
+#region link VectorLayout
+if (DEFINED LINK_VECTOR_LAYOUT AND ${LINK_VECTOR_LAYOUT} STREQUAL "true")
+  add_subdirectory("${PROJECT_ROOT_DIR}/framework/vectorlayout/android/library/src/main/jni" vectorlayout)
+  target_link_libraries(${PROJECT_NAME} PRIVATE vectorlayout)
+endif ()
 # endregion
