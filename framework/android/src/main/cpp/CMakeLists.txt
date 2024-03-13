@@ -93,7 +93,7 @@ endforeach()
 # endregion
 
 #region link VectorLayout
-if (DEFINED LINK_VECTOR_LAYOUT AND ${LINK_VECTOR_LAYOUT} STREQUAL "true")
+if ("${LINK_VECTOR_LAYOUT}" STREQUAL "true")
   add_subdirectory("${PROJECT_ROOT_DIR}/framework/vectorlayout/android/library/src/main/jni" vectorlayout)
   target_link_libraries(${PROJECT_NAME} PRIVATE vectorlayout)
 endif ()
