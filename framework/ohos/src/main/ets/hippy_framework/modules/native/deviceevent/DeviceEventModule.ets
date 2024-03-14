@@ -17,8 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BackPressHandler } from '../../..'
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
 import { HippyEngineContext } from '../../../HippyEngineContext'
+import { EventDispatcher } from '../../javascript/EventDispatcher'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 
 @HippyNativeModule({ name: "DeviceEventModule" })
@@ -31,19 +33,19 @@ export class DeviceEventModule extends HippyNativeModuleBase {
     super(ctx)
   }
 
-  // public onBackPressed(handler: HippyEngine.BackPressHandler): boolean {
-  //   if (this.mIsListening) {
-  //     mBackPressHandler = handler;
-  //     if (this.ctx.getModuleManager().getJavaScriptModule(EventDispatcher.class) != null) {
-  //       this.ctx.getModuleManager().getJavaScriptModule(EventDispatcher.class)
-  //         .receiveNativeEvent("hardwareBackPress", null);
-  //       return true;
-  //     } else {
-  //       return false;
-  //     }
-  //   }
-  //   return false;
-  // }
+  public onBackPressed(handler: BackPressHandler): boolean {
+    if (this.mIsListening) {
+      let mBackPressHandler = handler;
+      let scriptModule = this.ctx.getModuleManager().getJavaScriptModule(EventDispatcher.MODULE_NAME)
+      if (scriptModule != null) {
+        (scriptModule as EventDispatcher).receiveNativeEvent("hardwareBackPress", null);
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  }
 
   public setListenBackPress(listen: boolean) {
     this.mIsListening = listen;

@@ -17,10 +17,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BackPressHandler } from '../..';
 import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
 import { HippyEngineContext } from '../../HippyEngineContext';
 
 export class HippyNativeModuleBase {
+
   public static readonly NAME: string
   protected ctx: HippyEngineContext
 
