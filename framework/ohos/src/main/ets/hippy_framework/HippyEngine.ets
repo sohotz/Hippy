@@ -41,7 +41,7 @@ import { HippyStorageAdapter } from './adapter/storage/HippyStorageAdapter';
 import { PreferencesStorageAdapter } from './adapter/storage/PreferencesStorageAdapter';
 import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdapter';
 import { HippyBundleLoader } from './bridge/bundleloader/HippyBundleLoader';
-import { HippyAPIProvider } from './HippyAPIProvider';
+import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HippyEngineManagerImpl } from './HippyEngineManagerImpl';
 
 export interface HippyEngine {
@@ -97,8 +97,8 @@ export class EngineInitParams {
   // optional args, Hippy Server url using remote debug in no usb (if not empty will replace debugServerHost and debugBundleName). debugMode = true take effect
   public remoteServerUrl = "";
   // 可选参数 自定义的，用来提供Native modules、JavaScript modules、View controllers的管理器。1个或多个
-  // public List<HippyAPIProvider> providers;
-  // public List<Processor> processors;
+  public providers: Array<HippyAPIProvider> | null = null;
+  // public processors: Array<Processor> | null = null;
   //Optional  is use V8 serialization or json
   public enableV8Serialization = true;
   // 可选参数 是否打印引擎的完整的log。默认为false
@@ -131,7 +131,6 @@ export class EngineInitParams {
   public logAdapter: HippyLogAdapter | null = null;
   public v8InitParams: V8InitParams | null = null;
   public enableTurbo = false;
-  providers: Array<HippyAPIProvider> | null = null
 
   constructor(
     libHippy: HippyLibrary,

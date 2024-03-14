@@ -17,13 +17,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HRRenderViewCreator } from '../renderer_native/components/HippyRenderRegisterMap';
-import { HippyModuleCreator } from './modules/HippyModuleManager';
+import { HippyAny, HippyMap, HippyModuleCallback } from '../../../support/common/HippyTypes';
+import { HippyEngineContext } from '../../HippyEngineContext';
 
-export interface HippyAPIProvider {
-  getCustomNativeModuleCreatorMap(): Map<string, HippyModuleCreator> | null
+export class HippyJavaScriptModuleBase {
+  public static readonly MODULE_NAME: string
+  protected mHippyContext: HippyEngineContext
 
-  getCustomJavaScriptModuleCreatorMap(): Map<string, HippyModuleCreator> | null
+  constructor(ctx: HippyEngineContext) {
+    this.mHippyContext = ctx
+  }
 
-  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null
+  callJs(moduleName: string, method: string, params: HippyMap, callback: HippyModuleCallback | null): void {
+    this.mHippyContext.getBridgeManager().callJavaScriptModule(moduleName, method, params);
+  }
 }

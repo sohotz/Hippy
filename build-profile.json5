@@ -23,6 +23,21 @@
       {
         "name": "release"
       }
+    ],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/sherryfancy/.ohos/config/default_Hippy-github_2AGFqWg5cqUyn69IbSwyaz1ssWXOtsw3_nUqjAzBkjI=.cer",
+          "storePassword": "0000001A946C13885F684B56FDD7F54F2351C179C311B2A89CAD8D19754A0B65DA896930F7A1A2C8E213",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A5D2336C6469815949DF39C7744D241FD0806870668A7A2587762877472ED657971BD005A3228",
+          "profile": "/Users/sherryfancy/.ohos/config/default_Hippy-github_2AGFqWg5cqUyn69IbSwyaz1ssWXOtsw3_nUqjAzBkjI=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/sherryfancy/.ohos/config/default_Hippy-github_2AGFqWg5cqUyn69IbSwyaz1ssWXOtsw3_nUqjAzBkjI=.p12"
+        }
+      }
     ]
   },
   "modules": [

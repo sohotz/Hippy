@@ -11,14 +11,15 @@ import { HippyBridgeManagerImpl } from './bridge/HippyBridgeManagerImpl';
 import { DomManager } from './connector/DomManager';
 import { JsDriver } from './connector/JsDriver';
 import { NativeRenderer } from './connector/NativeRenderer';
-import { HippyAPIProvider } from './HippyAPIProvider';
 import { EngineInitParams } from './HippyEngine';
 import { HippyEngineContext } from './HippyEngineContext';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
-import { HippyModuleManager } from './modules/HippyModuleManager';
+import { HippyModuleManagerImpl } from './modules/HippyModuleManagerImpl';
 import { HashMap } from '@kit.ArkTS';
 import { HippyResourceLoader } from './adapter/http/HippyResourceLoader';
 import { DefaultProcessor } from '../vfs/DefaultProcessor';
+import { HippyModuleManager } from './modules/HippyModuleManager';
+import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 
 export class HippyEngineContextImpl implements HippyEngineContext {
   private mEngineInitParams: EngineInitParams;
@@ -50,13 +51,12 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     this.mEngineInitParams = params;
     this.libHippy = this.mEngineInitParams.libHippy
     this.mGlobalConfigs = globalConfigs;
-    this.vfsManager = new VfsManager(this.libHippy)
     const resourceLoader = new HippyResourceLoader(this)
+    this.vfsManager = new VfsManager(this.libHippy)
     this.vfsManager.addProcessorAtFirst(new DefaultProcessor(resourceLoader))
     this.mDomManager = domManager;
     this.mMonitor = monitor;
     this.mCoreBundleLoader = coreBundleLoader;
-    this.mModuleManager = new HippyModuleManager(this);
 
 
     this.providers = this.mEngineInitParams.providers;
@@ -82,9 +82,11 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     const rootNodeId = this.getNativeRenderContext().getRootId()
     this.mDomManager.createRootNode(rootNodeId, PixelUtil.getDensity())
     this.mDomManager.attachToRoot(rootNodeId)
+
+    // ModuleManager注册
+    this.mModuleManager = new HippyModuleManagerImpl(this);
     // JsDriver注册
     this.mJsDriver = new JsDriver(this.libHippy, this.mModuleManager)
-
     // BridgeManager注册
     this.mBridgeManager = new HippyBridgeManagerImpl(
       this,
