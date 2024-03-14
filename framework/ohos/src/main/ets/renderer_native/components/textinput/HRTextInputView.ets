@@ -51,6 +51,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   public returnKeyType: EnterKeyType = EnterKeyType.Done
   public placeholder: string = ''
   public placeholderTextColor: ResourceColor = Color.Gray
+  public uiCtx:UIContext | null = null
 
   controller:TextInputController = new TextInputController()
   textAreaController:TextAreaController = new TextAreaController()
@@ -184,8 +185,10 @@ export class HRTextInputView extends HippyRenderBaseView {
   }
 
   focusTextInput(params: Array<HippyAny>) {
-    let rtn = focusControl.requestFocus(this.tag.toString())
-    LogUtils.d('HRTextInput', `focusTextInput rtn:${rtn}`)
+    this.uiCtx?.runScopedTask(()=>{
+      let rtn = focusControl.requestFocus(this.tag.toString())
+      LogUtils.d('HRTextInput', `focusTextInput rtn:${rtn}`)
+    })
   }
 
   blurTextInput(params: Array<HippyAny>) {
@@ -222,6 +225,10 @@ export struct HRTextInput {
     params.set("selection", selection);
     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "selectionchange", params as HippyMap);
     LogUtils.d(this.TAG, `onTextSelectionChange start:${start}, end:${end}, paras:${params}`)
+  }
+
+  aboutToAppear(): void {
+    this.renderView.uiCtx = this.getUIContext()
   }
 
   build() {

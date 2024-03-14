@@ -31,18 +31,28 @@ import { HRPullFooterView } from '../pullfooter/HRPullFooter';
 import { HRRect } from '../../utils/HRTypes';
 import { PixelUtil } from '../../../support/utils/PixelUtil';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { HRListItemView } from './HRListItemView'
+
+const INVALID_STICKY_INDEX: number = -1
+
+enum EdgeAction {
+  None,
+  ReachStart,
+  ReachEnd
+}
 
 @Observed
 export class HRListView extends HippyRenderBaseView {
   private readonly TAG = "HRListView"
   public flex: number = 0
-  public scrollForward: number = NestedScrollMode.PARENT_FIRST
-  public scrollBackward: number = NestedScrollMode.PARENT_FIRST
+  public scrollForward: number = NestedScrollMode.SELF_FIRST
+  public scrollBackward: number = NestedScrollMode.SELF_FIRST
   public readonly EXPOSURE_STATE_FULL_VISIBLE: number = 1;
   public readonly EXPOSURE_STATE_INVISIBLE: number = 2;
   public readonly EXPOSURE_STATE_PART_VISIBLE: number = 3;
-  public scroller: Scroller = new Scroller()
-
+  public scroller: ListScroller = new ListScroller()
+  public uiCtx: UIContext | null = null
+  public edgeState: EdgeAction = EdgeAction.None
   listDirection: Axis = Axis.Vertical;
   scrollEnabled: boolean = true;
   initialOffset: number = 0;
@@ -53,6 +63,7 @@ export class HRListView extends HippyRenderBaseView {
   onScrollEventEnable: boolean = true;
   exposureEventEnabled: Boolean = true;
   exposureState: number = this.EXPOSURE_STATE_INVISIBLE;
+  public childrenOffset: number[] = []
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -61,21 +72,15 @@ export class HRListView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
     switch (propKey) {
-      case "cssPositionX":
-        this.cssPositionX = HRValueUtils.getNumber(propValue as HippyAny);
-        break;
-      case "cssPositionY":
-        this.cssPositionY = HRValueUtils.getNumber(propValue as HippyAny);
-        break;
       case 'nestedScrollTopPriority':
         {
           let pvalue = HRValueUtils.getString(propValue as HippyAny)
           if (pvalue === 'parent') {
             this.scrollForward = NestedScrollMode.PARENT_FIRST
-            this.scrollBackward = NestedScrollMode.PARENT_FIRST
+            //this.scrollBackward = NestedScrollMode.PARENT_FIRST
           } else if (pvalue === 'self') {
             this.scrollForward = NestedScrollMode.SELF_FIRST
-            this.scrollBackward = NestedScrollMode.SELF_FIRST
+            //this.scrollBackward = NestedScrollMode.SELF_FIRST
           }
         }
         break;
@@ -111,6 +116,7 @@ export class HRListView extends HippyRenderBaseView {
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+    this.uiCtx?.runScopedTask(() => {
     LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
     switch (method) {
       case "scrollToIndex":
@@ -141,16 +147,7 @@ export class HRListView extends HippyRenderBaseView {
       default:
         break;
     }
-  }
-
-  setRenderViewFrame(frame: HRRect): void {
-    frame.x = this.cssPositionX;
-    frame.y = this.cssPositionY;
-    if (this.cssHeight > 0) {
-      frame.height = this.cssHeight;
-    }
-
-    super.setRenderViewFrame(frame)
+    })
   }
 }
 
@@ -162,12 +159,6 @@ enum ScrollAction {
   ReleaseFooter
 }
 
-enum EdgeAction {
-  None,
-  ReachStart,
-  ReachEnd
-}
-
 @Component
 export struct HRList {
   private readonly TAG = "HRList"
@@ -177,38 +168,61 @@ export struct HRList {
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   private CURRENT_OFFSET: string = "contentOffset";
   private pullAction: ScrollAction = ScrollAction.None;
-  private edgeState: EdgeAction = EdgeAction.None;
   private headerView: HRPullHeaderView | null = null;
   private footerView: HRPullFooterView | null = null;
   private footerYOff: number = 0;
   private lastScrollTime: number = 0;
   private currentOffset: number = 0;
   private isLastTimeReachEnd: boolean = false;
+  @State stickyIndex: number = INVALID_STICKY_INDEX
+  private stickyArray: number[] = []
+  private childrenVisible:boolean[] = []
 
   aboutToAppear(): void {
-    LogUtils.d(this.TAG, "aboutToAppear: " )
-    this.renderView.setProp("cssPositionX", 0);
-    this.renderView.setProp("cssPositionY", 0);
-    this.children.forEach(element => {
+    LogUtils.d(this.TAG, "aboutToAppear: ")
+    this.renderView.uiCtx = this.getUIContext()
+
+    let offset = 0
+    this.children.forEach((element, index) => {
+      this.childrenVisible.push(false)
+
+      this.renderView.childrenOffset.push(offset)
+      if (element.cssVisibility != Visibility.None) {
+        offset += element.cssHeight
+      }
+
       if (element instanceof HRPullHeaderView) {
         this.headerView = element as HRPullHeaderView;
         this.headerView.parentView = this.renderView;
-        this.headerView.setProp("cssPositionX", 0)
-        this.headerView.setProp("cssPositionY", this.headerView.cssHeight)
       } else if (element instanceof  HRPullFooterView) {
         this.footerView = element as HRPullFooterView;
         this.footerView.parentView = this.renderView;
         this.footerView.setProp("cssPositionX", 0)
         this.footerView.setProp("cssPositionY", this.footerView.cssHeight)
+      } else if (element instanceof HRListItemView) {
+        if ((element as HRListItemView).sticky) {
+          this.stickyArray.push(index)
+        }
       }
-    });
+    })
+
+    let i = 0
+    let firstitem = this.headerView ? 1 : 0
+    for (i = 0; i < this.stickyArray.length; i++) {
+      if (this.stickyArray[i] <= firstitem) {
+        this.stickyIndex = this.stickyArray[i]
+        break
+      }
+    }
+    LogUtils.d('AREA', 'stickyIndex:' + this.stickyIndex)
+    //this.stickyArray.push(20) //test multi sticky
   }
 
   aboutToDisappear(): void {
     LogUtils.d(this.TAG, "aboutToDisappear: ")
   }
 
-  emitScrollEvent(eventName : string){
+  emitScrollEvent(eventName: string) {
     let contentInset = new Map<string, number>() as HippyMap;
     contentInset.set("top", 0);
     contentInset.set("bottom", 0);
@@ -216,30 +230,28 @@ export struct HRList {
     contentInset.set("right", 0);
 
     let contentOffset = new Map<string, number>() as HippyMap;
-    contentOffset.set("x",PixelUtil.px2dp(this.renderView.scroller.currentOffset().xOffset));
-    contentOffset.set("y",PixelUtil.px2dp(this.renderView.scroller.currentOffset().yOffset));
+    contentOffset.set("x", this.renderView.scroller.currentOffset().xOffset);
+    contentOffset.set("y", this.renderView.scroller.currentOffset().yOffset);
 
     let contentSize = new Map<string, number>() as HippyMap;
-    contentSize.set("width",PixelUtil
-      .px2dp(this.renderView.children.length > 0 ? this.renderView.children[0].cssWidth : this.renderView.cssWidth));
-    contentSize.set("height",PixelUtil
-      .px2dp(this.renderView.children.length > 0 ? this.renderView.children[0].cssHeight : this.renderView.cssHeight));
+    contentSize.set("width", this.renderView.children.length > 0 ? this.renderView.children[0].cssWidth : this.renderView.cssWidth);
+    contentSize.set("height", this.renderView.children.length > 0 ? this.renderView.children[0].cssHeight : this.renderView.cssHeight);
 
     let layoutMeasurement = new Map<string, number>() as HippyMap;
-    layoutMeasurement.set("width",PixelUtil.px2dp(this.renderView.cssWidth));
-    layoutMeasurement.set("height",PixelUtil.px2dp(this.renderView.cssHeight));
+    layoutMeasurement.set("width", this.renderView.cssWidth);
+    layoutMeasurement.set("height", this.renderView.cssHeight);
 
     let params = new Map<string, HippyMap>() as Hippy2Map;
-    params.set("contentInset",contentInset);
-    params.set("contentOffset",contentOffset);
-    params.set("contentSize",contentSize);
-    params.set("layoutMeasurement",layoutMeasurement);
+    params.set("contentInset", contentInset);
+    params.set("contentOffset", contentOffset);
+    params.set("contentSize", contentSize);
+    params.set("layoutMeasurement", layoutMeasurement);
 
     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, eventName, params as HippyMap);
   }
 
-  checkSendOnScrollEvent(){
-    if(this.renderView.onScrollEventEnable) {
+  checkSendOnScrollEvent() {
+    if (this.renderView.onScrollEventEnable) {
       let currentTime = systemDateTime.getTime(true);
       this.currentOffset = this.renderView.scroller.currentOffset().yOffset;
       if (currentTime - this.lastScrollTime >= this.renderView.scrollEventThrottle) {
@@ -260,7 +272,7 @@ export struct HRList {
     }
   }
 
-  moveToExposureState(state: number){
+  moveToExposureState(state: number) {
     if (state == this.renderView.exposureState) {
       return;
     }
@@ -290,11 +302,12 @@ export struct HRList {
   }
 
   checkSendExposureEvent() {
-    if(!this.renderView.exposureEventEnabled) {
+    if (!this.renderView.exposureEventEnabled) {
       return;
     }
     this.moveToExposureState(this.renderView.exposureState);
   }
+
   /**
    * 检查是否已经触底，发生onEndReached事件给前端
    * 如果上次是没有到底，这次滑动底了，需要发事件通知，如果上一次已经是到底了，这次到底不会发事件
@@ -310,7 +323,7 @@ export struct HRList {
   }
 
   isReachEnd(lastIndex: number): boolean {
-    if(this.renderView.preloadItemNumber > 0 && (this.children.length - lastIndex) < this.renderView.preloadItemNumber) {
+    if (this.renderView.preloadItemNumber > 0 && (this.children.length - lastIndex) < this.renderView.preloadItemNumber) {
       return true;
     } else {
       return false;
@@ -327,131 +340,144 @@ export struct HRList {
     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_RECYCLER_LOAD_MORE, null);
   }
 
+  @Builder
+  stickyItem() {
+    Stack() {
+      // if (this.stickyIndex != INVALID_STICKY_INDEX) {
+      //   this.buildRenderView(this.children[this.stickyIndex], null)
+      // }
+
+      //this.buildRenderView(this.children[this.stickyIndex], null) cannot refresh the sticky item, use ForEach instead
+      ForEach(this.stickyArray, (index: number) => {
+        if (index == this.stickyIndex) {
+          this.buildRenderView(this.children[index], null)
+        }
+      })
+    }
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      if (oldValue.width == 0 && newValue.width != 0) {
+        let firstitem = this.headerView ? 1 : 0
+        if (this.stickyIndex == firstitem) {
+          LogUtils.d('AREA', 'show header:'+ this.stickyIndex)
+          this.renderView.scroller.scrollToItemInGroup(1, firstitem)
+        }
+      }
+    })
+  }
+
   build() {
     Column() {
       Stack() {
-        ForEach(this.children, (item: HippyRenderBaseView) => {
-          if (item.viewType === 'PullHeaderView') {
-            this.buildRenderView(item, null)
-          }
-        }, (item: HippyRenderBaseView) => item.tag + '')
-      }
-      .zIndex(1)
-
-      Stack() {
-        List({ space: 20, initialIndex: 0, scroller: this.renderView.scroller }) {
-          ForEach(this.children, (item: HippyRenderBaseView) => {
-            if (item.viewType === 'ListViewItem') {
-              ListItem() {
-                this.buildRenderView(item, null)
-              }
+        List({ initialIndex: this.headerView ? 1 : 0, scroller: this.renderView.scroller }) {
+          ListItem() {
+            if (this.headerView) {
+              this.buildRenderView(this.headerView, null)
             }
-          }, (item: HippyRenderBaseView) => item.tag + '')
+          }
+
+          ListItemGroup({ header: this.stickyItem() }) {
+            ForEach(this.children, (item: HippyRenderBaseView, index) => {
+              if (item.viewType === 'ListViewItem') {
+                ListItem() {
+                  this.buildRenderView(item, null)
+                }
+                .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean, currentRatio: number) => {
+                  LogUtils.d('AREA', 'index:' + index + ', isVisible: ' + isVisible + ', currentRatio:' + currentRatio)
+
+                  if (isVisible && currentRatio >= 1.0) {
+                    this.childrenVisible[index] = true
+                    if (index == this.stickyIndex) {
+                      LogUtils.d(this.TAG, 'Test Text isVisible: ' + isVisible + ', currentRatio:' + currentRatio)
+                      this.stickyIndex = INVALID_STICKY_INDEX
+                    }
+                  }
+
+                  if (!isVisible && currentRatio <= 0) {
+                    this.childrenVisible[index] = false
+
+                    let i: number = this.stickyArray.length - 1
+                    for (; i >= 0; i--) {
+                      let itemIdx = this.stickyArray[i]
+                      if (index + 1 == itemIdx || index == itemIdx) {
+                        this.stickyIndex = itemIdx
+                        break
+                      }
+                    }
+                    LogUtils.d(this.TAG, 'calc sticky index' + this.stickyIndex)
+                  }
+                })
+              }
+            }, (item: HippyRenderBaseView) => item.tag + '')
+          }
         }
-        .width('100%')
-        .height('100%')
-        .applyRenderViewBaseAttr(this.renderView)
+        .sticky(StickyStyle.Header)
         .listDirection(this.renderView.listDirection)
         .enableScrollInteraction(this.renderView.scrollEnabled)
         .cachedCount(this.renderView.cachedCount)
         .scrollBar(BarState.Off)
-        .friction(0.6)
-        .divider({ strokeWidth: 2, color: 0xFFFFFF, startMargin: 0, endMargin: 0 })
         .edgeEffect(EdgeEffect.Spring)
         .nestedScroll({
           scrollForward: this.renderView.scrollForward,
-          scrollBackward: this.renderView.scrollBackward})
+          scrollBackward: this.renderView.scrollBackward
+        })
         .onScrollIndex((firstIndex: number, lastIndex: number, centerIndex: number) => {
           LogUtils.d(this.TAG, "onScrollIndex: firstIndex=" + firstIndex +
-            ", lastIndex=" + lastIndex + ", centerIndex=" + centerIndex);
+            ", lastIndex=" + lastIndex + ", centerIndex=" + centerIndex + ",Yoffset=" + this.renderView.scroller.currentOffset()
+            .yOffset);
           this.checkSendReachEndEvent(lastIndex);
           this.checkSendExposureEvent();
+
+          if (this.headerView && firstIndex === 0) {
+            this.pullAction = ScrollAction.PullHeader
+          }
         })
         .onScroll((scrollOffset: number, scrollState: ScrollState) => {
-          LogUtils.d(this.TAG, "onScroll: scrollOffset=" + scrollOffset +
-            ", scrollState=" + scrollState );
           this.handleScrollEvent(scrollOffset);
           let xOff: number = this.renderView.scroller.currentOffset().xOffset;
           let yOff: number = this.renderView.scroller.currentOffset().yOffset;
-          // LogUtils.d(this.TAG, "current xOffset=" + xOff + ", yOffset=" + yOff )
-          if (this.pullAction === ScrollAction.None && scrollOffset < 0 &&
-            scrollState === ScrollState.Scroll && this.edgeState === EdgeAction.ReachStart) {
-            //scroll to head
+
+          if (this.pullAction === ScrollAction.PullHeader && this.headerView) {
+            //LogUtils.d(this.TAG, `pulling:${-yOff}, height:${this.headerView.cssHeight}`)
             let params = new Map<string, Number>() as HippyMap;
-            params.set(this.CURRENT_OFFSET, -yOff);
-            if (this.headerView) {
-              HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
-                HREventUtils.EVENT_LIST_HEADER_PULLING, params);
-              this.headerView.setProp("visibility", 1);
-              this.headerView.setProp("cssPositionX", xOff);
-              this.headerView.setProp("cssPositionY", -yOff+this.headerView.cssHeight);
-              this.renderView.setProp("cssPositionX", 0);
-              this.renderView.setProp("cssPositionY", this.headerView.cssHeight);
-            }
-            this.pullAction = ScrollAction.PullHeader
-            LogUtils.d(this.TAG, "ScrollAction: PullHeader=" )
-          } else if (this.pullAction === ScrollAction.PullHeader && scrollOffset > 0 &&
-            scrollState === ScrollState.Fling && yOff < 0.1) {
-            //scroll to head then release
-            let params = new Map<string, Number>() as HippyMap;
-            params.set(this.CURRENT_OFFSET, -yOff);
-            if (this.headerView) {
-              HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
-                HREventUtils.EVENT_LIST_HEADER_RELEASED, params);
-            }
-            this.pullAction = ScrollAction.ReleaseHeader;
-            LogUtils.d(this.TAG, "ScrollAction: ReleaseHeader=" )
-          } else if ((this.pullAction === ScrollAction.PullHeader ||
-            this.pullAction === ScrollAction.ReleaseHeader) &&
-            this.edgeState === EdgeAction.ReachStart) {
-            if (this.headerView) {
-              if (scrollState === ScrollState.Scroll) {
-                let params = new Map<string, Number>() as HippyMap;
-                params.set(this.CURRENT_OFFSET, -yOff);
-                HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
-                  HREventUtils.EVENT_LIST_HEADER_PULLING, params);
-                this.headerView.setProp("cssPositionX", xOff);
-                this.headerView.setProp("cssPositionY", -yOff+this.headerView.cssHeight);
-              } else {
-                this.headerView.setProp("cssPositionX", xOff);
-                this.headerView.setProp("cssPositionY", -yOff+this.headerView.cssHeight);
-              }
-            }
-          } else if (this.pullAction === ScrollAction.None && scrollOffset > 0 &&
-            scrollState === ScrollState.Scroll && this.edgeState === EdgeAction.ReachEnd) {
+            params.set(this.CURRENT_OFFSET, -yOff + this.headerView.cssHeight);
+            HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
+              HREventUtils.EVENT_LIST_HEADER_PULLING, params);
+          }
+          else if (this.pullAction === ScrollAction.None && scrollOffset > 0 &&
+            scrollState === ScrollState.Scroll && this.renderView.edgeState === EdgeAction.ReachEnd) {
             //scroll to end,
             let params = new Map<string, Number>() as HippyMap;
             yOff = yOff - this.footerYOff
             params.set(this.CURRENT_OFFSET, yOff);
-            LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff )
+            LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff)
             if (this.footerView) {
               HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
                 HREventUtils.EVENT_LIST_FOOTER_PULLING, params);
               this.footerView.setProp("visibility", 1);
               this.footerView.setProp("cssPositionX", xOff);
               this.footerView.setProp("cssPositionY", -yOff);
-              this.renderView.setProp("cssHeight", this.renderView.cssHeight-this.footerView.cssHeight)
+              this.renderView.setProp("cssHeight", this.renderView.cssHeight - this.footerView.cssHeight)
             }
             this.pullAction = ScrollAction.PullFooter;
-            LogUtils.d(this.TAG, "ScrollAction: PullFooter=" )
+            LogUtils.d(this.TAG, "ScrollAction: PullFooter=")
           } else if (this.pullAction === ScrollAction.PullFooter && scrollOffset < 0 &&
-            scrollState === ScrollState.Fling && this.edgeState === EdgeAction.ReachEnd) {
+            scrollState === ScrollState.Fling && this.renderView.edgeState === EdgeAction.ReachEnd) {
             //scroll to end then release
             let params = new Map<string, Number>() as HippyMap;
             yOff = yOff - this.footerYOff
             params.set(this.CURRENT_OFFSET, yOff);
             if (this.footerView) {
-              LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff )
+              LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff)
               HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
                 HREventUtils.EVENT_LIST_FOOTER_RELEASED, params);
               this.footerView.setProp("cssPositionX", xOff);
               this.footerView.setProp("cssPositionY", -yOff);
             }
             this.pullAction = ScrollAction.ReleaseFooter;
-            LogUtils.d(this.TAG, "ScrollAction: ReleaseFooter=" )
+            LogUtils.d(this.TAG, "ScrollAction: ReleaseFooter=")
           } else if ((this.pullAction === ScrollAction.PullFooter ||
             this.pullAction === ScrollAction.ReleaseFooter) &&
-            this.edgeState === EdgeAction.ReachEnd) {
+            this.renderView.edgeState === EdgeAction.ReachEnd) {
             yOff = yOff - this.footerYOff
             if (this.footerView) {
               if (scrollState === ScrollState.Scroll) {
@@ -460,18 +486,18 @@ export struct HRList {
                 HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
                   HREventUtils.EVENT_LIST_FOOTER_PULLING, params);
               }
-              LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff )
+              LogUtils.d(this.TAG, "onScroll: footerYOff=" + yOff)
               this.footerView.setProp("cssPositionX", xOff);
               this.footerView.setProp("cssPositionY", -yOff);
             }
           }
         })
         .onScrollStart(() => {
-          LogUtils.d(this.TAG, "onScroll: onScrollStart=" );
+          LogUtils.d(this.TAG, "onScroll: onScrollStart=");
           this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_BEGIN);
         })
         .onScrollStop(() => {
-          LogUtils.d(this.TAG, "onScroll: onScrollStop=" );
+          LogUtils.d(this.TAG, "onScroll: onScrollStop=");
           this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_END);
           let xOff: number = this.renderView.scroller.currentOffset().xOffset;
           let yOff: number = this.renderView.scroller.currentOffset().yOffset;
@@ -483,19 +509,33 @@ export struct HRList {
           //todo: should call emitScrollEvent?
           HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
             HREventUtils.EVENT_SCROLLER_ON_SCROLL, params as HippyMap);
+
+          //scroll to head then release
+          if (this.headerView && this.pullAction == ScrollAction.PullHeader) {
+            LogUtils.d(this.TAG, "onScroll: onScrollStop=" + yOff);
+            if (this.renderView.edgeState == EdgeAction.ReachStart) {
+              HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
+                HREventUtils.EVENT_LIST_HEADER_RELEASED, null);
+            } else {
+              this.renderView.scroller.scrollToIndex(1, true)
+            }
+            this.pullAction = ScrollAction.None;
+          }
         })
         .onReachStart(() => {
-          this.edgeState = EdgeAction.ReachStart;
+          LogUtils.d(this.TAG, 'onReachStart')
+          this.renderView.edgeState = EdgeAction.ReachStart;
           if (this.pullAction === ScrollAction.ReleaseHeader) {
             this.pullAction = ScrollAction.None;
           }
         })
         .onReachEnd(() => {
+          LogUtils.d(this.TAG, 'onReachEnd')
           this.sendOnReachedEvent();
-          this.edgeState = EdgeAction.ReachEnd;
+          this.renderView.edgeState = EdgeAction.ReachEnd;
           if (this.pullAction === ScrollAction.ReleaseFooter) {
             this.pullAction = ScrollAction.None;
-            this.edgeState = EdgeAction.None;
+            this.renderView.edgeState = EdgeAction.None;
           }
           this.footerYOff = this.renderView.scroller.currentOffset().yOffset;
         })
@@ -505,6 +545,7 @@ export struct HRList {
           this.calculateExposureState(currentRatio);
         })
       }
+
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
           if (item.viewType === 'PullFooterView') {
@@ -513,12 +554,12 @@ export struct HRList {
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
     }
-    .zIndex(-1)
+    .applyRenderViewBaseAttr(this.renderView)
   }
 }
 
 // base props for all components
-@Extend(List)
+@Extend(Column)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)

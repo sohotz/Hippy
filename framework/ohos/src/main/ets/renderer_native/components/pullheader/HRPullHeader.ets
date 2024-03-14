@@ -28,6 +28,7 @@ import HippyRenderBaseView, {
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { HRListView } from '../list/HRListView';
 
 @Observed
 export class HRPullHeaderView extends HippyRenderBaseView {
@@ -36,7 +37,6 @@ export class HRPullHeaderView extends HippyRenderBaseView {
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
-    this.cssVisibility = Visibility.Hidden
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
@@ -75,9 +75,6 @@ export class HRPullHeaderView extends HippyRenderBaseView {
           if (collapseTime > 0) {
             setTimeout(() => {
               LogUtils.d(this.TAG, "delay : " + collapseTime)
-              // let params = new Map<string, Number>() as HippyMap;
-              // params.set(this.CURRENT_OFFSET, this.cssHeight);
-              //HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_HEADER_PULLING, params);
               this.onHeadRefreshFinish()
             }, collapseTime);
           } else {
@@ -93,17 +90,11 @@ export class HRPullHeaderView extends HippyRenderBaseView {
   }
 
   onHeadRefreshFinish() {
-    this.cssVisibility = Visibility.None
-    if (this.parentView) {
-      this.parentView.setProp("cssPositionX", 0);
-      this.parentView.setProp("cssPositionY", 0);
-    }
-  }
-
-  setRenderViewFrame(frame: HRRect): void {
-    frame.x = this.cssPositionX;
-    frame.y = this.cssPositionY;
-    super.setRenderViewFrame(frame)
+    let listView:HRListView = this.parentView as HRListView
+    listView.uiCtx?.runScopedTask(()=>{
+      listView.scroller.scrollToItemInGroup(1, 1)
+      listView.edgeState = 0
+    })
   }
 }
 
@@ -131,7 +122,6 @@ export struct HRPullHeader {
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
-    .zIndex(2)
   }
 }
 

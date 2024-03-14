@@ -24,16 +24,22 @@ import { HRRect } from '../../utils/HRTypes'
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView'
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRListItemView extends HippyRenderBaseView {
   private readonly TAG = "HRListItemView"
+  public sticky:boolean = false
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
+    LogUtils.d(this.TAG, `propKey:${propKey}, propValue:${propValue}`)
+    if (propKey === 'sticky') {
+      this.sticky = HRValueUtils.getBoolean(propValue as HippyAny, false)
+    }
     return super.setProp(propKey, propValue as HippyAny)
   }
 
