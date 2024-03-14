@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyJsException } from '../../../common/HippyJsException'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 
@@ -28,4 +29,16 @@ export class ExceptionModule extends HippyNativeModuleBase {
   constructor(ctx: HippyEngineContext) {
     super(ctx)
   }
+
+  public handleException(title: string, details: string) {
+    // this.ctx.handleException(new HippyJsException(title, details));
+  }
+
+  public handleBackgroundTracing(details: string) {
+    if (this.ctx.getGlobalConfigs().getExceptionHandler() != null) {
+      this.ctx.getGlobalConfigs().getExceptionHandler()?.handleBackgroundTracing(details);
+    }
+  }
+
+
 }
