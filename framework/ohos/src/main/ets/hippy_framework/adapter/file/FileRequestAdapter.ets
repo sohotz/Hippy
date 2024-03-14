@@ -17,25 +17,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { LogUtils } from '../../../../support/utils/LogUtils'
-import { HippyEngineContext } from '../../../HippyEngineContext'
-import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
+import { HippyFileAdapter } from './HippyFileAdapter';
+import request from '@ohos.request';
 
-@HippyNativeModule({ name: "DevMenuModule" })
-export class DevMenuModule extends HippyNativeModuleBase {
-  public static readonly NAME = 'DevMenuModule'
+export class FileRequestAdapter implements HippyFileAdapter {
+  public uploadFile(url: string, header: object, method: string, files: request.File[], data: request.RequestData[]): Promise<request.UploadTask> {
+    return new Promise<request.UploadTask>((resolve, reject) => {
 
-  constructor(context: HippyEngineContext) {
-    super(context)
+    })
   }
 
-  public reload() {
-    try {
-      //todo
-      // this.ctx.getDevSupportManager().getDevImp().reload();
-    } catch ( e) {
-      LogUtils.e("HippyDevMemo", "reload error: " + e.getMessage());
-    }
-}
+  public downloadFile(url: string, header: object, path: string, networkType: number): Promise<request.DownloadTask> {
+    return new Promise<request.DownloadTask>((resolve, reject) => {
+
+    })
+  }
+
 }

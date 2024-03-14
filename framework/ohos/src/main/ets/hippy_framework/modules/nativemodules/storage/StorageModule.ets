@@ -29,11 +29,11 @@ const STORAGE_MODULE_TAG = "StorageModule"
 @HippyNativeModule({ name: "StorageModule" })
 export class StorageModule extends HippyNativeModuleBase {
   public static readonly NAME = 'StorageModule';
-  private mStorageAdapter: HippyStorageAdapter;
+  private mStorageAdapter: HippyStorageAdapter|null;
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
-    this.mStorageAdapter = new DefaultStorageAdapter(ctx);
+    this.mStorageAdapter = this.ctx.getGlobalConfigs().getStorageAdapter();
   }
 
   multiGet(keys: string[]): Promise<[key: string, value: string][]> {

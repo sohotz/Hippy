@@ -23,6 +23,14 @@ import { VfsManager } from '../../../../vfs/VfsManager'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { HashMap } from '@kit.ArkTS'
+import { TextUtils } from '../../../../support/utils/TextUtils'
+import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
+import { image } from '@kit.ImageKit'
+import { HippyException } from '../../../../support/common/HippyException'
+import { LogUtils } from '../../../../support/utils/LogUtils'
+
+
+const IMAGE_MODULE_TAG = "ImageLoaderModule"
 
 @HippyNativeModule({ name: "ImageLoaderModule" })
 export class ImageLoaderModule extends HippyNativeModuleBase {
@@ -35,9 +43,24 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
     this.mVfsManager = ctx.getVfsManager();
   }
 
-  private decodeImageData(url: string, data: ArrayBuffer): Promise<void> {
-    return new Promise<void>(() => {
-
+  private decodeImageData(url: string, data: ArrayBuffer): Promise<Map<string, string>> {
+    return new Promise<Map<string, string>>((resolve, reject) => {
+      if (data && data.byteLength > 0) {
+        const imageSourceApi = image.createImageSource(data);
+        imageSourceApi.getImageInfo(0)
+          .then(imageInfo => {
+            LogUtils.d(IMAGE_MODULE_TAG, 'Succeeded in obtaining the image information.');
+            let map = new Map<string, string>()
+            map.set("width", imageInfo.size.width + "")
+            map.set("height", imageInfo.size.height + "")
+            resolve(map)
+          }).catch((e: HippyException) => {
+          LogUtils.e(IMAGE_MODULE_TAG, 'Failed to obtain the image information.');
+          let map = new Map<string, string>()
+          map.set("width", "Fetch image failed, url=" + url + ", msg=" + e.message)
+          reject(map)
+        })
+      }
     })
   }
 
@@ -47,13 +70,60 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
     return requestParams;
   }
 
-  public getSize(url: string): Promise<void> {
-    return new Promise<void>(() => {
-
+  public getSize(url: string): Promise<Map<string, string>> {
+    return new Promise<Map<string, string>>((resolve, reject) => {
+      if (TextUtils.isEmpty(url)) {
+        let map = new Map<string, string>()
+        map.set("width", "Url parameter is empty!")
+        reject(map);
+        return;
+      }
+      this.mVfsManager.fetchResourceAsync(url, undefined, this.generateRequestParams(), new ResourceCallback(this.ctx, url))
     })
   }
 
   public prefetch(url: string) {
+    this.mVfsManager.fetchResourceAsync(url, undefined, this.generateRequestParams(), new ResourceCallback(this.ctx, "prefetch"))
+  }
 
+  public fetchCompleted(dataHolder: ResourceDataHolder, url: string) {
+    return new Promise<Map<string, string>>((resolve, reject) => {
+      let bytes = dataHolder.getBytes();
+      if (dataHolder.resultCode
+        != ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE || bytes == null
+        || bytes == null) {
+        let message =
+          dataHolder.errorMessage != null ? dataHolder.errorMessage : "";
+        let errorMsg = "Fetch image failed, url=" + url + ", msg=" + message;
+        let map = new Map<string, string>()
+        map.set(ImageLoaderModule.ERROR_KEY_MESSAGE, errorMsg)
+        reject(map);
+      } else {
+        this.decodeImageData(url, bytes);
+      }
+      dataHolder.recycle();
+    })
+  }
+}
+
+class ResourceCallback implements FetchResourceCallback {
+  private imageModule: ImageLoaderModule
+  private url: string
+
+  constructor(ctx: HippyEngineContext, str: string) {
+    this.imageModule = new ImageLoaderModule(ctx)
+    this.url = str
+  }
+
+  onFetchCompleted(dataHolder: ResourceDataHolder): void {
+    if ("prefetch" === this.url) {
+      dataHolder.recycle()
+    } else {
+      this.imageModule.fetchCompleted(dataHolder, this.url)
+    }
+  }
+
+  onFetchProgress(total: number, loaded: number): void {
+    // Nothing need to do here.
   }
 }
