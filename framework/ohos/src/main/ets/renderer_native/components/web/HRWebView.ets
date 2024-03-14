@@ -31,6 +31,7 @@ import HippyRenderBaseView, { HippyObservedArray,
 import web_webview from '@ohos.web.webview';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
+import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRWebView extends HippyRenderBaseView {
@@ -45,26 +46,29 @@ export class HRWebView extends HippyRenderBaseView {
 
   setProp(propKey: string, propValue: HippyAny): boolean {
     if (propKey === 'url') {
-
-      return true
+      this.url = HRValueUtils.getString(propValue)
     } else if (propKey === 'source') {
       this.source = propValue as HippyMap;
 
       let map = propValue as HippyMap
       let src = map.get('uri') as string
       LogUtils.d('HRWeb', `setProp source:${src}, update:${this.update}`)
+    }
 
-      if (this.update) {
-        this.updateController(this.source, this.controller)
-      }
-      return true
+    if (this.update) {
+      this.updateController()
     }
 
     return super.setProp(propKey, propValue)
   }
 
-  updateController(source: HippyMap, controller: web_webview.WebviewController) {
-    if (source.has('uri')) {
+  updateController() {
+    let source = this.source
+    let controller = this.controller
+
+    if (this.url && this.url != '') {
+      controller.loadUrl(this.url)
+    } else if (source.has('uri')) {
       if (source.has('userAgent')) {
         controller.setCustomUserAgent(source.get('userAgent') as string)
       }
@@ -102,6 +106,7 @@ export class HRWebView extends HippyRenderBaseView {
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
     switch (method) {
       case "loadUrl":
+        this.controller.loadUrl(HRValueUtils.getString(params[0]))
         break
       default:
         break
@@ -133,7 +138,7 @@ export struct HRWeb {
       controller: this.renderView.controller
     })
       .onControllerAttached(() => {
-        this.renderView.updateController(this.renderView.source, this.renderView.controller)
+        this.renderView.updateController()
         this.renderView.update = true
       })
       .applyRenderViewBaseAttr(this.renderView)

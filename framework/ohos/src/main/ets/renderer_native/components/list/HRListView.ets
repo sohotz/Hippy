@@ -88,7 +88,7 @@ export class HRListView extends HippyRenderBaseView {
         this.cssHeight = HRValueUtils.getNumber(propValue as HippyAny);
         break;
       case "horizontal":
-        this.listDirection = HRValueUtils.getBoolean(propValue as HippyAny,true) == true ? Axis.Horizontal : Axis.Vertical;
+        this.listDirection = HRValueUtils.getBoolean(propValue as HippyAny, false) == true ? Axis.Horizontal : Axis.Vertical;
         break;
       case "scrollEnabled":
         this.scrollEnabled = HRValueUtils.getBoolean(propValue as HippyAny,true);
@@ -374,6 +374,19 @@ export struct HRList {
               this.buildRenderView(this.headerView, null)
             }
           }
+          .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean, currentRatio: number) => {
+            if (this.headerView && !isVisible && currentRatio <= 0) {
+              LogUtils.d('AREA', 'headview isVisible: ' + isVisible + ', currentRatio:' + currentRatio)
+              let i = 0
+              for (i = 0; i < this.stickyArray.length; i++) {
+                if (this.stickyArray[i] == 1) {
+                  this.stickyIndex = this.stickyArray[i]
+                  LogUtils.d('AREA', 'headview invisible: stikcy:' + this.stickyIndex)
+                  break
+                }
+              }
+            }
+          })
 
           ListItemGroup({ header: this.stickyItem() }) {
             ForEach(this.children, (item: HippyRenderBaseView, index) => {
@@ -387,7 +400,7 @@ export struct HRList {
                   if (isVisible && currentRatio >= 1.0) {
                     this.childrenVisible[index] = true
                     if (index == this.stickyIndex) {
-                      LogUtils.d(this.TAG, 'Test Text isVisible: ' + isVisible + ', currentRatio:' + currentRatio)
+                      LogUtils.d('AREA', 'calc INVALID_STICKY_INDEX')
                       this.stickyIndex = INVALID_STICKY_INDEX
                     }
                   }
@@ -513,7 +526,9 @@ export struct HRList {
           //scroll to head then release
           if (this.headerView && this.pullAction == ScrollAction.PullHeader) {
             LogUtils.d(this.TAG, "onScroll: onScrollStop=" + yOff);
-            if (this.renderView.edgeState == EdgeAction.ReachStart) {
+            if (yOff > 0) {
+              //do nothing
+            } else if (this.renderView.edgeState == EdgeAction.ReachStart) {
               HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
                 HREventUtils.EVENT_LIST_HEADER_RELEASED, null);
             } else {
