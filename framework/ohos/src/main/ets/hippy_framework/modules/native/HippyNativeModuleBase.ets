@@ -22,6 +22,7 @@ import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyType
 import { HippyEngineContext } from '../../HippyEngineContext';
 
 export class HippyNativeModuleBase {
+
   public static readonly NAME: string
   protected ctx: HippyEngineContext
 
@@ -31,10 +32,5 @@ export class HippyNativeModuleBase {
 
   call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
     return null
-  }
-
-  onBackPressed(handler: BackPressHandler):boolean{
-    //todo  need add logics
-    return true
   }
 }

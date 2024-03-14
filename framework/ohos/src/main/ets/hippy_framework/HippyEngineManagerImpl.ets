@@ -56,7 +56,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   private resourceManager: resmgr.ResourceManager | null = null
   private providers: Array<HippyAPIProvider> | null = null
   private params: EngineInitParams;
-
   public domMgr: DomManager | null = null
   public nativeRenderProvider: NativeRenderProvider | null = null
   public nativeRenderer: NativeRenderer | null = null
@@ -114,10 +113,11 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     if (this.mEngineContext != null
       && this.mEngineContext.getModuleManager().getNativeModule(DeviceEventModule.NAME)
         != null) {
-      let nativeModule = this.mEngineContext.getModuleManager().getNativeModule(DeviceEventModule.NAME)
-      if(nativeModule!=null){
-        return nativeModule.onBackPressed(handler);
-      }else return false;
+      let nativeModule = this.mEngineContext.getModuleManager()
+        .getNativeModule(DeviceEventModule.NAME)
+      if (nativeModule != null ) {
+        return (nativeModule as DeviceEventModule).onBackPressed(handler);
+      } else return false;
     } else {
       return false;
     }
@@ -179,7 +179,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     }
 
   }
-
 
   public initEngine(initCallback: HippyEngineInitCallback): void {
     this.initDevModule();
@@ -245,7 +244,8 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
       return;
     }
     // TODO 多RootView
-    this.mEngineContext.getBridgeManager().loadInstance(loadParams.componentName, 0, loadParams.jsParams);
+    this.mEngineContext.getBridgeManager()
+      .loadInstance(loadParams.componentName, 0, loadParams.jsParams);
 
     // TODO: Debug
   }

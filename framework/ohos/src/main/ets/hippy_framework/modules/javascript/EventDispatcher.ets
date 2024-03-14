@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyMap, HippyValue } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyMap, HippyValue } from '../../../support/common/HippyTypes';
 import { HippyJavaScriptModuleBase } from './HippyJavaScriptModuleBase';
 
 export class EventDispatcher extends HippyJavaScriptModuleBase {
@@ -37,7 +37,7 @@ export class EventDispatcher extends HippyJavaScriptModuleBase {
     this.callJs(EventDispatcher.MODULE_NAME, EventDispatcher.METHOD_RECEIVE_UI_COMPONENT_EVENT, param, null);
   }
 
-  public receiveNativeEvent(eventName: string, eventParam: HippyMap): void {
+  public receiveNativeEvent(eventName: string, eventParam: HippyAny): void {
     let param = new Map<string,  HippyValue>();
     param.set('eventName', eventName);
     // TODO
