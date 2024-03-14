@@ -17,11 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import hilog from '@ohos.hilog';
 import resmgr from "@ohos.resourceManager";
 import { HippyLibrary } from '../../hippy_library/HippyLibrary';
 import { LogUtils } from '../../support/utils/LogUtils';
-import { HippyEngineContext } from '../HippyEngineContext';
+import { HippyCallNativeParams } from '../bridge/HippyCallNativeParams';
 import { HippyModuleManager } from '../modules/HippyModuleManager';
 import { NativeCallback } from './NativeCallback';
 
@@ -186,12 +185,8 @@ export class JsDriver {
      + buffer);
 
     if (this.moduleManager) {
-      let moduleParam = this.moduleManager.bytesToArgument(buffer, false);
-      LogUtils.i('hippy', 'JsDriver callNatives moduleParam: ' + moduleParam);
-      let module = this.moduleManager.getModule(moduleName)
-      if (module) {
-        module.call(moduleFunc, moduleParam, null)
-      }
+      const callNativeParams = new HippyCallNativeParams(moduleName, moduleFunc, callId, buffer)
+      this.moduleManager.callNatives(callNativeParams);
     }
 
     LogUtils.i('hippy', 'JsDriver callNatives end');

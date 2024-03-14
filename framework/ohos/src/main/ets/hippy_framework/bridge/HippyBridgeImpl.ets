@@ -19,17 +19,13 @@
  */
 import { BridgeCallback, HippyBridge } from './HippyBridge';
 import { JsDriver } from '../connector/JsDriver';
-import { HippyAny } from '../../support/common/HippyTypes';
 import { NativeCallback } from '../connector/NativeCallback';
 import { HippyEngineContext } from '../HippyEngineContext';
 import { V8InitParams } from '../HippyEngine';
 import { MonitorGroupType, TimeMonitor } from '../../support/utils/TimeMonitor';
-import { TextUtils } from '../../support/utils/TextUtils';
 import { HippyBridgeManagerImpl } from './HippyBridgeManagerImpl';
 
 export class HippyBridgeImpl implements HippyBridge {
-  private URI_SCHEME_ASSETS: string = '';
-  private URI_SCHEME_FILE: string = '';
   private mEngineContext: HippyEngineContext;
   private mBridgeCallback: BridgeCallback;
   private mEnableV8Serialization: boolean;

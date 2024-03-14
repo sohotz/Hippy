@@ -41,7 +41,7 @@ export interface HippyBridgeManager {
 
   destroy(): void;
 
-  callJavaScriptModule(mName: string, name: string, params: HippyMap): void;
+  callJavaScriptModule(moduleName: string, methodName: string, params: HippyMap): void;
 
-  getThirdPartyAdapter(): HippyThirdPartyAdapter;
+  getThirdPartyAdapter(): HippyThirdPartyAdapter | null;
 }

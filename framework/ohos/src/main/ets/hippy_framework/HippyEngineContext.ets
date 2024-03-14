@@ -17,14 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyMap } from '../support/common/HippyTypes';
 import { TimeMonitor } from '../support/utils/TimeMonitor';
 import { VfsManager } from '../vfs/VfsManager';
 import { HippyBridgeManager } from './bridge/HippyBridgeManager';
 import { JsDriver } from './connector/JsDriver';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
-import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HashMap } from '@kit.ArkTS';
+import { HippyModuleManager } from './modules/HippyModuleManager';
 
 export interface HippyEngineContext {
 

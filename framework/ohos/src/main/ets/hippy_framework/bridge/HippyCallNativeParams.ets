@@ -17,7 +17,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyAny } from '../../support/common/HippyTypes';
 
-export class HippyCallNativeParams{
+export class HippyCallNativeParams {
+  public moduleName: string = '';
+  public moduleFunc: string = '';
+  public callId: string = '';
+  public buffer: ArrayBuffer;
 
+  // public paramsValue: HippyAny;
+
+  public constructor(moduleName: string,
+                     moduleFunc: string,
+                     callId: string,
+                     buffer: ArrayBuffer) {
+    this.moduleName = moduleName;
+    this.moduleFunc = moduleFunc;
+    this.callId = callId;
+    this.buffer = buffer;
+  }
 }

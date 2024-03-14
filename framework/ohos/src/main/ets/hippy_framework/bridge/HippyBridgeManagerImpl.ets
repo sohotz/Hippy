@@ -28,6 +28,7 @@ import { JsDriver } from '../connector/JsDriver';
 import { NativeCallback } from '../connector/NativeCallback';
 import { V8InitParams } from '../HippyEngine';
 import { HippyEngineContext } from '../HippyEngineContext';
+import { TurboModuleManager } from '../modules/turbo/TurboModuleManager';
 import { Serializer } from '../serialization/Serializer';
 import { HippyBundleLoader } from './bundleloader/HippyBundleLoader';
 import { BridgeCallback } from './HippyBridge';
@@ -143,12 +144,30 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     throw new Error('Method not implemented.');
   }
 
-  callJavaScriptModule(mName: string, name: string, params: HippyMap): void {
-    throw new Error('Method not implemented.');
+  callJavaScriptModule(moduleName: string, methodName: string, params: HippyMap): void {
+    if (this.mBridgeState == BridgeState.INITIALIZED) {
+      // TODO(hot):
+      let map = new Map<string, HippyAny>()
+      map.set("moduleName", moduleName)
+      map.set("methodName", methodName)
+      map.set("params", params)
+
+      let binaryWriter = new BinaryWriter()
+      let serializer = new Serializer(binaryWriter)
+      serializer.writeHeader()
+      serializer.writeValue(params)
+      let buffer = binaryWriter.chunked().buffer
+      this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALL_JS_MODULE, this.callJavaScriptModuleCallback, binaryWriter.chunked());
+    }
   }
 
-  getThirdPartyAdapter(): HippyThirdPartyAdapter {
-    throw new Error('Method not implemented.');
+  public callJavaScriptModuleCallback = (result: number, reason: string) => {
+
+  }
+
+
+  getThirdPartyAdapter(): HippyThirdPartyAdapter | null {
+    return this.mThirdPartyAdapter;
   }
 
   callNatives(moduleName: string, moduleFunc: string, callId: string, params: Uint8Array): void {
@@ -176,8 +195,9 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     }
     // TODO
     if (this.enableTurbo()) {
-      // mTurboModuleManager = new TurboModuleManager(mContext);
-      // mTurboModuleManager.install(runtimeId);
+      const mTurboModuleManager = new TurboModuleManager(this.mContext);
+      // TODO runtimeID
+      mTurboModuleManager.install(0);
     }
     // if (mThirdPartyAdapter != null) {
     //   mThirdPartyAdapter.onRuntimeInit(runtimeId);
