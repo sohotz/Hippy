@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BackPressHandler } from '../..';
 import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
 import { HippyEngineContext } from '../../HippyEngineContext';
 
@@ -30,5 +31,10 @@ export class HippyNativeModuleBase {
 
   call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
     return null
+  }
+
+  onBackPressed(handler: BackPressHandler):boolean{
+    //todo  need add logics
+    return true
   }
 }

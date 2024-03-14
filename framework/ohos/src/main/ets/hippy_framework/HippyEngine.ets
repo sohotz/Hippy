@@ -51,6 +51,7 @@ export interface HippyEngine {
 
   getNativeRenderContext(): NativeRenderContext
 
+  onBackPressed(handler: BackPressHandler): boolean
 }
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
@@ -59,6 +60,7 @@ export function createHippyEngine(params: EngineInitParams): HippyEngine {
 }
 
 export type HippyEngineInitCallback = (statusCode: EngineInitStatus, msg: string) => void
+
 export type HippyModuleLoadCallback = (statusCode: ModuleLoadStatus, msg: string) => void
 
 export class V8InitParams {
@@ -183,7 +185,6 @@ export class ModuleLoadParams {
    * appName: "Demo", entryPage: App });
    */
   public componentName: string;
-
   // 可选参数 二选一设置 自己开发的业务模块的jsbundle的assets路径（assets路径和文件路径二选一，优先使用assets路径）
   public jsAssetsPath: string;
   // 可选参数 二选一设置 自己开发的业务模块的文件路径（assets路径和文件路径二选一，优先使用assets路径）
@@ -213,22 +214,27 @@ export class ModuleLoadParams {
     this.nativeParams = nativeParams;
     this.codeCacheTag = codeCacheTag;
     this.bundleLoader = bundleLoader;
+  }
 }
+
+export interface BackPressHandler {
+
+  handleBackPress(): void
 }
 
 export enum EngineInitStatus {
-  STATUS_OK = 0,                     // 加载正常
-  STATUS_ERR_BRIDGE = -101,          // 初始化过程，initBridge错误
-  STATUS_ERR_DEVSERVER = -102,       // 初始化过程，devServer错误
-  STATUS_WRONG_STATE = -103,         // 状态错误。调用init函数时，引擎不在未初始化的状态
-  STATUS_INIT_EXCEPTION = -104,      // 初始化过程，抛出了未知的异常，详情需要查看传回的Throwable
+  STATUS_OK = 0, // 加载正常
+  STATUS_ERR_BRIDGE = -101, // 初始化过程，initBridge错误
+  STATUS_ERR_DEVSERVER = -102, // 初始化过程，devServer错误
+  STATUS_WRONG_STATE = -103, // 状态错误。调用init函数时，引擎不在未初始化的状态
+  STATUS_INIT_EXCEPTION = -104, // 初始化过程，抛出了未知的异常，详情需要查看传回的Throwable
 }
 
 export enum ModuleLoadStatus {
-  STATUS_OK = 0,                     // 加载正常
-  STATUS_ENGINE_UNINIT = -201,       // 引擎未完成初始化就加载JSBundle
-  STATUS_VARIABLE_NULL = -202,       // check变量(bundleUniKey, loader, rootView)引用为空
-  STATUS_ERR_RUN_BUNDLE = -203,      // 业务JSBundle执行错误
-  STATUS_REPEAT_LOAD = -204,         // 重复加载同一JSBundle
+  STATUS_OK = 0, // 加载正常
+  STATUS_ENGINE_UNINIT = -201, // 引擎未完成初始化就加载JSBundle
+  STATUS_VARIABLE_NULL = -202, // check变量(bundleUniKey, loader, rootView)引用为空
+  STATUS_ERR_RUN_BUNDLE = -203, // 业务JSBundle执行错误
+  STATUS_REPEAT_LOAD = -204, // 重复加载同一JSBundle
 }
 

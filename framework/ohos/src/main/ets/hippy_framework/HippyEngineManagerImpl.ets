@@ -19,6 +19,7 @@
  */
 import resmgr from "@ohos.resourceManager";
 import {
+  BackPressHandler,
   EngineInitParams,
   EngineInitStatus,
   HippyEngine,
@@ -48,6 +49,7 @@ import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdap
 import { HippyEngineContextImpl } from './HippyEngineContextImpl';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyMap } from '../support/common/HippyTypes';
+import { DeviceEventModule } from './modules/native';
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   private libHippy: HippyLibrary
@@ -106,6 +108,19 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     // this.mPreloadBundleLoader = preloadBundleLoader;
     // TODO
     // this.mProcessors = params.processors;
+  }
+
+  onBackPressed(handler: BackPressHandler): boolean {
+    if (this.mEngineContext != null
+      && this.mEngineContext.getModuleManager().getNativeModule(DeviceEventModule.NAME)
+        != null) {
+      let nativeModule = this.mEngineContext.getModuleManager().getNativeModule(DeviceEventModule.NAME)
+      if(nativeModule!=null){
+        return nativeModule.onBackPressed(handler);
+      }else return false;
+    } else {
+      return false;
+    }
   }
 
   public initDevModule() {
