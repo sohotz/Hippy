@@ -45,6 +45,7 @@ export class HRPullFooterView extends HippyRenderBaseView {
     switch (propKey) {
       case "sticky":
         this.sticky = HRValueUtils.getBoolean(propValue as HippyAny, false);
+        break
       case "cssPositionX":
         this.cssPositionX = HRValueUtils.getNumber(propValue as HippyAny);
         break;
@@ -77,12 +78,6 @@ export class HRPullFooterView extends HippyRenderBaseView {
         break;
     }
   }
-
-  setRenderViewFrame(frame: HRRect): void {
-    frame.x = this.cssPositionX;
-    frame.y = this.cssPositionY;
-    super.setRenderViewFrame(frame)
-  }
 }
 
 @Component
@@ -113,7 +108,6 @@ export struct HRPullFooter {
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
-    // .zIndex(2)
   }
 }
 
