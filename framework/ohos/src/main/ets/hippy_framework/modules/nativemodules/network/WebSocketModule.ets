@@ -18,10 +18,7 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import {
-  HippyAny,
-  HippyMap
-} from '../../../../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyValue } from '../../../../support/common/HippyTypes'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { webSocket } from '@kit.NetworkKit'
@@ -35,7 +32,7 @@ const WEBSOCKET_MODULE_TAG = "WebSocketModule";
 @HippyNativeModule({ name: "WebSocketModule" })
 export class WebSocketModule extends HippyNativeModuleBase {
   public static readonly NAME = 'WebSocketModule'
-  private mWebSocketConnections: HashMap<number, webSocket.WebSocket>
+  private mWebSocketConnections: HashMap<Number, webSocket.WebSocket>
   private static PARAM_KEY_SOCKET_URL = "url";
   private static PARAM_KEY_SOCKET_ID = "id";
   private static PARAM_KEY_CODE = "code";
@@ -103,40 +100,39 @@ export class WebSocketModule extends HippyNativeModuleBase {
       return;
     }
     let socketId = param.get(WebSocketModule.PARAM_KEY_SOCKET_ID);
-    let socketClient = this.mWebSocketConnections.get(0);
-    // let socketClient = this.mWebSocketConnections.get(socketId);
+    if (socketId instanceof Number) {
+      let socketClient = this.mWebSocketConnections.get(socketId);
+      if (socketClient == null) {
+        LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: specified socket not found, or not connected yet");
+        return;
+      }
 
-    if (socketClient == null) {
-      LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: specified socket not found, or not connected yet");
-      return;
-    }
-
-    let textData = param.get(WebSocketModule.PARAM_KEY_DATA);
-    if (textData == null) {
-      LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: no data specified to be sent");
-      return;
-    }
-
-    if (status == "open") {
-      // 当收到on('open')事件时，可以通过send()方法与服务器进行通信
-      // todo textData数据类型支持string|ArrayBuffer
-      socketClient.send(textData.toString(), (err1, value1) => {
-        if (!err1) {
-          LogUtils.d(WEBSOCKET_MODULE_TAG, "send success");
-        } else {
-          LogUtils.d(WEBSOCKET_MODULE_TAG, "send fail, err:" + JSON.stringify(err1));
-        }
-      });
-    } else if (status == "close") {
-      // 当收到服务器的`bye`消息时（此消息字段仅为示意，具体字段需要与服务器协商），主动断开连接
-      //if (value === 'bye') {
-      socketClient.close((err1, value1) => {
-        if (!err1) {
-          LogUtils.d(WEBSOCKET_MODULE_TAG, "close success");
-        } else {
-          LogUtils.d(WEBSOCKET_MODULE_TAG, "close fail, err is " + JSON.stringify(err1));
-        }
-      });
+      let textData = param.get(WebSocketModule.PARAM_KEY_DATA);
+      if (textData == null) {
+        LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: no data specified to be sent");
+        return;
+      }
+      if (status == "open") {
+        // 当收到on('open')事件时，可以通过send()方法与服务器进行通信
+        // todo textData数据类型支持string|ArrayBuffer
+        socketClient.send(textData.toString(), (err, value) => {
+          if (!err) {
+            LogUtils.d(WEBSOCKET_MODULE_TAG, "send success");
+          } else {
+            LogUtils.d(WEBSOCKET_MODULE_TAG, "send fail, err:" + JSON.stringify(err));
+          }
+        });
+      } else if (status == "close") {
+        // 当收到服务器的`bye`消息时（此消息字段仅为示意，具体字段需要与服务器协商），主动断开连接
+        //if (value === 'bye') {
+        socketClient.close((err, value) => {
+          if (!err) {
+            LogUtils.d(WEBSOCKET_MODULE_TAG, "close success");
+          } else {
+            LogUtils.d(WEBSOCKET_MODULE_TAG, "close fail, err is " + JSON.stringify(err));
+          }
+        });
+      }
     }
   }
 

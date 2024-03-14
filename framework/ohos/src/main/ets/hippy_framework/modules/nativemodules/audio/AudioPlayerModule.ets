@@ -23,96 +23,189 @@ import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { audio } from '@kit.AudioKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
+import { media } from '@kit.MediaKit'
+import Url from '@ohos.url'
 
 const AUDIO_MODULE_TAG: string = 'AudioPlayerModule'
+
 @HippyNativeModule({ name: "AudioPlayerModule" })
 export class AudioPlayerModule extends HippyNativeModuleBase {
-  private mMediaPlayer: audio.AudioRenderer | null
+  private mMediaPlayer: media.AVPlayer | null = null
+  private mState = "initialized"
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
-    this.mMediaPlayer = this.createMediaPlayer()
+    this.createMediaPlayer()
   }
 
-  createMediaPlayer(): audio.AudioRenderer | null {
-    let audioRendererOptions = null
-    // let audioStreamInfo = {
-    //   samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_44100,
-    //   channels: audio.AudioChannel.CHANNEL_1,
-    //   sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE,
-    //   encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW
-    // }
-    //
-    // let audioRendererInfo = {
-    //   content: audio.ContentType.CONTENT_TYPE_SPEECH,
-    //   usage: audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION,
-    //   rendererFlags: 0
-    // }
-    //
-    // let audioRendererOptions = {
-    //   streamInfo: audioStreamInfo,
-    //   rendererInfo: audioRendererInfo
-    // }
-
-    audio.createAudioRenderer(audioRendererOptions).then((data) => {
-      LogUtils.i(AUDIO_MODULE_TAG,'AudioFrameworkRenderLog: AudioRenderer Created : Success : Stream Type: SUCCESS')
-      return data
-    }).catch((err: HippyException) => {
-      LogUtils.e(AUDIO_MODULE_TAG,`AudioFrameworkRenderLog: AudioRenderer Created : ERROR : ${err}`)
+  createMediaPlayer(): Promise<media.AVPlayer | null> {
+    this.mState = "prepared"
+    return media.createAVPlayer().then((video) => {
+      if (video != null) {
+        LogUtils.i(AUDIO_MODULE_TAG, 'createAVPlayer success');
+        this.mMediaPlayer = video
+        return video
+      } else {
+        LogUtils.e(AUDIO_MODULE_TAG, 'createAVPlayer fail');
+        return null
+      }
+    }).catch((error: HippyException) => {
+      LogUtils.e(AUDIO_MODULE_TAG, `AVPlayer catchCallback, error message:${error.message}`);
+      return null
     });
-    return null
   }
 
-  play() {
-    if (this.mMediaPlayer != null) {
-      this.mMediaPlayer.start().then(() => {
-        LogUtils.i(AUDIO_MODULE_TAG,'Renderer started')
-      }).catch((err:HippyException) => {
-        LogUtils.e(AUDIO_MODULE_TAG,`ERROR: ${err}`)
-      });
+  getState(): string {
+    if (this.mMediaPlayer != null && this.mMediaPlayer.state == "playing") {
+      //'idle' | 'initialized' | 'prepared' | 'playing' | 'paused' | 'completed'
+      // | 'stopped' | 'released' | 'error'
+      return this.mMediaPlayer.state
+    }
+    return this.mState
+  }
+
+  async play(streamingURL: string): Promise<string> {
+    if (this.mMediaPlayer == null) {
+      await this.createMediaPlayer()
+    }
+    return new Promise<string>((resolve, reject) => {
+      if (this.mMediaPlayer != null) {
+        this.mMediaPlayer.url = Url.URL.parseURL(streamingURL).toString();
+        try {
+          this.mMediaPlayer.on('stateChange', async (state, reason) => {
+            switch (state) {
+              case 'idle':
+                LogUtils.e(AUDIO_MODULE_TAG, 'state idle called')
+                break;
+              case 'initialized':
+                LogUtils.e(AUDIO_MODULE_TAG, 'initialized prepared called')
+                break;
+              case 'prepared':
+                LogUtils.e(AUDIO_MODULE_TAG, 'state prepared called')
+                this.resume()
+                break;
+              case 'playing':
+                LogUtils.e(AUDIO_MODULE_TAG, 'state playing called')
+                break;
+              case 'paused':
+                LogUtils.e(AUDIO_MODULE_TAG, 'state paused called')
+                break;
+              case 'completed':
+                LogUtils.e(AUDIO_MODULE_TAG, 'state completed called')
+                this.mState = "completed"
+                break;
+              case 'stopped':
+                LogUtils.e(AUDIO_MODULE_TAG, 'state stopped called')
+                break;
+              case 'released':
+                LogUtils.e(AUDIO_MODULE_TAG, 'state released called')
+                break;
+              case 'error':
+                LogUtils.e(AUDIO_MODULE_TAG, 'state error called')
+                break;
+              default:
+                LogUtils.e(AUDIO_MODULE_TAG, 'unkown state :' + state)
+                break;
+            }
+          })
+          resolve("OK");
+        } catch (error) {
+          LogUtils.e(AUDIO_MODULE_TAG, "play error: " + error)
+          reject("ERROR");
+        }
+      }
+    })
+
+  }
+
+  goBack(seconds: number) {
+    try {
+      let milliseconds = Math.round(seconds) * 1000;
+      if (this.mMediaPlayer !== null) {
+        let newPosition = this.mMediaPlayer.currentTime - milliseconds;
+        if (newPosition < 0) {
+          newPosition = 0;
+        }
+        this.seekTo(newPosition);
+      }
+    } catch (error) {
+      LogUtils.e(AUDIO_MODULE_TAG, "back error: " + error)
     }
   }
 
-  getState():string{
-    if (this.mMediaPlayer != null) {
-      return this.mMediaPlayer.state.toString()
-    }
-    return ""
-  }
-
-  goBack( seconds:number){
-
-  }
-
-  goForward( seconds:number){
-
-  }
-
-  seekTo( newPosition:number){
-
-  }
-
-  pause(){
-    if (this.mMediaPlayer != null) {
-      this.mMediaPlayer.pause().then(() => {
-        LogUtils.i(AUDIO_MODULE_TAG,'Renderer pauseed')
-      }).catch((err:HippyException) => {
-        LogUtils.e(AUDIO_MODULE_TAG,`ERROR: ${err}`)
-      });
+  goForward(seconds: number) {
+    try {
+      let milliseconds = Math.round(seconds) * 1000;
+      if (this.mMediaPlayer !== null) {
+        let newPosition = this.mMediaPlayer.currentTime + milliseconds;
+        let mDuration = 0;
+        if (newPosition > mDuration) {
+          newPosition = mDuration;
+        }
+        this.seekTo(newPosition);
+      }
+    } catch (error) {
+      LogUtils.e(AUDIO_MODULE_TAG, "forward error: " + error)
     }
   }
 
-  resume(){
-
+  seekTo(newPosition: number) {
+    try {
+      if (this.mMediaPlayer != null) {
+        this.mMediaPlayer.seek(newPosition, media.SeekMode.SEEK_PREV_SYNC);
+      }
+    } catch (error) {
+      LogUtils.e(AUDIO_MODULE_TAG, "seek error: " + error)
+    } finally {
+      this.mState = "prepared";
+    }
   }
 
-  stop(){
-    if (this.mMediaPlayer != null) {
-      this.mMediaPlayer.stop().then(() => {
-        LogUtils.i(AUDIO_MODULE_TAG,'Renderer stoped')
-      }).catch((err:HippyException) => {
-        LogUtils.e(AUDIO_MODULE_TAG,`ERROR: ${err}`)
-      });
+  pause() {
+    try {
+      if (this.mMediaPlayer != null) {
+        this.mMediaPlayer.pause().then(() => {
+          LogUtils.i(AUDIO_MODULE_TAG, 'media pauseed')
+        }).catch((err: HippyException) => {
+          LogUtils.e(AUDIO_MODULE_TAG, `ERROR: ${err}`)
+        });
+      }
+    } catch (error) {
+      LogUtils.e(AUDIO_MODULE_TAG, "pause error: " + error)
+    } finally {
+      this.mState = "paused";
+    }
+  }
+
+  resume() {
+    try {
+      if (this.mMediaPlayer != null) {
+        this.mMediaPlayer.play().then(() => {
+          LogUtils.i(AUDIO_MODULE_TAG, 'media resumed')
+        }).catch((err: HippyException) => {
+          LogUtils.e(AUDIO_MODULE_TAG, `ERROR: ${err}`)
+        });
+      }
+    } catch (error) {
+      LogUtils.e(AUDIO_MODULE_TAG, "resume error: " + error)
+    } finally {
+      this.mState = 'playing';
+    }
+  }
+
+  stop() {
+    try {
+      if (this.mMediaPlayer != null) {
+        this.mMediaPlayer.stop().then(() => {
+          LogUtils.i(AUDIO_MODULE_TAG, 'media stopped')
+        }).catch((err: HippyException) => {
+          LogUtils.e(AUDIO_MODULE_TAG, `ERROR: ${err}`)
+        });
+      }
+    } catch (error) {
+      LogUtils.e(AUDIO_MODULE_TAG, "stop error: " + error)
+    } finally {
+      this.mState = "stopped";
     }
   }
 }

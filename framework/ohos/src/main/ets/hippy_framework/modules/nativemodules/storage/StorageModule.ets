@@ -22,32 +22,124 @@ import { HippyNativeModuleBase } from '../HippyNativeModuleBase';
 import { DefaultStorageAdapter } from '../../../adapter/storage/DefaultStorageAdapter';
 import { HippyStorageAdapter } from '../../../adapter/storage/HippyStorageAdapter';
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule';
+import { LogUtils } from '../../../../support/utils/LogUtils';
+
+const STORAGE_MODULE_TAG = "StorageModule"
 
 @HippyNativeModule({ name: "StorageModule" })
 export class StorageModule extends HippyNativeModuleBase {
   public static readonly NAME = 'StorageModule';
-  // private adapter: HippyStorageAdapter;
+  private mStorageAdapter: HippyStorageAdapter|null;
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
-    // todo Need Harmony Context
-    // this.adapter = new DefaultStorageAdapter(context);
-  }
-  /*
-  multiGet(keys: string[]): Promise<[key: string, value: string][]> {
-    return this.adapter.multiGet(keys);
+    this.mStorageAdapter = this.ctx.getGlobalConfigs().getStorageAdapter();
   }
 
-  multiSet(pairs: [key: string, value: string][]): Promise<void> {
-    return this.adapter.multiSet(pairs);
+  multiGet(keys: string[]): Promise<[key: string, value: string][]> {
+    return new Promise<[key: string, value: string][]>((resolve, reject) => {
+      if (keys == null || keys.length <= 0) {
+        reject("Invalid Key");
+        return;
+      }
+      if (this.mStorageAdapter == null) {
+        reject("Database Null");
+        return;
+      }
+      return this.mStorageAdapter.multiGet(keys).then(result => {
+        if (result == null || result.length <= 0) {
+          reject("result Null");
+          return;
+        }
+        let data = new Array<[key: string, value: string]>();
+        data.forEach((value, index, result) => {
+          data.push([value[0], value[1]])
+        })
+        resolve(data);
+      })
+    })
+  }
+
+  multiSet(params: [key: string, value: string][]): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (params == null || params.length <= 0) {
+        reject("Invalid Key");
+        return;
+      }
+      if (this.mStorageAdapter == null) {
+        reject("Database Null");
+        return;
+      }
+
+      try {
+        let data = new Array<[key: string, value: string]>();
+        for (let idx: number = 0; idx < params.length; idx++) {
+          let array = params[idx]
+          if (array == null) {
+            reject("Invalid Value");
+            return;
+          }
+          if (array.length != 2) {
+            reject("Invalid Value");
+            return;
+          }
+          if (array[0] == null) {
+            reject("Invalid key");
+            return;
+          }
+          if (array[1] == null) {
+            reject("Invalid Value");
+            return;
+          }
+          data.push([array[0], array[1]]);
+        }
+        this.mStorageAdapter.multiSet(data).then((err) => {
+          if (err != null) {
+            LogUtils.i(STORAGE_MODULE_TAG, "multiSet succ");
+          } else {
+            reject(err)
+          }
+        })
+      } catch (e) {
+        reject(e.getMessage());
+      }
+    })
   }
 
   multiRemove(keys: string[]): Promise<void> {
-    return this.adapter.multiRemove(keys);
+    return new Promise<void>((resolve, reject) => {
+      if (keys == null || keys.length <= 0) {
+        reject("Invalid Key");
+        return;
+      }
+      if (this.mStorageAdapter == null) {
+        reject("Database Null");
+        return;
+      }
+      return this.mStorageAdapter.multiRemove(keys).then((err) => {
+        if (err != null) {
+          LogUtils.i(STORAGE_MODULE_TAG, "multiRemove succ");
+        } else {
+          reject(err)
+        }
+      })
+    })
   }
 
   getAllKeys(): Promise<string[]> {
-    return this.adapter.getAllKeys();
+    return new Promise<string[]>((resolve, reject) => {
+      if (this.mStorageAdapter == null) {
+        reject("Database Null");
+        return;
+      }
+      return this.mStorageAdapter.getAllKeys().then((result) => {
+        if (result == null || result.length <= 0) {
+          reject([]);
+          return;
+        } else {
+          resolve(result)
+        }
+      })
+    })
   }
-  */
 }
