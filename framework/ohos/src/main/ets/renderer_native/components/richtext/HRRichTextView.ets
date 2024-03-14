@@ -23,12 +23,13 @@ import HippyRenderBaseView from '../base/HippyRenderBaseView'
 import { HRComponent } from '../../HippyRenderView'
 import { LogUtils } from '../../../support/utils/LogUtils'
 import { HRImageView } from '../image/HRImageView'
+import { HRNodeProps } from '../../dom_node/HRNodeProps'
+import { HRValueUtils } from '../../utils/HRValueUtils'
 
 @Observed
 export class HRRichTextView extends HippyRenderBaseView {
   private readonly TAG = "HRRichTextView"
   maxLines: number = 10000000
-
   // TODO(hot):
   text: string = ""
   fontColor: number | null = null
@@ -46,214 +47,145 @@ export class HRRichTextView extends HippyRenderBaseView {
   letterSpacing: number = 0
   textAlign: TextAlign = TextAlign.Start
   wordBreak: WordBreak = WordBreak.BREAK_WORD
+  ellipsisMode: EllipsisMode = EllipsisMode.END
+  textOverflow: TextOverflow = TextOverflow.Clip
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
-    if (propKey == "text") {
-      if (propValue) {
-        if (propValue.constructor.name == "String") {
-          this.text = propValue as string
-        } else {
-          LogUtils.e(this.TAG, propKey);
+    switch(propKey) {
+      case "text":
+        this.text = HRValueUtils.getString(propValue);
+        return true
+      case HRNodeProps.COLOR:
+        this.fontColor = HRValueUtils.getNumber(propValue);
+        return true
+      case "enableScale": //todo
+        return true;
+      case HRNodeProps.FONT_FAMILY: //todo 不生效
+        this.fontFamily = HRValueUtils.getString(propValue);
+        return true;
+      case HRNodeProps.FONT_SIZE:
+        this.fontSize = HRValueUtils.getNumber(propValue);
+        return true
+      case HRNodeProps.FONT_STYLE: {
+        let t = HRValueUtils.getString(propValue);
+        if (t == 'italic') {
+          this.fontStyle = FontStyle.Italic;
+        }
+        else {
+          this.fontStyle = FontStyle.Normal;
         }
       }
-      return true
-    } else if (propKey == "color") {
-      if (propValue) {
-        if (propValue.constructor.name == "Number") {
-          this.fontColor = propValue as number
+        return true;
+      case HRNodeProps.FONT_WEIGHT: {
+        let t = HRValueUtils.getString(propValue);
+        if (t == "normal") {
+          this.fontWeight = FontWeight.Normal;
+        } else if (t == "bold") {
+          this.fontWeight = FontWeight.Bold;
         } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true
-    } else if (propKey == "enableScale") { //todo
-      return true;
-    } else if (propKey == "fontFamily") { //todo 不生效
-      if (propValue) {
-        if (propValue.constructor.name == "String") {
-          this.fontFamily = propValue as string;
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true;
-    } else if (propKey == "fontSize") {
-      if (propValue) {
-        if (propValue.constructor.name == "Number") {
-          this.fontSize = propValue as number
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true
-    } else if (propKey == "fontStyle") {
-      if (propValue) {
-        if (propValue.constructor.name == "String") {
-          if (propValue as string == 'italic') {
-            this.fontStyle = FontStyle.Italic;
-          }
-          else {
-            this.fontStyle = FontStyle.Normal;
-          }
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true;
-    } else if (propKey == "fontWeight") {
-      if (propValue) {
-        if (propValue.constructor.name == "String") {
-          let t = propValue as string;
-          if (t == "normal") {
+          let n = parseInt(t);
+          if (isNaN(n)) {
             this.fontWeight = FontWeight.Normal;
-          } else if (t == "bold") {
-            this.fontWeight = FontWeight.Bold;
           } else {
-            let n = parseInt(t);
-            if (isNaN(n)) {
-              this.fontWeight = FontWeight.Normal;
-            } else {
-              this.fontWeight = Math.min(Math.max(1, n), 1000);
-            }
+            this.fontWeight = Math.min(Math.max(1, n), 1000);
           }
-        } else if (propValue.constructor.name == "Number") {
-          this.fontWeight = propValue as number;
-        } else {
-          LogUtils.e(this.TAG, propKey);
         }
       }
-      return true;
-    } else if (propKey == "letterSpacing") {
-      if (propValue) {
-        if (propValue.constructor.name == "Number") {
-          this.letterSpacing = propValue as number;
+        return true;
+      case HRNodeProps.LETTER_SPACING:
+        this.letterSpacing = HRValueUtils.getNumber(propValue);
+        return true;
+      case HRNodeProps.LINE_HEIGHT:
+        this.lineHeight = HRValueUtils.getNumber(propValue);
+        return true
+      case HRNodeProps.LINE_SPACING_EXTRA: //todo
+        return true;
+      case HRNodeProps.LINE_SPACING_MULTIPLIER: //todo
+        return true;
+      case HRNodeProps.NUMBER_OF_LINES:
+        this.maxLines = HRValueUtils.getNumber(propValue);
+        if (this.maxLines <= 0) {
+          this.maxLines = 10000000
+        }
+        return true
+      case HRNodeProps.TEXT_ALIGN: {
+        let t = HRValueUtils.getString(propValue);
+        if (t == "justify") {
+          this.textAlign = TextAlign.JUSTIFY;
+        } else if (t == "right") {
+          this.textAlign = TextAlign.End;
+        } else if (t == "center") {
+          this.textAlign = TextAlign.Center;
         } else {
-          LogUtils.e(this.TAG, propKey);
+          this.textAlign = TextAlign.Start;
         }
       }
-      return true;
-    } else if (propKey == "lineHeight") {
-      if (propValue) {
-        if (propValue.constructor.name == "Number") {
-          this.lineHeight = propValue as number;
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true
-    } else if (propKey == "lineSpacingExtra") { //todo
-      return true;
-    } else if (propKey == "lineSpacingMultiplier") { //todo
-      return true;
-    } else if (propKey == "numberOfLines") {
-      if (propValue) {
-        if (propValue.constructor.name == "Number") {
-          this.maxLines = propValue as number
-          if (this.maxLines <= 0) {
-            this.maxLines = 10000000
+        return true;
+      case HRNodeProps.TEXT_DECORATION_LINE: { //安卓可以同时显示下划线和删除线
+        let t = HRValueUtils.getString(propValue);
+        this.decorationType = TextDecorationType.None;
+        t.split(" ").forEach(s => {
+          if (s == 'underline') {
+            this.decorationType = TextDecorationType.Underline;
+          } else if (s == 'line-through') {
+            this.decorationType = TextDecorationType.LineThrough;
           }
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
+        });
       }
-      return true
-    } else if (propKey == "textAlign") {
-      if (propValue) {
-        if (propValue.constructor.name == "String") {
-          let t = propValue as string;
-          if (t == "justify") {
-            this.textAlign = TextAlign.JUSTIFY;
-          } else if (t == "right") {
-            this.textAlign = TextAlign.End;
-          } else if (t == "center") {
-            this.textAlign = TextAlign.Center;
-          } else {
-            this.textAlign = TextAlign.Start;
+        return true;
+      case HRNodeProps.TEXT_SHADOW_COLOR:
+        this.shadowColor = HRValueUtils.getNumber(propValue);
+        return true;
+      case HRNodeProps.TEXT_SHADOW_OFFSET:
+        let m = HRValueUtils.getMap(propValue);
+        if (m) {
+          this.shadowOffX = HRValueUtils.getNumber(m.get('width'));
+          this.shadowOffY = HRValueUtils.getNumber(m.get('height'));
+        }
+        return true;
+      case HRNodeProps.TEXT_SHADOW_RADIUS:
+        this.shadowRadius = HRValueUtils.getNumber(propValue);
+        return true;
+      case "textDecorationColor": //下划线/删除线的颜色，安卓无，next有
+        this.decorationColor = HRValueUtils.getNumber(propValue);
+        return true;
+      case HRNodeProps.ELLIPSIZE_MODE: { //todo 文本超长裁剪时，省略号在前/中/后，设置了，不生效
+        let t = HRValueUtils.getString(propValue);
+        if (t == "clip") {
+          this.textOverflow = TextOverflow.Clip;
+        } else {
+          this.textOverflow = TextOverflow.Ellipsis;
+          switch (t) {
+            case "head":
+              this.ellipsisMode = EllipsisMode.START;
+              break;
+            case "middle":
+              this.ellipsisMode = EllipsisMode.CENTER;
+              break;
+            case "tail":
+              this.ellipsisMode = EllipsisMode.END;
+              break;
           }
-        } else {
-          LogUtils.e(this.TAG, propKey);
         }
       }
-      return true;
-    } else if (propKey == "textDecorationLine") { //安卓可以同时显示下划线和删除线
-      if (propValue) {
-        if (propValue.constructor.name == "String") {
-          let t = propValue as string;
-          this.decorationType = TextDecorationType.None;
-          t.split(" ").forEach(s => {
-            if (s == 'underline') {
-              this.decorationType = TextDecorationType.Underline;
-            } else if (s == 'line-through') {
-              this.decorationType = TextDecorationType.LineThrough;
-            }
-          });
-        } else {
-          LogUtils.e(this.TAG, propKey);
+        return true;
+      case "textDecorationStyle": //todo 下划线/删除线的类型：DOUBLE，DOTTED，DASHED，SOLID，安卓有，next无
+        return true;
+      case HRNodeProps.BREAK_STRATEGY: { //todo 文本断行策略，不完全匹配
+        let t = HRValueUtils.getString(propValue);
+        if (t == "high_quality") {
+          this.wordBreak = WordBreak.BREAK_ALL;
+        } else if (t == "balanced") {
+          this.wordBreak = WordBreak.BREAK_WORD;
+        } else { //t == "simple"
+          this.wordBreak = WordBreak.BREAK_WORD; //如果使用WordBreak.NORMAL，超过行宽的连续字符不会换行(被裁剪)
         }
       }
-      return true;
-    } else if (propKey == "textShadowColor") {
-      if (propValue) {
-        if (propValue.constructor.name == "Number") {
-          this.shadowColor = propValue as number;
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true;
-    } else if (propKey == "textShadowOffset") {
-      if (propValue) {
-        if (propValue.constructor.name == "Map") {
-          let t = propValue as HippyMap;
-          this.shadowOffX = t.get('width') as number;
-          this.shadowOffY = t.get('height') as number;
-        } else {
-          LogUtils.e(this.TAG, propKey + "" + propValue.constructor.name);
-        }
-      }
-      return true;
-    } else if (propKey == "textShadowRadius") {
-      if (propValue) {
-        if (propValue.constructor.name == "Number") {
-          this.shadowRadius = propValue as number;
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true;
-    } else if (propKey == "textDecorationColor") { //下划线/删除线的颜色，安卓无，next有
-      if (propValue) {
-        if (propValue.constructor.name == "Number") {
-          this.decorationColor = propValue as number;
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true;
-    } else if (propKey == "ellipsizeMode") { //todo 文本超长裁剪时，省略号在前/中/后，安卓有，next无
-      return true;
-    } else if (propKey == "textDecorationStyle") { //todo 下划线/删除线的类型：DOUBLE，DOTTED，DASHED，SOLID，安卓有，next无
-      return true;
-    } else if (propKey == "breakStrategy") { //todo 文本断行策略，不完全匹配
-      if (propValue) {
-        if (propValue.constructor.name == "String") {
-          let t = propValue as string;
-          if (t == "high_quality") {
-            this.wordBreak = WordBreak.BREAK_ALL;
-          } else if (t == "balanced") {
-            this.wordBreak = WordBreak.BREAK_WORD;
-          } else { //t == "simple"
-            this.wordBreak = WordBreak.BREAK_WORD;//如果使用WordBreak.NORMAL，超过行宽的连续字符不会换行(被裁剪)
-          }
-        } else {
-          LogUtils.e(this.TAG, propKey);
-        }
-      }
-      return true;
+        return true;
     }
     return super.setProp(propKey, propValue)
   }
@@ -264,7 +196,8 @@ export struct HRRichText {
   @ObjectLink renderView: HRRichTextView
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
-  @Builder TextSpan(txt: HRRichTextView) {
+  @Builder
+  TextSpan(txt: HRRichTextView) {
     Span(txt.text)
       .fontColor(txt.fontColor)
       .fontSize(txt.fontSize)
@@ -286,11 +219,14 @@ export struct HRRichText {
       .applyRenderViewBaseAttr_TextSpan(txt)
   }
 
-  @Builder ImageSpan(img: HRImageView) {
+  @Builder
+  ImageSpan(img: HRImageView) {
     ImageSpan(img.getImage())
-      //todo image attrs
+      .verticalAlign(img.spanVerticalAlign)
+      .objectFit(img.spanObjectFit)
       .applyRenderViewBaseAttr_ImageSpan(img)
   }
+
   build() {
     Text(this.renderView.text) {
       if (this.renderView.children.length > 0) {
@@ -307,7 +243,8 @@ export struct HRRichText {
     .fontColor(this.renderView.fontColor)
     .fontSize(this.renderView.fontSize)
     .lineHeight(this.renderView.lineHeight)
-    .textOverflow({ overflow: TextOverflow.Ellipsis })
+    .textOverflow({ overflow: this.renderView.textOverflow })
+    .ellipsisMode(this.renderView.ellipsisMode)
     .maxLines(this.renderView.maxLines)
     .textShadow({
       radius: this.renderView.shadowRadius,
@@ -334,15 +271,15 @@ export struct HRRichText {
 // base props for all components
 @Extend(Text)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .padding($$.cssPadding)
   .backgroundColor($$.cssBackgroundColor)
-  .position({x: $$.cssPositionX, y: $$.cssPositionY})
-  .size({width:$$.cssWidth, height: $$.cssHeight})
+  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
+  .size({ width: $$.cssWidth, height: $$.cssHeight })
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
-  .borderWidth(0.5) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
@@ -351,15 +288,14 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
 
 @Extend(Span)
 function applyRenderViewBaseAttr_TextSpan($$: HippyRenderBaseView) {
-  .backgroundColor($$.cssBackgroundColor)
-  .position({x: $$.cssPositionX, y: $$.cssPositionY})
-  .size({width:$$.cssWidth, height: $$.cssHeight})
+  .textBackgroundStyle({color:$$.cssBackgroundColor}) // backgroundColor无效，换成这个
+  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
+  .size({ width: $$.cssWidth, height: $$.cssHeight })
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
-  .borderWidth(0.5) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
@@ -369,14 +305,13 @@ function applyRenderViewBaseAttr_TextSpan($$: HippyRenderBaseView) {
 @Extend(ImageSpan)
 function applyRenderViewBaseAttr_ImageSpan($$: HippyRenderBaseView) {
   .backgroundColor($$.cssBackgroundColor)
-  .position({x: $$.cssPositionX, y: $$.cssPositionY})
-  .size({width:$$.cssWidth, height: $$.cssHeight})
+  // .position({x: $$.cssPositionX, y: $$.cssPositionY}) // 位置自动布局，如果设置了，ImageSpan会重叠在父Text组件的左上角
+  .size({ width: $$.cssWidth, height: $$.cssHeight })
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
   .border($$.cssBorder)
-  .borderWidth(0.5) // TODO:
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
