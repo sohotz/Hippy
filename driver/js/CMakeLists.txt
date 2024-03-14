@@ -192,10 +192,9 @@ if ("${JS_ENGINE}" STREQUAL "V8")
           src/vm/v8/native_source_code_android.cc
           src/vm/v8/serializer.cc
           src/vm/v8/v8_vm.cc)
-  # TODO(hot):
-  if (OHOS)
-    set_source_files_properties(src/vm/v8/serializer.cc PROPERTIES COMPILE_FLAGS -fno-rtti)
-  endif ()
+
+  set_source_files_properties(src/vm/v8/serializer.cc PROPERTIES COMPILE_FLAGS -fno-rtti)
+
   if (NOT V8_WITHOUT_INSPECTOR)
     list(APPEND SOURCE_SET
             src/vm/v8/inspector/v8_channel_impl.cc
