@@ -55,6 +55,8 @@ class ArkTS {
   napi_value CreateBoolean(bool value);
 
   napi_value CreateInt(int value);
+    
+  napi_value CreateInt64(int64_t value);
 
   napi_value CreateUint32(uint32_t value);
 
