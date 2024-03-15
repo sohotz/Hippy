@@ -20,6 +20,7 @@ import { HippyResourceLoader } from './adapter/http/HippyResourceLoader';
 import { DefaultProcessor } from '../vfs/DefaultProcessor';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HippyAPIProvider } from './bridge/HippyAPIProvider';
+import { HippyJsException } from './common/HippyJsException';
 
 export class HippyEngineContextImpl implements HippyEngineContext {
   private mEngineInitParams: EngineInitParams;
@@ -155,5 +156,9 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
   getNativeParams() : HashMap<string, Object> {
     return this.nativeParams
+  }
+
+  handleException(error: HippyJsException): void {
+
   }
 }

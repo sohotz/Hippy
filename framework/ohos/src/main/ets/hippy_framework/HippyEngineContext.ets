@@ -62,7 +62,7 @@ export interface HippyEngineContext {
   //
   // void removeEngineLifecycleEventListener(HippyEngineLifecycleEventListener listener);
   //
-   handleException(error:HippyJsException):void
+  handleException(error: HippyJsException): void
 
   // int getEngineId();
   //
