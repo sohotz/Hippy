@@ -20,7 +20,8 @@
 import { HippyAny } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { HRScrollView } from './HRScrollView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
@@ -56,7 +57,7 @@ export struct HRScrollContent {
         this.buildRenderView(item, this)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
-    .size({ width: this.renderView.cssWidth, height: this.renderView.cssHeight })
+    .applyRenderViewBaseAttr(this.renderView)
     .onAreaChange((oldArea: Area, newArea: Area) => {
       this.renderView.viewWidth = newArea.width as number
       this.renderView.viewHeight = newArea.height as number
@@ -66,4 +67,31 @@ export struct HRScrollContent {
       y: (this.renderView.parentView as HRScrollView)?.axis == ScrollDirection.Vertical ? this.renderView.startOffset : 0,
     })
   }
+}
+
+// base props for all components
+@Extend(Stack)
+function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
+  .backgroundColor($$.cssBackgroundColor)
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
+  .opacity($$.cssOpacity)
+  .clip($$.cssOverflow)
+  .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
+  .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
+  .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
+  .rotate($$.cssRotate)
+  .scale($$.cssScale)
+  .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
+  .onClick($$.eventClick)
 }

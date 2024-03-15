@@ -26,7 +26,8 @@ import {
 } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
@@ -303,33 +304,53 @@ export struct HRTextInput {
 // base props for all components
 @Extend(TextInput)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
 
 // base props for all components
 @Extend(TextArea)
 function applyTextAreaRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
