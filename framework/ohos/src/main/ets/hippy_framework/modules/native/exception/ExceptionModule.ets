@@ -31,7 +31,7 @@ export class ExceptionModule extends HippyNativeModuleBase {
   }
 
   public handleException(title: string, details: string) {
-    // this.ctx.handleException(new HippyJsException(title, details));
+    this.ctx.handleException(new HippyJsException(title, details));
   }
 
   public handleBackgroundTracing(details: string) {

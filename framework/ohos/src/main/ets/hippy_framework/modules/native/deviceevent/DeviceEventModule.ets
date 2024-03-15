@@ -26,7 +26,7 @@ import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 @HippyNativeModule({ name: "DeviceEventModule" })
 export class DeviceEventModule extends HippyNativeModuleBase {
   public static readonly NAME = 'DeviceEventModule'
-  // mBackPressHandler:HippyEngine.BackPressHandler = null;
+  private mBackPressHandler: BackPressHandler | null = null;
   private mIsListening: boolean = false;
 
   constructor(ctx: HippyEngineContext) {
@@ -35,8 +35,9 @@ export class DeviceEventModule extends HippyNativeModuleBase {
 
   public onBackPressed(handler: BackPressHandler): boolean {
     if (this.mIsListening) {
-      let mBackPressHandler = handler;
+      this.mBackPressHandler = handler;
       let scriptModule = this.ctx.getModuleManager().getJavaScriptModule(EventDispatcher.MODULE_NAME)
+
       if (scriptModule != null) {
         (scriptModule as EventDispatcher).receiveNativeEvent("hardwareBackPress", null);
         return true;
@@ -51,17 +52,17 @@ export class DeviceEventModule extends HippyNativeModuleBase {
     this.mIsListening = listen;
   }
 
-  public invokeDefaultBackPressHandler(){
-
+  public invokeDefaultBackPressHandler() {
+    if (this.mBackPressHandler != null) {
+      this.mBackPressHandler.handleBackPress();
+    }
   }
 
   public destroy() {
-    // super.destroy();
-    // mBackPressHandler = null;
+    this.mBackPressHandler = null;
   }
 }
 
 export interface InvokeDefaultBackPress {
-
   callSuperOnBackPress(): void
 }

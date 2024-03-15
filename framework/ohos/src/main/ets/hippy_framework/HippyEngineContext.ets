@@ -24,6 +24,7 @@ import { JsDriver } from './connector/JsDriver';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
 import { HashMap } from '@kit.ArkTS';
 import { HippyModuleManager } from './modules/HippyModuleManager';
+import { HippyJsException } from './common/HippyJsException';
 
 export interface HippyEngineContext {
 
@@ -61,7 +62,7 @@ export interface HippyEngineContext {
   //
   // void removeEngineLifecycleEventListener(HippyEngineLifecycleEventListener listener);
   //
-  // void handleException(Throwable throwable);
+   handleException(error:HippyJsException):void
 
   // int getEngineId();
   //

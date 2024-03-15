@@ -219,7 +219,6 @@ export class ModuleLoadParams {
 }
 
 export interface BackPressHandler {
-
   handleBackPress(): void
 }
 
