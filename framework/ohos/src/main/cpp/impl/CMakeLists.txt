@@ -43,9 +43,9 @@ target_link_libraries(hippy PUBLIC
   connector
 )
 
-set(hippy_compile_options
-  -fno-rtti
-  -fno-exceptions
-)
+#set(hippy_compile_options
+#  -fno-rtti
+#  -fno-exceptions
+#)
 
 target_compile_options(hippy PUBLIC ${hippy_compile_options} -std=c++17)

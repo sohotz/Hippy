@@ -71,6 +71,12 @@ napi_value ArkTS::CreateInt(int value) {
   return result;
 }
 
+napi_value ArkTS::CreateInt64(int64_t value) {
+  napi_value result;
+  napi_create_bigint_int64(env_, value, &result);
+  return result;
+}
+
 napi_value ArkTS::CreateUint32(uint32_t value) {
   napi_value result;
   napi_create_uint32(env_, value, &result);
