@@ -36,8 +36,8 @@ export class DeviceEventModule extends HippyNativeModuleBase {
   public onBackPressed(handler: BackPressHandler): boolean {
     if (this.mIsListening) {
       this.mBackPressHandler = handler;
-      let scriptModule = this.ctx.getModuleManager()
-        .getJavaScriptModule(EventDispatcher.MODULE_NAME)
+      let scriptModule = this.ctx.getModuleManager().getJavaScriptModule(EventDispatcher.MODULE_NAME)
+
       if (scriptModule != null) {
         (scriptModule as EventDispatcher).receiveNativeEvent("hardwareBackPress", null);
         return true;

@@ -114,5 +114,4 @@ oh-package-lock.json5
 .clang-format
 .clang-tidy
 .clangd
-framework/ohos/BuildProfile.ets
-
+BuildProfile.ets
