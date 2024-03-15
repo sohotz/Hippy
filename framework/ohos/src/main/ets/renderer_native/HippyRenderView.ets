@@ -64,6 +64,7 @@ export class HippyRenderView extends HippyRenderBaseView {
 
   constructor(ctx: NativeRenderContext, pageName: string, pageData: HippyRecord, initViewSize: HRSize, avoidArea: window.AvoidArea | null, renderExceptionListener: IHippyRenderExceptionListener | null) {
     super(ctx)
+    this.tag = ctx.getRootId()
     this.pagerName = pageName
     this.pagerData = pageData
     this.renderViewSize = initViewSize
@@ -71,8 +72,7 @@ export class HippyRenderView extends HippyRenderBaseView {
     this.renderExceptionListener = renderExceptionListener
 
     let renderManger = ctx.getNativeRender().getRenderManager()
-    renderManger.init(this)
-    this.tag = renderManger.getRootTag()
+    renderManger.initViewManager(this)
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {

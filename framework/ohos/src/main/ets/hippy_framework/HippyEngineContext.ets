@@ -27,6 +27,8 @@ import { HippyModuleManager } from './modules/HippyModuleManager';
 
 export interface HippyEngineContext {
 
+  attachToRootView(rootId: number): void
+
   getComponentName(): string
 
   getNativeParams() : HashMap<string, Object>

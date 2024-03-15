@@ -26,6 +26,8 @@ import { FrameworkProxy } from './FrameworkProxy'
 import { HRManager } from './uimanager/HRManager';
 
 export interface NativeRender {
+  attachToRootView(rootId: number): void
+
   getRenderManager(): HRManager
 
   getBundlePath(): string

@@ -19,6 +19,7 @@
  */
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
+import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 import { HippyMap } from '../support/common/HippyTypes';
 import { DefaultDeviceAdapter } from './adapter/device/DefaultDeviceAdapter';
 import { HippyDeviceAdapter } from './adapter/device/HippyDeviceAdapter';
@@ -49,7 +50,7 @@ export interface HippyEngine {
 
   loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): void
 
-  getNativeRenderContext(): NativeRenderContext
+  getNativeRenderProvider(): NativeRenderProvider | null
 
   onBackPressed(handler: BackPressHandler): boolean
 }

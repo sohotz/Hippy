@@ -79,9 +79,9 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)
-    const rootNodeId = this.getNativeRenderContext().getRootId()
-    this.mDomManager.createRootNode(rootNodeId, PixelUtil.getDensity())
-    this.mDomManager.attachToRoot(rootNodeId)
+    // TODO(hot15):
+    this.mDomManager.createRootNode(10, PixelUtil.getDensity())
+    this.mDomManager.attachToRoot(10)
 
     // ModuleManager注册
     this.mModuleManager = new HippyModuleManagerImpl(this);
@@ -101,9 +101,16 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   }
 
   onRuntimeInitialized(): void {
-    const rootNodeId = this.getNativeRenderContext().getRootId()
     this.mJsDriver.attachToDom(this.mDomManager.instanceId)
-    this.mJsDriver.attachToRoot(rootNodeId)
+
+    // TODO(hot15):
+    this.mJsDriver.attachToRoot(10)
+  }
+
+  attachToRootView(rootId: number): void {
+    this.mDomManager.createRootNode(rootId, PixelUtil.getDensity())
+    this.mDomManager.attachToRoot(rootId)
+    this.mJsDriver.attachToRoot(rootId)
   }
 
   getDomManagerId(): number {
@@ -148,9 +155,5 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
   getNativeParams() : HashMap<string, Object> {
     return this.nativeParams
-  }
-
-  public getNativeRenderContext(): NativeRenderContext {
-    return this.nativeRenderProvider?.getNativeRenderImpl().getNativeRenderContext() as NativeRenderContext
   }
 }

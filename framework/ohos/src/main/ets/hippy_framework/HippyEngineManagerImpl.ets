@@ -74,6 +74,10 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   public nativeParams: HippyMap | null = null;
   public mEngineContext: HippyEngineContextImpl | null = null;
 
+  private isAttachedToRootView: boolean = false;
+  private cachedLoadParams: ModuleLoadParams | null = null;
+  private cachedLoadCallback: HippyModuleLoadCallback | null = null;
+
   constructor(params: EngineInitParams) {
     this.params = params;
     this.libHippy = params.libHippy
@@ -200,7 +204,26 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     }
     this.mJsBundleLoader = coreBundleLoader;
 
-    this.loadJsModule(loadParams, loadCallback)
+    // TODO(hot15):
+    // if (this.isAttachedToRootView) {
+      this.loadJsModule(loadParams, loadCallback)
+    // } else {
+    //   this.cachedLoadParams = loadParams
+    //   this.cachedLoadCallback = loadCallback
+    // }
+  }
+
+  attachToRootView(rootId: number): void {
+    // TODO(hot15):
+    // this.mEngineContext!.attachToRootView(rootId)
+    // if (!this.isAttachedToRootView) {
+    //   this.isAttachedToRootView = true
+    //   if (this.cachedLoadParams && this.cachedLoadCallback) {
+    //     this.loadJsModule(this.cachedLoadParams, this.cachedLoadCallback)
+    //     this.cachedLoadParams = null
+    //     this.cachedLoadCallback = null
+    //   }
+    // }
   }
 
   getVfsManager(): VfsManager {
@@ -250,7 +273,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     // TODO: Debug
   }
 
-  public getNativeRenderContext(): NativeRenderContext {
-    return this.nativeRenderProvider?.getNativeRenderImpl().getNativeRenderContext() as NativeRenderContext
+  public getNativeRenderProvider(): NativeRenderProvider | null {
+    return this.nativeRenderProvider
   }
 }
