@@ -77,6 +77,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   private isAttachedToRootView: boolean = false;
   private cachedLoadParams: ModuleLoadParams | null = null;
   private cachedLoadCallback: HippyModuleLoadCallback | null = null;
+  private cachedRootId: number = 0;
 
   constructor(params: EngineInitParams) {
     this.params = params;
@@ -204,26 +205,26 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     }
     this.mJsBundleLoader = coreBundleLoader;
 
-    // TODO(hot15):
-    // if (this.isAttachedToRootView) {
+    if (this.isAttachedToRootView) {
+      this.mEngineContext!.attachJsToRootView(this.cachedRootId)
       this.loadJsModule(loadParams, loadCallback)
-    // } else {
-    //   this.cachedLoadParams = loadParams
-    //   this.cachedLoadCallback = loadCallback
-    // }
+    } else {
+      this.cachedLoadParams = loadParams
+      this.cachedLoadCallback = loadCallback
+    }
   }
 
   attachToRootView(rootId: number): void {
-    // TODO(hot15):
-    // this.mEngineContext!.attachToRootView(rootId)
-    // if (!this.isAttachedToRootView) {
-    //   this.isAttachedToRootView = true
-    //   if (this.cachedLoadParams && this.cachedLoadCallback) {
-    //     this.loadJsModule(this.cachedLoadParams, this.cachedLoadCallback)
-    //     this.cachedLoadParams = null
-    //     this.cachedLoadCallback = null
-    //   }
-    // }
+    this.mEngineContext!.attachDomToRootView(rootId)
+    this.isAttachedToRootView = true
+    if (this.cachedLoadParams && this.cachedLoadCallback) {
+      this.mEngineContext!.attachJsToRootView(rootId)
+      this.loadJsModule(this.cachedLoadParams, this.cachedLoadCallback)
+      this.cachedLoadParams = null
+      this.cachedLoadCallback = null
+    } else {
+      this.cachedRootId = rootId
+    }
   }
 
   getVfsManager(): VfsManager {

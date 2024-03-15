@@ -80,9 +80,6 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)
-    // TODO(hot15):
-    this.mDomManager.createRootNode(10, PixelUtil.getDensity())
-    this.mDomManager.attachToRoot(10)
 
     // ModuleManager注册
     this.mModuleManager = new HippyModuleManagerImpl(this);
@@ -103,14 +100,14 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
   onRuntimeInitialized(): void {
     this.mJsDriver.attachToDom(this.mDomManager.instanceId)
-
-    // TODO(hot15):
-    this.mJsDriver.attachToRoot(10)
   }
 
-  attachToRootView(rootId: number): void {
+  attachDomToRootView(rootId: number): void {
     this.mDomManager.createRootNode(rootId, PixelUtil.getDensity())
     this.mDomManager.attachToRoot(rootId)
+  }
+
+  attachJsToRootView(rootId: number): void {
     this.mJsDriver.attachToRoot(rootId)
   }
 
