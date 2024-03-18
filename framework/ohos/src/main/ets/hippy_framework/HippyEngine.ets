@@ -44,6 +44,7 @@ import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdap
 import { HippyBundleLoader } from './bridge/bundleloader/HippyBundleLoader';
 import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HippyEngineManagerImpl } from './HippyEngineManagerImpl';
+import { HippyEngineContext } from './HippyEngineContext'
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
@@ -53,6 +54,8 @@ export interface HippyEngine {
   getNativeRenderProvider(): NativeRenderProvider | null
 
   onBackPressed(handler: BackPressHandler): boolean
+
+  getHippyEngineContext(): HippyEngineContext | null
 }
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
