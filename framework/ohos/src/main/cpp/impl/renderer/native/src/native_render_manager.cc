@@ -789,7 +789,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   measureResult = measureInst.EndMeasure(propMap, static_cast<int>(width), static_cast<int>(width_mode),
                                          static_cast<int>(height), static_cast<int>(height_mode), density);
 
-  result = static_cast<int64_t>(measureResult.width) << 32 | static_cast<int64_t>(measureResult.height);
+  result = static_cast<int64_t>(ceil(measureResult.width)) << 32 | static_cast<int64_t>(ceil(measureResult.height));
 }
 
 void NativeRenderManager::HandleListenerOps(std::weak_ptr<RootNode> root_node,
