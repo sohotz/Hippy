@@ -34,4 +34,5 @@ public:
 private:
     OH_Drawing_TypographyStyle *typoStyle_;
     OH_Drawing_TypographyCreate *handler_;
+    double minLineHeight_ = 0; // 子组件中只有ImageSpan，没有TextSpan时，Placeholder不能撑大高度，使用ImageSpan的高度
 };

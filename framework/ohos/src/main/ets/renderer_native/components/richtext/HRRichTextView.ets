@@ -304,7 +304,7 @@ function applyRenderViewBaseAttr_TextSpan($$: HippyRenderBaseView) {
 
 @Extend(ImageSpan)
 function applyRenderViewBaseAttr_ImageSpan($$: HippyRenderBaseView) {
-  .backgroundColor($$.cssBackgroundColor)
+  .textBackgroundStyle({color:$$.cssBackgroundColor})
   // .position({x: $$.cssPositionX, y: $$.cssPositionY}) // 位置自动布局，如果设置了，ImageSpan会重叠在父Text组件的左上角
   .size({ width: $$.cssWidth, height: $$.cssHeight })
   .opacity($$.cssOpacity)
