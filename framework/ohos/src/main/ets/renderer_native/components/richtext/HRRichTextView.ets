@@ -19,7 +19,7 @@
  */
 import { HippyAny, HippyMap } from '../../../support/common/HippyTypes'
 import { NativeRenderContext } from '../../NativeRenderContext'
-import HippyRenderBaseView from '../base/HippyRenderBaseView'
+import HippyRenderBaseView, { HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView'
 import { HRComponent } from '../../HippyRenderView'
 import { LogUtils } from '../../../support/utils/LogUtils'
 import { HRImageView } from '../image/HRImageView'
@@ -33,7 +33,7 @@ export class HRRichTextView extends HippyRenderBaseView {
   // TODO(hot):
   text: string = ""
   fontColor: number | null = null
-  fontSize: number | null = null
+  fontSize: number = HRNodeProps.FONT_SIZE_SP
   lineHeight: number | null = null
   shadowColor: number = 0
   shadowRadius: number = 0
@@ -217,6 +217,7 @@ export struct HRRichText {
       })
       .letterSpacing(txt.letterSpacing)
       .applyRenderViewBaseAttr_TextSpan(txt)
+      .textBackgroundStyle({color: txt.cssBackgroundColor}) // backgroundColor无效，换成这个
   }
 
   @Builder
@@ -225,6 +226,7 @@ export struct HRRichText {
       .verticalAlign(img.spanVerticalAlign)
       .objectFit(img.spanObjectFit)
       .applyRenderViewBaseAttr_ImageSpan(img)
+      .textBackgroundStyle({color: img.cssBackgroundColor})
   }
 
   build() {
@@ -263,6 +265,7 @@ export struct HRRichText {
     .textAlign(this.renderView.textAlign)
     .wordBreak(this.renderView.wordBreak)
     .applyRenderViewBaseAttr(this.renderView)
+    .padding(this.renderView.cssPadding)
     // .alignRules(?)
     // .align(Alignment.Center)
   }
@@ -271,49 +274,78 @@ export struct HRRichText {
 // base props for all components
 @Extend(Text)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
-  .padding($$.cssPadding)
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
 
 @Extend(Span)
 function applyRenderViewBaseAttr_TextSpan($$: HippyRenderBaseView) {
-  .textBackgroundStyle({color:$$.cssBackgroundColor}) // backgroundColor无效，换成这个
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
+  .backgroundColor($$.cssBackgroundColor)
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
 
 @Extend(ImageSpan)
 function applyRenderViewBaseAttr_ImageSpan($$: HippyRenderBaseView) {
-  .textBackgroundStyle({color:$$.cssBackgroundColor})
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
+  .backgroundColor($$.cssBackgroundColor)
   // .position({x: $$.cssPositionX, y: $$.cssPositionY}) // 位置自动布局，如果设置了，ImageSpan会重叠在父Text组件的左上角
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
