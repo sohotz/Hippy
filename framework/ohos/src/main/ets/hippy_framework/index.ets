@@ -19,3 +19,4 @@
  */
 export * from "./HippyEngine"
 export * from "./bridge/HippyAPIProvider"
+export * from "./HippyEngineContext"

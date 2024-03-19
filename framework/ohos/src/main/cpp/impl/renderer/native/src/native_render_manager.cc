@@ -672,6 +672,14 @@ std::string HippyValueToString(const HippyValue &value) {
     double d;
     value.ToDouble(d);
     sv = std::to_string(d);
+  } else if(value.IsInt32()) {
+    int32_t i;
+    value.ToInt32(i);
+    sv = std::to_string(i);
+  } else if(value.IsUInt32()) {
+    uint32_t ui;
+    value.ToUint32(ui);
+    sv = std::to_string(ui);
   } else {
     FOOTSTONE_LOG(ERROR) << "Measure Text : unknow value type";
   }

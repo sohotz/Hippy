@@ -46,6 +46,7 @@ import { HippyAssetBundleLoader } from './bridge/bundleloader/HippyAssetBundleLo
 import { HippyBundleLoader } from './bridge/bundleloader/HippyBundleLoader';
 import { HippyFileBundleLoader } from './bridge/bundleloader/HippyFileBundleLoader';
 import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdapter';
+import { HippyEngineContext } from './HippyEngineContext'
 import { HippyEngineContextImpl } from './HippyEngineContextImpl';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyMap } from '../support/common/HippyTypes';
@@ -126,6 +127,10 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     } else {
       return false;
     }
+  }
+
+  getHippyEngineContext(): HippyEngineContext | null {
+    return this.mEngineContext
   }
 
   public initDevModule() {

@@ -166,6 +166,7 @@ export struct HippyRoot {
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void
   @State showRenderView: boolean = false
   private rootView: HippyRootView | null = null
+  onRootViewCreated: ((rootId: number) => void) | null = null
 
   aboutToAppear(): void {
     if (!this.hippyEngine || !this.hippyEngine.getNativeRenderProvider()) {
@@ -187,7 +188,9 @@ export struct HippyRoot {
       if (this.initViewSize && this.rootView) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
-
+      if (this.onRootViewCreated) {
+        this.onRootViewCreated(rootId)
+      }
       this.rootView.setDidCreateRenderViewCallback(() => {
         this.showRenderView = true
       })
