@@ -58,6 +58,8 @@ export class HRTextInputView extends HippyRenderBaseView {
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
+    this.cssBackgroundColor = Color.Transparent
+    this.cssBorder = { radius: 0 }
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
