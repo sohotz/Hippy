@@ -19,20 +19,20 @@
  */
 import { HippyFontScaleAdapter } from './HippyFontScaleAdapter';
 
-export class DefaultFontScaleAdapter implements HippyFontScaleAdapter{
-  public getFontScale() :number{
+export class DefaultFontScaleAdapter implements HippyFontScaleAdapter {
+  public getFontScale(): number {
     return 1;
   }
 
-  public getEmoticonText(text : string,  fontSize:number) : string {
+  public getEmoticonText(text: string, fontSize: number): string {
     return text;
   }
 
-  public getCustomFontFilePath(fontFamilyName:string, style:number) :string {
+  public getCustomFontFilePath(fontFamilyName: string, style: number): string {
     return "";
   }
 
-  public getCustomTypeface( fontFamily:string, style:number) : FontStyle{
+  public getCustomTypeface(fontFamily: string, style: number): FontStyle {
     return FontStyle.Normal;
   }
 }

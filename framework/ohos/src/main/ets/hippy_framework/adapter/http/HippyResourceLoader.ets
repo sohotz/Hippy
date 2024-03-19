@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 
-import { HippyHttpAdapter } from './HippyHttpAdapter';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { ResourceLoader } from '../../../vfs/ResourceLoader';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
@@ -26,8 +25,6 @@ import { UrlUtils } from '../../../support/utils/UrlUtils';
 import { HippyEngineContext } from '../../HippyEngineContext';
 import { http } from '@kit.NetworkKit';
 import { HippyAssetBundleLoader } from '../../bridge/bundleloader/HippyAssetBundleLoader';
-import { image } from '@kit.ImageKit';
-import { LogUtils } from '../../../support/utils/LogUtils';
 
 export enum FetchResultCode {
   OK,
@@ -55,7 +52,7 @@ export class HippyResourceLoader implements ResourceLoader {
     } else if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
       const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager
       const rawPath = holder.uri.substring(HippyAssetBundleLoader.ASSETS_STR.length)
-      resManager.getRawFileContent(rawPath).then((value:Uint8Array) => {
+      resManager.getRawFileContent(rawPath).then((value: Uint8Array) => {
         holder.buffer = value.buffer as ArrayBuffer
         holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE
         callback.onHandleCompleted()

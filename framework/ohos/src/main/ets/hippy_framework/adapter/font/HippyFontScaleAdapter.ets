@@ -19,12 +19,12 @@
  */
 import { FontAdapter } from '../../../renderer_native/components/richtext/FontAdapter'
 
-export interface HippyFontScaleAdapter extends FontAdapter{
+export interface HippyFontScaleAdapter extends FontAdapter {
   getFontScale(): number
 
   getEmoticonText(text: string, fontSize: number): string
 
-  getCustomFontFilePath(fontFamily: string, style: number):string
+  getCustomFontFilePath(fontFamily: string, style: number): string
 
-  getCustomTypeface(fontFamily: string, style: number):FontStyle
+  getCustomTypeface(fontFamily: string, style: number): FontStyle
 }

@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { HippyMap, HippyValue } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'

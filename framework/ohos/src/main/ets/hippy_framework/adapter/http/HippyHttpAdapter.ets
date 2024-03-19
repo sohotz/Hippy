@@ -27,20 +27,20 @@ import { HippyException } from '../../../support/common/HippyException';
 import { http } from '@kit.NetworkKit';
 
 export interface HippyHttpAdapter {
-  destroyIfNeed():void
+  destroyIfNeed(): void
 
-  sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback):void
+  sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback): void
 
-  fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback):void
+  fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback): void
 
   getCookie(url: string): Promise<void>
 
-  setCookie(url: string, keyValue: string, expires: string):void
+  setCookie(url: string, keyValue: string, expires: string): void
 }
 
 export interface HttpTaskCallback {
 
-  onTaskSuccess(request: HippyHttpRequest, response: HippyHttpResponse):void
+  onTaskSuccess(request: HippyHttpRequest, response: HippyHttpResponse): void
 
-  onTaskFailed(request: HippyHttpRequest, error: HippyException):void
+  onTaskFailed(request: HippyHttpRequest, error: HippyException): void
 }

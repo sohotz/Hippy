@@ -23,7 +23,6 @@ import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { connection } from '@kit.NetworkKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import HashMap from '@ohos.util.HashMap'
-import { HippyAny } from '../../../../support/common/HippyTypes'
 
 const NETINFO_MODULE_TAG = "NetInfoModule"
 

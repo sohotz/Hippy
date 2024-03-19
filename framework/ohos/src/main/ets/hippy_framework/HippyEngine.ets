@@ -226,18 +226,18 @@ export interface BackPressHandler {
 }
 
 export enum EngineInitStatus {
-  STATUS_OK = 0, // 加载正常
-  STATUS_ERR_BRIDGE = -101, // 初始化过程，initBridge错误
-  STATUS_ERR_DEVSERVER = -102, // 初始化过程，devServer错误
-  STATUS_WRONG_STATE = -103, // 状态错误。调用init函数时，引擎不在未初始化的状态
+  STATUS_OK = 0,                // 加载正常
+  STATUS_ERR_BRIDGE = -101,     // 初始化过程，initBridge错误
+  STATUS_ERR_DEVSERVER = -102,  // 初始化过程，devServer错误
+  STATUS_WRONG_STATE = -103,    // 状态错误。调用init函数时，引擎不在未初始化的状态
   STATUS_INIT_EXCEPTION = -104, // 初始化过程，抛出了未知的异常，详情需要查看传回的Throwable
 }
 
 export enum ModuleLoadStatus {
-  STATUS_OK = 0, // 加载正常
-  STATUS_ENGINE_UNINIT = -201, // 引擎未完成初始化就加载JSBundle
-  STATUS_VARIABLE_NULL = -202, // check变量(bundleUniKey, loader, rootView)引用为空
+  STATUS_OK = 0,                // 加载正常
+  STATUS_ENGINE_UNINIT = -201,  // 引擎未完成初始化就加载JSBundle
+  STATUS_VARIABLE_NULL = -202,  // check变量(bundleUniKey, loader, rootView)引用为空
   STATUS_ERR_RUN_BUNDLE = -203, // 业务JSBundle执行错误
-  STATUS_REPEAT_LOAD = -204, // 重复加载同一JSBundle
+  STATUS_REPEAT_LOAD = -204,    // 重复加载同一JSBundle
 }
 

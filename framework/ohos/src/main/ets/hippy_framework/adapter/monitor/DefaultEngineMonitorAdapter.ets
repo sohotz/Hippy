@@ -18,8 +18,6 @@
  * limitations under the License.
  */
 import { HippyEngineMonitorAdapter } from './HippyEngineMonitorAdapter';
-import hilog from '@ohos.hilog';
-import ArrayList from '@ohos.util.ArrayList';
 import { MonitorGroup, MonitorPoint } from '../../../support/utils/TimeMonitor';
 import { EngineInitStatus, ModuleLoadStatus } from '../..';
 import { HippyCallNativeParams } from '../../bridge/HippyCallNativeParams';
