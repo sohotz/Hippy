@@ -28,13 +28,15 @@ import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyType
 import { HRValueUtils } from '../../utils/HRValueUtils';
 
 const TAG: string = "HRModal";
+const DURATION = 1000
 
 @Observed
 export class HRModalView extends HippyRenderBaseView {
   static readonly VIEW_NAME = "HRModalView"
+  visible:boolean = false
 
   transparent: boolean = true
-  animationType: string | null = null
+  animationType: TransitionEffect = TransitionEffect.OPACITY.animation({ duration: DURATION, curve: Curve.Ease})
   immersionStatusBar: boolean = false
   darkStatusBarText: boolean = false
   autoHideStatusBar: boolean = false
@@ -44,13 +46,21 @@ export class HRModalView extends HippyRenderBaseView {
     super(ctx)
   }
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    LogUtils.i(TAG, `modalview propkey: ${propKey}, value: ${propValue}`)
+    LogUtils.d(TAG, `modalview propkey: ${propKey}, value: ${propValue}`)
     switch (propKey) {
       case "transparent":
         this.transparent = HRValueUtils.getBoolean(propValue as HippyAny, true);
         break;
       case "animationType":
-        this.animationType = HRValueUtils.getString(propValue as HippyAny);
+        let type = HRValueUtils.getString(propValue as string)
+        if (type === 'slide') {
+          this.animationType = TransitionEffect.move(TransitionEdge.BOTTOM).animation({ duration: DURATION, curve: Curve.Ease})
+        } else if (type === 'fade') {
+          this.animationType = TransitionEffect.OPACITY.animation({ duration: DURATION, curve: Curve.Ease})
+        } else if (type === 'slide_fade') {
+          this.animationType = TransitionEffect.OPACITY.animation({ duration: DURATION, curve: Curve.Ease}).combine(TransitionEffect.move(TransitionEdge.BOTTOM))
+        }
+
         break;
       case "immersionStatusBar":
         this.immersionStatusBar = HRValueUtils.getBoolean(propValue as HippyAny, false);
@@ -80,13 +90,16 @@ struct HippyDialog {
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   build() {
-    Stack() {
-      ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
-      }, (item: HippyRenderBaseView) => item.tag + '')
+    if (this.renderView.visible) {
+      Stack() {
+        ForEach(this.children, (item: HippyRenderBaseView) => {
+          this.buildRenderView(item, null)
+        }, (item: HippyRenderBaseView) => item.tag + '')
+      }
+      .applyRenderViewBaseAttr(this.renderView)
+      .backgroundColor(this.renderView.transparent ? Color.Transparent : this.renderView.cssBackgroundColor)
+      .transition(this.renderView.animationType)
     }
-    .applyRenderViewBaseAttr(this.renderView)
-    .backgroundColor(this.renderView.transparent ? Color.Transparent : this.renderView.cssBackgroundColor)
   }
 }
 
@@ -114,17 +127,23 @@ export struct HRModal {
       autoCancel: true,
       customStyle: true,
       alignment: DialogAlignment.Center,
-      openAnimation: { duration: 0 },
+      openAnimation: { duration: 0, onFinish: ()=>{
+        this.renderView.visible = true
+      }},
       closeAnimation: { duration: 0 },
       cancel: this.handleCancel,
+      maskColor:Color.Transparent
     });
     this.dialogController.open();
     HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_MODAL_SHOW, null)
   }
 
   aboutToDisappear() {
+    this.renderView.visible = false
     LogUtils.d(TAG, `aboutToDisappear`)
-    this.dialogController.close()
+    setTimeout(()=> {
+      this.dialogController.close()
+    }, DURATION)
   }
 
   build() {
