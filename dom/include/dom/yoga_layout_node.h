@@ -119,7 +119,7 @@ class YogaLayoutNode : public LayoutNode, public std::enable_shared_from_this<Yo
 
   void SetYGMinHeight(std::shared_ptr<footstone::value::HippyValue> hippy_value);
 
-  void SetFlexBasis(float flex_basis);
+  void SetYGFlexBasis(std::shared_ptr<footstone::value::HippyValue> dom_value);
 
   void SetFlex(float flex);
 

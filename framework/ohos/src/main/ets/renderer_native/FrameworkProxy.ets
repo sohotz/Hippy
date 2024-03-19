@@ -24,6 +24,9 @@ import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
 
 export interface FrameworkProxy {
+
+  attachToRootView(rootId: number): void
+
   // TODO(eksea)
   // getImageDecoderAdapter(): ImageDecoderAdapter
 

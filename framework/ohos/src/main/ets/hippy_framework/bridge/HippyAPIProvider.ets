@@ -17,15 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { HippyEngineContext } from '../../../HippyEngineContext'
-import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
+import { HRRenderViewCreator } from '../../renderer_native/components/HippyRenderRegisterMap';
+import { HippyJSModuleCreator, HippyNativeModuleCreator } from '../modules/HippyModuleManagerImpl';
 
-@HippyNativeModule({ name: "DevMenuModule" })
-export class DevMenuModule extends HippyNativeModuleBase {
-  public static readonly NAME = 'DevMenuModule'
+export interface HippyAPIProvider {
+  getCustomNativeModuleCreatorMap(): Map<string, HippyNativeModuleCreator> | null
 
-  constructor(ctx: HippyEngineContext) {
-    super(ctx)
-  }
+  getCustomJavaScriptModuleCreatorMap(): Map<string, HippyJSModuleCreator> | null
+
+  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null
 }

@@ -463,7 +463,8 @@ void YogaLayoutNode::Parser(
     if (it != style_delete.end()) YGNodeStyleSetFlexShrink(yoga_node_, 0);
   }
   if (style_update.find(kFlexBasis) != style_update.end()) {
-    SetFlexBasis(static_cast<float>(style_update.find(kFlexBasis)->second->ToDoubleChecked()));
+    auto dom_value = style_update.find(kFlexBasis)->second;
+    SetYGFlexBasis(dom_value);
   } else {
     auto it = std::find(style_delete.begin(), style_delete.end(), kFlexBasis);
     if (it != style_delete.end()) YGNodeStyleSetFlexBasis(yoga_node_, NAN);
@@ -690,10 +691,12 @@ void YogaLayoutNode::Parser(
     if (it != style_delete.end()) YGNodeStyleSetAspectRatio(yoga_node_, 0);
   }
 
-  // if (style_update.find(kAlignContent) != style_update.end()) {
-  //   SetAlignContent(GetFlexAlign(style_update.find(kAlignContent)->second->ToString()));
-  // }
+  if (style_update.find(kAlignContent) != style_update.end()) {
+    SetAlignContent(GetFlexAlign(style_update.find(kAlignContent)->second->ToStringChecked()));
+  }
 }
+
+YG_SET_NUMBER_PERCENT_AUTO_DECL(FlexBasis)
 
 YG_SET_NUMBER_PERCENT_AUTO_DECL(Width)
 
@@ -708,8 +711,6 @@ YG_SET_NUMBER_PERCENT_DECL(MinWidth)
 YG_SET_NUMBER_PERCENT_DECL(MinHeight)
 
 void YogaLayoutNode::SetDirection(YGDirection direction) { YGNodeStyleSetDirection(yoga_node_, direction); }
-
-void YogaLayoutNode::SetFlexBasis(float flex_basis) { YGNodeStyleSetFlexBasis(yoga_node_, flex_basis); }
 
 void YogaLayoutNode::SetFlex(float flex) { YGNodeStyleSetFlex(yoga_node_, flex); }
 
@@ -737,8 +738,8 @@ void YogaLayoutNode::SetFlexWrap(YGWrap wrap_mode) { YGNodeStyleSetFlexWrap(yoga
 
 void YogaLayoutNode::SetJustifyContent(YGJustify justify) { YGNodeStyleSetJustifyContent(yoga_node_, justify); }
 
-// void YogaLayoutNode::SetAlignContent(YGAlign align_content) { YGNodeStyleSetAlignContent(yoga_node_, align_content);
-// }
+void YogaLayoutNode::SetAlignContent(YGAlign align_content) { YGNodeStyleSetAlignContent(yoga_node_, align_content);
+}
 
 void YogaLayoutNode::SetAlignItems(YGAlign align_items) { YGNodeStyleSetAlignItems(yoga_node_, align_items); }
 

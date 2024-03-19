@@ -18,7 +18,9 @@
  * limitations under the License.
  */
 import { HippyAPIProvider } from 'hippy'
-import { HippyModuleCreator } from 'hippy/src/main/ets/hippy_framework/modules/HippyModuleManager'
+import {
+  HippyJSModuleCreator,
+  HippyNativeModuleCreator } from 'hippy/src/main/ets/hippy_framework/modules/HippyModuleManagerImpl'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
 import {
@@ -27,11 +29,11 @@ import {
 import { ExampleCustomComponentView } from './ExampleCustomComponentView'
 
 export class ExampleAPIProvider implements HippyAPIProvider {
-  getCustomNativeModuleCreatorMap(): Map<string, HippyModuleCreator> | null {
+  getCustomNativeModuleCreatorMap(): Map<string, HippyNativeModuleCreator> | null {
     return null
   }
 
-  getCustomJavaScriptModuleCreatorMap(): Map<string, HippyModuleCreator> | null {
+  getCustomJavaScriptModuleCreatorMap(): Map<string, HippyJSModuleCreator> | null {
     return null
   }
 

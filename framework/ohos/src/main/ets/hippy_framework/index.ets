@@ -18,4 +18,4 @@
  * limitations under the License.
  */
 export * from "./HippyEngine"
-export * from "./HippyAPIProvider"
+export * from "./bridge/HippyAPIProvider"

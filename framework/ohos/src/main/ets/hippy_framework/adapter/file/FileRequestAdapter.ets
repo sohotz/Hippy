@@ -17,15 +17,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { HippyEngineContext } from '../../../HippyEngineContext'
-import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
+import { HippyFileAdapter } from './HippyFileAdapter';
+import request from '@ohos.request';
 
-@HippyNativeModule({ name: "ExceptionModule" })
-export class ExceptionModule extends HippyNativeModuleBase {
-  public static readonly NAME = 'ExceptionModule'
+export class FileRequestAdapter implements HippyFileAdapter {
+  public uploadFile(url: string, header: object, method: string, files: request.File[], data: request.RequestData[]): Promise<request.UploadTask> {
+    return new Promise<request.UploadTask>((resolve, reject) => {
 
-  constructor(ctx: HippyEngineContext) {
-    super(ctx)
+    })
   }
+
+  public downloadFile(url: string, header: object, path: string, networkType: number): Promise<request.DownloadTask> {
+    return new Promise<request.DownloadTask>((resolve, reject) => {
+
+    })
+  }
+
 }

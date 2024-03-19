@@ -17,18 +17,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyMap, HippyModuleCallback } from '../../../support/common/HippyTypes';
 import { HippyEngineContext } from '../../HippyEngineContext';
 
-export class HippyNativeModuleBase {
-  public static readonly NAME: string
-  protected ctx: HippyEngineContext
+export class HippyJavaScriptModuleBase {
+  public static readonly MODULE_NAME: string
+  protected mHippyContext: HippyEngineContext
 
   constructor(ctx: HippyEngineContext) {
-    this.ctx = ctx
+    this.mHippyContext = ctx
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
-    return null
+  callJs(moduleName: string, method: string, params: HippyMap, callback: HippyModuleCallback | null): void {
+    this.mHippyContext.getBridgeManager().callJavaScriptModule(moduleName, method, params);
   }
 }

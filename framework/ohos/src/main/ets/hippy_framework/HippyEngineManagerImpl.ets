@@ -18,30 +18,26 @@
  * limitations under the License.
  */
 import resmgr from "@ohos.resourceManager";
-import hilog from '@ohos.hilog';
 import {
+  BackPressHandler,
   EngineInitParams,
   EngineInitStatus,
   HippyEngine,
   HippyEngineInitCallback,
   HippyModuleLoadCallback,
   ModuleLoadParams,
-  ModuleLoadStatus,
   V8InitParams
 } from '.';
 import { DefaultProcessor } from '../vfs/DefaultProcessor'
 import { DomManager } from './connector/DomManager';
 import { FrameworkProxy } from '../renderer_native/FrameworkProxy';
-import { JsDriver } from './connector/JsDriver';
 import { NativeRenderer } from './connector/NativeRenderer';
 import { VfsManager } from '../vfs/VfsManager';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { PixelUtil } from '../support/utils/PixelUtil';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HippyException } from '../support/common/HippyException';
-import { HippyResourceLoader } from './adapter/http/HippyResourceLoader';
-import { HippyAPIProvider } from './HippyAPIProvider';
+import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HRRenderViewCreator } from '../renderer_native/components/HippyRenderRegisterMap';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
 import { MonitorGroupType, TimeMonitor } from '../support/utils/TimeMonitor';
@@ -51,17 +47,15 @@ import { HippyBundleLoader } from './bridge/bundleloader/HippyBundleLoader';
 import { HippyFileBundleLoader } from './bridge/bundleloader/HippyFileBundleLoader';
 import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdapter';
 import { HippyEngineContextImpl } from './HippyEngineContextImpl';
-import { HippyModuleManager } from './modules/HippyModuleManager';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyMap } from '../support/common/HippyTypes';
-import { URI_SCHEME_ASSETS } from './bridge/HippyBridge';
+import { DeviceEventModule } from './modules/native';
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   private libHippy: HippyLibrary
   private resourceManager: resmgr.ResourceManager | null = null
   private providers: Array<HippyAPIProvider> | null = null
   private params: EngineInitParams;
-
   public domMgr: DomManager | null = null
   public nativeRenderProvider: NativeRenderProvider | null = null
   public nativeRenderer: NativeRenderer | null = null
@@ -79,7 +73,11 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   public v8InitParams: V8InitParams | null;
   public nativeParams: HippyMap | null = null;
   public mEngineContext: HippyEngineContextImpl | null = null;
-  public moduleManager: HippyModuleManager | null = null;
+
+  private isAttachedToRootView: boolean = false;
+  private cachedLoadParams: ModuleLoadParams | null = null;
+  private cachedLoadCallback: HippyModuleLoadCallback | null = null;
+  private cachedRootId: number = 0;
 
   constructor(params: EngineInitParams) {
     this.params = params;
@@ -113,8 +111,21 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     this.mCoreBundleLoader = coreBundleLoader;
     // this.mPreloadBundleLoader = preloadBundleLoader;
     // TODO
-    // this.mProviders = params.providers;
     // this.mProcessors = params.processors;
+  }
+
+  onBackPressed(handler: BackPressHandler): boolean {
+    if (this.mEngineContext != null
+      && this.mEngineContext.getModuleManager().getNativeModule(DeviceEventModule.NAME)
+        != null) {
+      let nativeModule = this.mEngineContext.getModuleManager()
+        .getNativeModule(DeviceEventModule.NAME)
+      if (nativeModule != null ) {
+        return (nativeModule as DeviceEventModule).onBackPressed(handler);
+      } else return false;
+    } else {
+      return false;
+    }
   }
 
   public initDevModule() {
@@ -139,7 +150,20 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
       this.nativeRenderProvider.getNativeRenderImpl().setFrameworkProxy(this);
     }
 
-    // TODO initBridge
+    let customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null = null
+    if (this.providers) {
+      customRenderViewCreatorMap = new Map()
+      for (let provider of this.providers) {
+        let map = provider.getCustomRenderViewCreatorMap()
+        if (map) {
+          map.forEach((value, key) => {
+            customRenderViewCreatorMap?.set(key, value)
+          })
+        }
+      }
+    }
+
+    // initBridge
     this.mEngineContext.getBridgeManager().initBridge((result: number, reason: string) => {
       this.initBridgeCallback(result, reason, initCallback)
     });
@@ -152,7 +176,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     }
     LogUtils.i('hippy', 'jsDriver runScriptFromUri callback, instanceId: %{public}d' + jsDriver.instanceId);
     if (result != 0) {
-      //return;
+      return;
     }
 
     if (initCallback) {
@@ -160,7 +184,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     }
 
   }
-
 
   public initEngine(initCallback: HippyEngineInitCallback): void {
     this.initDevModule();
@@ -182,7 +205,26 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     }
     this.mJsBundleLoader = coreBundleLoader;
 
-    this.loadJsModule(loadParams, loadCallback)
+    if (this.isAttachedToRootView) {
+      this.mEngineContext!.attachJsToRootView(this.cachedRootId)
+      this.loadJsModule(loadParams, loadCallback)
+    } else {
+      this.cachedLoadParams = loadParams
+      this.cachedLoadCallback = loadCallback
+    }
+  }
+
+  attachToRootView(rootId: number): void {
+    this.mEngineContext!.attachDomToRootView(rootId)
+    this.isAttachedToRootView = true
+    if (this.cachedLoadParams && this.cachedLoadCallback) {
+      this.mEngineContext!.attachJsToRootView(rootId)
+      this.loadJsModule(this.cachedLoadParams, this.cachedLoadCallback)
+      this.cachedLoadParams = null
+      this.cachedLoadCallback = null
+    } else {
+      this.cachedRootId = rootId
+    }
   }
 
   getVfsManager(): VfsManager {
@@ -226,12 +268,13 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
       return;
     }
     // TODO 多RootView
-    this.mEngineContext.getBridgeManager().loadInstance(loadParams.componentName, 0, loadParams.jsParams);
+    this.mEngineContext.getBridgeManager()
+      .loadInstance(loadParams.componentName, 0, loadParams.jsParams);
 
     // TODO: Debug
   }
 
-  public getNativeRenderContext(): NativeRenderContext {
-    return this.nativeRenderProvider?.getNativeRenderImpl().getNativeRenderContext() as NativeRenderContext
+  public getNativeRenderProvider(): NativeRenderProvider | null {
+    return this.nativeRenderProvider
   }
 }

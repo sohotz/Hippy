@@ -21,7 +21,10 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.openhippy.connector.DomManager;
 import com.openhippy.connector.JsDriver;
+import com.openhippy.connector.RenderConnector;
 import com.tencent.devtools.DevtoolsManager;
 import com.tencent.mtt.hippy.HippyEngine.ModuleLoadStatus;
 import com.tencent.mtt.hippy.bridge.HippyBridgeManager;
@@ -76,6 +79,10 @@ public interface HippyEngineContext {
     int getEngineId();
 
     int getDomManagerId();
+
+    DomManager getDomManager();
+
+    RenderConnector getRenderer();
 
     int getVfsId();
 

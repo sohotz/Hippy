@@ -17,13 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HRRenderViewCreator } from '../renderer_native/components/HippyRenderRegisterMap';
-import { HippyModuleCreator } from './modules/HippyModuleManager';
+import { request } from '@kit.BasicServicesKit'
 
-export interface HippyAPIProvider {
-  getCustomNativeModuleCreatorMap(): Map<string, HippyModuleCreator> | null
+export interface HippyFileAdapter {
+  uploadFile(url: string, header: object, method: string, files: Array<request.File>, data: Array<request.RequestData>): Promise<request.UploadTask>
 
-  getCustomJavaScriptModuleCreatorMap(): Map<string, HippyModuleCreator> | null
-
-  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null
+  downloadFile(url: string, header: object, path: string, networkType: number): Promise<request.DownloadTask>
 }

@@ -26,23 +26,19 @@ export class NativeRenderContext {
   private customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null
   private nativeRender: NativeRender
 
-  constructor(rootId: number, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null, nativeRender: NativeRender) {
+  constructor(instanceId: number, rootId: number, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null, nativeRender: NativeRender) {
+    this.instanceId = instanceId
     this.rootId = rootId
-    this.instanceId = -1
     this.customRenderViewCreatorMap = customRenderViewCreatorMap
     this.nativeRender = nativeRender
   }
 
-  setInstanceId(instanceId: number) {
-    this.instanceId = instanceId
+  getInstanceId() {
+    return this.instanceId
   }
 
   getRootId() {
     return this.rootId
-  }
-
-  getInstanceId() {
-    return this.instanceId
   }
 
   getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {

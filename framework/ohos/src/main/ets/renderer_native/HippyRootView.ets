@@ -22,30 +22,36 @@ import { HippyEngine } from '../hippy_framework';
 import { HippyException } from '../support/common/HippyException';
 import { HippyRecord } from '../support/common/HippyTypes';
 import HippyRenderBaseView from './components/base/HippyRenderBaseView';
+import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import { FrameworkProxy } from './FrameworkProxy';
 import { HippyRender, HippyRenderView } from './HippyRenderView';
 import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
+import { NativeRender } from './NativeRender';
 import { NativeRenderContext } from './NativeRenderContext';
+import { NativeRenderProvider } from './NativeRenderProvider';
 import { HRConvertUtil } from './utils/HRConvertUtil';
 import { HRSize } from './utils/HRTypes';
 
 export class HippyRootView {
-  ctx: NativeRenderContext
   renderView: HippyRenderView | null = null
   pagerName: string
   pagerData: HippyRecord
   renderExceptionListener: IHippyRenderExceptionListener | null = null
+  private ctx: NativeRenderContext
   private avoidArea: window.AvoidArea | null = null
   private renderViewDidCreateCallback: (() => void) | null = null
   private renderViewSize: HRSize = new HRSize(0, 0)
   private lazyRenderViewTasks: Array<() => void> = []
 
-  constructor(ctx: NativeRenderContext,
+  constructor(instanceId: number,
+              rootId: number,
+              customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
+              nativeRender: NativeRender,
               pagerName: string,
               pagerData: HippyRecord,
               renderExceptionListener: IHippyRenderExceptionListener
   ) {
-    this.ctx = ctx
+    this.ctx = new NativeRenderContext(instanceId, rootId, customRenderViewCreatorMap, nativeRender)
     this.pagerName = pagerName
     this.pagerData = pagerData
     this.renderExceptionListener = renderExceptionListener
@@ -154,13 +160,15 @@ export struct HippyRoot {
   pagerData: HippyRecord = {}
   initViewSize: HRSize = HRConvertUtil.screenSize()
   onRenderException: ((exception: HippyException) => void) | null = null
+  private readonly ROOT_VIEW_ID_INCREMENT = 10
+  private static sRootIdCounter = 0
   private renderExceptionListener = new HippyRenderExceptionListener()
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void
   @State showRenderView: boolean = false
   private rootView: HippyRootView | null = null
 
   aboutToAppear(): void {
-    if (!this.hippyEngine) {
+    if (!this.hippyEngine || !this.hippyEngine.getNativeRenderProvider()) {
       this.onRenderException?.(new HippyException("Error, hippyEngine is null."))
       return
     }
@@ -168,7 +176,14 @@ export struct HippyRoot {
     if (!this.rootView) {
       this.renderExceptionListener.listener = this.onRenderException
       this.renderExceptionListener.frameworkProxy = null // TODO(hotx):
-      this.rootView = new HippyRootView(this.hippyEngine.getNativeRenderContext(), this.pagerName, this.pagerData, this.renderExceptionListener)
+
+      HippyRoot.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
+      let rootId = HippyRoot.sRootIdCounter
+      let renderIntanceId = this.hippyEngine.getNativeRenderProvider()!.getInstanceId()
+      let customRenderViewCreatorMap = this.hippyEngine.getNativeRenderProvider()!.getCustomRenderViewCreatorMap()
+      let nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
+      this.rootView = new HippyRootView(renderIntanceId, rootId, customRenderViewCreatorMap, nativeRender,
+                                        this.pagerName, this.pagerData, this.renderExceptionListener)
       if (this.initViewSize && this.rootView) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }

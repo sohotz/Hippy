@@ -82,7 +82,7 @@ void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
         unsigned long color = std::stoul(propMap["color"]);
         OH_Drawing_SetTextStyleColor(txtStyle, (uint32_t)color);
     }
-    double fontSize = 18; // todo 默认的fontSize是多少？
+    double fontSize = 16; // 默认的fontSize是16，是否从系统读取？
     if (propMap.find("fontSize") != propMap.end()) {
         fontSize = std::stod(propMap["fontSize"]);
     }
@@ -123,7 +123,10 @@ void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
         }
         OH_Drawing_SetTextStyleDecorationStyle(txtStyle, ds);
     }
-    OH_Drawing_SetTextStyleFontHeight(txtStyle, 1); // todo ?
+
+    OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
+    // 猜测行高=fontSize*1.25，lineSpacingMultiplier，1.25是猜的，也可能是1.3或其他
+
     if (propMap.find("fontFamily") != propMap.end()) {
         const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
         OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies); // ok6 fontFamily
@@ -158,12 +161,15 @@ void OhMeasureText::AddImage(std::map<std::string, std::string> propMap) {
     span.width = std::stod(propMap["width"]);
     span.height = std::stod(propMap["height"]);
     OH_Drawing_TypographyHandlerAddPlaceholder(handler_, &span);
+    if (minLineHeight_ < span.height) {
+        minLineHeight_ = span.height;
+    }
 }
 
 OhMeasureResult OhMeasureText::EndMeasure(std::map<std::string, std::string> propMap, int width, int widthMode,
                                           int height, int heightMode, float density) {
     OhMeasureResult ret;
-
+    size_t lineCount;
     {
         auto typography = OH_Drawing_CreateTypography(handler_);
         double maxWidth = float(width) / density;
@@ -171,62 +177,53 @@ OhMeasureResult OhMeasureText::EndMeasure(std::map<std::string, std::string> pro
 
         ret.height = OH_Drawing_TypographyGetHeight(typography);     // 高度
         ret.width = OH_Drawing_TypographyGetLongestLine(typography); // 宽度
+        lineCount = OH_Drawing_TypographyGetLineCount(typography);
         OH_Drawing_DestroyTypography(typography);
     }
     OH_Drawing_DestroyTypographyHandler(handler_);
     OH_Drawing_DestroyTypographyStyle(typoStyle_);
 
+    if (ret.height < minLineHeight_) {
+        ret.height = minLineHeight_;
+    }
     ret.width *= density;
     ret.height *= density;
-    if (propMap.find("margin") != propMap.end()) {
-        ret.width += std::stod(propMap["margin"]) * 2;
-        ret.height += std::stod(propMap["margin"]) * 2;
-    }
-    if (propMap.find("marginHorizontal") != propMap.end()) {
-        ret.width += std::stod(propMap["marginHorizontal"]) * 2;
-    }
-    if (propMap.find("marginVertical") != propMap.end()) {
-        ret.height += std::stod(propMap["marginVertical"]) * 2;
-    }
-    if (propMap.find("marginLeft") != propMap.end()) {
-        ret.width += std::stod(propMap["marginLeft"]);
-    }
-    if (propMap.find("marginRight") != propMap.end()) {
-        ret.width += std::stod(propMap["marginRight"]);
-    }
-    if (propMap.find("marginTop") != propMap.end()) {
-        ret.height += std::stod(propMap["marginTop"]);
-    }
-    if (propMap.find("marginBottom") != propMap.end()) {
-        ret.height += std::stod(propMap["marginBottom"]);
-    }
 
-
+    double paddingTop = 0;
+    double paddingBottom = 0;
+    double paddingLeft = 0;
+    double paddingRight = 0;
     if (propMap.find("padding") != propMap.end()) {
-        ret.width += std::stod(propMap["padding"]) * 2;
-        ret.height += std::stod(propMap["padding"]) * 2;
+        paddingTop = std::stod(propMap["padding"]);
+        paddingBottom = std::stod(propMap["padding"]);
+        paddingLeft = std::stod(propMap["padding"]);
+        paddingRight = std::stod(propMap["padding"]);
     }
     if (propMap.find("paddingHorizontal") != propMap.end()) {
-        ret.width += std::stod(propMap["paddingHorizontal"]) * 2;
+        paddingLeft = std::stod(propMap["paddingHorizontal"]);
+        paddingRight = std::stod(propMap["paddingHorizontal"]);
     }
     if (propMap.find("paddingVertical") != propMap.end()) {
-        ret.height += std::stod(propMap["paddingVertical"]) * 2;
+        paddingTop = std::stod(propMap["paddingVertical"]);
+        paddingBottom = std::stod(propMap["paddingVertical"]);
     }
     if (propMap.find("paddingLeft") != propMap.end()) {
-        ret.width += std::stod(propMap["paddingLeft"]);
+        paddingLeft = std::stod(propMap["paddingLeft"]);
     }
     if (propMap.find("paddingRight") != propMap.end()) {
-        ret.width += std::stod(propMap["paddingRight"]);
+        paddingRight = std::stod(propMap["paddingRight"]);
     }
     if (propMap.find("paddingTop") != propMap.end()) {
-        ret.height += std::stod(propMap["paddingTop"]);
+        paddingTop = std::stod(propMap["paddingTop"]);
     }
     if (propMap.find("paddingBottom") != propMap.end()) {
-        ret.height += std::stod(propMap["paddingBottom"]);
+        paddingBottom = std::stod(propMap["paddingBottom"]);
     }
+    ret.width += paddingLeft + paddingRight;
+    ret.height += paddingTop + paddingBottom;
 
     if (propMap.find("lineHeight") != propMap.end()) {
-        ret.height = std::stod(propMap["lineHeight"]) * density;
+        ret.height = std::stod(propMap["lineHeight"]) * density * (double)lineCount;
     }
     CheckProps(textMarginProps, propMap);
     return ret;

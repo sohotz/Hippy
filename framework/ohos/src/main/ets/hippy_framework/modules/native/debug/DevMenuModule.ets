@@ -18,14 +18,24 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { LogUtils } from '../../../../support/utils/LogUtils'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 
-@HippyNativeModule({ name: "ImageLoaderModule" })
-export class ImageLoaderModule extends HippyNativeModuleBase {
-  public static readonly NAME = 'ImageLoaderModule'
+@HippyNativeModule({ name: "DevMenuModule" })
+export class DevMenuModule extends HippyNativeModuleBase {
+  public static readonly NAME = 'DevMenuModule'
 
-  constructor(ctx: HippyEngineContext) {
-    super(ctx)
+  constructor(context: HippyEngineContext) {
+    super(context)
   }
+
+  public reload() {
+    try {
+      //todo
+      // this.ctx.getDevSupportManager().getDevImp().reload();
+    } catch ( e) {
+      LogUtils.e("HippyDevMemo", "reload error: " + e.getMessage());
+    }
+}
 }

@@ -34,18 +34,27 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
   private readonly EVENT_PREFIX = "on"
 
   private libHippy: HippyLibrary
+  private customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null
   private renderImpl: NativeRenderImpl
   private instanceId: number = 0
 
   constructor(libHippy: HippyLibrary, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null) {
     this.libHippy = libHippy
-    this.renderImpl = new NativeRenderImpl(this, customRenderViewCreatorMap)
+    this.customRenderViewCreatorMap = customRenderViewCreatorMap
+    this.renderImpl = new NativeRenderImpl(this)
   }
 
   setInstanceId(instanceId: number) {
     this.instanceId = instanceId
-    this.renderImpl.getNativeRenderContext().setInstanceId(instanceId)
     NativeRenderProviderManager.addRenderProvider(instanceId, this)
+  }
+
+  getInstanceId(): number {
+    return this.instanceId
+  }
+
+  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
+    return this.customRenderViewCreatorMap
   }
 
   getNativeRenderImpl(): NativeRenderImpl {
@@ -145,7 +154,7 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
     try {
       let params = this.bytesToArgument(buffer)
       // If callbackId equal to 0 mean this call does not need to callback.
-      this.renderImpl.callUIFunction(nodeId, functionName, params, (callbackId == 0) ? null : (result: HippyAny) => {
+      this.renderImpl.callUIFunction(rootId, nodeId, functionName, params, (callbackId == 0) ? null : (result: HippyAny) => {
         this.doCallBack(1, callbackId, functionName, rootId, nodeId, result)
       })
     } catch (e) {

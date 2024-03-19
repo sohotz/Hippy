@@ -19,6 +19,7 @@
  */
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
+import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 import { HippyMap } from '../support/common/HippyTypes';
 import { DefaultDeviceAdapter } from './adapter/device/DefaultDeviceAdapter';
 import { HippyDeviceAdapter } from './adapter/device/HippyDeviceAdapter';
@@ -41,7 +42,7 @@ import { HippyStorageAdapter } from './adapter/storage/HippyStorageAdapter';
 import { PreferencesStorageAdapter } from './adapter/storage/PreferencesStorageAdapter';
 import { HippyThirdPartyAdapter } from './adapter/thirdparty/HippyThirdPartyAdapter';
 import { HippyBundleLoader } from './bridge/bundleloader/HippyBundleLoader';
-import { HippyAPIProvider } from './HippyAPIProvider';
+import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HippyEngineManagerImpl } from './HippyEngineManagerImpl';
 
 export interface HippyEngine {
@@ -49,8 +50,9 @@ export interface HippyEngine {
 
   loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): void
 
-  getNativeRenderContext(): NativeRenderContext
+  getNativeRenderProvider(): NativeRenderProvider | null
 
+  onBackPressed(handler: BackPressHandler): boolean
 }
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
@@ -59,6 +61,7 @@ export function createHippyEngine(params: EngineInitParams): HippyEngine {
 }
 
 export type HippyEngineInitCallback = (statusCode: EngineInitStatus, msg: string) => void
+
 export type HippyModuleLoadCallback = (statusCode: ModuleLoadStatus, msg: string) => void
 
 export class V8InitParams {
@@ -97,8 +100,8 @@ export class EngineInitParams {
   // optional args, Hippy Server url using remote debug in no usb (if not empty will replace debugServerHost and debugBundleName). debugMode = true take effect
   public remoteServerUrl = "";
   // 可选参数 自定义的，用来提供Native modules、JavaScript modules、View controllers的管理器。1个或多个
-  // public List<HippyAPIProvider> providers;
-  // public List<Processor> processors;
+  public providers: Array<HippyAPIProvider> | null = null;
+  // public processors: Array<Processor> | null = null;
   //Optional  is use V8 serialization or json
   public enableV8Serialization = true;
   // 可选参数 是否打印引擎的完整的log。默认为false
@@ -131,7 +134,6 @@ export class EngineInitParams {
   public logAdapter: HippyLogAdapter | null = null;
   public v8InitParams: V8InitParams | null = null;
   public enableTurbo = false;
-  providers: Array<HippyAPIProvider> | null = null
 
   constructor(
     libHippy: HippyLibrary,
@@ -184,7 +186,6 @@ export class ModuleLoadParams {
    * appName: "Demo", entryPage: App });
    */
   public componentName: string;
-
   // 可选参数 二选一设置 自己开发的业务模块的jsbundle的assets路径（assets路径和文件路径二选一，优先使用assets路径）
   public jsAssetsPath: string;
   // 可选参数 二选一设置 自己开发的业务模块的文件路径（assets路径和文件路径二选一，优先使用assets路径）
@@ -214,22 +215,26 @@ export class ModuleLoadParams {
     this.nativeParams = nativeParams;
     this.codeCacheTag = codeCacheTag;
     this.bundleLoader = bundleLoader;
+  }
 }
+
+export interface BackPressHandler {
+  handleBackPress(): void
 }
 
 export enum EngineInitStatus {
-  STATUS_OK = 0,                     // 加载正常
-  STATUS_ERR_BRIDGE = -101,          // 初始化过程，initBridge错误
-  STATUS_ERR_DEVSERVER = -102,       // 初始化过程，devServer错误
-  STATUS_WRONG_STATE = -103,         // 状态错误。调用init函数时，引擎不在未初始化的状态
-  STATUS_INIT_EXCEPTION = -104,      // 初始化过程，抛出了未知的异常，详情需要查看传回的Throwable
+  STATUS_OK = 0, // 加载正常
+  STATUS_ERR_BRIDGE = -101, // 初始化过程，initBridge错误
+  STATUS_ERR_DEVSERVER = -102, // 初始化过程，devServer错误
+  STATUS_WRONG_STATE = -103, // 状态错误。调用init函数时，引擎不在未初始化的状态
+  STATUS_INIT_EXCEPTION = -104, // 初始化过程，抛出了未知的异常，详情需要查看传回的Throwable
 }
 
 export enum ModuleLoadStatus {
-  STATUS_OK = 0,                     // 加载正常
-  STATUS_ENGINE_UNINIT = -201,       // 引擎未完成初始化就加载JSBundle
-  STATUS_VARIABLE_NULL = -202,       // check变量(bundleUniKey, loader, rootView)引用为空
-  STATUS_ERR_RUN_BUNDLE = -203,      // 业务JSBundle执行错误
-  STATUS_REPEAT_LOAD = -204,         // 重复加载同一JSBundle
+  STATUS_OK = 0, // 加载正常
+  STATUS_ENGINE_UNINIT = -201, // 引擎未完成初始化就加载JSBundle
+  STATUS_VARIABLE_NULL = -202, // check变量(bundleUniKey, loader, rootView)引用为空
+  STATUS_ERR_RUN_BUNDLE = -203, // 业务JSBundle执行错误
+  STATUS_REPEAT_LOAD = -204, // 重复加载同一JSBundle
 }
 

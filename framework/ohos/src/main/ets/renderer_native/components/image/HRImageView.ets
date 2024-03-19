@@ -86,6 +86,10 @@ export class HRImageView extends HippyRenderBaseView {
   onCompleteCallback: ((event?: ImageLoadEvent) => void) | null = null
   onErrorCallback: ((error: ImageError) => void) | null = null
 
+  // imageSpan props
+  spanVerticalAlign: ImageSpanAlignment = ImageSpanAlignment.BOTTOM
+  spanObjectFit: ImageFit = ImageFit.Fill
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
     LogUtils.d(this.TAG, "constructor")
@@ -258,6 +262,25 @@ export class HRImageView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     console.log(`propKey is : ${propKey},propValue is : ${propValue}`)
     switch (propKey) {
+      case HRNodeProps.VERTICAL_ALIGN:
+        if(this.isImageSpan()) {
+          let t = HRValueUtils.getString(propValue as HippyAny);
+          switch (t) {
+            case "top":
+              this.spanVerticalAlign = ImageSpanAlignment.TOP;
+              break;
+            case "middle":
+              this.spanVerticalAlign = ImageSpanAlignment.CENTER;
+              break;
+            case "bottom":
+              this.spanVerticalAlign = ImageSpanAlignment.BOTTOM;
+              break;
+            case "baseline":
+              this.spanVerticalAlign = ImageSpanAlignment.BASELINE;
+              break;
+          }
+        }
+        return true;
       case 'src':
         {
           this.cssSrc = HRValueUtils.getString(propValue as HippyAny)

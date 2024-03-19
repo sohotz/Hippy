@@ -67,38 +67,28 @@ export interface NativeRenderEventHandler {
 
 export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
-  private readonly ROOT_VIEW_ID_INCREMENT = 10
   private readonly INVALID_NODE_ID = -1
-
-  private static sRootIdCounter = 0
 
   private eventHandler: NativeRenderEventHandler
 
   private frameworkProxy: FrameworkProxy | null = null
   private imageLoader: ImageLoaderAdapter | null = null
 
-  private ctx: NativeRenderContext
-  private mutations: HRMutation[] = []
-
   private renderManager: HRManager
-  private virtualNodeManager: HRVirtualNodeManager
 
-  constructor(eventHandler: NativeRenderEventHandler, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null) {
+  constructor(eventHandler: NativeRenderEventHandler) {
     this.eventHandler = eventHandler
-    NativeRenderImpl.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
-    let rootId = NativeRenderImpl.sRootIdCounter
-    this.ctx = new NativeRenderContext(rootId, customRenderViewCreatorMap, this)
-
-    this.renderManager = new HRManager(this.ctx)
-    this.virtualNodeManager = new HRVirtualNodeManager()
+    this.renderManager = new HRManager()
   }
 
   setFrameworkProxy(proxy: FrameworkProxy) {
     this.frameworkProxy = proxy
   }
 
-  getNativeRenderContext(): NativeRenderContext {
-    return this.ctx
+  attachToRootView(rootId: number): void {
+    if (this.frameworkProxy) {
+      this.frameworkProxy.attachToRootView(rootId)
+    }
   }
 
   getRenderManager(): HRManager {
@@ -170,17 +160,23 @@ export class NativeRenderImpl implements NativeRender {
   }
 
   createNode(rootId: number, nodeList: Array<HippyAny>) {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    let virtualNodeManager = this.renderManager.getVirtualNodeManager(rootId)
+    if (!viewManager || !virtualNodeManager) {
+      return
+    }
+
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
 
-      let vNode = this.virtualNodeManager.createVirtualNode(
+      let vNode = virtualNodeManager.createVirtualNode(
         rootId,
         node.get('id') as number,
         node.get('pId') as number,
         node.get('index') as number,
         node.get('props') as HippyMap)
       vNode.viewName = node.get('name') as string
-      this.virtualNodeManager.addVirtualNode(node.get('id') as number, vNode)
+      virtualNodeManager.addVirtualNode(node.get('id') as number, vNode)
 
       let m: HRCreateMutation = new HRCreateMutation()
       m.viewName = node.get('name') as string
@@ -188,15 +184,21 @@ export class NativeRenderImpl implements NativeRender {
       m.parentTag = node.get('pId') as number
       m.index = node.get('index') as number
       m.props = node.get('props') as HippyMap
-      this.mutations.push(m)
+      viewManager.addMutations(m)
     }
   }
 
   updateNode(rootId: number, nodeList: Array<HippyAny>) {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    let virtualNodeManager = this.renderManager.getVirtualNodeManager(rootId)
+    if (!viewManager || !virtualNodeManager) {
+      return
+    }
+
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
 
-      let vNode = this.virtualNodeManager.getVirtualNode(node.get('id') as number)
+      let vNode = virtualNodeManager.getVirtualNode(node.get('id') as number)
       if (vNode && vNode.props) {
         (node.get('props') as HippyMap).forEach((value: HippyValue, key: string) => {
           if (vNode && vNode.props && key) {
@@ -215,22 +217,32 @@ export class NativeRenderImpl implements NativeRender {
       m.parentTag = node.get('pId') as number
       m.index = node.get('index') as number
       m.props = node.get('props') as HippyMap
-      this.mutations.push(m)
+      viewManager.addMutations(m)
     }
   }
 
   moveNode(rootId: number, pid: number, nodeList: Array<HippyAny>) {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
       let m: HRMoveMutation = new HRMoveMutation()
       m.tag = node.get('id') as number
       m.parentTag = node.get('pId') as number
       m.index = node.get('index') as number
-      this.mutations.push(m)
+      viewManager.addMutations(m)
     }
   }
 
   moveNode2(rootId: number, id_array: Array<number>, to_pid: number, from_pid: number, index: number) {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+
     for (let i = 0; i < id_array.length; i++) {
       let id = id_array[i]
       let m: HRMove2Mutation = new HRMove2Mutation()
@@ -238,20 +250,30 @@ export class NativeRenderImpl implements NativeRender {
       m.toParentTag = to_pid
       m.fromParentTag = from_pid
       m.index = index
-      this.mutations.push(m)
+      viewManager.addMutations(m)
     }
   }
 
   deleteNode(rootId: number, id_array: Array<number>) {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+
     for (let i = 0; i < id_array.length; i++) {
       let id = id_array[i]
       let m: HRDeleteMutation = new HRDeleteMutation()
       m.tag = id
-      this.mutations.push(m)
+      viewManager.addMutations(m)
     }
   }
 
   updateLayout(rootId: number, nodeList: Array<HippyAny>) {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
       let m: HRUpdateLayoutMutation = new HRUpdateLayoutMutation()
@@ -260,16 +282,25 @@ export class NativeRenderImpl implements NativeRender {
       m.top = px2vp(node.get('top') as number)
       m.width = px2vp(node.get('width') as number)
       m.height = px2vp(node.get('height') as number)
-      this.mutations.push(m)
+      viewManager.addMutations(m)
     }
   }
 
   endBatch(rootId: number) {
-    this.renderManager.applyMutations(this.mutations)
-    this.mutations.splice(0, this.mutations.length)
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+
+    viewManager.applyMutations()
   }
 
   updateEventListener(rootId: number, eventList: Array<HippyAny>) {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+
     for (let i = 0; i < eventList.length; i++) {
       let event = eventList[i] as Map<string, HippyAny>
       if (!(event instanceof Map)) {
@@ -284,13 +315,18 @@ export class NativeRenderImpl implements NativeRender {
       let m: HRUpdateEventListenerMutation = new HRUpdateEventListenerMutation()
       m.tag = nodeId
       m.props = eventProps
-      this.mutations.push(m)
+      viewManager.addMutations(m)
     }
   }
 
-  callUIFunction(nodeId: number, functionName: string, params: Array<HippyAny>, callback: HippyRenderCallback | null) {
-    LogUtils.d(this.TAG,  "callUIFunction: id " + nodeId + ", functionName " + functionName + ", params" + params)
-    this.renderManager.callViewMethod(nodeId, functionName, params, callback)
+  callUIFunction(rootId: number, nodeId: number, functionName: string, params: Array<HippyAny>, callback: HippyRenderCallback | null) {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+
+    LogUtils.d(this.TAG,  "callUIFunction: rootId " + rootId + ", id " + nodeId + ", functionName " + functionName + ", params" + params)
+    viewManager.callViewMethod(nodeId, functionName, params, callback)
   }
 
   private textPropsOnly:string[] = ["textAlign","numberOfLines","breakStrategy","ellipsizeMode"];//只有text有，span没有的属性
@@ -345,12 +381,17 @@ export class NativeRenderImpl implements NativeRender {
   }
 
   measure(libHippy:HippyLibrary, instanceId: number, rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
+    let virtualNodeManager = this.renderManager.getVirtualNodeManager(rootId)
+    if (!virtualNodeManager) {
+      return BigInt(0)
+    }
+
     let ret:bigint = BigInt(0);
-    let vNode = this.virtualNodeManager.getVirtualNode(nodeId)
+    let vNode = virtualNodeManager.getVirtualNode(nodeId)
     if (vNode && vNode.props) {
       let stream:string[]=[];
       this.measureAddStartPropsToStream(stream,vNode.props);
-      let vChildren = this.virtualNodeManager.getVirtualChildrenNode(nodeId);
+      let vChildren = virtualNodeManager.getVirtualChildrenNode(nodeId);
       if(vChildren.length>0){//测量文文，文图
         LogUtils.d("Measure Text",`measureC : ${vChildren.length}`)
         vChildren.forEach((value:HRVirtualNode)=>{
