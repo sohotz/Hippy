@@ -244,7 +244,7 @@ export struct HRRichText {
     }
     .fontColor(this.renderView.fontColor)
     .fontSize(this.renderView.fontSize)
-    .lineHeight(this.renderView.lineHeight)
+    // .lineHeight(this.renderView.lineHeight) // TODO: 暂时注释，因为ArkUI有bug，设置了这个文本不能垂直居中
     .textOverflow({ overflow: this.renderView.textOverflow })
     .ellipsisMode(this.renderView.ellipsisMode)
     .maxLines(this.renderView.maxLines)
