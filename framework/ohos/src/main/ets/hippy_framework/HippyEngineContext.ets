@@ -28,8 +28,6 @@ import { HippyJsException } from './common/HippyJsException';
 
 export interface HippyEngineContext {
 
-  attachToRootView(rootId: number): void
-
   getComponentName(): string
 
   getNativeParams() : HashMap<string, Object>
@@ -62,7 +60,7 @@ export interface HippyEngineContext {
   //
   // void removeEngineLifecycleEventListener(HippyEngineLifecycleEventListener listener);
   //
-   handleException(error:HippyJsException):void
+  handleException(error: HippyJsException): void
 
   // int getEngineId();
   //

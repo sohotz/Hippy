@@ -26,7 +26,8 @@ import {
 } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
-import HippyRenderBaseView, { HippyObservedArray } from '../base/HippyRenderBaseView';
+import HippyRenderBaseView, { HippyObservedArray,
+  HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
@@ -46,7 +47,6 @@ export class HRTextInputView extends HippyRenderBaseView {
   public textAlign:TextAlign = TextAlign.Start
   public textAlignVertical:Alignment = Alignment.Center
   public value: string = ''
-  public defaultValue: string = ''
   public keyboardType: InputType = InputType.Normal
   public returnKeyType: EnterKeyType = EnterKeyType.Done
   public placeholder: string = ''
@@ -58,6 +58,8 @@ export class HRTextInputView extends HippyRenderBaseView {
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
+    this.cssBackgroundColor = Color.Transparent
+    this.cssBorder = { radius: 0 }
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
@@ -67,7 +69,7 @@ export class HRTextInputView extends HippyRenderBaseView {
     } else if (propKey === 'color') {
       this.color = HRValueUtils.getNumber(propValue as HippyAny)
     } else if (propKey === 'defaultValue') {
-      this.defaultValue = HRValueUtils.getString(propValue as HippyAny)
+      this.value = HRValueUtils.getString(propValue as HippyAny)
     } else if (propKey === 'fontFamily') {
       this.fontFamily = HRValueUtils.getString(propValue as HippyAny)
     } else if (propKey === 'fontSize') {
@@ -175,19 +177,42 @@ export class HRTextInputView extends HippyRenderBaseView {
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
     LogUtils.d('HRTextInput', `call:${method}, paras:${params}`)
-    if (method === "focusTextInput") {
+    let result:HippyAny = null
+    if (method === "getValue" && callback) {
+      result = new Map<string, HippyValue>() as HippyMap;
+      result.set("text", this.value);
+      callback(result)
+    } else if (method === "focusTextInput") {
       this.focusTextInput(params)
     } else if (method === "blurTextInput") {
       this.blurTextInput(params)
+    } else if (method === "clear") {
+      this.setText(null)
     } else if (method === "hideInputMethod") {
       this.hideInputMethod(params)
+    } else if (method === "setValue") {
+      this.setText(params)
     }
+  }
+
+  setText(params: Array<HippyAny> | null) {
+    let txt = ''
+    if (params) {
+      if (typeof params[0] != 'string') {
+        return
+      }
+
+      txt = HRValueUtils.getString(params[0])
+      //todo: only change the text, not set the selection pos
+    }
+
+    this.value = txt
   }
 
   focusTextInput(params: Array<HippyAny>) {
     this.uiCtx?.runScopedTask(()=>{
-      let rtn = focusControl.requestFocus(this.tag.toString())
-      LogUtils.d('HRTextInput', `focusTextInput rtn:${rtn}`)
+      let rtn = focusControl.requestFocus(HIPPY_COMPONENT_KEY_PREFIX + this.tag)
+      LogUtils.d('HRTextInput', `focusTextInput key:${HIPPY_COMPONENT_KEY_PREFIX + this.tag}, rtn:${rtn}`)
     })
   }
 
@@ -210,6 +235,7 @@ export struct HRTextInput {
 
   onChange(value: string) {
     LogUtils.d(this.TAG, `onchange:${value}`)
+    this.renderView.value = value
 
     let params = new Map<string, HippyValue>() as HippyMap;
     params.set("text", value);
@@ -234,7 +260,7 @@ export struct HRTextInput {
   build() {
    if (this.renderView.multiline) {
       TextArea({
-        text:this.renderView.defaultValue,
+        text:this.renderView.value,
         placeholder: this.renderView.placeholder,
         controller: this.renderView.textAreaController
       })
@@ -251,7 +277,6 @@ export struct HRTextInput {
         .maxLength(this.renderView.maxLength)
         .textAlign(this.renderView.textAlign)
         .align(this.renderView.textAlignVertical)
-        .key(this.renderView.tag.toString())
         .onChange((value: string) => {
           this.onChange(value)
         })
@@ -261,7 +286,7 @@ export struct HRTextInput {
     }
     else {
       TextInput({
-        text:this.renderView.defaultValue,
+        text:this.renderView.value,
         placeholder: this.renderView.placeholder,
         controller: this.renderView.controller
       })//.expandSafeArea([SafeAreaType.KEYBOARD],[ SafeAreaEdge.BOTTOM]) //TODO
@@ -278,7 +303,6 @@ export struct HRTextInput {
         .maxLength(this.renderView.maxLength)
         .textAlign(this.renderView.textAlign)
         .align(this.renderView.textAlignVertical)
-        .key(this.renderView.tag.toString())
         .onChange((value: string) => {
           this.onChange(value)
         })
@@ -303,33 +327,53 @@ export struct HRTextInput {
 // base props for all components
 @Extend(TextInput)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }
 
 // base props for all components
 @Extend(TextArea)
 function applyTextAreaRenderViewBaseAttr($$: HippyRenderBaseView) {
+  .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({ x: $$.cssPositionX, y: $$.cssPositionY })
-  .size({ width: $$.cssWidth, height: $$.cssHeight })
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
   .zIndex($$.cssZIndex)
+  .accessibilityText($$.cssAccessibilityLabel)
+  .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .shadow($$.cssShadow)
+  .linearGradient($$.cssLinearGradient)
+  .backgroundImage($$.cssBackgroundImage)
+  .backgroundImageSize($$.cssBackgroundImageSize)
+  .backgroundImagePosition($$.cssBackgroundImagePosition)
+  .transform($$.cssMatrix)
   .rotate($$.cssRotate)
   .scale($$.cssScale)
   .translate($$.cssTranslate)
+  .hitTestBehavior($$.hitTestBehavior)
   .onClick($$.eventClick)
 }

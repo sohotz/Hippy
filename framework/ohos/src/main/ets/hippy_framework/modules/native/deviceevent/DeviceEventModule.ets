@@ -17,9 +17,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BackPressHandler } from '../../..'
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
 import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import { BackPressHandler } from '../../../HippyEngine'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { EventDispatcher } from '../../javascript/EventDispatcher'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'

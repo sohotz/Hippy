@@ -17,12 +17,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyMap } from '../../../support/common/HippyTypes';
 import { HttpHeaderReuqest } from './HttpHeaderRequest';
-import buffer from '@ohos.buffer';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import I18n from '@ohos.i18n';
-import { Context } from '@kit.AbilityKit';
 import { HashMap, util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
@@ -49,7 +46,7 @@ export class HippyHttpRequest {
   private mInitParams: HashMap<string, string>
   private mNativeParams: HashMap<string, Object>
 
-  constructor( headers: HashMap<string, string>, method: http.RequestMethod,
+  constructor(headers: HashMap<string, string>, method: http.RequestMethod,
               initParams: HashMap<string, string>, nativeParams: HashMap<string, Object>) {
     this.mHeaders = (headers == null) ? new HashMap() : headers;
     this.mMethod = method;
@@ -87,7 +84,6 @@ export class HippyHttpRequest {
   public getAndIncrementRedirectTimes(): number {
     return this.mRedirectTimes++;
   }
-
 
   public getHeaders(): HashMap<string, string> {
     return this.mHeaders;

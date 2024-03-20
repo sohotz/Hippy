@@ -26,7 +26,6 @@ import {
 } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
 import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
-import { HippyHttpAdapter } from '../../../adapter/http/HippyHttpAdapter'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { HashMap, HashSet } from '@kit.ArkTS'
@@ -35,7 +34,6 @@ import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
 import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import util from '@ohos.util';
-import { HippyException } from '../../../../support/common/HippyException'
 
 const NETWORK_MODULE_TAG = "NetworkModule"
 

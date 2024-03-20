@@ -37,18 +37,15 @@ import { HippyEngineContext } from '../../HippyEngineContext';
 import { http } from '@kit.NetworkKit';
 
 const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
+
 export class DefaultHttpAdapter implements HippyHttpAdapter {
   private mExecutorService: HippyExecutor | null = null
-  private mContext: HippyEngineContext | null = null
 
   protected execute(task: HippyTask) {
     if (this.mExecutorService == null) {
       this.mExecutorService = new HippyExecutor()
     }
     this.mExecutorService.execute(task);
-  }
-
-  constructor() {
   }
 
   public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback) {

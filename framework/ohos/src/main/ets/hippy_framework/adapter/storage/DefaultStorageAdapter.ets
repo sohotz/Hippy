@@ -23,8 +23,6 @@ import { BusinessError } from '@ohos.base';
 import { Context } from '@ohos.abilityAccessCtrl';
 import { ValuesBucket } from '@ohos.data.ValuesBucket';
 import { LogUtils } from '../../../support/utils/LogUtils';
-import { HippyEngineContext } from '../../HippyEngineContext';
-import { ArrayList } from '@kit.ArkTS';
 
 const DEFAULT_STORAGE_ADAPTER_TAG = 'DefaultStorageAdapter'
 

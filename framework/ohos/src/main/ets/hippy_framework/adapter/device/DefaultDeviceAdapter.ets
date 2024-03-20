@@ -23,7 +23,7 @@ import { HippyDeviceAdapter } from './HippyDeviceAdapter';
 
 export class DefaultDeviceAdapter implements HippyDeviceAdapter {
   getDimensions(ww: number, wh: number, context: Context, shouldUseScreenDisplay: boolean): HippyMap {
-    return DimensionsUtil.getDimensions(ww,wh,context,shouldUseScreenDisplay)
+    return DimensionsUtil.getDimensions(ww, wh, context, shouldUseScreenDisplay)
   }
 
   reviseDimensionIfNeed(context: Context, dimensionMap: HippyMap, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean) {

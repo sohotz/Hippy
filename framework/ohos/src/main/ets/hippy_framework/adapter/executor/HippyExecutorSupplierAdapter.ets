@@ -25,5 +25,5 @@ export interface HippyExecutorSupplierAdapter {
 
   getBackgroundTaskExecutor(): HippyExecutor
 
-  destroyIfNeed():void
+  destroyIfNeed(): void
 }
