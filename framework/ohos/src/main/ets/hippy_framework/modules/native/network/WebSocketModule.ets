@@ -18,7 +18,12 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { HippyAny, HippyMap, HippyValue } from '../../../../support/common/HippyTypes'
+import {
+  HippyAny,
+  HippyMap,
+  HippyModuleCallback,
+  HippyValue
+} from '../../../../support/common/HippyTypes'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { webSocket } from '@kit.NetworkKit'
@@ -158,5 +163,25 @@ export class WebSocketModule extends HippyNativeModuleBase {
 
   private addAndGet(num: number): number {
     return num + 1
+  }
+
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'connect': {
+        this.connect(params as HippyMap)
+        break;
+      }
+      case 'send': {
+        this.send(params as HippyMap)
+        break;
+      }
+      case 'close': {
+        this.close(params as HippyMap)
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 }

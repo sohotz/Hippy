@@ -96,7 +96,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
               this.handleRedirectRequest(request, callback);
             } else {
               //todo response need tobe set value
-              // let res = JSON.parse(`${data.result}`);
+              // let res:HippyAny = JSON.parse(`${data.result}`);
               callback.onTaskSuccess(request, this.createResponse(data));
             }
             LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'Result:' + data.result);

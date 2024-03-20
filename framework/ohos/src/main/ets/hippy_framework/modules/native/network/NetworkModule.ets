@@ -18,22 +18,17 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import {
-  HippyAny,
-  HippyMap,
-  HippyModuleCallback,
-  HippyValue
-} from '../../../../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
 import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
-import { HashMap, HashSet } from '@kit.ArkTS'
+import { HashMap } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
 import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
 import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
 import { LogUtils } from '../../../../support/utils/LogUtils'
-import util from '@ohos.util';
+import util from '@ohos.util'
 
 const NETWORK_MODULE_TAG = "NetworkModule"
 
@@ -123,7 +118,7 @@ export class NetworkModule extends HippyNativeModuleBase {
         // let body = textDecoder.decodeWithStream( bytes , {stream: false});
       }
     } catch (e) {
-        LogUtils.e(NETWORK_MODULE_TAG,e)
+      LogUtils.e(NETWORK_MODULE_TAG, e)
     }
     responseMap.set("respBody", body);
     return responseMap
@@ -178,7 +173,37 @@ export class NetworkModule extends HippyNativeModuleBase {
   }
 
   call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
-    return
+    switch (method) {
+      case 'fetch': {
+        this.fetch(params as HippyMap)
+        break;
+      }
+      case 'setCookie': {
+        if (params != null && params instanceof Map) {
+          let url = ""
+          let keyValue = ""
+          let expires = ""
+          if ((params as HippyMap).get("title") !== undefined) {
+            url = (params as HippyMap).get("title") as string
+          }
+          if ((params as HippyMap).get("details") !== undefined) {
+            keyValue = (params as HippyMap).get("details") as string
+          }
+          if ((params as HippyMap).get("details") !== undefined) {
+            expires = (params as HippyMap).get("details") as string
+          }
+          this.setCookie(url, keyValue, expires)
+        }
+        break;
+      }
+      case 'getCookie': {
+        this.getCookie(params as string)
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 }
 
