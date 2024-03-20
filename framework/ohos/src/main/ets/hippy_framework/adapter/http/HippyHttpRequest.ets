@@ -21,18 +21,16 @@ import { HippyMap } from '../../../support/common/HippyTypes';
 import { HttpHeaderReuqest } from './HttpHeaderRequest';
 import buffer from '@ohos.buffer';
 import { TextUtils } from '../../../support/utils/TextUtils';
-import geoLocationManager from '@ohos.geoLocationManager';
 import I18n from '@ohos.i18n';
-import { HippyEngineContext } from '../../HippyEngineContext';
-import { featureAbility } from '@kit.AbilityKit';
+import { Context } from '@kit.AbilityKit';
 import { HashMap, util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import BuildProfile from '../../../../../../BuildProfile';
 
 const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
 
 export class HippyHttpRequest {
-  private context: HippyEngineContext | null
   public static DEFAULT_TIMEOUT_MS: number = 3000;
   public static HTTP_HEADERS: string = "headers";
   public static HTTP_HEADERS_SEPARATOR: string = ",";
@@ -51,9 +49,8 @@ export class HippyHttpRequest {
   private mInitParams: HashMap<string, string>
   private mNativeParams: HashMap<string, Object>
 
-  constructor(context: HippyEngineContext | null, headers: HashMap<string, string>, method: http.RequestMethod,
+  constructor( headers: HashMap<string, string>, method: http.RequestMethod,
               initParams: HashMap<string, string>, nativeParams: HashMap<string, Object>) {
-    this.context = context
     this.mHeaders = (headers == null) ? new HashMap() : headers;
     this.mMethod = method;
     this.mInitParams = initParams;
@@ -148,12 +145,8 @@ export class HippyHttpRequest {
         let country = I18n.System.getSystemRegion(); // 获取系统当前地区设置
 
         // Add version
-        let buffer = "" //todo context
-        // context.getAppVersionInfo((err, data) => {
-        //     console.info('getAppVersionInfo err: ' + JSON.stringify(err) + 'data: ' + JSON.stringify(data));
-        //     version =
-        // });
-        let version: string = ""
+        let buffer = ""
+        let version: string = BuildProfile.VERSION_NAME
         if (version.length > 0) {
           buffer += version + "; "
         } else { // default to "1.0"

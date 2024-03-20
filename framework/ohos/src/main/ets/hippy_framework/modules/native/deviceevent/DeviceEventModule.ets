@@ -19,6 +19,7 @@
  */
 import { BackPressHandler } from '../../..'
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { EventDispatcher } from '../../javascript/EventDispatcher'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
@@ -60,6 +61,22 @@ export class DeviceEventModule extends HippyNativeModuleBase {
 
   public destroy() {
     this.mBackPressHandler = null;
+  }
+
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'setListenBackPress': {
+        this.setListenBackPress(params as boolean)
+        break;
+      }
+      case 'invokeDefaultBackPressHandler': {
+        this.invokeDefaultBackPressHandler()
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 }
 

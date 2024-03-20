@@ -64,7 +64,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
       holder.requestHeaders = new HashMap<string, string>()
     if (holder.requestParams == null || holder.requestParams == undefined)
       holder.requestParams = new HashMap<string, string>()
-    let httpRequest: HippyHttpRequest = new HippyHttpRequest(this.mContext, holder.requestHeaders, method,
+    let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, method,
       holder.requestParams, nativeParams);
     httpRequest.setUrl(holder.uri);
     return httpRequest;
@@ -99,7 +99,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
               this.handleRedirectRequest(request, callback);
             } else {
               //todo response need tobe set value
-              // let res = JSON.parse(`${data.result}`);
+              // let res:HippyAny = JSON.parse(`${data.result}`);
               callback.onTaskSuccess(request, this.createResponse(data));
             }
             LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'Result:' + data.result);

@@ -18,7 +18,9 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { HippyMap, HippyValue } from '../../../../support/common/HippyTypes'
+import { HippyAny, HippyMap,
+  HippyModuleCallback,
+  HippyValue } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
@@ -103,6 +105,22 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
       }
       dataHolder.recycle();
     })
+  }
+
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'getSize': {
+        this.getSize(params as string)
+        break;
+      }
+      case 'prefetch': {
+        this.prefetch(params as string)
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 }
 

@@ -25,6 +25,7 @@ import { audio } from '@kit.AudioKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { media } from '@kit.MediaKit'
 import Url from '@ohos.url'
+import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 
 const AUDIO_MODULE_TAG: string = 'AudioPlayerModule'
 
@@ -207,5 +208,41 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     } finally {
       this.mState = "stopped";
     }
+  }
+
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'play': {
+        this.play(params as string)
+        break;
+      }
+      case 'goBack': {
+        this.goBack(params as number)
+        break;
+      }
+      case 'goForward': {
+        this.goForward(params as number)
+        break;
+      }
+      case 'seekTo': {
+        this.seekTo(params as number)
+        break;
+      }
+      case 'pause': {
+        this.pause()
+        break;
+      }
+      case 'resume': {
+        this.resume()
+        break;
+      }
+      case 'stop': {
+        this.stop()
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 }

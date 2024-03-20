@@ -20,7 +20,6 @@
 import { HippyHttpAdapter, HttpTaskCallback } from './HippyHttpAdapter';
 import { HippyHttpRequest } from './HippyHttpRequest';
 import { HippyHttpResponse } from './HippyHttpResponse';
-import { BusinessError } from '@ohos.base';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { FetchResultCode } from './HippyResourceLoader';
@@ -59,7 +58,7 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
         if (list != null && !list.isEmpty()) {
           if (HttpHeaderResponse.SET_COOKIE.toLowerCase() === key.toLowerCase()) {
             for (let item of list) {
-              web_webview.WebCookieManager.setCookie(request.getUrl(), item)
+              web_webview.WebCookieManager.configCookieSync(request.getUrl(), item)
             }
           }
         }

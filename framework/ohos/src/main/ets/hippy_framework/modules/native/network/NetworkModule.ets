@@ -125,7 +125,7 @@ export class NetworkModule extends HippyNativeModuleBase {
         // let body = textDecoder.decodeWithStream( bytes , {stream: false});
       }
     } catch (e) {
-        LogUtils.e(NETWORK_MODULE_TAG,e)
+      LogUtils.e(NETWORK_MODULE_TAG, e)
     }
     responseMap.set("respBody", body);
     return responseMap
@@ -180,7 +180,37 @@ export class NetworkModule extends HippyNativeModuleBase {
   }
 
   call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
-    return
+    switch (method) {
+      case 'fetch': {
+        this.fetch(params as HippyMap)
+        break;
+      }
+      case 'setCookie': {
+        if (params != null && params as HippyMap) {
+          let url = ""
+          let keyValue = ""
+          let expires = ""
+          if ((params as HippyMap).get("title") !== undefined) {
+            url = (params as HippyMap).get("title") as string
+          }
+          if ((params as HippyMap).get("details") !== undefined) {
+            keyValue = (params as HippyMap).get("details") as string
+          }
+          if ((params as HippyMap).get("details") !== undefined) {
+            expires = (params as HippyMap).get("details") as string
+          }
+          this.setCookie(url, keyValue, expires)
+        }
+        break;
+      }
+      case 'getCookie': {
+        this.getCookie(params as string)
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 }
 
