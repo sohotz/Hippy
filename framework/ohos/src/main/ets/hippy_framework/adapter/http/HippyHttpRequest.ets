@@ -23,7 +23,8 @@ import I18n from '@ohos.i18n';
 import { HashMap, util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
-import BuildProfile from '../../../../../../BuildProfile';
+
+// import BuildProfile from '../../../../../../BuildProfile';
 
 const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
 
@@ -142,7 +143,8 @@ export class HippyHttpRequest {
 
         // Add version
         let buffer = ""
-        let version: string = BuildProfile.VERSION_NAME
+        // let version: string = BuildProfile.VERSION_NAME
+        let version: string = ""
         if (version.length > 0) {
           buffer += version + "; "
         } else { // default to "1.0"

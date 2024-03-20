@@ -44,7 +44,7 @@ export class ExceptionModule extends HippyNativeModuleBase {
   call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'handleException': {
-        if (params != null && params as HippyMap) {
+        if (params != null && params instanceof Map) {
           let title = ""
           let details = ""
           if ((params as HippyMap).get("title") !== undefined) {
