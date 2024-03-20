@@ -63,29 +63,23 @@ void AssetHandler::RequestUntrustedContent(
 
   RawFile *file = OH_ResourceManager_OpenRawFile(s_resource_manager, pathName.c_str());
   if (!file) {
-    // TODO(hot):
-    abort();
+    response->SetRetCode(hippy::JobResponse::RetCode::ResourceNotFound);
+  } else {
+    response->SetRetCode(hippy::JobResponse::RetCode::Failed);
+    long size = OH_ResourceManager_GetRawFileSize(file);
+    if (size > 0) {
+      size_t fileLen = static_cast<unsigned long>(size);
+      char *buf = new char[fileLen];
+      int len = OH_ResourceManager_ReadRawFile(file, buf, fileLen);
+      if (len > 0) {
+        response->GetContent().assign(buf, static_cast<size_t>(len));
+        // OH_ResourceManager_ReleaseNativeResourceManager(s_resource_manager);
+        response->SetRetCode(hippy::JobResponse::RetCode::Success);
+      }
+      delete[] buf;
+    }
+    OH_ResourceManager_CloseRawFile(file);
   }
-  long size = OH_ResourceManager_GetRawFileSize(file);
-  if (size <= 0) {
-    // TODO(hot):
-    abort();
-  }
-  size_t fileLen = static_cast<unsigned long>(size);
-  char *buf = new char[fileLen];
-  int len = OH_ResourceManager_ReadRawFile(file, buf, fileLen);
-  if (len <= 0) {
-    // TODO(hot):
-    abort();
-  }
-
-  response->GetContent().assign(buf, fileLen);
-
-  delete []buf;
-  OH_ResourceManager_CloseRawFile(file);
-  //OH_ResourceManager_ReleaseNativeResourceManager(s_resource_manager);
-
-  response->SetRetCode(hippy::JobResponse::RetCode::Success);
 
   auto next_handler = next();
   if (next_handler) {
