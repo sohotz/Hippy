@@ -20,10 +20,10 @@
 import { HttpHeaderReuqest } from './HttpHeaderRequest';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import I18n from '@ohos.i18n';
-import { HippyEngineContext } from '../../HippyEngineContext';
 import { HashMap, util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import BuildProfile from '../../../../../../BuildProfile';
 
 const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
 
@@ -141,12 +141,8 @@ export class HippyHttpRequest {
         let country = I18n.System.getSystemRegion(); // 获取系统当前地区设置
 
         // Add version
-        let buffer = "" //todo context
-        // context.getAppVersionInfo((err, data) => {
-        //     console.info('getAppVersionInfo err: ' + JSON.stringify(err) + 'data: ' + JSON.stringify(data));
-        //     version =
-        // });
-        let version: string = ""
+        let buffer = ""
+        let version: string = BuildProfile.VERSION_NAME
         if (version.length > 0) {
           buffer += version + "; "
         } else { // default to "1.0"

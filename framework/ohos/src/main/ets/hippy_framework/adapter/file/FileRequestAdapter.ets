@@ -19,17 +19,54 @@
  */
 import { HippyFileAdapter } from './HippyFileAdapter';
 import request from '@ohos.request';
+import { HippyJsException } from '../../common/HippyJsException';
+import { LogUtils } from '../../../support/utils/LogUtils';
+
+const FILE_REQ_TAG = "FileRequestAdapter"
 
 export class FileRequestAdapter implements HippyFileAdapter {
-  public uploadFile(url: string, header: object, method: string, files: request.File[], data: request.RequestData[]): Promise<request.UploadTask> {
-    return new Promise<request.UploadTask>((resolve, reject) => {
-
+  public uploadFile(reqUrl: string, reqHaeder: object, reqMethod: string, reqFiles: request.File[], reqData: request.RequestData[]): Promise<request.UploadTask> {
+    let uploadConfig: request.UploadConfig = {
+      url: reqUrl,
+      header: reqHaeder,
+      method: reqMethod,
+      files: reqFiles,
+      data: reqData,
+    };
+    return new Promise<request.UploadTask>(() => {
+      try {
+        request.uploadFile(globalThis.abilityContext, uploadConfig).then((data) => {
+          LogUtils.i(FILE_REQ_TAG, 'succ to request the upload. result: ' + JSON.stringify(data));
+          return data
+        }).catch((err: HippyJsException) => {
+          LogUtils.e(FILE_REQ_TAG, 'Failed to request the upload. Cause: ' + JSON.stringify(err));
+        });
+      } catch (err) {
+        LogUtils.e(FILE_REQ_TAG, 'err.code : ' + err.code + ', err.message : ' + err.message);
+      }
     })
   }
 
   public downloadFile(url: string, header: object, path: string, networkType: number): Promise<request.DownloadTask> {
+    let downloadConfig: request.DownloadConfig = {
+      url: url,
+      header: header,
+      filePath: path,
+      networkType: networkType
+    };
     return new Promise<request.DownloadTask>((resolve, reject) => {
-
+      try {
+        request.downloadFile(globalThis.abilityContext, downloadConfig)
+          .then((data) => {
+            LogUtils.i(FILE_REQ_TAG, 'succ to request the download. result: ' + JSON.stringify(data));
+            return data;
+          })
+          .catch((err: HippyJsException) => {
+            LogUtils.e(FILE_REQ_TAG, 'Failed to request the download. Cause: ' + JSON.stringify(err));
+          })
+      } catch (err) {
+        LogUtils.e(FILE_REQ_TAG, 'err.code : ' + err.code + ', err.message : ' + err.message);
+      }
     })
   }
 }

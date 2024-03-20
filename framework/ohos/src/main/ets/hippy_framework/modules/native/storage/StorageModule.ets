@@ -22,13 +22,20 @@ import { HippyNativeModuleBase } from '../HippyNativeModuleBase';
 import { HippyStorageAdapter } from '../../../adapter/storage/HippyStorageAdapter';
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule';
 import { LogUtils } from '../../../../support/utils/LogUtils';
+import {
+  HippyAny,
+  HippyArray,
+  HippyMap,
+  HippyModuleCallback,
+  HippyValue
+} from '../../../../support/common/HippyTypes';
 
 const STORAGE_MODULE_TAG = "StorageModule"
 
 @HippyNativeModule({ name: "StorageModule" })
 export class StorageModule extends HippyNativeModuleBase {
   public static readonly NAME = 'StorageModule';
-  private mStorageAdapter: HippyStorageAdapter|null;
+  private mStorageAdapter: HippyStorageAdapter | null;
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)
@@ -59,9 +66,10 @@ export class StorageModule extends HippyNativeModuleBase {
     })
   }
 
-  multiSet(params: [key: string, value: string][]): Promise<void> {
+  // multiSet(params: [key: string, value: string][]): Promise<void> {
+  multiSet(params: HippyMap): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      if (params == null || params.length <= 0) {
+      if (params == null || params.size <= 0) {
         reject("Invalid Key");
         return;
       }
@@ -72,25 +80,20 @@ export class StorageModule extends HippyNativeModuleBase {
 
       try {
         let data = new Array<[key: string, value: string]>();
-        for (let idx: number = 0; idx < params.length; idx++) {
-          let array = params[idx]
-          if (array == null) {
-            reject("Invalid Value");
-            return;
-          }
-          if (array.length != 2) {
-            reject("Invalid Value");
-            return;
-          }
-          if (array[0] == null) {
+        if (params.entries() == null) {
+          reject("Invalid Value");
+          return;
+        }
+        for (let newData of params.entries()) {
+          if (newData[0] == null) {
             reject("Invalid key");
             return;
           }
-          if (array[1] == null) {
+          if (newData[1] == null) {
             reject("Invalid Value");
             return;
           }
-          data.push([array[0], array[1]]);
+          data.push([newData[0], newData[1] as string]);
         }
         this.mStorageAdapter.multiSet(data).then((err) => {
           if (err != null) {
@@ -140,5 +143,29 @@ export class StorageModule extends HippyNativeModuleBase {
         }
       })
     })
+  }
+
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'multiGet': {
+        this.multiGet(params as string[])
+        break;
+      }
+      case 'multiSet': {
+        this.multiSet(params as HippyMap)
+        break;
+      }
+      case 'multiRemove': {
+        this.multiRemove(params as string[])
+        break;
+      }
+      case 'getAllKeys': {
+        this.getAllKeys()
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 }

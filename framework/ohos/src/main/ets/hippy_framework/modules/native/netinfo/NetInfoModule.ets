@@ -23,6 +23,7 @@ import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { connection } from '@kit.NetworkKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import HashMap from '@ohos.util.HashMap'
+import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 
 const NETINFO_MODULE_TAG = "NetInfoModule"
 
@@ -116,5 +117,17 @@ export class NetInfoModule extends HippyNativeModuleBase {
     } catch (e) {
       LogUtils.d("NetInfoModule", "unregisterReceiver: " + e.getMessage());
     }
+  }
+
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'getCurrentConnectivity': {
+        this.getCurrentConnectivity()
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 }
