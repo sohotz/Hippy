@@ -256,14 +256,9 @@ static napi_value RunScriptFromUri(napi_env env, napi_callback_info info) {
   auto engine = scope->GetEngine().lock();
   FOOTSTONE_CHECK(engine);
   if (asset_manager) {
-    // TODO(hot):
-    static int flag = 0;
-    if (!flag) {
-      flag = 1;
-      AssetHandler::Init(env, arkTs.CreateReference(asset_manager));
-      auto asset_handler = std::make_shared<hippy::AssetHandler>();
-      loader->RegisterUriHandler(kAssetSchema, asset_handler);
-    }
+    auto asset_handler = std::make_shared<hippy::AssetHandler>();
+    asset_handler->Init(env, asset_manager);
+    loader->RegisterUriHandler(kAssetSchema, asset_handler);
   }
 #ifdef ENABLE_INSPECTOR
   // TODO(hot):

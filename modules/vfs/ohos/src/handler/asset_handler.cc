@@ -19,7 +19,6 @@
  */
 
 #include "vfs/handler/asset_handler.h"
-#include <rawfile/raw_file_manager.h>
 #include "footstone/check.h"
 #include "footstone/logging.h"
 #include "footstone/string_view_utils.h"
@@ -30,25 +29,20 @@ using StringViewUtils = footstone::StringViewUtils;
 namespace hippy {
 inline namespace vfs {
 
-// TODO(hot):
-static napi_env s_env;
-static napi_ref s_ts_resource_manager_ref;
-static NativeResourceManager *s_resource_manager;
-
-void AssetHandler::Init(napi_env env, napi_ref ts_resource_manager_ref) {
-  s_env = env;
-  s_ts_resource_manager_ref = ts_resource_manager_ref;
-
-  napi_value result;
-  auto status = napi_get_reference_value(s_env, s_ts_resource_manager_ref, &result);
-  if (status != napi_ok) {
-    // TODO(hot):
-    abort();
+AssetHandler::~AssetHandler() {
+  if (resource_manager_) {
+    OH_ResourceManager_ReleaseNativeResourceManager(resource_manager_);
+    resource_manager_ = nullptr;
   }
-  s_resource_manager = OH_ResourceManager_InitNativeResourceManager(s_env, result);
-  if (!s_resource_manager) {
-    // TODO(hot):
-    abort();
+}
+
+void AssetHandler::Init(napi_env env, napi_value ts_resource_manager) {
+  // must in main thread, or crash
+  resource_manager_ = OH_ResourceManager_InitNativeResourceManager(env, ts_resource_manager);
+  FOOTSTONE_DCHECK(resource_manager_);
+  if (!resource_manager_) {
+    FOOTSTONE_LOG(ERROR) << "AssetHandler::Init, init resource_manager_ fail";
+    return;
   }
 }
 
@@ -61,7 +55,7 @@ void AssetHandler::RequestUntrustedContent(
   size_t pos = uri.find(":");
   std::string pathName = uri.substr(pos+2);
 
-  RawFile *file = OH_ResourceManager_OpenRawFile(s_resource_manager, pathName.c_str());
+  RawFile *file = OH_ResourceManager_OpenRawFile(resource_manager_, pathName.c_str());
   if (!file) {
     response->SetRetCode(hippy::JobResponse::RetCode::ResourceNotFound);
   } else {
@@ -73,7 +67,6 @@ void AssetHandler::RequestUntrustedContent(
       int len = OH_ResourceManager_ReadRawFile(file, buf, fileLen);
       if (len > 0) {
         response->GetContent().assign(buf, static_cast<size_t>(len));
-        // OH_ResourceManager_ReleaseNativeResourceManager(s_resource_manager);
         response->SetRetCode(hippy::JobResponse::RetCode::Success);
       }
       delete[] buf;

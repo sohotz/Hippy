@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <rawfile/raw_file_manager.h>
 #include <js_native_api.h>
 #include <js_native_api_types.h>
 #include "footstone/string_view.h"
@@ -37,10 +38,9 @@ class AssetHandler : public UriHandler {
   using TaskRunner = footstone::TaskRunner;
 
   AssetHandler() = default;
-  virtual ~AssetHandler() = default;
-
-  // TODO(hot):
-  static void Init(napi_env env, napi_ref ts_resource_manager_ref);
+  virtual ~AssetHandler();
+  
+  void Init(napi_env env, napi_value ts_resource_manager);
 
   virtual void RequestUntrustedContent(
       std::shared_ptr<RequestJob> request,
@@ -59,6 +59,7 @@ class AssetHandler : public UriHandler {
 
   std::shared_ptr<TaskRunner> runner_;
   std::mutex mutex_;
+  NativeResourceManager *resource_manager_;
 };
 
 }
