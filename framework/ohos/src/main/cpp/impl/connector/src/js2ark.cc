@@ -67,14 +67,23 @@ void CallHost(CallbackInfo& info) {
     std::u16string func_str = StringViewUtils::ConvertEncoding(func, string_view::Encoding::Utf16).utf16_value();
     std::u16string cb_id_str = StringViewUtils::ConvertEncoding(cb_id, string_view::Encoding::Utf16).utf16_value();
 
+    void* new_buffer = malloc(buffer.size());
+    FOOTSTONE_DCHECK(new_buffer != nullptr);
+    if (!new_buffer) {
+      FOOTSTONE_LOG(ERROR) << "CallHost cb, malloc fail, size = " << buffer.size();
+      return;
+    }
+    memcpy(new_buffer, buffer.data(), buffer.size());
+    auto buffer_pair = std::make_pair(reinterpret_cast<uint8_t*>(new_buffer), buffer.size());
+
     OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
-    taskRunner->RunAsyncTask([env, object_ref, module_str, func_str, cb_id_str, buffer]() {
+    taskRunner->RunAsyncTask([env, object_ref, module_str, func_str, cb_id_str, buffer_pair]() {
       ArkTS arkTs(env);
       std::vector<napi_value> args = {
         arkTs.CreateStringUtf16(module_str),
         arkTs.CreateStringUtf16(func_str),
         arkTs.CreateStringUtf16(cb_id_str),
-        arkTs.CreateExternalArrayBuffer((void*)buffer.data(), buffer.size())
+        arkTs.CreateExternalArrayBuffer(buffer_pair.first, buffer_pair.second)
       };
       auto jsDriverObject = arkTs.GetObject(object_ref);
       jsDriverObject.Call("callNatives", args);

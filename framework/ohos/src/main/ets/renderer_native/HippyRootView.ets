@@ -142,13 +142,13 @@ export class HippyRootView {
 
 class HippyRenderExceptionListener implements IHippyRenderExceptionListener {
   listener: ((exception: HippyException) => void) | null = null
-  frameworkProxy: FrameworkProxy | null = null
+  nativeRender: NativeRender | null = null
 
   onRenderException(exception: HippyException): void {
     exception = HippyException.safeBuild(exception)
     this.listener?.(exception)
-    if (this.frameworkProxy) {
-      this.frameworkProxy.handleNativeException(exception)
+    if (this.nativeRender) {
+      this.nativeRender.handleRenderException(exception)
     }
   }
 }
@@ -176,7 +176,7 @@ export struct HippyRoot {
 
     if (!this.rootView) {
       this.renderExceptionListener.listener = this.onRenderException
-      this.renderExceptionListener.frameworkProxy = null // TODO(hotx):
+      this.renderExceptionListener.nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
 
       HippyRoot.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
       let rootId = HippyRoot.sRootIdCounter

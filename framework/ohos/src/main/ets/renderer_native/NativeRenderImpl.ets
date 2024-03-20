@@ -146,17 +146,17 @@ export class NativeRenderImpl implements NativeRender {
     }
   }
 
-  destroyRoot(rootId: number) {
-    // TODO(hot):
-    //HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), rootId)
-  }
-
   handleRenderException(exception: HippyException) {
     exception = HippyException.safeBuild(exception)
     LogUtils.e(this.TAG, `handleRenderException: ${exception.message}`)
     if (this.frameworkProxy) {
       this.frameworkProxy.handleNativeException(exception)
     }
+  }
+
+  destroyRoot(rootId: number) {
+    // TODO(hot):
+    //HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), rootId)
   }
 
   createNode(rootId: number, nodeList: Array<HippyAny>) {

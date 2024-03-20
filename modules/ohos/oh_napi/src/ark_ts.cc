@@ -37,16 +37,14 @@ napi_env ArkTS::GetEnv() { return env_; }
 napi_value ArkTS::Call(napi_value callback, std::vector<napi_value> args, napi_value this_object) {
   napi_value result;
 
-  // TODO(hot):
-  FOOTSTONE_LOG(INFO) << "ArkTS::Call params, env:" << env_
+  FOOTSTONE_DLOG(INFO) << "ArkTS::Call params, env:" << env_
     << ", obj:" << this_object
     << ", callback:" << callback
     << ", args:" << args.size();
 
   auto status = napi_call_function(env_, this_object, callback, args.size(), args.data(), &result);
 
-  // TODO(hot):
-  FOOTSTONE_LOG(INFO) << "ArkTS::Call params, status:" << status;
+  FOOTSTONE_DLOG(INFO) << "ArkTS::Call params, status:" << status;
 
   this->MaybeThrowFromStatus(status, "Couldn't call a callback");
   return result;
@@ -111,8 +109,11 @@ napi_value ArkTS::CreateStringUtf16(std::u16string const &str) {
 }
 
 static void NapiFinalize(napi_env env, void* finalize_data, void* finalize_hint) {
-  // TODO(hot):
-  //free(finalize_data);
+  // 用free释放内存不是通用的。
+  // 在Hippy内部，napi_create_external_arraybuffer 的调用处需保证都是malloc/realloc分配的内存。
+  if (finalize_data) {
+    free(finalize_data);
+  }
 }
 
 napi_value ArkTS::CreateExternalArrayBuffer(void* external_data, size_t byte_length) {
@@ -291,9 +292,8 @@ void ArkTS::MaybeThrowFromStatus(napi_status status, const char *message) {
     std::string error_code_msg_str = ". Error code: ";
     std::string status_str = error_info->error_message;
     std::string full_msg = msg_str + error_code_msg_str + status_str;
-
-    // TODO(hot):
-    FOOTSTONE_LOG(INFO) << "ArkTS::MaybeThrowFromStatus, msg:" << full_msg;
+    
+    FOOTSTONE_LOG(ERROR) << "ArkTS::MaybeThrowFromStatus, msg:" << full_msg;
 
     auto c_str = full_msg.c_str();
     this->ThrowError(c_str);
@@ -302,8 +302,6 @@ void ArkTS::MaybeThrowFromStatus(napi_status status, const char *message) {
 
 void ArkTS::ThrowError(const char *message) {
   napi_throw_error(env_, nullptr, message);
-  // TODO(hot):
-  abort();
 }
 
 napi_valuetype ArkTS::GetType(napi_value value) {
