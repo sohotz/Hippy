@@ -172,10 +172,10 @@ export class NetworkModule extends HippyNativeModuleBase {
     }
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'fetch': {
-        this.fetch(params as HippyMap)
+        this.fetch(params[0] as HippyMap)
         break;
       }
       case 'setCookie': {
@@ -197,7 +197,7 @@ export class NetworkModule extends HippyNativeModuleBase {
         break;
       }
       case 'getCookie': {
-        this.getCookie(params as string)
+        this.getCookie(params[0] as string)
         break;
       }
       default:

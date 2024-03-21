@@ -108,14 +108,14 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
     })
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'getSize': {
-        this.getSize(params as string)
+        this.getSize(params[0] as string)
         break;
       }
       case 'prefetch': {
-        this.prefetch(params as string)
+        this.prefetch(params[0] as string)
         break;
       }
       default:

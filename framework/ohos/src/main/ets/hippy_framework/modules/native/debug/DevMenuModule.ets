@@ -40,7 +40,7 @@ export class DevMenuModule extends HippyNativeModuleBase {
     }
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'reload': {
         this.reload()

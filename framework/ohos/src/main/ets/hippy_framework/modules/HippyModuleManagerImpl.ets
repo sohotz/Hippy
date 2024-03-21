@@ -41,6 +41,7 @@ import { LogUtils } from '../../support/utils/LogUtils'
 import { HippyJavaScriptModuleBase } from './javascript/HippyJavaScriptModuleBase'
 import { Dimensions } from './javascript/Dimensions'
 import { EventDispatcher } from './javascript/EventDispatcher'
+import { HippyAny, HippyArray, HippyValue } from '../../support/common/HippyTypes'
 
 export type HippyNativeModuleCreator = (ctx: HippyEngineContext) => HippyNativeModuleBase
 export type HippyJSModuleCreator = (ctx: HippyEngineContext) => HippyJavaScriptModuleBase
@@ -53,7 +54,7 @@ export function hippyNativeModuleCreatorRegisterMap(): Map<string, HippyNativeMo
   registerMap.set(DevMenuModule.NAME, (ctx): HippyNativeModuleBase => new DevMenuModule(ctx))
   registerMap.set(DeviceEventModule.NAME, (ctx): HippyNativeModuleBase => new DeviceEventModule(ctx))
   registerMap.set(ExceptionModule.NAME, (ctx): HippyNativeModuleBase => new ExceptionModule(ctx))
-  registerMap.set(ImageLoaderModule.NAME, (ctx): HippyNativeModuleBase => new DevMenuModule(ctx))
+  registerMap.set(ImageLoaderModule.NAME, (ctx): HippyNativeModuleBase => new ImageLoaderModule(ctx))
   registerMap.set(NetInfoModule.NAME, (ctx): HippyNativeModuleBase => new NetInfoModule(ctx))
   registerMap.set(NetworkModule.NAME, (ctx): HippyNativeModuleBase => new NetworkModule(ctx))
   registerMap.set(WebSocketModule.NAME, (ctx): HippyNativeModuleBase => new WebSocketModule(ctx))
@@ -139,8 +140,8 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     }
   }
 
-  public bytesToArgument(buffer: ArrayBuffer, useJSValueType: boolean): string {
-    let result = '';
+  public bytesToArgument(buffer: ArrayBuffer, useJSValueType: boolean): Array<HippyAny> {
+    let result = new Array<HippyAny>();
     if (buffer) {
       try {
         if (this.mEnableV8Serialization) {
@@ -159,11 +160,12 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
   //
   // }
 
-  public parseJsonData(buffer: ArrayBuffer): string {
+  public parseJsonData(buffer: ArrayBuffer): Array<HippyAny> {
     const bytes = new Uint8Array(buffer);
-    let textDecoder = util.TextDecoder.create('utf-8')
-    let str = textDecoder.decodeWithStream(bytes)
-    return str;
+    const textDecoder = util.TextDecoder.create('utf-8')
+    const str = textDecoder.decodeWithStream(bytes)
+    const paramArray = JSON.parse(str) as Array<HippyAny>;
+    return paramArray;
   }
 
 }

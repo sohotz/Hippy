@@ -210,22 +210,22 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     }
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'play': {
-        this.play(params as string)
+        this.play(params[0] as string)
         break;
       }
       case 'goBack': {
-        this.goBack(params as number)
+        this.goBack(params[0] as number)
         break;
       }
       case 'goForward': {
-        this.goForward(params as number)
+        this.goForward(params[0] as number)
         break;
       }
       case 'seekTo': {
-        this.seekTo(params as number)
+        this.seekTo(params[0] as number)
         break;
       }
       case 'pause': {

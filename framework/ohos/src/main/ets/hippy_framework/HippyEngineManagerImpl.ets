@@ -273,8 +273,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
       return;
     }
     // TODO 多RootView
-    this.mEngineContext.getBridgeManager()
-      .loadInstance(loadParams.componentName, 0, loadParams.jsParams);
+    this.mEngineContext.getBridgeManager().loadInstance(loadParams.componentName, 0, loadParams.jsParams);
 
     // TODO: Debug
   }

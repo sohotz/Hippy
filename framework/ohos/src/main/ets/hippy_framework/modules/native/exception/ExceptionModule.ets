@@ -41,7 +41,7 @@ export class ExceptionModule extends HippyNativeModuleBase {
     }
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'handleException': {
         if (params != null && params instanceof Map) {
@@ -58,7 +58,7 @@ export class ExceptionModule extends HippyNativeModuleBase {
         break;
       }
       case 'handleBackgroundTracing': {
-        this.handleBackgroundTracing(params as string)
+        this.handleBackgroundTracing(params[0] as string)
         break;
       }
       default:

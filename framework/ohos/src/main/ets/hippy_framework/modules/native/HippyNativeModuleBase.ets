@@ -29,7 +29,7 @@ export class HippyNativeModuleBase {
     this.ctx = ctx
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback | null): HippyAny {
     return null
   }
 }
