@@ -25,6 +25,7 @@ import UIAbility from '@ohos.app.ability.UIAbility';
 import libHippy from 'libhippy_app.so'
 import { createHippyEngine, EngineInitParams } from 'hippy';
 import { ExampleAPIProvider } from '../hippyExtend/ExampleAPIProvider';
+import font from '@ohos.font';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
@@ -52,6 +53,10 @@ export default class EntryAbility extends UIAbility {
         return;
       }
       hilog.info(0x0000, 'DemoTag', 'Succeeded in loading the content. Data: %{public}s', JSON.stringify(data) ?? '');
+      font.registerFont({
+        familyName: 'TTTGB',
+        familySrc: '/fonts/TTTGB.otf' // font文件与pages目录同级
+      })
     });
   }
 

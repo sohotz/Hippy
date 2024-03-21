@@ -17,67 +17,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EngineInitStatus, HippyEngine, HippyRoot, ModuleLoadParams, ModuleLoadStatus
-} from 'hippy'
-import HippyRenderBaseView
-  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
-import { HippyException } from 'hippy/src/main/ets/support/common/HippyException'
-import { ExampleCustomComponent, ExampleCustomComponentView } from '../hippyExtend/ExampleCustomComponentView'
+import { router } from '@kit.ArkUI'
 
 @Entry
 @Component
 struct Index {
-  @StorageLink('HippyEngine') private hippyEngine: HippyEngine | null = null
-  @State exception: string = ""
-
-  aboutToAppear(): void {
-    this.hippyEngine?.initEngine((statusCode: EngineInitStatus, msg: string) => {
-      if (statusCode == EngineInitStatus.STATUS_OK) {
-        this.hippyEngine?.loadModule(
-          new ModuleLoadParams(
-            'vue2/index.android.js',
-            '',
-            '',
-            '',
-            null,
-            null,
-            null,
-          ),
-          (statusCode: ModuleLoadStatus, msg: string) => {
-
-        })
-      }
-    })
-  }
-
-  aboutToDisappear(): void {
-
-  }
-
-  @Builder
-  buildCustomRenderView($$: HippyRenderBaseView) {
-    if ($$ instanceof ExampleCustomComponentView) {
-      ExampleCustomComponent({ renderView: $$ as ExampleCustomComponentView, children: $$.children })
-    }
-  }
 
   build() {
-    Stack() {
-      HippyRoot({
-        hippyEngine: this.hippyEngine,
-        pagerName: 'demo',
-        pagerData: {},
-        buildCustomRenderView: this.buildCustomRenderView,
-        onRenderException: (exception: HippyException) => {
-          this.exception = `${exception.message}\n${exception.stack}`
-        },
-      })
-      if (this.exception) {
-        Text(this.exception)
-      }
+    Column() {
+      Text("vue2")
+        .backgroundColor(Color.White)
+        .markAnchor({x: '50%', y: '50%'})
+        .position({x: '50%', y: '30%'})
+        .size({width:100, height: 40})
+        .fontSize(16)
+        .fontWeight(FontWeight.Bold)
+        .textAlign(TextAlign.Center)
+        .borderWidth(1)
+        .onClick(() => {
+          router.pushUrl({
+            url: 'pages/ExampleHippyPage',
+            params: {}
+          })
+        })
     }
-    .width('100%')
-    .height('100%')
-    .expandSafeArea([SafeAreaType.KEYBOARD])
   }
+
 }

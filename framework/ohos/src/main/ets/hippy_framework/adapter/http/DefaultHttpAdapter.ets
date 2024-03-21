@@ -37,18 +37,15 @@ import { HippyEngineContext } from '../../HippyEngineContext';
 import { http } from '@kit.NetworkKit';
 
 const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
+
 export class DefaultHttpAdapter implements HippyHttpAdapter {
   private mExecutorService: HippyExecutor | null = null
-  private mContext: HippyEngineContext | null = null
 
   protected execute(task: HippyTask) {
     if (this.mExecutorService == null) {
       this.mExecutorService = new HippyExecutor()
     }
     this.mExecutorService.execute(task);
-  }
-
-  constructor() {
   }
 
   public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback) {
@@ -64,7 +61,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
       holder.requestHeaders = new HashMap<string, string>()
     if (holder.requestParams == null || holder.requestParams == undefined)
       holder.requestParams = new HashMap<string, string>()
-    let httpRequest: HippyHttpRequest = new HippyHttpRequest(this.mContext, holder.requestHeaders, method,
+    let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, method,
       holder.requestParams, nativeParams);
     httpRequest.setUrl(holder.uri);
     return httpRequest;
@@ -99,7 +96,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
               this.handleRedirectRequest(request, callback);
             } else {
               //todo response need tobe set value
-              // let res = JSON.parse(`${data.result}`);
+              // let res:HippyAny = JSON.parse(`${data.result}`);
               callback.onTaskSuccess(request, this.createResponse(data));
             }
             LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'Result:' + data.result);

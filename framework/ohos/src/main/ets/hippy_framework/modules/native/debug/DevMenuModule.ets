@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
@@ -34,8 +35,20 @@ export class DevMenuModule extends HippyNativeModuleBase {
     try {
       //todo
       // this.ctx.getDevSupportManager().getDevImp().reload();
-    } catch ( e) {
+    } catch (e) {
       LogUtils.e("HippyDevMemo", "reload error: " + e.getMessage());
     }
-}
+  }
+
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'reload': {
+        this.reload()
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
+  }
 }

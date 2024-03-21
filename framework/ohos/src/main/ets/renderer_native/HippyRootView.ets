@@ -142,13 +142,13 @@ export class HippyRootView {
 
 class HippyRenderExceptionListener implements IHippyRenderExceptionListener {
   listener: ((exception: HippyException) => void) | null = null
-  frameworkProxy: FrameworkProxy | null = null
+  nativeRender: NativeRender | null = null
 
   onRenderException(exception: HippyException): void {
     exception = HippyException.safeBuild(exception)
     this.listener?.(exception)
-    if (this.frameworkProxy) {
-      this.frameworkProxy.handleNativeException(exception)
+    if (this.nativeRender) {
+      this.nativeRender.handleRenderException(exception)
     }
   }
 }
@@ -166,6 +166,7 @@ export struct HippyRoot {
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void
   @State showRenderView: boolean = false
   private rootView: HippyRootView | null = null
+  onRootViewCreated: ((rootId: number) => void) | null = null
 
   aboutToAppear(): void {
     if (!this.hippyEngine || !this.hippyEngine.getNativeRenderProvider()) {
@@ -175,7 +176,7 @@ export struct HippyRoot {
 
     if (!this.rootView) {
       this.renderExceptionListener.listener = this.onRenderException
-      this.renderExceptionListener.frameworkProxy = null // TODO(hotx):
+      this.renderExceptionListener.nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
 
       HippyRoot.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
       let rootId = HippyRoot.sRootIdCounter
@@ -187,7 +188,9 @@ export struct HippyRoot {
       if (this.initViewSize && this.rootView) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
-
+      if (this.onRootViewCreated) {
+        this.onRootViewCreated(rootId)
+      }
       this.rootView.setDidCreateRenderViewCallback(() => {
         this.showRenderView = true
       })

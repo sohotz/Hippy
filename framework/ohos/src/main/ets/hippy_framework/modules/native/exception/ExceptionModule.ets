@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
+import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { HippyJsException } from '../../../common/HippyJsException'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
@@ -40,5 +41,29 @@ export class ExceptionModule extends HippyNativeModuleBase {
     }
   }
 
-
+  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'handleException': {
+        if (params != null && params instanceof Map) {
+          let title = ""
+          let details = ""
+          if ((params as HippyMap).get("title") !== undefined) {
+            title = (params as HippyMap).get("title") as string
+          }
+          if ((params as HippyMap).get("details") !== undefined) {
+            details = (params as HippyMap).get("details") as string
+          }
+          this.handleException(title, details)
+        }
+        break;
+      }
+      case 'handleBackgroundTracing': {
+        this.handleBackgroundTracing(params as string)
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
+  }
 }

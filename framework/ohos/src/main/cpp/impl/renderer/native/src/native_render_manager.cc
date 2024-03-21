@@ -498,12 +498,15 @@ void NativeRenderManager::CallFunction(std::weak_ptr<RootNode> root_node,
 
   std::vector<uint8_t> param_bson;
   param.ToBson(param_bson);
-
-  // TODO(hot):
+  
   void* new_buffer = malloc(param_bson.size());
+  FOOTSTONE_DCHECK(new_buffer != nullptr);
+  if (!new_buffer) {
+    FOOTSTONE_LOG(ERROR) << "NativeRenderManager::CallFunction, malloc fail, size = " << param_bson.size();
+    return;
+  }
   memcpy(new_buffer, param_bson.data(), param_bson.size());
-
-  std::pair<uint8_t*, size_t> buffer_pair = std::make_pair(static_cast<uint8_t*>(new_buffer), param_bson.size());
+  auto buffer_pair = std::make_pair(reinterpret_cast<uint8_t*>(new_buffer), param_bson.size());
 
   CallRenderDelegateCallFunctionMethod("callUIFunction", root->GetId(), node->GetId(), cb_id, name, buffer_pair);
 
@@ -672,6 +675,14 @@ std::string HippyValueToString(const HippyValue &value) {
     double d;
     value.ToDouble(d);
     sv = std::to_string(d);
+  } else if(value.IsInt32()) {
+    int32_t i;
+    value.ToInt32(i);
+    sv = std::to_string(i);
+  } else if(value.IsUInt32()) {
+    uint32_t ui;
+    value.ToUint32(ui);
+    sv = std::to_string(ui);
   } else {
     FOOTSTONE_LOG(ERROR) << "Measure Text : unknow value type";
   }
