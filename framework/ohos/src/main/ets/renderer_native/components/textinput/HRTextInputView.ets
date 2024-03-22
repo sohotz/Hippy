@@ -39,7 +39,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   public caretColor: ResourceColor = Color.Transparent
   public color: ResourceColor = Color.Black
   public fontFamily:string = 'HarmonyOS Sans'
-  public fontSize:number = 14
+  public fontSize:number = 18
   public fontStyle:FontStyle = FontStyle.Normal
   public fontWeight:LocalFontWeight = FontWeight.Normal
   public maxLength:number = 0xFFFFFFFF
@@ -53,6 +53,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   public placeholderTextColor: ResourceColor = Color.Gray
   public uiCtx:UIContext | null = null
 
+  focus:boolean = false
   controller:TextInputController = new TextInputController()
   textAreaController:TextAreaController = new TextAreaController()
 
@@ -85,6 +86,7 @@ export class HRTextInputView extends HippyRenderBaseView {
       this.maxLength = HRValueUtils.getNumber(propValue as HippyAny)
     } else if (propKey === 'multiline') {
       this.multiline = HRValueUtils.getBoolean(propValue as HippyAny,true)
+      this.textAlignVertical = Alignment.Top
     } else if (propKey === 'textAlign') {
       this.setTextAlign(propValue)
     } else if (propKey === 'textAlignVertical') {
@@ -182,6 +184,10 @@ export class HRTextInputView extends HippyRenderBaseView {
       result = new Map<string, HippyValue>() as HippyMap;
       result.set("text", this.value);
       callback(result)
+    } else if (method === "isFocused"  && callback) {
+      result = new Map<string, HippyValue>() as HippyMap;
+      result.set("value", this.focus);
+      callback(result)
     } else if (method === "focusTextInput") {
       this.focusTextInput(params)
     } else if (method === "blurTextInput") {
@@ -218,6 +224,7 @@ export class HRTextInputView extends HippyRenderBaseView {
 
   blurTextInput(params: Array<HippyAny>) {
     //todo
+    this.controller.stopEditing()
   }
 
   hideInputMethod(params: Array<HippyAny>) {
@@ -235,6 +242,10 @@ export struct HRTextInput {
 
   onChange(value: string) {
     LogUtils.d(this.TAG, `onchange:${value}`)
+    if (this.renderView.value === value) {
+      return
+    }
+
     this.renderView.value = value
 
     let params = new Map<string, HippyValue>() as HippyMap;
@@ -265,6 +276,7 @@ export struct HRTextInput {
         controller: this.renderView.textAreaController
       })
         .applyTextAreaRenderViewBaseAttr(this.renderView)
+        .padding(0)
         //.type(this.renderView.keyboardType)
         .placeholderColor(this.renderView.placeholderTextColor)
         //.enterKeyType(this.renderView.returnKeyType)
@@ -291,6 +303,8 @@ export struct HRTextInput {
         controller: this.renderView.controller
       })//.expandSafeArea([SafeAreaType.KEYBOARD],[ SafeAreaEdge.BOTTOM]) //TODO
         .applyRenderViewBaseAttr(this.renderView)
+        .showPasswordIcon(false)
+        .padding(0)
         .type(this.renderView.keyboardType)
         .placeholderColor(this.renderView.placeholderTextColor)
         .enterKeyType(this.renderView.returnKeyType)
@@ -319,6 +333,22 @@ export struct HRTextInput {
         })
         .onTextSelectionChange((start: number, end: number) => {
           this.onTextChange(start, end)
+        })
+        .onFocus(()=>{
+          LogUtils.d(this.TAG, "onFocus")
+          this.renderView.focus = true
+
+          let params = new Map<string, HippyValue>() as HippyMap;
+          params.set("text", this.renderView.value);
+          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "focus", params);
+        })
+        .onBlur(()=>{
+          LogUtils.d(this.TAG, "onBlur")
+          this.renderView.focus = false
+
+          let params = new Map<string, HippyValue>() as HippyMap;
+          params.set("text", this.renderView.value);
+          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "blur", params);
         })
    }
   }
