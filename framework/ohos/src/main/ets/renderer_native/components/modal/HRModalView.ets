@@ -19,21 +19,22 @@
  */
 import { HRComponent } from '../../HippyRenderView'
 import { NativeRenderContext } from '../../NativeRenderContext'
-import { HRGestureDispatcher } from '../../uimanager/HRGestureDispatcher'
-import { HREventType, HREventUtils } from '../../utils/HREventUtils'
+import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView'
 import { LogUtils } from '../../../support/utils/LogUtils'
 import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { HRRect } from '../../utils/HRTypes'
 
 const TAG: string = "HRModal";
-const DURATION = 1000
+const DURATION = 200
 
 @Observed
 export class HRModalView extends HippyRenderBaseView {
   static readonly VIEW_NAME = "HRModalView"
-  visible:boolean = false
+  visible: boolean = false
+  secondLayouted: boolean = false
 
   transparent: boolean = true
   animationType: TransitionEffect = TransitionEffect.OPACITY.animation({ duration: DURATION, curve: Curve.Ease})
@@ -44,6 +45,7 @@ export class HRModalView extends HippyRenderBaseView {
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
+    this.cssVisibility = Visibility.Hidden
   }
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(TAG, `modalview propkey: ${propKey}, value: ${propValue}`)
@@ -60,7 +62,6 @@ export class HRModalView extends HippyRenderBaseView {
         } else if (type === 'slide_fade') {
           this.animationType = TransitionEffect.OPACITY.animation({ duration: DURATION, curve: Curve.Ease}).combine(TransitionEffect.move(TransitionEdge.BOTTOM))
         }
-
         break;
       case "immersionStatusBar":
         this.immersionStatusBar = HRValueUtils.getBoolean(propValue as HippyAny, false);
@@ -79,6 +80,14 @@ export class HRModalView extends HippyRenderBaseView {
     }
     return super.setProp(propKey, propValue as HippyAny)
   }
+
+  protected updateRenderViewFrame(frame: HRRect): void {
+    super.updateRenderViewFrame(frame)
+    if (this.secondLayouted) {
+      this.cssVisibility = Visibility.Visible
+    }
+  }
+
 }
 
 @CustomDialog
@@ -99,6 +108,18 @@ struct HippyDialog {
       .applyRenderViewBaseAttr(this.renderView)
       .backgroundColor(this.renderView.transparent ? Color.Transparent : this.renderView.cssBackgroundColor)
       .transition(this.renderView.animationType)
+      .size({width: '100%', height: '100%'})
+      .expandSafeArea([SafeAreaType.SYSTEM])
+      .onAreaChange((oldValue: Area, newValue: Area) => {
+        if (this.renderView.children.length == 0) {
+          LogUtils.e(TAG, "onAreaChange, children length is 0")
+          return
+        }
+        this.renderView.secondLayouted = true
+        let nodeId = this.renderView.children[0].tag
+        let rootId = this.renderView.ctx.getRootId()
+        this.renderView.ctx.getNativeRender().onSizeChanged2(rootId, nodeId, newValue.width as number, newValue.height as number, false)
+      })
     }
   }
 }
@@ -126,7 +147,7 @@ export struct HRModal {
       }),
       autoCancel: true,
       customStyle: true,
-      alignment: DialogAlignment.Center,
+      alignment: DialogAlignment.TopStart,
       openAnimation: { duration: 0, onFinish: ()=>{
         this.renderView.visible = true
       }},
@@ -152,12 +173,10 @@ export struct HRModal {
 }
 
 // base props for all components
+// but backgroundColor / position / size is not set here
 @Extend(Stack)
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
-  .backgroundColor($$.cssBackgroundColor)
-  // .position({x: $$.cssPositionX, y: $$.cssPositionY})
-  .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
   .visibility(($$ as HippyRenderBaseView).cssVisibility) // must add as, otherwise the compiler has error
