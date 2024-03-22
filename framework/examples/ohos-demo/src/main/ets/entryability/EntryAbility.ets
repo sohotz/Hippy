@@ -34,7 +34,7 @@ export default class EntryAbility extends UIAbility {
 
     let params = new EngineInitParams(libHippy, this.context)
     params.providers = new Array(new ExampleAPIProvider())
-    params.coreJSAssetsPath = "vue2/vendor.android.js"
+    params.coreJSAssetsPath = "vue2/vendor.ohos.js"
     let hippyEngine = createHippyEngine(params)
     AppStorage.setOrCreate("HippyEngine", hippyEngine)
   }
