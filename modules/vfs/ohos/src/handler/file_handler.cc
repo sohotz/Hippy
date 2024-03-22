@@ -21,6 +21,9 @@
 #include "vfs/handler/file_handler.h"
 #include "footstone/task.h"
 #include "vfs/file.h"
+#include "vfs/Uri.h"
+
+constexpr char kRunnerName[] = "file_handler_runner";
 
 namespace hippy {
 inline namespace vfs {
@@ -28,10 +31,18 @@ inline namespace vfs {
 void FileHandler::RequestUntrustedContent(std::shared_ptr<RequestJob> request,
                                           std::shared_ptr<JobResponse> response,
                                           std::function<std::shared_ptr<UriHandler>()> next) {
-  string_view uri = request->GetUri();
-
-  // TODO(hot):
-
+  Uri uri = Uri(request->GetUri());
+  string_view path = uri.GetPath();
+  if (path.encoding() == string_view::Encoding::Unknown) {
+    response->SetRetCode(hippy::JobResponse::RetCode::PathError);
+    return;
+  }
+  bool ret = HippyFile::ReadFile(path, response->GetContent(), false);
+  if (ret) {
+    response->SetRetCode(UriHandler::RetCode::Success);
+  } else {
+    response->SetRetCode(UriHandler::RetCode::Failed);
+  }
   auto next_handler = next();
   if (next_handler) {
     next_handler->RequestUntrustedContent(request, response, next);
@@ -42,7 +53,14 @@ void FileHandler::RequestUntrustedContent(
     std::shared_ptr<RequestJob> request,
     std::function<void(std::shared_ptr<JobResponse>)> cb,
     std::function<std::shared_ptr<UriHandler>()> next) {
-
+  Uri uri = Uri(request->GetUri());
+  string_view path = uri.GetPath();
+  if (path.encoding() == string_view::Encoding::Unknown) {
+    cb(std::make_shared<JobResponse>(UriHandler::RetCode::PathError));
+    return;
+  }
+  auto new_cb = [orig_cb = cb](std::shared_ptr<JobResponse> response) { orig_cb(response); };
+  LoadByFile(path, request, new_cb, next);
 }
 
 void FileHandler::LoadByFile(
@@ -50,8 +68,22 @@ void FileHandler::LoadByFile(
     std::shared_ptr<RequestJob> request,
     std::function<void(std::shared_ptr<JobResponse>)> cb,
     std::function<std::shared_ptr<UriHandler>()> next) {
-
+  {
+    std::lock_guard<std::mutex> lock_guard(mutex_);
+    if (!runner_) {
+        runner_ = request->GetWorkerManager()->CreateTaskRunner(kRunnerName);
+    }
+  }
+  runner_->PostTask([path, cb] {
+      UriHandler::bytes content;
+      bool ret = HippyFile::ReadFile(path, content, false);
+      if (ret) {
+          cb(std::make_shared<JobResponse>(hippy::JobResponse::RetCode::Success, "",
+                                           std::unordered_map<std::string, std::string>{}, std::move(content)));
+      } else {
+          cb(std::make_shared<JobResponse>(hippy::JobResponse::RetCode::Failed));
+      }
+  });
 }
-
 }
 }

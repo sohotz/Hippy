@@ -17,19 +17,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
-import { HippyEngineContext } from '../../HippyEngineContext';
 
-export class HippyNativeModuleBase {
+#pragma once
 
-  public static readonly NAME: string
-  protected ctx: HippyEngineContext
+#include <string>
 
-  constructor(ctx: HippyEngineContext) {
-    this.ctx = ctx
-  }
+#include "footstone/string_view.h"
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback | null): HippyAny {
-    return null
-  }
-}
+namespace hippy {
+inline namespace vfs {
+
+constexpr char kFileSchema[] = "file";
+constexpr char kAssetSchema[] = "asset";
+
+class Uri {
+ public:
+  using string_view = footstone::stringview::string_view;
+  
+  Uri(const string_view& uri);
+  ~Uri() = default;
+
+  string_view GetPath();
+  string_view GetScheme();
+
+ private:
+  string_view::u8string u8_string_;
+};
+
+} // namespace vfs
+} // namespace hippy

@@ -165,18 +165,18 @@ export class WebSocketModule extends HippyNativeModuleBase {
     return num + 1
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'connect': {
-        this.connect(params as HippyMap)
+        this.connect(params[0] as HippyMap)
         break;
       }
       case 'send': {
-        this.send(params as HippyMap)
+        this.send(params[0] as HippyMap)
         break;
       }
       case 'close': {
-        this.close(params as HippyMap)
+        this.close(params[0] as HippyMap)
         break;
       }
       default:

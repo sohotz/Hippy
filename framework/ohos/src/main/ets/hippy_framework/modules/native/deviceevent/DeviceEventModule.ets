@@ -63,10 +63,10 @@ export class DeviceEventModule extends HippyNativeModuleBase {
     this.mBackPressHandler = null;
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'setListenBackPress': {
-        this.setListenBackPress(params as boolean)
+        this.setListenBackPress(params[0] as boolean)
         break;
       }
       case 'invokeDefaultBackPressHandler': {

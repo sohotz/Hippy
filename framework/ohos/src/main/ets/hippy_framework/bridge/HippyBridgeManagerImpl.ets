@@ -20,6 +20,7 @@
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
 import { HippyAny, HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { ArgumentUtils } from '../../support/utils/ArgumentUtils';
+import { DimensionsUtil } from '../../support/utils/DimensionsUtil';
 import { I18nUtil } from '../../support/utils/I18nUtil';
 import { LogUtils } from '../../support/utils/LogUtils';
 import { MonitorGroupType, TimeMonitor } from '../../support/utils/TimeMonitor';
@@ -271,6 +272,8 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     let pageUrl = ""
     let nightMode = false
     let extraDataMap = new Map<string, HippyValue>()
+
+    // TODO support ThirdAdapter inject
 
     let platformParams = new Map<string, HippyValue | Map<string, HippyValue>>()
     platformParams.set("OS", "ohos")

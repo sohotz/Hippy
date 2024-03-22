@@ -145,18 +145,18 @@ export class StorageModule extends HippyNativeModuleBase {
     })
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'multiGet': {
-        this.multiGet(params as string[])
+        this.multiGet(params[0] as string[])
         break;
       }
       case 'multiSet': {
-        this.multiSet(params as HippyMap)
+        this.multiSet(params[0] as HippyMap)
         break;
       }
       case 'multiRemove': {
-        this.multiRemove(params as string[])
+        this.multiRemove(params[0] as string[])
         break;
       }
       case 'getAllKeys': {

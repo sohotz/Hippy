@@ -22,6 +22,7 @@
 #include "footstone/check.h"
 #include "footstone/logging.h"
 #include "footstone/string_view_utils.h"
+#include "vfs/Uri.h"
 
 using string_view = footstone::string_view;
 using StringViewUtils = footstone::StringViewUtils;
@@ -50,12 +51,10 @@ void AssetHandler::RequestUntrustedContent(
     std::shared_ptr<RequestJob> request,
     std::shared_ptr<JobResponse> response,
     std::function<std::shared_ptr<UriHandler>()> next) {
-  // TODO(hot):
-  std::string uri = request->GetUri().latin1_value(); // "asset:/vue2/vendor.android.js"
-  size_t pos = uri.find(":");
-  std::string pathName = uri.substr(pos+2);
+  Uri uri = Uri(request->GetUri());
+  std::string path = StringViewUtils::ToStdString(uri.GetPath().utf8_value());
 
-  RawFile *file = OH_ResourceManager_OpenRawFile(resource_manager_, pathName.c_str());
+  RawFile *file = OH_ResourceManager_OpenRawFile(resource_manager_, path.c_str());
   if (!file) {
     response->SetRetCode(hippy::JobResponse::RetCode::ResourceNotFound);
   } else {

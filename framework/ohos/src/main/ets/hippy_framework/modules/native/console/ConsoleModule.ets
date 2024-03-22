@@ -32,22 +32,22 @@ export class ConsoleModule extends HippyNativeModuleBase {
     super(ctx)
   }
 
-  call(method: string, params: HippyAny, callback: HippyModuleCallback | null): HippyAny {
+  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback | null): HippyAny {
     switch (method) {
       case 'log': {
-        this.log(params as string)
+        this.log(params[0] as string)
         break;
       }
       case 'warn': {
-        this.warn(params as string)
+        this.warn(params[0] as string)
         break;
       }
       case 'info': {
-        this.info(params as string)
+        this.info(params[0] as string)
         break;
       }
       case 'error': {
-        this.error(params as string)
+        this.error(params[0] as string)
         break;
       }
       default:
