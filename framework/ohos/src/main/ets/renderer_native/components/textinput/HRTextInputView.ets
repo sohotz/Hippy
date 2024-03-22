@@ -31,6 +31,7 @@ import HippyRenderBaseView, { HippyObservedArray,
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { HRNodeProps } from '../../dom_node/HRNodeProps';
 
 type LocalFontWeight = number | FontWeight
 
@@ -74,7 +75,7 @@ export class HRTextInputView extends HippyRenderBaseView {
     } else if (propKey === 'fontFamily') {
       this.fontFamily = HRValueUtils.getString(propValue as HippyAny)
     } else if (propKey === 'fontSize') {
-      this.fontSize = HRValueUtils.getNumber(propValue as HippyAny)
+      this.fontSize = HRValueUtils.getNumber2(propValue as HippyAny, HRNodeProps.FONT_SIZE_SP)
     } else if (propKey === 'fontStyle') {
       let fontStyle = HRValueUtils.getString(propValue as HippyAny)
       if (fontStyle === 'italic') {
