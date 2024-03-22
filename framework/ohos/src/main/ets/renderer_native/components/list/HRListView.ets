@@ -124,7 +124,7 @@ export class HRListView extends HippyRenderBaseView {
           let startOff = params[0] as number;
           let endOff = params[1] as number;
           let needAnimation = params[2] as boolean;
-          this.scroller.scrollToIndex(endOff-4, needAnimation)
+          this.scroller.scrollToItemInGroup(1, endOff-4)
         }
         break;
       case "scrollToContentOffset":
@@ -514,26 +514,23 @@ export struct HRList {
           this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_END);
           let xOff: number = this.renderView.scroller.currentOffset().xOffset;
           let yOff: number = this.renderView.scroller.currentOffset().yOffset;
-          let curOff = new Map<string, Number>() as HippyMap;
-          curOff.set("x", xOff);
-          curOff.set("y", yOff);
-          let params = new Map<string, HippyMap>() as Hippy2Map;
-          params.set(this.CURRENT_OFFSET, curOff);
-          //todo: should call emitScrollEvent?
-          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag,
-            HREventUtils.EVENT_SCROLLER_ON_SCROLL, params as HippyMap);
+          this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_ON_SCROLL)
 
           //scroll to head then release
           if (this.headerView && this.pullAction == ScrollAction.PullHeader) {
-            LogUtils.d(this.TAG, "onScroll: onScrollStop=" + yOff);
-            if (yOff > 0) {
-              //do nothing
-            } else if (this.renderView.edgeState == EdgeAction.ReachStart) {
+            LogUtils.d(this.TAG, "onScroll: onScrollStop=ScrollAction.PullHeader" + yOff);
+            if (this.renderView.edgeState == EdgeAction.ReachStart) {
+              LogUtils.d(this.TAG, "onScroll: onScrollStop=this.renderView.edgeState == EdgeAction.ReachStart" + yOff);
               HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
                 HREventUtils.EVENT_LIST_HEADER_RELEASED, null);
             } else {
+              LogUtils.d(this.TAG, "onScroll: onScrollStop=scrollToIndex" + yOff);
               this.renderView.scroller.scrollToIndex(1, true)
             }
+
+            // else if (yOff > 0) {
+            //   //do nothing
+            // }
             this.pullAction = ScrollAction.None;
           }
         })

@@ -28,7 +28,7 @@ import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyType
 import { HRValueUtils } from '../../utils/HRValueUtils';
 
 const TAG: string = "HRModal";
-const DURATION = 1000
+const DURATION = 200
 
 @Observed
 export class HRModalView extends HippyRenderBaseView {
@@ -36,7 +36,7 @@ export class HRModalView extends HippyRenderBaseView {
   visible:boolean = false
 
   transparent: boolean = true
-  animationType: TransitionEffect = TransitionEffect.OPACITY.animation({ duration: DURATION, curve: Curve.Ease})
+  animationType: TransitionEffect = TransitionEffect.OPACITY.animation({ duration: DURATION})
   immersionStatusBar: boolean = false
   darkStatusBarText: boolean = false
   autoHideStatusBar: boolean = false
@@ -54,11 +54,11 @@ export class HRModalView extends HippyRenderBaseView {
       case "animationType":
         let type = HRValueUtils.getString(propValue as string)
         if (type === 'slide') {
-          this.animationType = TransitionEffect.move(TransitionEdge.BOTTOM).animation({ duration: DURATION, curve: Curve.Ease})
+          this.animationType = TransitionEffect.move(TransitionEdge.BOTTOM).animation({ duration: DURATION, curve:Curve.Ease})
         } else if (type === 'fade') {
-          this.animationType = TransitionEffect.OPACITY.animation({ duration: DURATION, curve: Curve.Ease})
+          this.animationType = TransitionEffect.OPACITY.animation({ duration: DURATION})
         } else if (type === 'slide_fade') {
-          this.animationType = TransitionEffect.OPACITY.animation({ duration: DURATION, curve: Curve.Ease}).combine(TransitionEffect.move(TransitionEdge.BOTTOM))
+          this.animationType = TransitionEffect.OPACITY.animation({ duration: DURATION}).combine(TransitionEffect.move(TransitionEdge.BOTTOM))
         }
 
         break;
