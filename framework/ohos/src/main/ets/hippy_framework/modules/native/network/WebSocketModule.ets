@@ -52,7 +52,7 @@ export class WebSocketModule extends HippyNativeModuleBase {
     this.mWebSocketConnections = new HashMap<number, webSocket.WebSocket>();
   }
 
-  public connect(request: HippyMap): Promise<HippyAny> {
+  private connect(request: HippyMap): Promise<HippyAny> {
     let returnValue: HippyMap = new Map();
     return new Promise((resolve, reject) => {
       if (request == null) {
@@ -86,15 +86,15 @@ export class WebSocketModule extends HippyNativeModuleBase {
     })
   }
 
-  public send(param: HippyMap) {
+  private send(param: HippyMap) {
     this.handleSocket(param, "open")
   }
 
-  public close(param: HippyMap) {
+  private close(param: HippyMap) {
     this.handleSocket(param, "close")
   }
 
-  handleSocket(param: HippyMap, status: string) {
+  private handleSocket(param: HippyMap, status: string) {
     if (param == null) {
       LogUtils.d(WEBSOCKET_MODULE_TAG, "send: ERROR: request is null");
       return;
@@ -165,7 +165,7 @@ export class WebSocketModule extends HippyNativeModuleBase {
     return num + 1
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'connect': {
         this.connect(params[0] as HippyMap)

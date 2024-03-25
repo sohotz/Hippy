@@ -43,20 +43,6 @@ export class NetInfoModule extends HippyNativeModuleBase {
     this.netConnection = connection.createNetConnection()
   }
 
-  public getCurrentConnectivity(): Promise<HashMap<string, string>> {
-    return new Promise((resolve, reject) => {
-      if (this.mNoNetworkPermission) {
-        reject(NetInfoModule.MISSING_PERMISSION_MESSAGE);
-        return
-      }
-      connection.getDefaultNet().then((data) => {
-        let map = new HashMap<string, string>();
-        map.set("network_info", JSON.stringify(data));
-        resolve(map);
-      })
-    })
-  }
-
   public getCurrentConnectionType(): string {
     try {
       let netHandle = connection.getDefaultNetSync();
@@ -80,6 +66,48 @@ export class NetInfoModule extends HippyNativeModuleBase {
     this.unregisterConnect();
   }
 
+  public handleAddListener(name: string) {
+    this.registerReceiver();
+  }
+
+  public handleRemoveListener(name: string) {
+    this.unregisterReceiver();
+  }
+
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'getCurrentConnectivity': {
+        this.getCurrentConnectivity()
+        break;
+      }
+      case 'handleAddListener': {
+        this.handleAddListener(params[0] as string)
+        break;
+      }
+      case 'handleRemoveListener': {
+        this.handleRemoveListener(params[0] as string)
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
+  }
+
+  private getCurrentConnectivity(): Promise<HashMap<string, string>> {
+    return new Promise((resolve, reject) => {
+      if (this.mNoNetworkPermission) {
+        reject(NetInfoModule.MISSING_PERMISSION_MESSAGE);
+        return
+      }
+      connection.getDefaultNet().then((data) => {
+        let map = new HashMap<string, string>();
+        map.set("network_info", JSON.stringify(data));
+        resolve(map);
+      })
+    })
+  }
+
   private unregisterConnect() {
     // 使用unregister接口取消订阅
     try {
@@ -89,14 +117,6 @@ export class NetInfoModule extends HippyNativeModuleBase {
     } catch (e) {
       LogUtils.d("NetInfoModule", "unregisterConnect: " + e.getMessage());
     }
-  }
-
-  public handleAddListener(name: string) {
-    this.registerReceiver();
-  }
-
-  public handleRemoveListener(name: string) {
-    this.unregisterReceiver();
   }
 
   private registerReceiver() {
@@ -117,17 +137,5 @@ export class NetInfoModule extends HippyNativeModuleBase {
     } catch (e) {
       LogUtils.d("NetInfoModule", "unregisterReceiver: " + e.getMessage());
     }
-  }
-
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
-    switch (method) {
-      case 'getCurrentConnectivity': {
-        this.getCurrentConnectivity()
-        break;
-      }
-      default:
-        super.call(method, params, callback)
-    }
-    return null;
   }
 }

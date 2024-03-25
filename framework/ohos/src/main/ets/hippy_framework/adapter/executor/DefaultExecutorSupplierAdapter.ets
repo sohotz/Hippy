@@ -19,14 +19,17 @@
  */
 import { HippyExecutorSupplierAdapter } from './HippyExecutorSupplierAdapter';
 import { HippyExecutor } from '../../../support/common/HippyExecutor';
+import { worker } from '@kit.ArkTS';
+import { LogUtils } from '../../../support/utils/LogUtils';
 
 export class DefaultExecutorSupplierAdapter implements HippyExecutorSupplierAdapter {
-  mDBExecutor: HippyExecutor | null = null
+  mDBExecutor: worker.ThreadWorker | null = null
   mBackgroundTaskExecutor: HippyExecutor | null = null
 
-  getDBExecutor(): HippyExecutor {
+  getDBExecutor(): worker.ThreadWorker {
+
     if (!this.mDBExecutor) {
-      this.mDBExecutor = new HippyExecutor()
+      this.mDBExecutor = new worker.ThreadWorker("./././support/workers/worker.ets");
     }
     return this.mDBExecutor
   }
@@ -39,9 +42,11 @@ export class DefaultExecutorSupplierAdapter implements HippyExecutorSupplierAdap
   }
 
   destroyIfNeed() {
-    if (this.mDBExecutor != null && !this.mDBExecutor.isShutdown()) {
-      this.mDBExecutor.shutdown();
-      this.mDBExecutor = null;
+    if (this.mDBExecutor != null) {
+      this.mDBExecutor.onexit = () => {
+        LogUtils.d("ExecutorSupplierAdapter ", "onexit");
+      }
+      this.mDBExecutor.removeAllListener();
     }
 
     if (this.mBackgroundTaskExecutor != null && !this.mBackgroundTaskExecutor.isShutdown()) {

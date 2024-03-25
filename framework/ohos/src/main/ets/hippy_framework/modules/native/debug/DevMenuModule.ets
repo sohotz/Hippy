@@ -31,7 +31,7 @@ export class DevMenuModule extends HippyNativeModuleBase {
     super(context)
   }
 
-  public reload() {
+  private reload() {
     try {
       //todo
       // this.ctx.getDevSupportManager().getDevImp().reload();
@@ -40,7 +40,7 @@ export class DevMenuModule extends HippyNativeModuleBase {
     }
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'reload': {
         this.reload()

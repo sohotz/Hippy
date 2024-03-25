@@ -18,10 +18,11 @@
  * limitations under the License.
  */
 import { HippyExecutor } from '../../../support/common/HippyExecutor'
+import { worker } from '@kit.ArkTS'
 
 export interface HippyExecutorSupplierAdapter {
 
-  getDBExecutor(): HippyExecutor
+  getDBExecutor(): worker.ThreadWorker
 
   getBackgroundTaskExecutor(): HippyExecutor
 
