@@ -17,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import hilog from '@ohos.hilog';
 import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes';
 import { LogUtils } from '../../../../support/utils/LogUtils';
 import { HippyEngineContext } from '../../../HippyEngineContext';
@@ -32,7 +31,7 @@ export class ConsoleModule extends HippyNativeModuleBase {
     super(ctx)
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback | null): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback | null): HippyAny {
     switch (method) {
       case 'log': {
         this.log(params[0] as string)
@@ -56,19 +55,19 @@ export class ConsoleModule extends HippyNativeModuleBase {
     return null;
   }
 
-  log(message: string) {
-    LogUtils.d( CONSOLE_LOG_TAG, '%{public}s :'+ message)
+  private log(message: string) {
+    LogUtils.d(CONSOLE_LOG_TAG, '%{public}s :' + message)
   }
 
-  warn(message: string) {
-    LogUtils.w( CONSOLE_LOG_TAG, '%{public}s :'+message)
+  private warn(message: string) {
+    LogUtils.w(CONSOLE_LOG_TAG, '%{public}s :' + message)
   }
 
-  info(message: string) {
-    LogUtils.i( CONSOLE_LOG_TAG, '%{public}s :'+message)
+  private info(message: string) {
+    LogUtils.i(CONSOLE_LOG_TAG, '%{public}s :' + message)
   }
 
-  error(message: string) {
-    LogUtils.e( CONSOLE_LOG_TAG, '%{public}s :'+message)
+  private error(message: string) {
+    LogUtils.e(CONSOLE_LOG_TAG, '%{public}s :' + message)
   }
 }

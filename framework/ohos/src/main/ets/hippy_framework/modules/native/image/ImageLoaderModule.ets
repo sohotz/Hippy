@@ -73,7 +73,7 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
     return requestParams;
   }
 
-  public getSize(url: string): Promise<Map<string, string>> {
+  private getSize(url: string): Promise<Map<string, string>> {
     return new Promise<Map<string, string>>((resolve, reject) => {
       if (TextUtils.isEmpty(url)) {
         let map = new Map<string, string>()
@@ -85,7 +85,7 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
     })
   }
 
-  public prefetch(url: string) {
+  private prefetch(url: string) {
     this.mVfsManager.fetchResourceAsync(url, undefined, this.generateRequestParams(), new ResourceCallback(this.ctx, "prefetch"))
   }
 
@@ -108,7 +108,7 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
     })
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'getSize': {
         this.getSize(params[0] as string)

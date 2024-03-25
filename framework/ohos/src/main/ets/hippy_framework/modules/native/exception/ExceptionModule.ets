@@ -31,17 +31,17 @@ export class ExceptionModule extends HippyNativeModuleBase {
     super(ctx)
   }
 
-  public handleException(title: string, details: string) {
+  private handleException(title: string, details: string) {
     this.ctx.handleException(new HippyJsException(title, details));
   }
 
-  public handleBackgroundTracing(details: string) {
+  private handleBackgroundTracing(details: string) {
     if (this.ctx.getGlobalConfigs().getExceptionHandler() != null) {
       this.ctx.getGlobalConfigs().getExceptionHandler()?.handleBackgroundTracing(details);
     }
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'handleException': {
         if (params != null && params instanceof Map) {

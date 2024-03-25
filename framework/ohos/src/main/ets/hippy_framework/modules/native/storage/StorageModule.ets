@@ -42,7 +42,7 @@ export class StorageModule extends HippyNativeModuleBase {
     this.mStorageAdapter = this.ctx.getGlobalConfigs().getStorageAdapter();
   }
 
-  multiGet(keys: string[]): Promise<[key: string, value: string][]> {
+  private multiGet(keys: string[]): Promise<[key: string, value: string][]> {
     return new Promise<[key: string, value: string][]>((resolve, reject) => {
       if (keys == null || keys.length <= 0) {
         reject("Invalid Key");
@@ -66,8 +66,7 @@ export class StorageModule extends HippyNativeModuleBase {
     })
   }
 
-  // multiSet(params: [key: string, value: string][]): Promise<void> {
-  multiSet(params: HippyMap): Promise<void> {
+  private multiSet(params: HippyMap): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (params == null || params.size <= 0) {
         reject("Invalid Key");
@@ -108,7 +107,7 @@ export class StorageModule extends HippyNativeModuleBase {
     })
   }
 
-  multiRemove(keys: string[]): Promise<void> {
+  private multiRemove(keys: string[]): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (keys == null || keys.length <= 0) {
         reject("Invalid Key");
@@ -128,7 +127,7 @@ export class StorageModule extends HippyNativeModuleBase {
     })
   }
 
-  getAllKeys(): Promise<string[]> {
+  private getAllKeys(): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
       if (this.mStorageAdapter == null) {
         reject("Database Null");
@@ -145,7 +144,7 @@ export class StorageModule extends HippyNativeModuleBase {
     })
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'multiGet': {
         this.multiGet(params[0] as string[])
