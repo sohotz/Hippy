@@ -50,7 +50,7 @@ static napi_value CreateNativeRenderManager(napi_env env, napi_callback_info inf
   auto ts_render_provider_ref = arkTs.CreateReference(args[0]);
   auto density = arkTs.GetDouble(args[1]);
   auto render_manager = std::make_shared<NativeRenderManager>();
-  // TODO(hot):
+
   render_manager->SetRenderDelegate(env, ts_render_provider_ref);
   render_manager->InitDensity(density);
   auto render_id = hippy::global_data_holder_key.fetch_add(1);
@@ -64,28 +64,8 @@ static napi_value DestroyNativeRenderManager(napi_env env, napi_callback_info in
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info, 1);
   uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
-  std::any render_manager;
-  auto flag = hippy::global_data_holder.Find(render_manager_id, render_manager);
-  if (flag) {
-    // TODO(hot):
-    //std::static_pointer_cast<NativeRenderManager>(std::any_cast<std::shared_ptr<RenderManager>>(render_manager))->DestroyRenderDelegate(j_env);
-  }
-  flag = hippy::global_data_holder.Erase(render_manager_id);
+  auto flag = hippy::global_data_holder.Erase(render_manager_id);
   FOOTSTONE_DCHECK(flag);
-  return arkTs.GetUndefined();
-}
-
-static napi_value GetNativeRendererInstance(napi_env env, napi_callback_info info) {
-  ArkTS arkTs(env);
-  auto args = arkTs.GetCallbackArgs(info, 1);
-  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
-  std::any render_manager;
-  auto flag = hippy::global_data_holder.Find(render_manager_id, render_manager);
-  FOOTSTONE_DCHECK(flag);
-  auto render_manager_object = std::static_pointer_cast<NativeRenderManager>(
-      std::any_cast<std::shared_ptr<RenderManager>>(render_manager));
-  // TODO(hot):
-  //return render_manager_object->GetRenderProxy()->GetObj();
   return arkTs.GetUndefined();
 }
 
@@ -111,7 +91,6 @@ static napi_value SetDomManager(napi_env env, napi_callback_info info) {
 
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_CreateNativeRenderManager", CreateNativeRenderManager)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_DestroyNativeRenderManager", DestroyNativeRenderManager)
-REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_GetNativeRendererInstance", GetNativeRendererInstance)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_SetDomManager", SetDomManager)
 
 }

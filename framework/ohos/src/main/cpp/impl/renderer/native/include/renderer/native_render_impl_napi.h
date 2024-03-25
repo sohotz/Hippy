@@ -30,19 +30,24 @@ inline namespace framework {
 inline namespace renderer {
 inline namespace native {
 
-void SetRenderDelegate(napi_env env, napi_ref ts_render_provider_ref);
-void ClearRenderDelegate();
-
-void CallRenderDelegateSetIdMethod(const std::string& method, uint32_t id);
-void CallRenderDelegateMethod(const std::string& method, uint32_t root_id, const std::pair<uint8_t*, size_t>& buffer);
-void CallRenderDelegateMethod(const std::string& method, uint32_t root_id);
-void CallRenderDelegateMoveNodeMethod(const std::string& method, uint32_t root_id, uint32_t pid, const std::pair<uint8_t*, size_t>& buffer);
-void CallRenderDelegateMoveNodeMethod(const std::string& method, uint32_t root_id, std::vector<int32_t>& moved_ids, int32_t to_pid, int32_t from_pid, int32_t index);
-void CallRenderDelegateDeleteNodeMethod(const std::string& method, uint32_t root_id, std::vector<uint32_t>& ids);
-void CallRenderDelegateCallFunctionMethod(const std::string& method, uint32_t root_id,
+void CallRenderDelegateSetIdMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t id);
+void CallRenderDelegateMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, const std::pair<uint8_t*, size_t>& buffer);
+void CallRenderDelegateMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id);
+void CallRenderDelegateMoveNodeMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, uint32_t pid, const std::pair<uint8_t*, size_t>& buffer);
+void CallRenderDelegateMoveNodeMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, std::vector<int32_t>& moved_ids, int32_t to_pid, int32_t from_pid, int32_t index);
+void CallRenderDelegateDeleteNodeMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, std::vector<uint32_t>& ids);
+void CallRenderDelegateCallFunctionMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id,
   uint32_t node_id, uint32_t cb_id, const std::string& functionName, const std::pair<uint8_t*, size_t>& buffer);
-void CallRenderDelegateMeasureMethod(const std::string& method, uint32_t root_id,
-  uint32_t node_id, const float width, const int32_t width_mode, const float height, const int32_t height_mode, int64_t& result);
+void CallRenderDelegateMeasureMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, uint32_t node_id,
+  const float width, const int32_t width_mode, const float height, const int32_t height_mode, int64_t& result);
 
 }
 }

@@ -72,7 +72,6 @@ export interface HippyLibrary {
 
   NativeRenderer_CreateNativeRenderManager(renderProvider: NativeRenderProvider, density: number): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
-  NativeRenderer_GetNativeRendererInstance(instanceId: number): HippyAny;
   NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
 
   NativeRenderImpl_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number): void;

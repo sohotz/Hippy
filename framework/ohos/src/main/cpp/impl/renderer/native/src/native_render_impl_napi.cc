@@ -45,71 +45,62 @@ inline namespace framework {
 inline namespace renderer {
 inline namespace native {
 
-static napi_env s_env;
-static napi_ref s_ts_render_provider_ref;
-
-void SetRenderDelegate(napi_env env, napi_ref ts_render_provider_ref) {
-  s_env = env;
-  s_ts_render_provider_ref = ts_render_provider_ref;
-}
-
-void ClearRenderDelegate() {
-  // TODO(hot):
-  s_env = nullptr;
-  s_ts_render_provider_ref = nullptr;
-}
-
-void CallRenderDelegateSetIdMethod(const std::string& method, uint32_t id) {
-  ArkTS arkTs(s_env);
+void CallRenderDelegateSetIdMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t id) {
+  ArkTS arkTs(env);
   std::vector<napi_value> args = {
     arkTs.CreateUint32(id),
   };
-  auto delegateObject = arkTs.GetObject(s_ts_render_provider_ref);
+  auto delegateObject = arkTs.GetObject(render_provider_ref);
   delegateObject.Call(method.c_str(), args);
 }
 
-void CallRenderDelegateMethod(const std::string& method, uint32_t root_id, const std::pair<uint8_t*, size_t>& buffer) {
-  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(s_env);
-  taskRunner->RunAsyncTask([env = s_env, method, root_id, buffer]() {
+void CallRenderDelegateMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, const std::pair<uint8_t*, size_t>& buffer) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunAsyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, buffer]() {
     ArkTS arkTs(env);
     std::vector<napi_value> args = {
       arkTs.CreateUint32(root_id),
       arkTs.CreateExternalArrayBuffer(buffer.first, buffer.second)
     };
-    auto delegateObject = arkTs.GetObject(s_ts_render_provider_ref);
+    auto delegateObject = arkTs.GetObject(render_provider_ref);
     delegateObject.Call(method.c_str(), args);
   });
 }
 
-void CallRenderDelegateMethod(const std::string& method, uint32_t root_id) {
-  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(s_env);
-  taskRunner->RunAsyncTask([env = s_env, method, root_id]() {
+void CallRenderDelegateMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunAsyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id]() {
     ArkTS arkTs(env);
     std::vector<napi_value> args = {
       arkTs.CreateUint32(root_id)
     };
-    auto delegateObject = arkTs.GetObject(s_ts_render_provider_ref);
+    auto delegateObject = arkTs.GetObject(render_provider_ref);
     delegateObject.Call(method.c_str(), args);
   });
 }
 
-void CallRenderDelegateMoveNodeMethod(const std::string& method, uint32_t root_id, uint32_t pid, const std::pair<uint8_t*, size_t>& buffer) {
-  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(s_env);
-  taskRunner->RunAsyncTask([env = s_env, method, root_id, pid, buffer]() {
+void CallRenderDelegateMoveNodeMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, uint32_t pid, const std::pair<uint8_t*, size_t>& buffer) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunAsyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, pid, buffer]() {
     ArkTS arkTs(env);
     std::vector<napi_value> args = {
       arkTs.CreateUint32(root_id),
       arkTs.CreateUint32(pid),
       arkTs.CreateExternalArrayBuffer(buffer.first, buffer.second)
     };
-    auto delegateObject = arkTs.GetObject(s_ts_render_provider_ref);
+    auto delegateObject = arkTs.GetObject(render_provider_ref);
     delegateObject.Call(method.c_str(), args);
   });
 }
 
-void CallRenderDelegateMoveNodeMethod(const std::string& method, uint32_t root_id, std::vector<int32_t>& moved_ids, int32_t to_pid, int32_t from_pid, int32_t index) {
-  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(s_env);
-  taskRunner->RunAsyncTask([env = s_env, method, root_id, moved_ids, to_pid, from_pid, index]() {
+void CallRenderDelegateMoveNodeMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, std::vector<int32_t>& moved_ids, int32_t to_pid, int32_t from_pid, int32_t index) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunAsyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, moved_ids, to_pid, from_pid, index]() {
     ArkTS arkTs(env);
 
     auto idsArray = std::vector<napi_value>();
@@ -124,14 +115,15 @@ void CallRenderDelegateMoveNodeMethod(const std::string& method, uint32_t root_i
       arkTs.CreateInt(from_pid),
       arkTs.CreateInt(index)
     };
-    auto delegateObject = arkTs.GetObject(s_ts_render_provider_ref);
+    auto delegateObject = arkTs.GetObject(render_provider_ref);
     delegateObject.Call(method.c_str(), args);
   });
 }
 
-void CallRenderDelegateDeleteNodeMethod(const std::string& method, uint32_t root_id, std::vector<uint32_t>& ids) {
-  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(s_env);
-  taskRunner->RunAsyncTask([env = s_env, method, root_id, ids]() {
+void CallRenderDelegateDeleteNodeMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, std::vector<uint32_t>& ids) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunAsyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, ids]() {
     ArkTS arkTs(env);
 
     auto idsArray = std::vector<napi_value>();
@@ -143,15 +135,16 @@ void CallRenderDelegateDeleteNodeMethod(const std::string& method, uint32_t root
       arkTs.CreateUint32(root_id),
       arkTs.CreateArray(idsArray)
     };
-    auto delegateObject = arkTs.GetObject(s_ts_render_provider_ref);
+    auto delegateObject = arkTs.GetObject(render_provider_ref);
     delegateObject.Call(method.c_str(), args);
   });
 }
 
-void CallRenderDelegateCallFunctionMethod(const std::string& method, uint32_t root_id,
+void CallRenderDelegateCallFunctionMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id,
   uint32_t node_id, uint32_t cb_id, const std::string& functionName, const std::pair<uint8_t*, size_t>& buffer) {
-  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(s_env);
-  taskRunner->RunAsyncTask([env = s_env, method, root_id, node_id, cb_id, functionName, buffer]() {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunAsyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, node_id, cb_id, functionName, buffer]() {
     ArkTS arkTs(env);
     std::vector<napi_value> args = {
       arkTs.CreateUint32(root_id),
@@ -160,15 +153,16 @@ void CallRenderDelegateCallFunctionMethod(const std::string& method, uint32_t ro
       arkTs.CreateString(functionName),
       arkTs.CreateExternalArrayBuffer(buffer.first, buffer.second)
     };
-    auto delegateObject = arkTs.GetObject(s_ts_render_provider_ref);
+    auto delegateObject = arkTs.GetObject(render_provider_ref);
     delegateObject.Call(method.c_str(), args);
   });
 }
 
-void CallRenderDelegateMeasureMethod(const std::string& method, uint32_t root_id,
-  uint32_t node_id, const float width, const int32_t width_mode, const float height, const int32_t height_mode, int64_t& result) {
-  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(s_env);
-  taskRunner->RunSyncTask([env = s_env, method, root_id, node_id, width, width_mode, height, height_mode, &result]() {
+void CallRenderDelegateMeasureMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, uint32_t node_id,
+  const float width, const int32_t width_mode, const float height, const int32_t height_mode, int64_t& result) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunSyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, node_id, width, width_mode, height, height_mode, &result]() {
     ArkTS arkTs(env);
     std::vector<napi_value> args = {
       arkTs.CreateUint32(root_id),
@@ -178,7 +172,7 @@ void CallRenderDelegateMeasureMethod(const std::string& method, uint32_t root_id
       arkTs.CreateDouble(height),
       arkTs.CreateInt(height_mode),
     };
-    auto delegateObject = arkTs.GetObject(s_ts_render_provider_ref);
+    auto delegateObject = arkTs.GetObject(render_provider_ref);
     auto resultNapiValue = delegateObject.Call(method.c_str(), args);
     result = arkTs.GetInt64(resultNapiValue);
   });

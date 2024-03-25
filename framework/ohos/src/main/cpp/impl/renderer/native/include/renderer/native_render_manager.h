@@ -40,17 +40,15 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
  public:
   NativeRenderManager();
 
-  virtual ~NativeRenderManager() = default;
+  virtual ~NativeRenderManager();
   NativeRenderManager(const NativeRenderManager &) = delete;
   NativeRenderManager &operator=(const NativeRenderManager &) = delete;
   NativeRenderManager(NativeRenderManager &&) = delete;
   NativeRenderManager &operator=(NativeRenderManager &&) = delete;
 
   inline uint32_t GetId() { return id_; }
-
-  // TODO(hot):
-  void SetRenderDelegate(napi_env env, napi_ref ts_render_provider_ref);
-  void ClearRenderDelegate();
+  
+  void SetRenderDelegate(napi_env ts_env, napi_ref ts_render_provider_ref);
 
   void InitDensity(double density);
   void CreateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
@@ -118,6 +116,8 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
 
  private:
   uint32_t id_;
+  napi_env ts_env_ = 0;
+  napi_ref ts_render_provider_ref_ = 0;
   std::shared_ptr<footstone::value::Serializer> serializer_;
   std::map<uint32_t, std::vector<ListenerOp>> event_listener_ops_;
 
