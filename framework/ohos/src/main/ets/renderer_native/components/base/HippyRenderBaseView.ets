@@ -61,7 +61,7 @@ export default abstract class HippyRenderBaseView {
   cssShadowColor: number = 0
   cssShadowOpacity: number | undefined = undefined
   cssLinearGradient: LinearGradient | null = null
-  cssBackgroundImage: ResourceStr | null = null // TODO(hot):
+  cssBackgroundImage: ResourceStr | null = null
   cssBackgroundImagePosition: Position | null = null
   cssBackgroundImageSize: ImageSize | null = null
   cssRotate: RotateOptions | null = null
@@ -277,7 +277,8 @@ export default abstract class HippyRenderBaseView {
     // hpfile://./assets/defaultSource.jpg
     if (uri != null && uri.startsWith("hpfile://")) {
       let relativePath = uri.replace("hpfile://./", "");
-      let bundlePath = "vue2/" // TODO(hot):
+      let bundlePath = this.ctx.getNativeRender().getBundlePath()
+      bundlePath = bundlePath.replace("asset:/", "")
       uri = bundlePath.substring(0, bundlePath.lastIndexOf("/") + 1) + relativePath
       return $rawfile(uri)
     }
