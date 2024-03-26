@@ -178,6 +178,22 @@ void CallRenderDelegateMeasureMethod(napi_env env, napi_ref render_provider_ref,
   });
 }
 
+void CallRenderDelegateSpanPositionMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, uint32_t node_id, const float x, const float y) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunSyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, node_id, x, y]() {
+    ArkTS arkTs(env);
+    std::vector<napi_value> args = {
+      arkTs.CreateUint32(root_id),
+      arkTs.CreateUint32(node_id),
+      arkTs.CreateDouble(x),
+      arkTs.CreateDouble(y),
+    };
+    auto delegateObject = arkTs.GetObject(render_provider_ref);
+    delegateObject.Call(method.c_str(), args);
+  });
+}
+
 static napi_value UpdateRootSize(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
@@ -421,7 +437,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
     } else if(measureFlag=="measure_add_image"){
       measureInst.AddImage(propMap);
     } else if(measureFlag=="measure_add_end"){
-      result = measureInst.EndMeasure(propMap, width, widthMode, height, heightMode, density);
+      result = measureInst.EndMeasure(width, widthMode, height, heightMode, density);
       break;
     }
   }
