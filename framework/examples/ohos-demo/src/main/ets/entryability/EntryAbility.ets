@@ -23,20 +23,19 @@ import Want from '@ohos.app.ability.Want';
 import window from '@ohos.window';
 import UIAbility from '@ohos.app.ability.UIAbility';
 import libHippy from 'libhippy_app.so'
-import { createHippyEngine, EngineInitParams } from 'hippy';
-import { ExampleAPIProvider } from '../hippyExtend/ExampleAPIProvider';
 import font from '@ohos.font';
+import { EngineInitParams } from 'hippy';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
     super.onCreate(want, launchParam);
     hilog.info(0x0000, 'DemoTag', '%{public}s', 'Ability onCreate');
 
+    // 加这句，仅仅为了IDE调试的时候首次创建引擎不卡
     let params = new EngineInitParams(libHippy, this.context)
-    params.providers = new Array(new ExampleAPIProvider())
-    params.coreJSAssetsPath = "vue2/vendor.ohos.js"
-    let hippyEngine = createHippyEngine(params)
-    AppStorage.setOrCreate("HippyEngine", hippyEngine)
+
+    AppStorage.setOrCreate("libHippy", libHippy)
+    AppStorage.setOrCreate("abilityContext", this.context)
   }
 
   onDestroy() {

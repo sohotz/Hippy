@@ -212,7 +212,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
 
     if (this.isAttachedToRootView) {
       this.mEngineContext!.attachJsToRootView(this.cachedRootId)
-      this.loadJsModule(loadParams, loadCallback)
+      this.loadJsModule(loadParams, this.cachedRootId, loadCallback)
     } else {
       this.cachedLoadParams = loadParams
       this.cachedLoadCallback = loadCallback
@@ -224,7 +224,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     this.isAttachedToRootView = true
     if (this.cachedLoadParams && this.cachedLoadCallback) {
       this.mEngineContext!.attachJsToRootView(rootId)
-      this.loadJsModule(this.cachedLoadParams, this.cachedLoadCallback)
+      this.loadJsModule(this.cachedLoadParams, rootId, this.cachedLoadCallback)
       this.cachedLoadParams = null
       this.cachedLoadCallback = null
     } else {
@@ -259,7 +259,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   onSizeChanged(rootId: number, w: number, h: number, ow: number, oh: number): void {
   }
 
-  loadJsModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback) {
+  loadJsModule(loadParams: ModuleLoadParams, rootId: number, loadCallback: HippyModuleLoadCallback) {
     if (!this.mEngineContext) {
       return;
     }
@@ -273,7 +273,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
       return;
     }
     // TODO 多RootView
-    this.mEngineContext.getBridgeManager().loadInstance(loadParams.componentName, 0, loadParams.jsParams);
+    this.mEngineContext.getBridgeManager().loadInstance(loadParams.componentName, rootId, loadParams.jsParams);
 
     // TODO: Debug
   }
