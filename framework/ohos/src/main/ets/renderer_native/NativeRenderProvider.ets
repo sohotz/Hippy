@@ -62,18 +62,18 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
   }
 
   bytesToArgument(buffer: ArrayBuffer): Array<HippyAny> {
-    // TODO(hot):
     let binaryReader = new BinaryReader(new Uint8Array(buffer))
     let deserializer = new NativeRenderDeserializer(binaryReader, null)
     deserializer.readHeader()
     let paramsObj = deserializer.readValue() as Array<HippyAny>
-    // TODO(hot):
-    //deserializer.printValue(paramsObj, '', '')
+
+    // debug code
+    // deserializer.printValue(paramsObj, '', '')
+
     return (paramsObj instanceof Array) ? paramsObj : new Array<HippyAny>()
   }
 
   argumentToBytes(params: HippyAny): ArrayBuffer {
-    // TODO(hot):
     let binaryWriter = new BinaryWriter()
     let serializer = new NativeRenderSerializer(binaryWriter)
     serializer.writeHeader()
