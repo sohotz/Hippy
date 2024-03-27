@@ -62,18 +62,18 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
   }
 
   bytesToArgument(buffer: ArrayBuffer): Array<HippyAny> {
-    // TODO(hot):
     let binaryReader = new BinaryReader(new Uint8Array(buffer))
     let deserializer = new NativeRenderDeserializer(binaryReader, null)
     deserializer.readHeader()
     let paramsObj = deserializer.readValue() as Array<HippyAny>
-    // TODO(hot):
-    //deserializer.printValue(paramsObj, '', '')
+
+    // debug code
+    // deserializer.printValue(paramsObj, '', '')
+
     return (paramsObj instanceof Array) ? paramsObj : new Array<HippyAny>()
   }
 
   argumentToBytes(params: HippyAny): ArrayBuffer {
-    // TODO(hot):
     let binaryWriter = new BinaryWriter()
     let serializer = new NativeRenderSerializer(binaryWriter)
     serializer.writeHeader()
@@ -164,6 +164,10 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
 
   measure(rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
     return this.renderImpl.measure(this.libHippy, this.instanceId, rootId, nodeId, width, widthMode, height, heightMode)
+  }
+
+  spanPosition(rootId: number, nodeId: number,x: number,y: number): void {
+    this.renderImpl.spanPosition(rootId, nodeId, x, y);
   }
 
   onSize(rootId: number, width: number, height: number) {

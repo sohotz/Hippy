@@ -18,24 +18,35 @@
  * limitations under the License.
  */
 import { router } from '@kit.ArkUI'
-import { EngineInitStatus, HippyEngine, HippyRoot, ModuleLoadParams, ModuleLoadStatus
+import {
+  createHippyEngine,
+  EngineInitParams,
+  EngineInitStatus, HippyEngine, HippyRoot, ModuleLoadParams, ModuleLoadStatus
 } from 'hippy'
+import { HippyLibrary } from 'hippy/src/main/ets/hippy_library/HippyLibrary'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
 import { HippyException } from 'hippy/src/main/ets/support/common/HippyException'
+import { HippyValue } from 'hippy/src/main/ets/support/common/HippyTypes'
+import { ExampleAPIProvider } from '../hippyExtend/ExampleAPIProvider'
 import { ExampleCustomComponent, ExampleCustomComponentView } from '../hippyExtend/ExampleCustomComponentView'
 
 @Entry
 @Component
 struct ExampleHippyPage {
-  @StorageLink('HippyEngine') private hippyEngine: HippyEngine | null = null
+  @StorageLink('libHippy') private libHippy: HippyLibrary | null = null
+  @StorageLink('abilityContext') private abilityContext: Context | null = null
   @State exception: string = ""
+  private hippyEngine: HippyEngine | null = null
 
   aboutToAppear(): void {
-    this.hippyEngine?.initEngine((statusCode: EngineInitStatus, msg: string) => {
+    let params = new EngineInitParams(this.libHippy!, this.abilityContext!)
+    params.providers = new Array(new ExampleAPIProvider())
+    params.coreJSAssetsPath = "vue2/vendor.ohos.js"
+    this.hippyEngine = createHippyEngine(params)
+    this.hippyEngine.initEngine((statusCode: EngineInitStatus, msg: string) => {
       if (statusCode == EngineInitStatus.STATUS_OK) {
-        this.hippyEngine?.loadModule(
-          new ModuleLoadParams(
+        let loadParams = new ModuleLoadParams(
             'vue2/index.ohos.js',
             '',
             '',
@@ -43,7 +54,16 @@ struct ExampleHippyPage {
             null,
             null,
             null,
-          ),
+          )
+        loadParams.componentName = "Demo"
+        loadParams.codeCacheTag = "Demo"
+        loadParams.jsParams = new Map<string, HippyValue>()
+        loadParams.jsParams.set(
+          "msgFromNative",
+          "Hi js developer, I come from native code!"
+        )
+        this.hippyEngine?.loadModule(
+          loadParams,
           (statusCode: ModuleLoadStatus, msg: string) => {
 
         })

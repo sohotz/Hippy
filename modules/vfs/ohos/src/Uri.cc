@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-#include "vfs/Uri.h"
+#include "vfs/uri.h"
 
 #include "footstone/string_view_utils.h"
 #include "oh_napi/ark_ts.h"

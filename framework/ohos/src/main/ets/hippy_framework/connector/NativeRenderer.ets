@@ -41,10 +41,6 @@ export class NativeRenderer {
     this.libHippy?.NativeRenderer_DestroyNativeRenderManager(this.instanceId)
   }
 
-  getNativeRendererInstance(): HippyAny {
-    return this.libHippy?.NativeRenderer_GetNativeRendererInstance(this.instanceId)
-  }
-
   attachToDom(
     domManagerId: number
   ) {

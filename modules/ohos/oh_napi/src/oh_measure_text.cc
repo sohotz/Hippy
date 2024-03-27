@@ -1,40 +1,41 @@
 #include "oh_napi/oh_measure_text.h"
 #include "footstone/logging.h"
 
-void CheckProps(std::vector<std::string> vec, std::map<std::string, std::string> propMap) {
-    for (auto it = propMap.begin(); it != propMap.end(); it++) {
-        if (std::find(vec.begin(), vec.end(), it->first) == vec.end()) {
-            FOOTSTONE_DLOG(WARNING) << "Measure Text 未处理属性：" << it->first;
-        }
-    }
-}
-
-std::vector<std::string> OhMeasureText::textPropsOnly = {"textAlign", "numberOfLines", "breakStrategy",
-                                                         "ellipsizeMode"};
-std::vector<std::string> OhMeasureText::textMarginProps = {
-    "margin",      "marginVertical", "marginHorizontal", "marginLeft",      "marginRight",
-    "marginTop",   "marginBottom",   "padding",          "paddingVertical", "paddingHorizontal",
-    "paddingLeft", "paddingRight",   "paddingTop",       "paddingBottom",   "lineHeight",
-};
-std::vector<std::string> OhMeasureText::spanDropProps = {
-    "backgroundColor", "textShadowColor", "textShadowOffset", "textShadowRadius",
-    "borderColor",     "borderWidth",     "verticalAlign",
-};
-std::vector<std::string> OhMeasureText::textSpanProps = {
-    "text",       "color",         "fontSize",           "fontWeight",          "fontStyle",
-    "fontFamily", "letterSpacing", "textDecorationLine", "textDecorationStyle", "textDecorationColor",
-};
-
 OhMeasureText::OhMeasureText() {}
 
 OhMeasureText::~OhMeasureText() {}
 
-void OhMeasureText::StartMeasure(std::map<std::string, std::string> propMap) {
+bool OhMeasureText::HasProp(std::map<std::string, std::string> &propMap, const char *s) {
+    if (propMap.find(s) == propMap.end()) {
+        return false;
+    }
+#ifdef MEASURE_TEXT_CHECK_PROP
+    usedProp_.push_back(s);
+#endif
+    return true;
+}
+
+#ifdef MEASURE_TEXT_CHECK_PROP
+void OhMeasureText::StartCollectProp() { usedProp_.clear(); }
+
+void OhMeasureText::CheckUnusedProp(const char *tag, std::map<std::string, std::string> &propMap) {
+    for (auto it = propMap.begin(); it != propMap.end(); ++it) {
+        if (std::find(usedProp_.begin(), usedProp_.end(), it->first) == usedProp_.end()) {
+            FOOTSTONE_DLOG(WARNING) << "Measure Text " << tag << " unused prop : " << it->first << " : " << it->second;
+        }
+    }
+}
+#endif
+
+void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
+#ifdef MEASURE_TEXT_CHECK_PROP
+    StartCollectProp();
+#endif
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextDirection(typoStyle_, TEXT_DIRECTION_LTR); // 从左向右排版
 
     int textAlign = TEXT_ALIGN_START;
-    if (propMap.find("textAlign") != propMap.end()) {
+    if (HasProp(propMap, "textAlign")) {
         if (propMap["textAlign"] == "center") {
             textAlign = TEXT_ALIGN_CENTER;
         } else if (propMap["textAlign"] == "end") {
@@ -46,12 +47,12 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> propMap) {
     OH_Drawing_SetTypographyTextAlign(typoStyle_, textAlign); // ok8        textAlign
 
     int maxLines = 100000;
-    if (propMap.find("numberOfLines") != propMap.end()) {
+    if (HasProp(propMap, "numberOfLines")) {
         maxLines = std::stoi(propMap["numberOfLines"]);
     }
     OH_Drawing_SetTypographyTextMaxLines(typoStyle_, maxLines); // okA        maxLines
 
-    if (propMap.find("breakStrategy") != propMap.end()) {
+    if (HasProp(propMap, "breakStrategy")) {
         OH_Drawing_BreakStrategy bs = BREAK_STRATEGY_GREEDY;
         if (propMap["breakStrategy"] == "high_quality") {
             bs = BREAK_STRATEGY_HIGH_QUALITY;
@@ -61,7 +62,7 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> propMap) {
         OH_Drawing_SetTypographyTextBreakStrategy(typoStyle_, bs);
     }
 
-    if (propMap.find("ellipsizeMode") != propMap.end()) {
+    if (HasProp(propMap, "ellipsizeMode")) {
         OH_Drawing_EllipsisModal em = ELLIPSIS_MODAL_TAIL;
         if (propMap["ellipsizeMode"] == "head") {
             em = ELLIPSIS_MODAL_HEAD;
@@ -71,23 +72,48 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> propMap) {
         OH_Drawing_SetTypographyTextEllipsisModal(typoStyle_, em);
     }
 
-    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, OH_Drawing_CreateFontCollection());
+    fontCollection_ = OH_Drawing_CreateFontCollection();
+    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
 
-    CheckProps(textPropsOnly, propMap);
+    if (HasProp(propMap, "lineHeight")) {
+        lineHeight_ = std::stod(propMap["lineHeight"]);
+    }
+    if (HasProp(propMap, "paddingVertical")) {
+        paddingTop_ = std::stod(propMap["paddingVertical"]);
+        paddingBottom_ = std::stod(propMap["paddingVertical"]);
+    }
+    if (HasProp(propMap, "paddingHorizontal")) {
+        paddingLeft_ = std::stod(propMap["paddingHorizontal"]);
+        paddingRight_ = std::stod(propMap["paddingHorizontal"]);
+    }
+
+#ifdef MEASURE_TEXT_CHECK_PROP
+    const static std::vector<std::string> dropProp = {
+        "text",        "backgroundColor", "color",           "marginLeft",       "marginRight",
+        "marginTop",   "marginBottom",    "textShadowColor", "textShadowOffset", "borderColor",
+        "borderWidth", "breakStrategy",   "textShadowRadius"};
+    for (uint32_t i = 0; i < dropProp.size(); i++) {
+        usedProp_.push_back(dropProp[i]);
+    }
+    CheckUnusedProp("Start", propMap);
+#endif
 }
 
-void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
+void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
+#ifdef MEASURE_TEXT_CHECK_PROP
+    StartCollectProp();
+#endif
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
-    if (propMap.find("color") != propMap.end()) {
+    if (HasProp(propMap, "color")) {
         unsigned long color = std::stoul(propMap["color"]);
         OH_Drawing_SetTextStyleColor(txtStyle, (uint32_t)color);
     }
-    double fontSize = 16; // 默认的fontSize是16，是否从系统读取？
-    if (propMap.find("fontSize") != propMap.end()) {
+    double fontSize = 14; // 默认的fontSize是14，是否从系统读取？
+    if (HasProp(propMap, "fontSize")) {
         fontSize = std::stod(propMap["fontSize"]);
     }
     OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize); // ok3 fontSize
-    if (propMap.find("fontWeight") != propMap.end()) {
+    if (HasProp(propMap, "fontWeight")) {
         int fontWeight = FONT_WEIGHT_400;
         if (propMap["fontWeight"] == "bold") {
             fontWeight = FONT_WEIGHT_700;
@@ -95,7 +121,8 @@ void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
         OH_Drawing_SetTextStyleFontWeight(txtStyle, fontWeight); // ok5 fontWeight
     }
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC); // todoC baselineOffset
-    if (propMap.find("textDecorationLine") != propMap.end()) {
+
+    if (HasProp(propMap, "textDecorationLine")) {
         OH_Drawing_TextDecoration td = TEXT_DECORATION_NONE;
         if (propMap["textDecorationLine"] == "underline") {
             td = TEXT_DECORATION_UNDERLINE;
@@ -106,11 +133,11 @@ void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
         }
         OH_Drawing_SetTextStyleDecoration(txtStyle, td);
     }
-    if (propMap.find("textDecorationColor") != propMap.end()) {
+    if (HasProp(propMap, "textDecorationColor")) {
         unsigned long color = std::stoul(propMap["textDecorationColor"]);
         OH_Drawing_SetTextStyleDecorationColor(txtStyle, (uint32_t)color);
     }
-    if (propMap.find("textDecorationStyle") != propMap.end()) {
+    if (HasProp(propMap, "textDecorationStyle")) {
         OH_Drawing_TextDecorationStyle ds = TEXT_DECORATION_STYLE_SOLID;
         if (propMap["textDecorationStyle"] == "dotted") {
             ds = TEXT_DECORATION_STYLE_DOTTED;
@@ -127,19 +154,30 @@ void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
     OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
     // 猜测行高=fontSize*1.25，lineSpacingMultiplier，1.25是猜的，也可能是1.3或其他
 
-    if (propMap.find("fontFamily") != propMap.end()) {
+    if (HasProp(propMap, "fontFamily")) {
+        // const char *fontFile = "/data/storage/el1/bundle/entry/resources/resfile/fonts/TTTGB.otf";
+        // FILE *fp = fopen(fontFile, "rb");
+        // if (fp != NULL) {
+        //     fseek(fp, 0, SEEK_END);
+        //     auto size = ftell(fp);
+        //     fclose(fp);
+        //     FOOTSTONE_DLOG(WARNING) << "OH_Drawing_RegisterFont size " << size;
+        // }
+        // // fontFile 可读的话，OH_Drawing_RegisterFont内部会crash
+        // uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, "TTTGB", fontFile);
+        // FOOTSTONE_DLOG(WARNING) << "OH_Drawing_RegisterFont ret " << ret;
         const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
         OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies); // ok6 fontFamily
     }
     int fontStyle = FONT_STYLE_NORMAL;
-    if (propMap.find("fontStyle") != propMap.end() && propMap["fontStyle"] == "italic") {
+    if (HasProp(propMap, "fontStyle") && propMap["fontStyle"] == "italic") {
         fontStyle = FONT_STYLE_ITALIC;
     }
     OH_Drawing_SetTextStyleFontStyle(txtStyle, fontStyle); // ok4 fontStyle
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
     // OH_Drawing_SetTextStyleDecorationStyle(txtStyle, );
     // OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, );
-    if (propMap.find("letterSpacing") != propMap.end()) {
+    if (HasProp(propMap, "letterSpacing")) {
         double letterSpacing = std::stod(propMap["letterSpacing"]);
         OH_Drawing_SetTextStyleLetterSpacing(txtStyle, letterSpacing);
     }
@@ -149,25 +187,168 @@ void OhMeasureText::AddText(std::map<std::string, std::string> propMap) {
     // OH_Drawing_SetTextStyleEllipsisModal(txtStyle, );
     // 将文本样式对象加入到handler中
     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle);
-    OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str()); // ok1 textContent
+    if (HasProp(propMap, "text")) {
+        OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str()); // ok1 textContent
+    }
     OH_Drawing_TypographyHandlerPopTextStyle(handler_);
     OH_Drawing_DestroyTextStyle(txtStyle);
 
-    CheckProps(textSpanProps, propMap);
+#ifdef MEASURE_TEXT_CHECK_PROP
+    const static std::vector<std::string> dropProp = {
+        "backgroundColor",  "lineHeight",        "margin",          "marginLeft",      "marginRight",
+        "marginTop",        "marginBottom",      "textAlign",       "textShadowColor", "textShadowOffset",
+        "ellipsizeMode",    "numberOfLines",     "borderColor",     "borderWidth",     "breakStrategy",
+        "textShadowRadius", "paddingHorizontal", "paddingVertical", "verticalAlign"};
+    for (uint32_t i = 0; i < dropProp.size(); i++) {
+        usedProp_.push_back(dropProp[i]);
+    }
+    CheckUnusedProp("Text", propMap);
+#endif
 }
 
-void OhMeasureText::AddImage(std::map<std::string, std::string> propMap) {
+void OhMeasureText::AddImage(std::map<std::string, std::string> &propMap) {
+#ifdef MEASURE_TEXT_CHECK_PROP
+    StartCollectProp();
+#endif
     OH_Drawing_PlaceholderSpan span;
-    span.width = std::stod(propMap["width"]);
-    span.height = std::stod(propMap["height"]);
+    if (HasProp(propMap, "width")) {
+        span.width = std::stod(propMap["width"]);
+    }
+    if (HasProp(propMap, "height")) {
+        span.height = std::stod(propMap["height"]);
+    }
+    span.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
     OH_Drawing_TypographyHandlerAddPlaceholder(handler_, &span);
     if (minLineHeight_ < span.height) {
         minLineHeight_ = span.height;
     }
+
+    OhImageSpanHolder spanH;
+    spanH.width = span.width;
+    spanH.height = span.height;
+    spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
+
+    if (HasProp(propMap, "verticalAlign")) {
+        if (propMap["verticalAlign"] == "top") {
+            spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_TOP_OF_ROW_BOX;
+        } else if (propMap["verticalAlign"] == "middle") {
+            spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
+        } else if (propMap["verticalAlign"] == "baseline") {
+            spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_OFFSET_AT_BASELINE;
+        } else if (propMap["verticalAlign"] == "bottom") {
+            spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_BOTTOM_OF_ROW_BOX;
+        }
+    }
+    if (HasProp(propMap, "verticalAlignment")) {
+        // todo 安卓已弃用，没文档，这个取值0,1,2,3，不知道什么含义
+        // double va = std::stod(propMap["verticalAlignment"]);
+        // if (va == 0) {
+        //     spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_TOP_OF_ROW_BOX;
+        // } else if (va == 1) {
+        //     spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
+        // } else if (va == 2) {
+        //     spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_OFFSET_AT_BASELINE;
+        // } else if (va == 3) {
+        //     spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_BOTTOM_OF_ROW_BOX;
+        // }
+        spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_ABOVE_BASELINE;
+    }
+    if (HasProp(propMap, "margin")) {
+        spanH.marginTop = std::stod(propMap["margin"]);
+        spanH.marginBottom = std::stod(propMap["margin"]);
+    }
+    if (HasProp(propMap, "top")) {
+        spanH.top = std::stod(propMap["top"]);
+    }
+
+    imageSpans_.push_back(spanH);
+#ifdef MEASURE_TEXT_CHECK_PROP
+    const static std::vector<std::string> dropProp = {"backgroundColor", "src", "tintColor"};
+    for (uint32_t i = 0; i < dropProp.size(); i++) {
+        usedProp_.push_back(dropProp[i]);
+    }
+    CheckUnusedProp("Image", propMap);
+#endif
 }
 
-OhMeasureResult OhMeasureText::EndMeasure(std::map<std::string, std::string> propMap, int width, int widthMode,
-                                          int height, int heightMode, float density) {
+double OhMeasureText::CalcSpanPostion(OH_Drawing_Typography *typography, OhMeasureResult &ret) {
+    double baseLine = 0;
+    size_t lineCount;
+    std::vector<double> lineHeights;    // 真实每行高度
+    std::vector<double> measureHeights; // 测得每行高度
+
+    lineCount = OH_Drawing_TypographyGetLineCount(typography); // 总行数
+    for (uint32_t i = 0; i < lineCount; i++) {                 // 获取每行行高
+        // 当前行没有文本时，或者指定了lineHeight，baseLine获取的就不对
+        // baseLine = OH_Drawing_TypographyGetAlphabeticBaseline(typography); // =h*11/16
+        // baseLine = OH_Drawing_TypographyGetIdeographicBaseline(typography); //=h
+        double h = OH_Drawing_TypographyGetLineHeight(typography, (int)i);
+        measureHeights.push_back(h);
+        if (lineHeight_ != 0) {
+            lineHeights.push_back(lineHeight_);
+        } else {
+            lineHeights.push_back(h);
+        }
+    }
+
+    OH_Drawing_TextBox *tb = OH_Drawing_TypographyGetRectsForPlaceholders(typography); // 获取每个imageSpan的区域
+    size_t textBoxCount = OH_Drawing_GetSizeOfTextBox(tb); // 获取到的数量，应该和 imageSpans_ 一样多
+    double bottom = lineHeights[0];
+    for (uint32_t i = 0; i < textBoxCount; i++) { // i 对应到 imageSpans_ 下标
+        float boxTop = OH_Drawing_GetTopFromTextBox(tb, (int)i);
+        float boxBottom = OH_Drawing_GetBottomFromTextBox(tb, (int)i);
+        float boxLeft = OH_Drawing_GetLeftFromTextBox(tb, (int)i);
+        // float boxRight = OH_Drawing_GetRightFromTextBox(tb, (int)i);
+        double top = 0;
+        double measureTop = 0;
+        OhImageSpanPos pos;
+        pos.x = boxLeft;
+        pos.y = boxTop;
+        for (uint32_t j = 0; j < lineCount; j++) {
+            bottom = top + lineHeights[j];
+            double measureBottom = measureTop + measureHeights[j];
+            if (measureTop <= boxTop && boxBottom <= measureBottom) { // 根据测得的top和bottom定位到span所在行
+                baseLine = lineHeights[j] * 0.6;                      // todo 猜的比例
+                switch (imageSpans_[i].alignment) {
+                case OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_TOP_OF_ROW_BOX:
+                    pos.y = top + imageSpans_[i].marginTop;
+                    break;
+                case OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX:
+                    pos.y = top + lineHeights[j] / 2 - imageSpans_[i].height / 2;
+                    break;
+                case OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_BOTTOM_OF_ROW_BOX:
+                    pos.y = bottom - imageSpans_[i].height - imageSpans_[i].marginBottom;
+                    break;
+                case OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_OFFSET_AT_BASELINE:
+                    // todo         这里和安卓不同，安卓没有 / 2
+                    pos.y = top + baseLine - imageSpans_[i].height / 2 - imageSpans_[i].marginBottom;
+                    break;
+                case OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_ABOVE_BASELINE:
+                    // todo 有verticalAlignment属性时，不知如何处理
+                    pos.y = top + lineHeights[j] * 0.7 - imageSpans_[i].height;
+                    break;
+                case OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_BELOW_BASELINE:
+                    pos.y = top + baseLine;
+                    break;
+                }
+                pos.y += imageSpans_[i].top;
+                if (pos.y < top) {
+                    pos.y = top;
+                }
+                if (pos.y + imageSpans_[i].height > bottom) {
+                    pos.y = bottom - imageSpans_[i].height;
+                }
+                break;
+            }
+            top = bottom;
+            measureTop = measureBottom;
+        }
+        ret.spanPos.push_back(pos);
+    }
+    return bottom;
+}
+
+OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, int heightMode, float density) {
     OhMeasureResult ret;
     size_t lineCount;
     {
@@ -175,12 +356,18 @@ OhMeasureResult OhMeasureText::EndMeasure(std::map<std::string, std::string> pro
         double maxWidth = float(width) / density;
         OH_Drawing_TypographyLayout(typography, maxWidth); // todo2 constraintWidth
 
-        ret.height = OH_Drawing_TypographyGetHeight(typography);     // 高度
-        ret.width = OH_Drawing_TypographyGetLongestLine(typography); // 宽度
+        double realWidth = OH_Drawing_TypographyGetLongestLine(typography); // 实际有像素的宽度
+        ret.width = fmax(realWidth, maxWidth);                   // 宽度
+        ret.height = OH_Drawing_TypographyGetHeight(typography); // 高度
         lineCount = OH_Drawing_TypographyGetLineCount(typography);
+
+        double realHeight = CalcSpanPostion(typography, ret);
+        ret.height = fmax(ret.height, realHeight);
+
         OH_Drawing_DestroyTypography(typography);
     }
     OH_Drawing_DestroyTypographyHandler(handler_);
+    OH_Drawing_DestroyFontCollection(fontCollection_);
     OH_Drawing_DestroyTypographyStyle(typoStyle_);
 
     if (ret.height < minLineHeight_) {
@@ -188,43 +375,9 @@ OhMeasureResult OhMeasureText::EndMeasure(std::map<std::string, std::string> pro
     }
     ret.width *= density;
     ret.height *= density;
+    if (lineHeight_ != 0) {
+        ret.height = lineHeight_ * density * (double)lineCount;
+    }
 
-    double paddingTop = 0;
-    double paddingBottom = 0;
-    double paddingLeft = 0;
-    double paddingRight = 0;
-    if (propMap.find("padding") != propMap.end()) {
-        paddingTop = std::stod(propMap["padding"]);
-        paddingBottom = std::stod(propMap["padding"]);
-        paddingLeft = std::stod(propMap["padding"]);
-        paddingRight = std::stod(propMap["padding"]);
-    }
-    if (propMap.find("paddingHorizontal") != propMap.end()) {
-        paddingLeft = std::stod(propMap["paddingHorizontal"]);
-        paddingRight = std::stod(propMap["paddingHorizontal"]);
-    }
-    if (propMap.find("paddingVertical") != propMap.end()) {
-        paddingTop = std::stod(propMap["paddingVertical"]);
-        paddingBottom = std::stod(propMap["paddingVertical"]);
-    }
-    if (propMap.find("paddingLeft") != propMap.end()) {
-        paddingLeft = std::stod(propMap["paddingLeft"]);
-    }
-    if (propMap.find("paddingRight") != propMap.end()) {
-        paddingRight = std::stod(propMap["paddingRight"]);
-    }
-    if (propMap.find("paddingTop") != propMap.end()) {
-        paddingTop = std::stod(propMap["paddingTop"]);
-    }
-    if (propMap.find("paddingBottom") != propMap.end()) {
-        paddingBottom = std::stod(propMap["paddingBottom"]);
-    }
-    ret.width += paddingLeft + paddingRight;
-    ret.height += paddingTop + paddingBottom;
-
-    if (propMap.find("lineHeight") != propMap.end()) {
-        ret.height = std::stod(propMap["lineHeight"]) * density * (double)lineCount;
-    }
-    CheckProps(textMarginProps, propMap);
     return ret;
 }

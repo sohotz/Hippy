@@ -17,8 +17,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ResourceDataHolder } from './ResourceDataHolder'
 
-export interface ProcessorCallback {
-  goNext: () => void
-  onHandleCompleted: () => void
+export interface FetchResourceCallback {
+  /**
+   * After the process chain traversal is completed, we need to call this method to
+   * return the processing results to the original request initiator.
+   *
+   * @param dataHolder holder of resources fetch result
+   */
+  onFetchCompleted : (holder: ResourceDataHolder) => void
+
+  /**
+   * Return the current progress when loading resources.
+   *
+   * @param total the total size of resources
+   * @param loaded the current progress has loaded
+   */
+  onFetchProgress : (total: number, loaded: number) => void
 }

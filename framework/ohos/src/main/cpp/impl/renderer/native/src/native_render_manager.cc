@@ -28,6 +28,7 @@
 #include "footstone/logging.h"
 #include "footstone/macros.h"
 #include "dom/root_node.h"
+#include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_measure_text.h"
 
 #define USE_C_MEASURE 1
@@ -83,37 +84,18 @@ NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"
   id_ = unique_native_render_manager_id_.fetch_add(1);
 }
 
-//void NativeRenderManager::CreateRenderDelegate() {
-//  persistent_map_.Insert(id_, shared_from_this());
-//  FOOTSTONE_CHECK(hippy::CreateJavaRenderManager(id_, j_render_manager_, j_render_delegate_));
-//  NativeRenderManager::GetStyleFilter(j_render_manager_);
-//}
-//
-//void NativeRenderManager::DestroyRenderDelegate(JNIEnv* j_env) {
-//  jobject j_object = j_render_manager_->GetObj();
-//  jclass j_class = j_env->GetObjectClass(j_object);
-//  if (!j_class) {
-//    FOOTSTONE_LOG(ERROR) << "CallNativeMethod j_class error";
-//    return;
-//  }
-//  jmethodID j_method_id = j_env->GetMethodID(j_class, "destroy", "()V");
-//  if (!j_method_id) {
-//    FOOTSTONE_LOG(ERROR) << "destroy" << " j_method_id error";
-//    return;
-//  }
-//  j_env->CallVoidMethod(j_object, j_method_id);
-//  JNIEnvironment::ClearJEnvException(j_env);
-//  j_env->DeleteLocalRef(j_class);
-//}
-
-void NativeRenderManager::SetRenderDelegate(napi_env env, napi_ref ts_render_provider_ref) {
-  persistent_map_.Insert(id_, shared_from_this());
-  hippy::SetRenderDelegate(env, ts_render_provider_ref);
-  CallRenderDelegateSetIdMethod("setInstanceId", id_);
+NativeRenderManager::~NativeRenderManager() {
+  ArkTS arkTs(ts_env_);
+  arkTs.DeleteReference(ts_render_provider_ref_);
+  ts_render_provider_ref_ = 0;
+  ts_env_ = 0;
 }
 
-void NativeRenderManager::ClearRenderDelegate() {
-  hippy::ClearRenderDelegate();
+void NativeRenderManager::SetRenderDelegate(napi_env ts_env, napi_ref ts_render_provider_ref) {
+  persistent_map_.Insert(id_, shared_from_this());
+  ts_env_ = ts_env;
+  ts_render_provider_ref_ = ts_render_provider_ref;
+  CallRenderDelegateSetIdMethod(ts_env_, ts_render_provider_ref_, "setInstanceId", id_);
 }
 
 void NativeRenderManager::InitDensity(double density) {
@@ -297,7 +279,7 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
   serializer_->WriteValue(HippyValue(dom_node_array));
   std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
 
-  CallRenderDelegateMoveNodeMethod("moveNode", root->GetId(), pid, buffer_pair);
+  CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode", root->GetId(), pid, buffer_pair);
 
   /*
   // TODO:
@@ -340,7 +322,7 @@ void NativeRenderManager::DeleteRenderNode(std::weak_ptr<RootNode> root_node,
     ids[i] = nodes[i]->GetRenderInfo().id;
   }
 
-  CallRenderDelegateDeleteNodeMethod("deleteNode", root->GetId(), ids);
+  CallRenderDelegateDeleteNodeMethod(ts_env_, ts_render_provider_ref_, "deleteNode", root->GetId(), ids);
 
   /*
   std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
@@ -421,7 +403,7 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
     return;
   }
 
-  CallRenderDelegateMoveNodeMethod("moveNode2", root->GetId(), moved_ids, to_pid, from_pid, index);
+  CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode2", root->GetId(), moved_ids, to_pid, from_pid, index);
 
   /*
   std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
@@ -508,7 +490,7 @@ void NativeRenderManager::CallFunction(std::weak_ptr<RootNode> root_node,
   memcpy(new_buffer, param_bson.data(), param_bson.size());
   auto buffer_pair = std::make_pair(reinterpret_cast<uint8_t*>(new_buffer), param_bson.size());
 
-  CallRenderDelegateCallFunctionMethod("callUIFunction", root->GetId(), node->GetId(), cb_id, name, buffer_pair);
+  CallRenderDelegateCallFunctionMethod(ts_env_, ts_render_provider_ref_, "callUIFunction", root->GetId(), node->GetId(), cb_id, name, buffer_pair);
 
   /*
   std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
@@ -580,7 +562,7 @@ float NativeRenderManager::DpToPx(float dp) const { return dp * density_; }
 float NativeRenderManager::PxToDp(float px) const { return px / density_; }
 
 void NativeRenderManager::CallNativeMethod(const std::string& method, uint32_t root_id, const std::pair<uint8_t*, size_t>& buffer) {
-  hippy::CallRenderDelegateMethod(method, root_id, buffer);
+  hippy::CallRenderDelegateMethod(ts_env_, ts_render_provider_ref_, method, root_id, buffer);
 
 /*
   std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
@@ -613,7 +595,7 @@ void NativeRenderManager::CallNativeMethod(const std::string& method, uint32_t r
 }
 
 void NativeRenderManager::CallNativeMethod(const std::string& method, uint32_t root_id) {
-  hippy::CallRenderDelegateMethod(method, root_id);
+  hippy::CallRenderDelegateMethod(ts_env_, ts_render_provider_ref_, method, root_id);
 
   /*
   std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
@@ -640,7 +622,7 @@ void NativeRenderManager::CallNativeMethod(const std::string& method, uint32_t r
 
 void NativeRenderManager::CallNativeMeasureMethod(const uint32_t root_id, const int32_t id, const float width, const int32_t width_mode,
                                                  const float height, const int32_t height_mode, int64_t& result) {
-  CallRenderDelegateMeasureMethod("measure", root_id, static_cast<uint32_t>(id), width, width_mode, height, height_mode, result);
+  CallRenderDelegateMeasureMethod(ts_env_, ts_render_provider_ref_, "measure", root_id, static_cast<uint32_t>(id), width, width_mode, height, height_mode, result);
 
   /*
   std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
@@ -689,55 +671,20 @@ std::string HippyValueToString(const HippyValue &value) {
   return sv;
 }
 
-void CollectStartProps(std::map<std::string, std::string> &propMap, footstone::value::HippyValue::HippyValueObjectType &props) {
+void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_ptr<DomNode> node) {
   propMap.clear();
-  for (const auto &key : OhMeasureText::textPropsOnly) {
-    auto it = props.find(key);
-    if (it != props.end()) {
-      propMap[key] = HippyValueToString(it->second);
-    }
-  }
-}
-
-void CollectEndProps(std::map<std::string, std::string> &propMap,
-                       footstone::value::HippyValue::HippyValueObjectType &props) {
-  propMap.clear();
-  for (const auto &key : OhMeasureText::textMarginProps) {
-    auto it = props.find(key);
-    if (it != props.end()) {
-      propMap[key] = HippyValueToString(it->second);
-    }
-  }
-}
-
-void CollectTextSpanProps(std::map<std::string, std::string> &propMap,
-                       footstone::value::HippyValue::HippyValueObjectType &props) {
-  propMap.clear();
-  for (auto it = props.begin(); it != props.end(); ++it) {
-    const std::string &key = it->first;
-
-    if (std::find(OhMeasureText::textPropsOnly.begin(), OhMeasureText::textPropsOnly.end(), key) == OhMeasureText::textPropsOnly.end() &&
-        std::find(OhMeasureText::textMarginProps.begin(), OhMeasureText::textMarginProps.end(), key) == OhMeasureText::textMarginProps.end() &&
-        std::find(OhMeasureText::spanDropProps.begin(), OhMeasureText::spanDropProps.end(), key) == OhMeasureText::spanDropProps.end()) {
-      propMap[key] = HippyValueToString(it->second);
-    }
-  }
-}
-
-void CollectAllProps(footstone::value::HippyValue::HippyValueObjectType &props, std::shared_ptr<DomNode> node) {
-  props.clear();
   // 样式属性
   auto style = node->GetStyleMap();
   auto iter = style->begin();
   while (iter != style->end()) {
-    props[iter->first] = *(iter->second);
+    propMap[iter->first] = HippyValueToString(*(iter->second));
     iter++;
   }
   // 用户自定义属性
   auto dom_ext = *node->GetExtStyle();
   iter = dom_ext.begin();
   while (iter != dom_ext.end()) {
-    props[iter->first] = *(iter->second);
+    propMap[iter->first] = HippyValueToString(*(iter->second));
     iter++;
   }
 }
@@ -761,45 +708,47 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   if (node == nullptr) {
     return;
   }
-
-  footstone::value::HippyValue::HippyValueObjectType props;
-  CollectAllProps(props, node);
+    
+  std::vector<std::shared_ptr<DomNode>> imageSpanNode;
+  std::map<std::string, std::string> textPropMap;
+  std::map<std::string, std::string> spanPropMap;
+  CollectAllProps(textPropMap, node);
 
   float density = GetDensity();
   OhMeasureText measureInst;
   OhMeasureResult measureResult;
-  std::map<std::string, std::string> propMap;
 
-  CollectStartProps(propMap, props);
-  measureInst.StartMeasure(propMap);
-    
+  measureInst.StartMeasure(textPropMap);
+
   if (node->GetChildCount() == 0) {
-    CollectTextSpanProps(propMap, props);
-    measureInst.AddText(propMap);
+    measureInst.AddText(textPropMap);
   } else {
     for(uint32_t i = 0; i < node->GetChildCount(); i++) {
       auto child = node->GetChildAt(i);
-      footstone::value::HippyValue::HippyValueObjectType spanProps;
-      CollectAllProps(spanProps, child);
+      CollectAllProps(spanPropMap, child);
       if (child->GetViewName() == "Text") {
-        CollectTextSpanProps(propMap, spanProps);
-        measureInst.AddText(propMap);
+        measureInst.AddText(spanPropMap);
       } else if (child->GetViewName() == "Image") {
-        if (spanProps.find("width") != spanProps.end() && spanProps.find("height") != spanProps.end()) {
-          propMap.clear();
-          propMap["width"] = HippyValueToString(spanProps["width"]);
-          propMap["height"] = HippyValueToString(spanProps["height"]);
-          measureInst.AddImage(propMap);
+        if (spanPropMap.find("width") != spanPropMap.end() && spanPropMap.find("height") != spanPropMap.end()) {
+          measureInst.AddImage(spanPropMap);
+          imageSpanNode.push_back(child);
         } else {
           FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
         }
       }
     }
   }
-  CollectEndProps(propMap, props);
-  measureResult = measureInst.EndMeasure(propMap, static_cast<int>(width), static_cast<int>(width_mode),
+  measureResult = measureInst.EndMeasure(static_cast<int>(width), static_cast<int>(width_mode),
                                          static_cast<int>(height), static_cast<int>(height_mode), density);
 
+  if(measureResult.spanPos.size() > 0 && measureResult.spanPos.size() == imageSpanNode.size()) {
+    for(uint32_t i = 0; i < imageSpanNode.size(); i++) {
+      double x = measureResult.spanPos[i].x;
+      double y = measureResult.spanPos[i].y;
+      // 把 c 测量到的imageSpan的位置，通知给ArkTS组件
+      CallRenderDelegateSpanPositionMethod(ts_env_, ts_render_provider_ref_, "spanPosition", root->GetId(), imageSpanNode[i]->GetId(), float(x), float(y));
+    }
+  }
   result = static_cast<int64_t>(ceil(measureResult.width)) << 32 | static_cast<int64_t>(ceil(measureResult.height));
 }
 
