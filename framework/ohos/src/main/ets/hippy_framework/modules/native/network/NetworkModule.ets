@@ -20,7 +20,7 @@
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
 import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
-import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
+import { ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { HashMap } from '@kit.ArkTS'
@@ -29,6 +29,7 @@ import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
 import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import util from '@ohos.util'
+import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
 
 const NETWORK_MODULE_TAG = "NetworkModule"
 

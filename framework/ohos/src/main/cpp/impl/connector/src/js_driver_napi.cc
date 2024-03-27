@@ -263,8 +263,7 @@ static napi_value RunScriptFromUri(napi_env env, napi_callback_info info) {
 #ifdef ENABLE_INSPECTOR
   // TODO(hot):
 #endif
-  // TODO(hot):
-  auto is_local_file = true;
+  auto is_local_file = asset_manager ? true : false;
   auto func = [scope, env, callback_ref, script_name,
       can_use_code_cache, code_cache_dir, uri, is_local_file,
       time_begin] {

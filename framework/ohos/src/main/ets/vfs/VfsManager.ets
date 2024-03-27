@@ -21,19 +21,23 @@
 import HashMap from '@ohos.util.HashMap';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { Processor } from './Processor';
-import { ResourceDataHolder, FetchResourceCallback, RequestFrom } from './ResourceDataHolder';
+import { ResourceDataHolder, RequestFrom } from './ResourceDataHolder';
 import { ProcessorCallback } from './ProcessorCallback';
+import { FetchResourceCallback } from './FetchResourceCallback';
 
 class ProcessorCallbackImpl implements ProcessorCallback {
-  onHandleCompleted = () => { }
+  onHandleCompleted = () => {}
+  goNext = () => {}
+}
 
-  goNext = () => { }
+class FetchResourceCallbackImpl implements FetchResourceCallback {
+  onFetchCompleted = (holder: ResourceDataHolder) => {}
+  onFetchProgress = (total: number, loaded: number) => {}
 }
 
 export class VfsManager {
   private libHippy: HippyLibrary
-  public instanceId: number = 0
-
+  private instanceId: number = 0
   private processorChain: Array<Processor>
 
   constructor(libHippy: HippyLibrary) {
@@ -42,8 +46,12 @@ export class VfsManager {
     this.processorChain = new Array;
   }
 
+  getVfsId(): number {
+    return this.instanceId
+  }
+
   createVfs(): number {
-    return this.libHippy?.VfsManager_CreateVfs()
+    return this.libHippy?.VfsManager_CreateVfs(this)
   }
 
   destroyVfs() {
@@ -64,31 +72,33 @@ export class VfsManager {
     this.processorChain.push(processor)
   }
 
-  onFetchResourceStart() {}
+  destroy() {
+    this.processorChain.splice(0, this.processorChain.length)
+  }
 
-  fetchResourceSync(uri: string, requestHeaders: HashMap<string, string> | undefined,
-                    requestParams: HashMap<string, string> | undefined) : ResourceDataHolder {
+  fetchResourceSync(uri: string, requestHeaders: HashMap<string, string> | null,
+                    requestParams: HashMap<string, string> | null) : ResourceDataHolder {
     this.onFetchResourceStart()
     const holder = this.fetchResourceSyncImpl(uri, requestHeaders, requestParams, RequestFrom.LOCAL)
     this.onFetchResourceEnd(holder)
     return holder
   }
 
-  fetchResourceSyncImpl(uri: string, requestHeaders: HashMap<string, string> | undefined,
-                        requestParams: HashMap<string, string> | undefined, from: RequestFrom) : ResourceDataHolder {
+  fetchResourceSyncImpl(uri: string, requestHeaders: HashMap<string, string> | null,
+                        requestParams: HashMap<string, string> | null, from: RequestFrom) : ResourceDataHolder {
     let holder = new ResourceDataHolder(uri, requestHeaders, requestParams, null, from, -1)
     this.traverseForward(holder, true)
     return holder
   }
 
-  fetchResourceAsync(uri: string, requestHeaders:HashMap<string, string> | undefined,
-                     requestParams:HashMap<string, string> | undefined, callback: FetchResourceCallback ) {
+  fetchResourceAsync(uri: string, requestHeaders:HashMap<string, string> | null,
+                     requestParams:HashMap<string, string> | null, callback: FetchResourceCallback ) {
     this.onFetchResourceStart()
     this.fetchResourceAsyncImpl(uri, requestHeaders, requestParams, callback, RequestFrom.LOCAL, -1)
   }
 
-  fetchResourceAsyncImpl(uri: string, requestHeaders: HashMap<string, string> | undefined,
-                         requestParams: HashMap<string, string> | undefined, callback: FetchResourceCallback,
+  fetchResourceAsyncImpl(uri: string, requestHeaders: HashMap<string, string> | null,
+                         requestParams: HashMap<string, string> | null, callback: FetchResourceCallback,
                          from: RequestFrom, nativeRequestId: number) {
     let holder = new ResourceDataHolder(uri, requestHeaders, requestParams, callback, from, nativeRequestId)
     this.traverseForward(holder, false)
@@ -118,7 +128,7 @@ export class VfsManager {
       }
     } else if (isSync) {
       if (holder.requestFrom == RequestFrom.LOCAL) {
-        this.doNativeTraversalsSync(holder)
+        this.doNativeTraversalsSync(this.instanceId, holder)
       } else if (holder.requestFrom == RequestFrom.NATIVE) {
         this.traverseGoBack(holder, true)
       }
@@ -126,7 +136,7 @@ export class VfsManager {
       if (holder.requestFrom == RequestFrom.LOCAL) {
         this.performNativeTraversals(holder)
       } else if (holder.requestFrom == RequestFrom.NATIVE) {
-        this.traverseGoBack(holder, true)
+        this.traverseGoBack(holder, false)
       }
     }
   }
@@ -155,23 +165,65 @@ export class VfsManager {
     }
   }
 
+  performNativeTraversals(holder: ResourceDataHolder) {
+    const callback = new FetchResourceCallbackImpl()
+    callback.onFetchCompleted = (holder: ResourceDataHolder) => {
+      this.traverseGoBack(holder, false)
+    }
+    callback.onFetchProgress = (total: number, loaded: number) => {
+      if (holder.callback) {
+        holder.callback.onFetchProgress(total, loaded)
+      }
+    }
+    this.doNativeTraversalsAsync(this.instanceId, holder, callback)
+  }
+
+  onFetchResourceStart() {
+
+  }
+
   onFetchResourceEnd(holder: ResourceDataHolder) {
-    holder.callback?.onFetchCompleted(holder)
+    if (holder.callback) {
+      holder.callback.onFetchCompleted(holder)
+    }
+  }
+
+  // for c++
+  doLocalTraversalsAsync(uri: string, requestHeaders: HashMap<string, string> | null,
+                         requestParams: HashMap<string, string> | null,
+                         nativeRequestId: number, progressCallbackId: number) {
+    const callback = new FetchResourceCallbackImpl()
+    callback.onFetchCompleted = (holder: ResourceDataHolder) => {
+      this.onTraversalsEndAsync(holder)
+    }
+    callback.onFetchProgress = (total: number, loaded: number) => {
+      if (progressCallbackId >= 0) {
+        this.onProgress(progressCallbackId, total, loaded)
+      }
+    }
+    this.fetchResourceAsyncImpl(uri, requestHeaders, requestParams, callback, RequestFrom.NATIVE, nativeRequestId)
+  }
+
+  // for c++
+  doLocalTraversalsSync(uri: string, requestHeaders: HashMap<string, string> | null,
+                        requestParams: HashMap<string, string> | null) {
+    return this.fetchResourceSyncImpl(uri, requestHeaders, requestParams, RequestFrom.NATIVE)
+  }
+
+  doNativeTraversalsAsync(id: number, holder: ResourceDataHolder, callback: FetchResourceCallback) {
+    this.libHippy.VfsManager_OnJniDelegateInvokeAsync(id, holder, callback)
+  }
+
+  doNativeTraversalsSync(id: number, holder: ResourceDataHolder) {
+    this.libHippy.VfsManager_OnJniDelegateInvokeSync(id, holder)
   }
 
   onTraversalsEndAsync(holder: ResourceDataHolder) {
-    //TODO(eksea)
+    this.libHippy.VfsManager_OnJniDelegateCallback(holder)
   }
 
-  doNativeTraversalsSync(holder: ResourceDataHolder) {
-    //TODO(eksea)
+  onProgress(callbackId: number, total: number, loaded: number) {
+    this.libHippy.VfsManager_OnJniDelegateInvokeProgress(callbackId, total, loaded)
   }
 
-  performNativeTraversals(holder: ResourceDataHolder) {
-    //TODO(eksea)
-  }
-
-  getVfsId(): number {
-    return this.instanceId
-  }
 }

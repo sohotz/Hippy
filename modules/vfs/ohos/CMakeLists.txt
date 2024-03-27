@@ -52,7 +52,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC vfs_native)
 
 # region source set
 set(SOURCE_SET
-  src/Uri.cc
+  src/uri.cc
+  src/vfs_resource_holder.cc
   src/handler/asset_handler.cc
   src/handler/file_handler.cc
   src/handler/napi_delegate_handler.cc)

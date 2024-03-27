@@ -57,13 +57,18 @@ using UriLoader = hippy::vfs::UriLoader;
 constexpr char kFileSchema[] = "file";
 
 static napi_value CreateVfs(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  auto ts_vfs_delegate_ref = arkTs.CreateReference(args[0]);
+  
+  auto delegate = std::make_shared<NapiDelegateHandler>(env, ts_vfs_delegate_ref);
   auto vfs_id = hippy::global_data_holder_key.fetch_add(1);
   auto loader = std::make_shared<UriLoader>();
   auto file_delegate = std::make_shared<FileHandler>();
   loader->RegisterUriHandler(kFileSchema, file_delegate);
+  loader->PushDefaultHandler(delegate);
 
   hippy::global_data_holder.Insert(vfs_id, loader);
-  ArkTS arkTs(env);
   return arkTs.CreateInt(static_cast<int>(vfs_id));
 }
 

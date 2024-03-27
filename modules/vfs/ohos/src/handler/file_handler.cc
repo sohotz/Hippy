@@ -21,7 +21,7 @@
 #include "vfs/handler/file_handler.h"
 #include "footstone/task.h"
 #include "vfs/file.h"
-#include "vfs/Uri.h"
+#include "vfs/uri.h"
 
 constexpr char kRunnerName[] = "file_handler_runner";
 

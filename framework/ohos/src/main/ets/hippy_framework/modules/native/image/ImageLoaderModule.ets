@@ -27,10 +27,11 @@ import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { HashMap } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
-import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
+import { ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { image } from '@kit.ImageKit'
 import { HippyException } from '../../../../support/common/HippyException'
 import { LogUtils } from '../../../../support/utils/LogUtils'
+import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
 
 
 const IMAGE_MODULE_TAG = "ImageLoaderModule"
@@ -81,12 +82,12 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
         reject(map);
         return;
       }
-      this.mVfsManager.fetchResourceAsync(url, undefined, this.generateRequestParams(), new ResourceCallback(this.ctx, url))
+      this.mVfsManager.fetchResourceAsync(url, null, this.generateRequestParams(), new ResourceCallback(this.ctx, url))
     })
   }
 
   private prefetch(url: string) {
-    this.mVfsManager.fetchResourceAsync(url, undefined, this.generateRequestParams(), new ResourceCallback(this.ctx, "prefetch"))
+    this.mVfsManager.fetchResourceAsync(url, null, this.generateRequestParams(), new ResourceCallback(this.ctx, "prefetch"))
   }
 
   public fetchCompleted(dataHolder: ResourceDataHolder, url: string) {

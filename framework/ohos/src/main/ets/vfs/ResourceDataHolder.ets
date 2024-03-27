@@ -21,35 +21,18 @@
 import fs from '@ohos.file.fs';
 import HashMap from '@ohos.util.HashMap';
 import { HippyAny, HippyResource } from '../support/common/HippyTypes';
-
-export interface FetchResourceCallback {
-  /**
-   * After the process chain traversal is completed, we need to call this method to
-   * return the processing results to the original request initiator.
-   *
-   * @param dataHolder holder of resources fetch result
-   */
-  onFetchCompleted : (holder: ResourceDataHolder) => void
-
-  /**
-   * Return the current progress when loading resources.
-   *
-   * @param total the total size of resources
-   * @param loaded the current progress has loaded
-   */
-  onFetchProgress : (total: number, loaded: number) => void
-}
+import { FetchResourceCallback } from './FetchResourceCallback';
 
 export class ResourceDataHolder {
   static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
-  errorMessage: string | undefined
-  processorTag: string | undefined
+  errorMessage: string | null = null
+  processorTag: string | null = null
   resultCode: number = -1
   public uri: string
   public buffer: ArrayBuffer | null = null
-  responseHeaders: HashMap<string, string> | undefined
-  public requestHeaders: HashMap<string, string> | undefined
-  public requestParams: HashMap<string, string> | undefined
+  responseHeaders: HashMap<string, string> | null = null
+  public requestHeaders: HashMap<string, string> | null
+  public requestParams: HashMap<string, string> | null
   public callback: FetchResourceCallback | null
   public requestFrom: RequestFrom
   public nativeRequestId: number
@@ -59,8 +42,8 @@ export class ResourceDataHolder {
   // public bytes:Uint8Array = new Uint8Array()
   public loadStartTime = 0;
 
-  constructor(uri: string, requestHeaders: HashMap<string, string> | undefined,
-              requestParams: HashMap<string, string> | undefined, callback: FetchResourceCallback | null,
+  constructor(uri: string, requestHeaders: HashMap<string, string> | null,
+              requestParams: HashMap<string, string> | null, callback: FetchResourceCallback | null,
               from: RequestFrom, nativeRequestId: number) {
     this.uri = uri
     this.requestHeaders = requestHeaders
@@ -86,9 +69,9 @@ export class ResourceDataHolder {
     // this.bytes = null;
     this.loadStartTime = 0;
     this.transferType = TransferType.NORMAL;
-    this.errorMessage = undefined;
+    this.errorMessage = null;
     this.callback = null;
-    this.processorTag = undefined;
+    this.processorTag = null;
     this.index = -1;
     this.resultCode = -1;
     // RecycleObject.recycle(this);
