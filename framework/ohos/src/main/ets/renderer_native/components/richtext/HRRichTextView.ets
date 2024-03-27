@@ -64,7 +64,7 @@ export class HRRichTextView extends HippyRenderBaseView {
         return true
       case "enableScale": //todo
         return true;
-      case HRNodeProps.FONT_FAMILY: //todo 不生效
+      case HRNodeProps.FONT_FAMILY:
         this.fontFamily = HRValueUtils.getString(propValue);
         return true;
       case HRNodeProps.FONT_SIZE:
@@ -223,7 +223,7 @@ export struct HRRichText {
   @Builder
   ImageSpan(img: HRImageView) {
     ImageSpan(img.getImage())
-      .verticalAlign(img.spanVerticalAlign)
+      // .verticalAlign(img.spanVerticalAlign)
       .objectFit(img.spanObjectFit)
       .applyRenderViewBaseAttr_ImageSpan(img)
       .textBackgroundStyle({color: img.cssBackgroundColor})
@@ -328,7 +328,7 @@ function applyRenderViewBaseAttr_TextSpan($$: HippyRenderBaseView) {
 function applyRenderViewBaseAttr_ImageSpan($$: HippyRenderBaseView) {
   .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  // .position({x: $$.cssPositionX, y: $$.cssPositionY}) // 位置自动布局，如果设置了，ImageSpan会重叠在父Text组件的左上角
+  .position({x: $$.cssPositionX, y: $$.cssPositionY}) // 使用 c 测得的绝对位置
   .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)

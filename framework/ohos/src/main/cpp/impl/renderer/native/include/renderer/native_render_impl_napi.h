@@ -48,7 +48,8 @@ void CallRenderDelegateCallFunctionMethod(napi_env env, napi_ref render_provider
 void CallRenderDelegateMeasureMethod(napi_env env, napi_ref render_provider_ref,
   const std::string& method, uint32_t root_id, uint32_t node_id,
   const float width, const int32_t width_mode, const float height, const int32_t height_mode, int64_t& result);
-
+void CallRenderDelegateSpanPositionMethod(napi_env env, napi_ref render_provider_ref,
+  const std::string& method, uint32_t root_id, uint32_t node_id, const float x, const float y);
 }
 }
 }

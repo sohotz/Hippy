@@ -749,6 +749,10 @@ export default abstract class HippyRenderBaseView {
 
   protected updateRenderViewFrame(frame: HRRect): void {
     if(this.isImageSpan()) {
+      if(frame.x != 0 || frame.y != 0){ // c 测得span的位置
+        this.cssPositionX = frame.x
+        this.cssPositionY = frame.y
+      }
       return;
     }
     this.cssPositionX = frame.x
