@@ -22,13 +22,7 @@ import { HippyNativeModuleBase } from '../HippyNativeModuleBase';
 import { HippyStorageAdapter } from '../../../adapter/storage/HippyStorageAdapter';
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule';
 import { LogUtils } from '../../../../support/utils/LogUtils';
-import {
-  HippyAny,
-  HippyArray,
-  HippyMap,
-  HippyModuleCallback,
-  HippyValue
-} from '../../../../support/common/HippyTypes';
+import { HippyAny, HippyArray, HippyModuleCallback } from '../../../../support/common/HippyTypes';
 
 const STORAGE_MODULE_TAG = "StorageModule"
 
@@ -40,6 +34,30 @@ export class StorageModule extends HippyNativeModuleBase {
   constructor(ctx: HippyEngineContext) {
     super(ctx)
     this.mStorageAdapter = this.ctx.getGlobalConfigs().getStorageAdapter();
+  }
+
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'multiGet': {
+        this.multiGet(params[0] as string[])
+        break;
+      }
+      case 'multiSet': {
+        this.multiSet(params[0] as HippyArray)
+        break;
+      }
+      case 'multiRemove': {
+        this.multiRemove(params[0] as string[])
+        break;
+      }
+      case 'getAllKeys': {
+        this.getAllKeys()
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
   }
 
   private multiGet(keys: string[]): Promise<[key: string, value: string][]> {
@@ -58,17 +76,18 @@ export class StorageModule extends HippyNativeModuleBase {
           return;
         }
         let data = new Array<[key: string, value: string]>();
-        data.forEach((value, index, result) => {
+        result.forEach((value, index, result) => {
           data.push([value[0], value[1]])
         })
+        LogUtils.i(STORAGE_MODULE_TAG, 'multiGet:' + data);
         resolve(data);
       })
     })
   }
 
-  private multiSet(params: HippyMap): Promise<void> {
+  private multiSet(params: HippyArray): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      if (params == null || params.size <= 0) {
+      if (params == null || params.length <= 0) {
         reject("Invalid Key");
         return;
       }
@@ -76,32 +95,24 @@ export class StorageModule extends HippyNativeModuleBase {
         reject("Database Null");
         return;
       }
-
       try {
         let data = new Array<[key: string, value: string]>();
-        if (params.entries() == null) {
-          reject("Invalid Value");
-          return;
-        }
-        for (let newData of params.entries()) {
-          if (newData[0] == null) {
-            reject("Invalid key");
-            return;
+        for (let i = 0; i < params.length; i++) {
+          if (params[i] instanceof Array) {
+            data.push([(params[i] as HippyArray)[0] as string, (params[i] as HippyArray)[1] as string]);
           }
-          if (newData[1] == null) {
-            reject("Invalid Value");
-            return;
-          }
-          data.push([newData[0], newData[1] as string]);
         }
+        LogUtils.i(STORAGE_MODULE_TAG, params[0] + '、' + data);
+
         this.mStorageAdapter.multiSet(data).then((err) => {
-          if (err != null) {
+          if (err == undefined) {
             LogUtils.i(STORAGE_MODULE_TAG, "multiSet succ");
           } else {
             reject(err)
           }
         })
       } catch (e) {
+        LogUtils.i(STORAGE_MODULE_TAG, "multiSet fail:" + e);
         reject(e.getMessage());
       }
     })
@@ -118,9 +129,10 @@ export class StorageModule extends HippyNativeModuleBase {
         return;
       }
       return this.mStorageAdapter.multiRemove(keys).then((err) => {
-        if (err != null) {
+        if (err == undefined) {
           LogUtils.i(STORAGE_MODULE_TAG, "multiRemove succ");
         } else {
+          LogUtils.i(STORAGE_MODULE_TAG, "multiRemove fail:" + err);
           reject(err)
         }
       })
@@ -142,29 +154,5 @@ export class StorageModule extends HippyNativeModuleBase {
         }
       })
     })
-  }
-
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
-    switch (method) {
-      case 'multiGet': {
-        this.multiGet(params[0] as string[])
-        break;
-      }
-      case 'multiSet': {
-        this.multiSet(params[0] as HippyMap)
-        break;
-      }
-      case 'multiRemove': {
-        this.multiRemove(params[0] as string[])
-        break;
-      }
-      case 'getAllKeys': {
-        this.getAllKeys()
-        break;
-      }
-      default:
-        super.call(method, params, callback)
-    }
-    return null;
   }
 }

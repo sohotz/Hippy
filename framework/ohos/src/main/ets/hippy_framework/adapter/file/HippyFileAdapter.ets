@@ -18,9 +18,11 @@
  * limitations under the License.
  */
 import { request } from '@kit.BasicServicesKit'
+import { ProcessorCallback } from '../../../vfs/ProcessorCallback'
+import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder'
 
 export interface HippyFileAdapter {
   uploadFile(url: string, header: object, method: string, files: Array<request.File>, data: Array<request.RequestData>): Promise<request.UploadTask>
 
-  downloadFile(url: string, header: object, path: string, networkType: number): Promise<request.DownloadTask>
+  downloadFile(holder: ResourceDataHolder, callback: ProcessorCallback): Promise<request.DownloadTask>
 }

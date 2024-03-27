@@ -17,12 +17,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyStorageAdapter } from "./HippyStorageAdapter";
+import { HippyStorageAdapter } from './HippyStorageAdapter';
 import relationalStore from '@ohos.data.relationalStore';
-import { BusinessError } from '@ohos.base';
 import { Context } from '@ohos.abilityAccessCtrl';
 import { ValuesBucket } from '@ohos.data.ValuesBucket';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HippyJsException } from '../../common/HippyJsException';
 
 const DEFAULT_STORAGE_ADAPTER_TAG = 'DefaultStorageAdapter'
 
@@ -48,7 +48,7 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
       };
 
       try {
-        this.hippyStoreDb = await relationalStore.getRdbStore(this.ctx==null?getContext():this.ctx, STORE_CONFIG)
+        this.hippyStoreDb = await relationalStore.getRdbStore(this.ctx == null ? getContext() : this.ctx, STORE_CONFIG)
         LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, 'Get RdbStore successfully.')
         await this.hippyStoreDb.executeSql(`CREATE TABLE IF NOT EXISTS ${TABLE_STORAGE} (${COLUMN_KEY} TEXT PRIMARY KEY, ${COLUMN_VALUE} TEXT);`)
         LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `CREATE TABLE SUCC`)
@@ -63,22 +63,22 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
     await this.getStoreDb();
     let predicates = new relationalStore.RdbPredicates(TABLE_STORAGE);
     predicates.in(COLUMN_KEY, keys);
-    let resultSet: relationalStore.ResultSet = await (this.hippyStoreDb as relationalStore.RdbStore).query(
-      predicates,
-      [COLUMN_KEY, COLUMN_VALUE]
-    );
-    LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `ResultSet column names: ${resultSet.columnNames}, column count: ${resultSet.columnCount}`);
+    
+    let resultSet: relationalStore.ResultSet = await (this.hippyStoreDb as relationalStore.RdbStore)
+      .query(predicates, [COLUMN_KEY, COLUMN_VALUE]);
+
+    LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `ResultSet column names: ${resultSet.columnNames}`);
     let results = new Array<[key: string, value: string]>(resultSet.rowCount);
-    let i = 0;
+    // resultSet是一个数据集合的游标，默认指向第-1个记录，有效的数据从0开始。
     while (resultSet.goToNextRow()) {
-      results[i] = [
-        resultSet.getString(resultSet.getColumnIndex(COLUMN_KEY)),
-        resultSet.getString(resultSet.getColumnIndex(COLUMN_VALUE))
-      ];
-      i++;
+      const key = resultSet.getString(resultSet.getColumnIndex(COLUMN_KEY));
+      const value = resultSet.getString(resultSet.getColumnIndex(COLUMN_VALUE));
+      LogUtils.d(DEFAULT_STORAGE_ADAPTER_TAG, "ResultSet: " + key + ',' + value)
+      results.push([key, value])
     }
+    // 释放数据集的内存
     resultSet.close();
-    return results;
+    return results
   }
 
 
@@ -89,19 +89,16 @@ export class DefaultStorageAdapter implements HippyStorageAdapter {
     await this.getStoreDb();
 
     const valueBuckets = pairs.map<ValuesBucket>((pair) => {
+      LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, 'storage_key:' + pair[0] + ',storage_value:' + pair[1]);
       return { 'storage_key': pair[0], 'storage_value': pair[1] }
     });
 
-    (this.hippyStoreDb as relationalStore.RdbStore).batchInsert(
-      TABLE_STORAGE,
-      valueBuckets,
-      (err: BusinessError, rowId: number) => {
-        if (err) {
-          LogUtils.e(DEFAULT_STORAGE_ADAPTER_TAG, `Insert is failed, code is ${err.code}, message is ${err.message}`);
-          return
-        }
-        LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `Insert is successful, rowId = ${rowId}`);
-        return
+    (this.hippyStoreDb as relationalStore.RdbStore).batchInsert(TABLE_STORAGE, valueBuckets)
+      .then((insertNum: number) => {
+        LogUtils.i(DEFAULT_STORAGE_ADAPTER_TAG, `Insert is successful, insertNum = ${insertNum}`);
+      })
+      .catch((err: HippyJsException) => {
+        LogUtils.e(DEFAULT_STORAGE_ADAPTER_TAG, `Insert is failed, message is ${err.message}`);
       })
   }
 

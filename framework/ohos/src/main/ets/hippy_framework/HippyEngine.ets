@@ -45,6 +45,7 @@ import { HippyBundleLoader } from './bridge/bundleloader/HippyBundleLoader';
 import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HippyEngineManagerImpl } from './HippyEngineManagerImpl';
 import { HippyEngineContext } from './HippyEngineContext'
+import { HippyFileAdapter } from './adapter/file/HippyFileAdapter';
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
@@ -119,6 +120,8 @@ export class EngineInitParams {
   public preferencesStorageAdapter: PreferencesStorageAdapter | null = null;
   // 可选参数 Http request adapter
   public httpAdapter: HippyHttpAdapter | null = null;
+  // 可选参数 file request adapter
+  public fileAdapter: HippyFileAdapter | null = null;
   // 可选参数 Storage adapter 设置相关
   public storageAdapter: HippyStorageAdapter | null = null;
   // 可选参数 Executor Supplier adapter

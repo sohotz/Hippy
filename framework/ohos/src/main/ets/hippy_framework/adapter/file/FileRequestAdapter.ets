@@ -21,10 +21,18 @@ import { HippyFileAdapter } from './HippyFileAdapter';
 import request from '@ohos.request';
 import { HippyJsException } from '../../common/HippyJsException';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
+import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 
 const FILE_REQ_TAG = "FileRequestAdapter"
 
 export class FileRequestAdapter implements HippyFileAdapter {
+  private ctx: Context;
+
+  constructor(context: Context) {
+    this.ctx = context;
+  }
+
   public uploadFile(reqUrl: string, reqHaeder: object, reqMethod: string, reqFiles: request.File[], reqData: request.RequestData[]): Promise<request.UploadTask> {
     let uploadConfig: request.UploadConfig = {
       url: reqUrl,
@@ -35,7 +43,7 @@ export class FileRequestAdapter implements HippyFileAdapter {
     };
     return new Promise<request.UploadTask>(() => {
       try {
-        request.uploadFile(globalThis.abilityContext, uploadConfig).then((data) => {
+        request.uploadFile(this.ctx, uploadConfig).then((data) => {
           LogUtils.i(FILE_REQ_TAG, 'succ to request the upload. result: ' + JSON.stringify(data));
           return data
         }).catch((err: HippyJsException) => {
@@ -47,18 +55,17 @@ export class FileRequestAdapter implements HippyFileAdapter {
     })
   }
 
-  public downloadFile(url: string, header: object, path: string, networkType: number): Promise<request.DownloadTask> {
+  public downloadFile(holder: ResourceDataHolder, callback: ProcessorCallback): Promise<request.DownloadTask> {
     let downloadConfig: request.DownloadConfig = {
-      url: url,
-      header: header,
-      filePath: path,
-      networkType: networkType
+      url: holder.uri,
+      header: holder.requestHeaders ?? '',
     };
     return new Promise<request.DownloadTask>((resolve, reject) => {
       try {
-        request.downloadFile(globalThis.abilityContext, downloadConfig)
+        request.downloadFile(this.ctx, downloadConfig)
           .then((data) => {
             LogUtils.i(FILE_REQ_TAG, 'succ to request the download. result: ' + JSON.stringify(data));
+            callback.onHandleCompleted();
             return data;
           })
           .catch((err: HippyJsException) => {
