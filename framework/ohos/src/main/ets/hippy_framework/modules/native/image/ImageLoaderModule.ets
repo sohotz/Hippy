@@ -25,10 +25,11 @@ import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { HashMap } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
-import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
+import { ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { image } from '@kit.ImageKit'
 import { HippyException } from '../../../../support/common/HippyException'
 import { LogUtils } from '../../../../support/utils/LogUtils'
+import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
 
 
 const IMAGE_MODULE_TAG = "ImageLoaderModule"
@@ -115,14 +116,14 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
         return;
       }
       for (let i = 0; i < urls.length; i++) {
-        this.mVfsManager.fetchResourceAsync(urls[i] as string, undefined, this.generateRequestParams(), new ResourceCallback(this.ctx, urls[i] as string))
+        this.mVfsManager.fetchResourceAsync(urls[i] as string, null, this.generateRequestParams(), new ResourceCallback(this.ctx, urls[i] as string))
       }
     })
   }
 
   private prefetch(urls: Array<HippyAny>) {
     for (let i = 0; i < urls.length; i++) {
-      this.mVfsManager.fetchResourceAsync(urls[i] as string, undefined, this.generateRequestParams(), new ResourceCallback(this.ctx, "prefetch"))
+      this.mVfsManager.fetchResourceAsync(urls[i] as string, null, this.generateRequestParams(), new ResourceCallback(this.ctx, "prefetch"))
     }
   }
 }
