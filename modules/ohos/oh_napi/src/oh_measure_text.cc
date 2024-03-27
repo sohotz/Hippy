@@ -356,8 +356,9 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
         double maxWidth = float(width) / density;
         OH_Drawing_TypographyLayout(typography, maxWidth); // todo2 constraintWidth
 
-        double realWidth = OH_Drawing_TypographyGetLongestLine(typography); // 实际有像素的宽度
-        ret.width = fmax(realWidth, maxWidth);                   // 宽度
+        // double realWidth = OH_Drawing_TypographyGetLongestLine(typography); // 实际有像素的宽度
+        // ret.width = fmax(realWidth, maxWidth);                   // 宽度
+        ret.width = OH_Drawing_TypographyGetLongestLine(typography);
         ret.height = OH_Drawing_TypographyGetHeight(typography); // 高度
         lineCount = OH_Drawing_TypographyGetLineCount(typography);
 
