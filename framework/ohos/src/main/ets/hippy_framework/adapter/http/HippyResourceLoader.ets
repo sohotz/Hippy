@@ -45,10 +45,9 @@ export class HippyResourceLoader implements ResourceLoader {
 
   fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback) {
     if (UrlUtils.isWebUrl(holder.uri)) {
-      // TODO FileAdapter
-      let httpAdapter = this.engineContext.getGlobalConfigs().getHttpAdapter()
-      if (httpAdapter) {
-        httpAdapter.fetch(holder, http.RequestMethod.GET, this.engineContext.getNativeParams(), callback)
+      let fileAdapter = this.engineContext.getGlobalConfigs().getFileAdapter()
+      if (fileAdapter) {
+        fileAdapter.downloadFile(holder,callback)
       }
     } else if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
       const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager

@@ -21,6 +21,7 @@ import { LogUtils } from '../support/utils/LogUtils';
 import { HippyDeviceAdapter } from './adapter/device/HippyDeviceAdapter';
 import { HippyExceptionHandlerAdapter } from './adapter/exception/HippyExceptionHandlerAdapter';
 import { HippyExecutorSupplierAdapter } from './adapter/executor/HippyExecutorSupplierAdapter';
+import { HippyFileAdapter } from './adapter/file/HippyFileAdapter';
 import { HippyFontScaleAdapter } from './adapter/font/HippyFontScaleAdapter';
 import { HippyHttpAdapter } from './adapter/http/HippyHttpAdapter';
 import { HippyLogAdapter } from './adapter/log/HippyLogAdapter';
@@ -44,6 +45,10 @@ export class HippyGlobalConfigs {
    * Http request adapter
    */
   private mHttpAdapter: HippyHttpAdapter | null;
+  /**
+   * file request adapter
+   */
+  private mFileAdapter: HippyFileAdapter | null;
   /**
    * Storage adapter
    */
@@ -76,6 +81,7 @@ export class HippyGlobalConfigs {
     this.mPreferencesStorageAdapter = params.preferencesStorageAdapter;
     this.mExceptionHandler = params.exceptionHandler;
     this.mHttpAdapter = params.httpAdapter;
+    this.mFileAdapter = params.fileAdapter;
     this.mStorageAdapter = params.storageAdapter;
     this.mExecutorSupplierAdapter = params.executorSupplier;
     this.mEngineMonitorAdapter = params.engineMonitor;
@@ -129,6 +135,10 @@ export class HippyGlobalConfigs {
 
   public getHttpAdapter(): HippyHttpAdapter | null {
     return this.mHttpAdapter;
+  }
+
+  public getFileAdapter(): HippyFileAdapter | null {
+    return this.mFileAdapter;
   }
 
   public getContext(): Context | null {
