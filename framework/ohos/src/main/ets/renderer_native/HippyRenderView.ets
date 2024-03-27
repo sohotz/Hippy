@@ -36,7 +36,6 @@ import { HRWaterfallItem, HRWaterfallItemView } from './components/waterfall/HRW
 import { HRRefreshWrapper,HRRefreshWrapperView } from './components/refreshwrapper/HRRefreshWrapper';
 import { HRRefreshWrapperItem, HRRefreshWrapperItemView } from './components/refreshwrapper/HRRefreshWrapperItem';
 import { HRRichText, HRRichTextView } from './components/richtext/HRRichTextView';
-import { HRScrollContent, HRScrollContentView } from './components/scroller/HRScrollContentView';
 import { HRScroll, HRScrollView } from './components/scroller/HRScrollView';
 import { HRDiv, HRDivView } from './components/view/HRDivView';
 import { HRWeb, HRWebView } from './components/web/HRWebView'
@@ -49,7 +48,7 @@ import { HRPullHeader, HRPullHeaderView } from './components/pullheader/HRPullHe
 import { HRPullFooter, HRPullFooterView } from './components/pullfooter/HRPullFooter';
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils';
 
-export type HRComponent = HRDivView | HRScroll | HRScrollContent | HRModal | null
+export type HRComponent = HRDivView | HRScroll | HRModal | null
 
 @Observed
 export class HippyRenderView extends HippyRenderBaseView {
@@ -185,15 +184,6 @@ export struct HippyRender {
         children: $$.children,
         buildRenderView: this.buildRenderView,
         buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRScrollContentView) {
-      HRScrollContent({
-        renderView: $$ as HRScrollContentView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView,
-        xOffset: (parentComponent as HRScroll)?.xOffset,
-        yOffset: (parentComponent as HRScroll)?.yOffset
       })
     } else if ($$ instanceof HRRichTextView) {
       HRRichText({ renderView: $$ as HRRichTextView, buildRenderView: this.buildRenderView })
