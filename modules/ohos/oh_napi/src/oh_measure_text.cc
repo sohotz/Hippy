@@ -27,6 +27,14 @@ void OhMeasureText::CheckUnusedProp(const char *tag, std::map<std::string, std::
 }
 #endif
 
+std::map<std::string, std::string> OhMeasureText::fontFamilyList_ = {
+    {"TTTGB", "/data/storage/el1/bundle/entry/resources/resfile/fonts/TTTGB.otf"}};
+// todo 这里暂时写死了字体路径，实际用到了哪些字体需要ArkTS告知
+
+void OhMeasureText::RegisterFont(std::string familyName, std::string familySrc) {
+    fontFamilyList_[familyName] = familySrc;
+}
+
 void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
 #ifdef MEASURE_TEXT_CHECK_PROP
     StartCollectProp();
@@ -73,6 +81,14 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
     }
 
     fontCollection_ = OH_Drawing_CreateFontCollection();
+    if (HasProp(propMap, "fontFamily")) {
+        if (fontFamilyList_.find(propMap["fontFamily"]) != fontFamilyList_.end()) {
+            uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, propMap["fontFamily"].c_str(),
+                                                   fontFamilyList_[propMap["fontFamily"]].c_str());
+            FOOTSTONE_DLOG(WARNING) << "Measure Text OH_Drawing_RegisterFont(" << propMap["fontFamily"] << ","
+                                    << fontFamilyList_[propMap["fontFamily"]] << ") " << (ret == 0 ? "succ" : "fail");
+        }
+    }
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
 
     if (HasProp(propMap, "lineHeight")) {
@@ -155,17 +171,6 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     // 猜测行高=fontSize*1.25，lineSpacingMultiplier，1.25是猜的，也可能是1.3或其他
 
     if (HasProp(propMap, "fontFamily")) {
-        // const char *fontFile = "/data/storage/el1/bundle/entry/resources/resfile/fonts/TTTGB.otf";
-        // FILE *fp = fopen(fontFile, "rb");
-        // if (fp != NULL) {
-        //     fseek(fp, 0, SEEK_END);
-        //     auto size = ftell(fp);
-        //     fclose(fp);
-        //     FOOTSTONE_DLOG(WARNING) << "OH_Drawing_RegisterFont size " << size;
-        // }
-        // // fontFile 可读的话，OH_Drawing_RegisterFont内部会crash
-        // uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, "TTTGB", fontFile);
-        // FOOTSTONE_DLOG(WARNING) << "OH_Drawing_RegisterFont ret " << ret;
         const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
         OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies); // ok6 fontFamily
     }

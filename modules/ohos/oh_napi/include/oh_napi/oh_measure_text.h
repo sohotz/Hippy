@@ -44,9 +44,11 @@ public:
     void AddImage(std::map<std::string, std::string> &propMap);
     OhMeasureResult EndMeasure(int width, int widthMode, int height, int heightMode, float density);
 
-    static void RegisterFont();
+    static void RegisterFont(std::string familyName, std::string familySrc);
 
 private:
+    static std::map<std::string, std::string> fontFamilyList_;
+
     bool HasProp(std::map<std::string, std::string> &propMap, const char *s);
 
 #ifdef MEASURE_TEXT_CHECK_PROP
