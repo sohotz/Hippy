@@ -113,12 +113,12 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
   runBundle(id: number, loader: HippyBundleLoader): void {
     loader.load(this.mHippyBridge, (result: number, reason: string) => {
-        this.bundleIndexLoaderCallback(result, reason);
-      });
+      this.bundleIndexLoaderCallback(result, reason);
+    });
   }
 
   bundleIndexLoaderCallback = (result: number, reason: string) => {
-      LogUtils.i('hippy bundleIndexLoaderCallback', result + reason)
+    LogUtils.i('hippy bundleIndexLoaderCallback', result + reason)
   }
 
   resumeInstance(id: number): void {
@@ -167,7 +167,6 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
   }
 
-
   getThirdPartyAdapter(): HippyThirdPartyAdapter | null {
     return this.mThirdPartyAdapter;
   }
@@ -182,7 +181,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
   initBridge(initBridgeCallback: NativeCallback): void {
     this.mHippyBridge.initJSBridge(this.getGlobalConfigsString(), (result: number, reason: string) => {
-        this.initJSDriverCallback(result, reason, initBridgeCallback);
+      this.initJSDriverCallback(result, reason, initBridgeCallback);
     }, this.mGroupId);
   }
 
@@ -211,7 +210,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       this.mCoreBundleLoader
         .load(this.mHippyBridge, () => {
           this.bundleVendorLoaderCallback(result, reason, initBridgeCallback);
-      });
+        });
     } else {
       this.mBridgeState = BridgeState.INITIALIZED;
       initBridgeCallback(1, '');
@@ -234,12 +233,6 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       TimeMonitor.MONITOR_POINT_NOTIFY_ENGINE_INITIALIZED);
     initBridgeCallback(result, reason);
   }
-
-  private enableTurbo(): boolean {
-    return this.mContext.getGlobalConfigs() != null && this.mContext.getGlobalConfigs()
-      .enableTurbo();
-  }
-
 
   loadInstance(name: string, id: number, params: HippyMap) {
     const timeMonitor = this.mContext.getMonitor()
@@ -264,10 +257,17 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   getGlobalConfigsString(): string {
-    // TODO(hot):
+    let context = this.mContext.getGlobalConfigs().getContext();
+    if (context == null) return ""
     let globalParams = new Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>()
-    let dimensionMap = new Map<string, HippyValue>()
-
+    let dimensionMap = DimensionsUtil.getDimensions(-1, -1, context, true);
+    if (this.mContext.getGlobalConfigs() != null
+      && this.mContext.getGlobalConfigs().getDeviceAdapter() != null) {
+      this.mContext.getGlobalConfigs()
+        .getDeviceAdapter()?.reviseDimensionIfNeed(context, dimensionMap, false,
+        false);
+    }
+    DimensionsUtil.convertDimensionsToDp(dimensionMap);
     globalParams.set("Dimensions", dimensionMap)
 
     let packageName = ""
@@ -305,5 +305,10 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     globalParams.set("HostConfig", host)
 
     return ArgumentUtils.objectToJson(globalParams)
+  }
+
+  private enableTurbo(): boolean {
+    return this.mContext.getGlobalConfigs() != null && this.mContext.getGlobalConfigs()
+      .enableTurbo();
   }
 }
