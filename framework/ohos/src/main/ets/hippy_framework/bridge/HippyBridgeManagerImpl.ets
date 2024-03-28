@@ -157,8 +157,9 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       let serializer = new Serializer(binaryWriter)
       serializer.writeHeader()
       serializer.writeValue(params)
-      let buffer = binaryWriter.chunked().buffer
-      this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALL_JS_MODULE, this.callJavaScriptModuleCallback, binaryWriter.chunked());
+      let buffer = binaryWriter.chunked()
+
+      this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALL_JS_MODULE, this.callJavaScriptModuleCallback, buffer);
     }
   }
 
@@ -241,7 +242,9 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
 
   loadInstance(name: string, id: number, params: HippyMap) {
-    // TODO(hot):
+    const timeMonitor = this.mContext.getMonitor()
+    timeMonitor.startPoint(MonitorGroupType.LOAD_INSTANCE, TimeMonitor.MONITOR_POINT_LOAD_INSTANCE)
+
     let map = new Map<string, HippyAny>()
     map.set("name", name)
     map.set("id", id)
@@ -250,10 +253,10 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     let binaryWriter = new BinaryWriter()
     let serializer = new Serializer(binaryWriter)
     serializer.writeHeader()
-    serializer.writeValue(params)
-    let buffer = binaryWriter.chunked().buffer
+    serializer.writeValue(map)
+    let buffer = binaryWriter.chunked()
 
-    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, binaryWriter.chunked());
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, buffer)
   }
 
   callFunctionCallBack = (result: number, reason: string) => {

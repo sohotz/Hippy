@@ -22,6 +22,9 @@ import { JsDriver } from '../hippy_framework/connector/JsDriver';
 import { NativeCallback } from '../hippy_framework/connector/NativeCallback';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 import { HippyAny } from '../support/common/HippyTypes';
+import { FetchResourceCallback } from '../vfs/FetchResourceCallback';
+import { ResourceDataHolder } from '../vfs/ResourceDataHolder';
+import { VfsManager } from '../vfs/VfsManager';
 
 export interface HippyLibrary {
   DomManager_SetRenderManager(instanceId: number, renderId: number): void;
@@ -72,7 +75,6 @@ export interface HippyLibrary {
 
   NativeRenderer_CreateNativeRenderManager(renderProvider: NativeRenderProvider, density: number): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
-  NativeRenderer_GetNativeRendererInstance(instanceId: number): HippyAny;
   NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
 
   NativeRenderImpl_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number): void;
@@ -81,6 +83,11 @@ export interface HippyLibrary {
   NativeRenderImpl_DoCallBack(instanceId: number, result: number, functionName: string, rootId: number, nodeId: number, callbackId: number, buffer: ArrayBuffer | null): void;
   NativeRenderImpl_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
 
-  VfsManager_CreateVfs(): number;
+  VfsManager_CreateVfs(vfsDelegate: VfsManager): number;
   VfsManager_DestroyVfs(instanceId: number): void;
+  VfsManager_OnJniDelegateCallback(holder: ResourceDataHolder): void;
+  VfsManager_OnJniDelegateInvokeProgress(callbackId: number, total: number, loaded: number): void;
+  VfsManager_OnJniDelegateInvokeAsync(id: number, holder: ResourceDataHolder, callback: FetchResourceCallback): void;
+  VfsManager_OnJniDelegateInvokeSync(id: number, holder: ResourceDataHolder): void;
+
 }

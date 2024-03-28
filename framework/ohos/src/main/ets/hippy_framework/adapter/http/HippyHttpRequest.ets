@@ -47,12 +47,12 @@ export class HippyHttpRequest {
   private mInitParams: HashMap<string, string>
   private mNativeParams: HashMap<string, Object>
 
-  constructor(headers: HashMap<string, string>, method: http.RequestMethod,
+  constructor(headers: HashMap<string, string>, method: string,
               initParams: HashMap<string, string>, nativeParams: HashMap<string, Object>) {
     this.mHeaders = (headers == null) ? new HashMap() : headers;
-    this.mMethod = method;
     this.mInitParams = initParams;
     this.mNativeParams = nativeParams;
+    this.setMethod(method);
     this.initUserAgent();
   }
 
@@ -112,6 +112,38 @@ export class HippyHttpRequest {
 
   public setUseCaches(useCaches: boolean) {
     this.mUseCaches = useCaches;
+  }
+
+  public setMethod(method: string) {
+    switch (method) {
+      case 'GET':
+        this.mMethod = http.RequestMethod.GET;
+        break
+      case 'HEAD':
+        this.mMethod = http.RequestMethod.HEAD;
+        break
+      case 'OPTIONS':
+        this.mMethod = http.RequestMethod.OPTIONS;
+        break
+      case 'TRACE':
+        this.mMethod = http.RequestMethod.TRACE;
+        break
+      case 'DELETE':
+        this.mMethod = http.RequestMethod.DELETE;
+        break
+      case 'POST':
+        this.mMethod = http.RequestMethod.POST;
+        break
+      case 'PUT':
+        this.mMethod = http.RequestMethod.PUT;
+        break
+      case 'CONNECT':
+        this.mMethod = http.RequestMethod.CONNECT;
+        break
+      default:
+        this.mMethod = http.RequestMethod.GET;
+        break
+    }
   }
 
   public getMethod(): http.RequestMethod {

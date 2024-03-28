@@ -49,11 +49,11 @@ export class DeviceEventModule extends HippyNativeModuleBase {
     return false;
   }
 
-  public setListenBackPress(listen: boolean) {
+  private setListenBackPress(listen: boolean) {
     this.mIsListening = listen;
   }
 
-  public invokeDefaultBackPressHandler() {
+  private invokeDefaultBackPressHandler() {
     if (this.mBackPressHandler != null) {
       this.mBackPressHandler.handleBackPress();
     }
@@ -63,7 +63,7 @@ export class DeviceEventModule extends HippyNativeModuleBase {
     this.mBackPressHandler = null;
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
     switch (method) {
       case 'setListenBackPress': {
         this.setListenBackPress(params[0] as boolean)

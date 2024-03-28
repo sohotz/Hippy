@@ -116,7 +116,7 @@ export class HippyBridgeImpl implements HippyBridge {
   callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array) {
     if (functionId == HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE) {
       // TODO loadInstance 参数序列化
-      this.mJsDriver.loadInstance('');
+      this.mJsDriver.loadInstance(buffer, callback);
     } else if (functionId == HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE) {
       // mJsDriver.unloadInstance(buffer, 0, length);
     } else {

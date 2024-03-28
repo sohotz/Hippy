@@ -20,7 +20,7 @@
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
 import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
-import { FetchResourceCallback, ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
+import { ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { HashMap } from '@kit.ArkTS'
@@ -29,6 +29,7 @@ import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
 import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import util from '@ohos.util'
+import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
 
 const NETWORK_MODULE_TAG = "NetworkModule"
 
@@ -40,7 +41,66 @@ export class NetworkModule extends HippyNativeModuleBase {
     super(ctx)
   }
 
-  public fetch(request: HippyMap): Promise<void> {
+  public handleFetchResult(dataHolder: ResourceDataHolder): Promise<HippyAny> {
+    return new Promise((resolve, reject) => {
+      try {
+        if (dataHolder.resultCode == ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE) {
+          let responseObject = this.handleFetchResponse(dataHolder);
+          resolve(responseObject);
+        } else {
+          let errorMessage =
+            (dataHolder.errorMessage == null) ? "Load remote resource failed!" : dataHolder.errorMessage;
+          reject(errorMessage);
+        }
+      } catch (e) {
+        reject("Handle response failed: " + e.getMessage());
+      }
+    })
+  }
+
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'fetch': {
+        this.fetch(params[0] as HippyMap)
+        break;
+      }
+      case 'setCookie': {
+        if (params != null && params instanceof Map) {
+          let url = ""
+          let keyValue = ""
+          let expires = ""
+          if ((params as HippyMap).get("title") !== undefined) {
+            url = (params as HippyMap).get("title") as string
+          }
+          if ((params as HippyMap).get("details") !== undefined) {
+            keyValue = (params as HippyMap).get("details") as string
+          }
+          if ((params as HippyMap).get("details") !== undefined) {
+            expires = (params as HippyMap).get("details") as string
+          }
+          this.setCookie(url, keyValue, expires)
+        }
+        break;
+      }
+      case 'addListener': {
+        this.addListener()
+        break;
+      }
+      case 'removeListener': {
+        this.removeListener()
+        break;
+      }
+      case 'getCookie': {
+        this.getCookie(params[0] as string)
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
+  }
+
+  private fetch(request: HippyMap): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       let vfsManager: VfsManager = this.ctx.getVfsManager()
       let requestHeaders = new HashMap<string, string>();
@@ -62,24 +122,7 @@ export class NetworkModule extends HippyNativeModuleBase {
     });
   }
 
-  public handleFetchResult(dataHolder: ResourceDataHolder): Promise<HippyAny> {
-    return new Promise((resolve, reject) => {
-      try {
-        if (dataHolder.resultCode == ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE) {
-          let responseObject = this.handleFetchResponse(dataHolder);
-          resolve(responseObject);
-        } else {
-          let errorMessage =
-            (dataHolder.errorMessage == null) ? "Load remote resource failed!" : dataHolder.errorMessage;
-          reject(errorMessage);
-        }
-      } catch (e) {
-        reject("Handle response failed: " + e.getMessage());
-      }
-    })
-  }
-
-  handleFetchResponse(dataHolder: ResourceDataHolder): HippyAny {
+  private handleFetchResponse(dataHolder: ResourceDataHolder): HippyAny {
     let resHeader = dataHolder.responseHeaders
     let headerMap: HippyAny = new Map();
     let responseMap: HippyAny = new Map();
@@ -124,7 +167,7 @@ export class NetworkModule extends HippyNativeModuleBase {
     return responseMap
   }
 
-  normalizeRequest(request: HippyMap, requestHeaders: HashMap<String, String>, requestParams: HashMap<String, String>) {
+  private normalizeRequest(request: HippyMap, requestHeaders: HashMap<String, String>, requestParams: HashMap<String, String>) {
     let entry = request.entries();
     if (entry !== null) {
       for (let header of request.entries()) {
@@ -142,7 +185,7 @@ export class NetworkModule extends HippyNativeModuleBase {
     }
   }
 
-  normalizeRequestHeaders(headers: HippyMap, requestHeaders: HashMap<String, String>) {
+  private normalizeRequestHeaders(headers: HippyMap, requestHeaders: HashMap<String, String>) {
     if (headers.entries() == null) return
     for (let header of headers.entries()) {
       let key = header[0]
@@ -156,7 +199,7 @@ export class NetworkModule extends HippyNativeModuleBase {
     }
   }
 
-  public getCookie(url: string): Promise<void> {
+  private getCookie(url: string): Promise<void> {
     return new Promise((resolve, reject) => {
       let adapter = this.ctx.getGlobalConfigs().getHttpAdapter();
       if (adapter != null) {
@@ -165,45 +208,19 @@ export class NetworkModule extends HippyNativeModuleBase {
     })
   }
 
-  public setCookie(url: string, keyValue: string, expires: string) {
+  private setCookie(url: string, keyValue: string, expires: string) {
     let adapter = this.ctx.getGlobalConfigs().getHttpAdapter();
     if (adapter != null) {
       adapter.setCookie(url, keyValue, expires);
     }
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
-    switch (method) {
-      case 'fetch': {
-        this.fetch(params[0] as HippyMap)
-        break;
-      }
-      case 'setCookie': {
-        if (params != null && params instanceof Map) {
-          let url = ""
-          let keyValue = ""
-          let expires = ""
-          if ((params as HippyMap).get("title") !== undefined) {
-            url = (params as HippyMap).get("title") as string
-          }
-          if ((params as HippyMap).get("details") !== undefined) {
-            keyValue = (params as HippyMap).get("details") as string
-          }
-          if ((params as HippyMap).get("details") !== undefined) {
-            expires = (params as HippyMap).get("details") as string
-          }
-          this.setCookie(url, keyValue, expires)
-        }
-        break;
-      }
-      case 'getCookie': {
-        this.getCookie(params[0] as string)
-        break;
-      }
-      default:
-        super.call(method, params, callback)
-    }
-    return null;
+  private addListener() {
+
+  }
+
+  private removeListener() {
+
   }
 }
 
@@ -223,4 +240,3 @@ class FetchResCallback implements FetchResourceCallback {
     // Nothing need to do here.
   }
 }
-

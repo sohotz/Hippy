@@ -18,11 +18,7 @@
  * limitations under the License.
  */
 
-//todo  need to be changed to vfsFile
 export interface ProcessorCallback {
-
   goNext: () => void
-
   onHandleCompleted: () => void
-
 }

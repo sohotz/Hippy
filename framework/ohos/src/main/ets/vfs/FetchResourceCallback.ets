@@ -17,12 +17,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { request } from '@kit.BasicServicesKit'
-import { ProcessorCallback } from '../../../vfs/ProcessorCallback'
-import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder'
+import { ResourceDataHolder } from './ResourceDataHolder'
 
-export interface HippyFileAdapter {
-  uploadFile(url: string, header: object, method: string, files: Array<request.File>, data: Array<request.RequestData>): Promise<request.UploadTask>
+export interface FetchResourceCallback {
+  /**
+   * After the process chain traversal is completed, we need to call this method to
+   * return the processing results to the original request initiator.
+   *
+   * @param dataHolder holder of resources fetch result
+   */
+  onFetchCompleted : (holder: ResourceDataHolder) => void
 
-  downloadFile(holder: ResourceDataHolder, callback: ProcessorCallback): Promise<request.DownloadTask>
+  /**
+   * Return the current progress when loading resources.
+   *
+   * @param total the total size of resources
+   * @param loaded the current progress has loaded
+   */
+  onFetchProgress : (total: number, loaded: number) => void
 }

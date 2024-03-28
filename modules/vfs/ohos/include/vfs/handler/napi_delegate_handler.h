@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <js_native_api.h>
+#include <js_native_api_types.h>
 #include "vfs/handler/uri_handler.h"
 #include "footstone/persistent_object_map.h"
 #include "footstone/string_view.h"
@@ -44,8 +46,8 @@ class NapiDelegateHandler : public UriHandler, public std::enable_shared_from_th
   using AsyncWrapperMap = footstone::PersistentObjectMap<uint32_t, std::shared_ptr<NapiDelegateHandlerAsyncWrapper>>;
   using NapiDelegateHandlerMap = footstone::PersistentObjectMap<uint32_t, std::shared_ptr<NapiDelegateHandler>>;
 
-  NapiDelegateHandler(/* TODO(hot): */);
-  virtual ~NapiDelegateHandler() = default;
+  NapiDelegateHandler(napi_env env, napi_ref delegate_ref);
+  virtual ~NapiDelegateHandler();
 
   virtual void RequestUntrustedContent(
       std::shared_ptr<RequestJob> request,
@@ -61,8 +63,10 @@ class NapiDelegateHandler : public UriHandler, public std::enable_shared_from_th
   }
 
  private:
-  static std::atomic<uint32_t> request_id_;
-  static AsyncWrapperMap wrapper_map_;
+   napi_env ts_env_ = 0;
+   napi_ref ts_delegate_ref_ = 0;
+   static std::atomic<uint32_t> request_id_;
+   static AsyncWrapperMap wrapper_map_;
 };
 
 }

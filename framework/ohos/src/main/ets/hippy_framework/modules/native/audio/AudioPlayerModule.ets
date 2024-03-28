@@ -21,7 +21,6 @@ import { HippyNativeModule } from '../../../../support/annotation/HippyNativeMod
 import { HippyException } from '../../../../support/common/HippyException'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
-import { audio } from '@kit.AudioKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { media } from '@kit.MediaKit'
 import Url from '@ohos.url'
@@ -39,7 +38,43 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     this.createMediaPlayer()
   }
 
-  createMediaPlayer(): Promise<media.AVPlayer | null> {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+    switch (method) {
+      case 'play': {
+        this.play(params[0] as string)
+        break;
+      }
+      case 'goBack': {
+        this.goBack(params[0] as number)
+        break;
+      }
+      case 'goForward': {
+        this.goForward(params[0] as number)
+        break;
+      }
+      case 'seekTo': {
+        this.seekTo(params[0] as number)
+        break;
+      }
+      case 'pause': {
+        this.pause()
+        break;
+      }
+      case 'resume': {
+        this.resume()
+        break;
+      }
+      case 'stop': {
+        this.stop()
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
+  }
+
+  private createMediaPlayer(): Promise<media.AVPlayer | null> {
     this.mState = "prepared"
     return media.createAVPlayer().then((video) => {
       if (video != null) {
@@ -56,7 +91,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     });
   }
 
-  getState(): string {
+  private getState(): string {
     if (this.mMediaPlayer != null && this.mMediaPlayer.state == "playing") {
       //'idle' | 'initialized' | 'prepared' | 'playing' | 'paused' | 'completed'
       // | 'stopped' | 'released' | 'error'
@@ -65,7 +100,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     return this.mState
   }
 
-  async play(streamingURL: string): Promise<string> {
+  private async play(streamingURL: string): Promise<string> {
     if (this.mMediaPlayer == null) {
       await this.createMediaPlayer()
     }
@@ -119,7 +154,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
 
   }
 
-  goBack(seconds: number) {
+  private goBack(seconds: number) {
     try {
       let milliseconds = Math.round(seconds) * 1000;
       if (this.mMediaPlayer !== null) {
@@ -134,7 +169,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     }
   }
 
-  goForward(seconds: number) {
+  private goForward(seconds: number) {
     try {
       let milliseconds = Math.round(seconds) * 1000;
       if (this.mMediaPlayer !== null) {
@@ -150,7 +185,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     }
   }
 
-  seekTo(newPosition: number) {
+  private seekTo(newPosition: number) {
     try {
       if (this.mMediaPlayer != null) {
         this.mMediaPlayer.seek(newPosition, media.SeekMode.SEEK_PREV_SYNC);
@@ -162,7 +197,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     }
   }
 
-  pause() {
+  private pause() {
     try {
       if (this.mMediaPlayer != null) {
         this.mMediaPlayer.pause().then(() => {
@@ -178,7 +213,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     }
   }
 
-  resume() {
+  private resume() {
     try {
       if (this.mMediaPlayer != null) {
         this.mMediaPlayer.play().then(() => {
@@ -194,7 +229,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     }
   }
 
-  stop() {
+  private stop() {
     try {
       if (this.mMediaPlayer != null) {
         this.mMediaPlayer.stop().then(() => {
@@ -208,41 +243,5 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     } finally {
       this.mState = "stopped";
     }
-  }
-
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
-    switch (method) {
-      case 'play': {
-        this.play(params[0] as string)
-        break;
-      }
-      case 'goBack': {
-        this.goBack(params[0] as number)
-        break;
-      }
-      case 'goForward': {
-        this.goForward(params[0] as number)
-        break;
-      }
-      case 'seekTo': {
-        this.seekTo(params[0] as number)
-        break;
-      }
-      case 'pause': {
-        this.pause()
-        break;
-      }
-      case 'resume': {
-        this.resume()
-        break;
-      }
-      case 'stop': {
-        this.stop()
-        break;
-      }
-      default:
-        super.call(method, params, callback)
-    }
-    return null;
   }
 }
