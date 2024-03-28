@@ -27,6 +27,8 @@ import HippyRenderBaseView, {
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRPullFooterView } from '../pullfooter/HRPullFooter';
+import { HRNodeProps } from '../../dom_node/HRNodeProps';
+import { HRWaterfallItemView } from './HRWaterfallItem';
 
 @Observed
 export class HRWaterfallView extends HippyRenderBaseView {
