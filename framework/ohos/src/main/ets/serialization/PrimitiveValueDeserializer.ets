@@ -221,6 +221,10 @@ export class PrimitiveValueDeserializer extends SharedSerialization {
       throw new HippyException(this.TAG + ": readString2: out of range")
     }
 
+    if (byteCount == 0) {
+      return ''
+    }
+
     let byteBuffer = this.reader_.getBytes(byteCount)
     try {
       return this.stringTable_.lookup(byteBuffer, encoding, location, relatedKey)

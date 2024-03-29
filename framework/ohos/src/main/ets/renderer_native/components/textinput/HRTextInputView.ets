@@ -104,7 +104,9 @@ export class HRTextInputView extends HippyRenderBaseView {
       return true
     } else if (propKey === 'multiline') {
       this.multiline = HRValueUtils.getBoolean(propValue as HippyAny, true)
-      this.textAlignVertical = Alignment.Top
+      if (this.multiline) {
+        this.textAlignVertical = Alignment.Top
+      }
       return true
     } else if (propKey === 'textAlign') {
       this.setTextAlign(propValue)

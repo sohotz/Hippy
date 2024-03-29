@@ -133,7 +133,8 @@ export class HRViewManager {
       let theView = renderView as HippyRenderBaseView
       if (props.size > 0) {
         props.forEach((value: HippyValue, key: string) => {
-          if (key && value) {
+          // value maybe empty string / false / 0
+          if (key && value != null && value != undefined) {
             theView.setProp(key, value)
           }
         })
