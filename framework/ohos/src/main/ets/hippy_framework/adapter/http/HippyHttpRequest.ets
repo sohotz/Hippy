@@ -188,7 +188,7 @@ export class HippyHttpRequest {
         let base = "Mozilla/5.0 (Linux; U; Android %s) AppleWebKit/533.1 (KHTML, like Gecko) Mobile Safari/533.1";
         HippyHttpRequest.USER_AGENT = util.format(base, buffer);
       } catch (error) {
-        console.error(`call System.isSuggested failed, error code: ${error.code}, message: ${error.message}.`);
+        LogUtils.e(HIPPY_HTTP_REQUEST_TAG, `call System.isSuggested failed, error code: ${error.code}, message: ${error.message}.`);
       }
     }
 

@@ -18,10 +18,14 @@
  * limitations under the License.
  */
 
-import fs from '@ohos.file.fs';
+import fs, { ReadOptions } from '@ohos.file.fs';
 import HashMap from '@ohos.util.HashMap';
-import { HippyAny, HippyResource } from '../support/common/HippyTypes';
+import { HippyJsException } from '../hippy_framework/common/HippyJsException';
 import { FetchResourceCallback } from './FetchResourceCallback';
+import { buffer } from '@kit.ArkTS';
+import { LogUtils } from '../support/utils/LogUtils';
+
+const RESOURCE_DATA_TAG = "ResourceDataHolder"
 
 export class ResourceDataHolder {
   static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
@@ -29,18 +33,19 @@ export class ResourceDataHolder {
   processorTag: string | null = null
   resultCode: number = -1
   public uri: string
-  public buffer: ArrayBuffer | null = null
-  responseHeaders: HashMap<string, string> | null = null
+  public responseHeaders: HashMap<string, string> | null = null
   public requestHeaders: HashMap<string, string> | null
   public requestParams: HashMap<string, string> | null
   public callback: FetchResourceCallback | null
   public requestFrom: RequestFrom
   public nativeRequestId: number
   public index: number = -1
-  public transferType:TransferType = TransferType.NORMAL;
-  // public buffer:ArrayBuffer = new ArrayBuffer(100)
-  // public bytes:Uint8Array = new Uint8Array()
+  public transferType: TransferType = TransferType.NORMAL;
+  public buffer: ArrayBuffer | null = null
+  public bytes: Uint8Array | null = new Uint8Array()
   public loadStartTime = 0;
+  // 文件存储路径
+  public filePath = ""
 
   constructor(uri: string, requestHeaders: HashMap<string, string> | null,
               requestParams: HashMap<string, string> | null, callback: FetchResourceCallback | null,
@@ -61,12 +66,25 @@ export class ResourceDataHolder {
   }
 
   readResourceDataFromStream(stream: fs.Stream) {
-
+    let arrayBuffer: ArrayBuffer | null = new ArrayBuffer(4096);
+    let readOption: ReadOptions = {
+      offset: 5,
+      length: 5
+    };
+    stream.read(arrayBuffer, readOption).then((readLen: number) => {
+      LogUtils.d(RESOURCE_DATA_TAG, "read data succeed");
+      this.buffer = buffer.from(arrayBuffer, 0, readLen).buffer;
+      LogUtils.d(RESOURCE_DATA_TAG, `The content of file: ${this.buffer.toString()}`);
+      // this.bytes = new Uint8Array(this.buffer.buffer);
+      stream.close();
+    }).catch((err: HippyJsException) => {
+      LogUtils.e(RESOURCE_DATA_TAG, "read data failed with error message: " + err.message);
+    });
   }
 
   public recycle() {
-    // this.buffer = null;
-    // this.bytes = null;
+    this.buffer = null;
+    this.bytes = null;
     this.loadStartTime = 0;
     this.transferType = TransferType.NORMAL;
     this.errorMessage = null;
@@ -74,19 +92,16 @@ export class ResourceDataHolder {
     this.processorTag = null;
     this.index = -1;
     this.resultCode = -1;
-    // RecycleObject.recycle(this);
   }
 
-  public getBytes():ArrayBuffer {//todo
+  public getBytes(): ArrayBuffer | null { //todo
     // if (this.transferType == TransferType.NORMAL) {
-    //   return bytes;
+    //   return this.bytes;
     // } else if (this.buffer != null) {
-    //     buffer.flip();
-    //     byte[] bytes = new byte[buffer.remaining()];
-    //     buffer.get(bytes);
-    //     return bytes;
+    //   let bytes = new Uint8Array(this.buffer.buffer);
+    //   return bytes;
     // }
-    return new ArrayBuffer(100);
+    return this.buffer;
   }
 }
 

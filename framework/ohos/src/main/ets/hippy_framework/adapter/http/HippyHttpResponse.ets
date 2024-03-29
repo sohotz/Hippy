@@ -25,12 +25,12 @@ export class HippyHttpResponse {
   public static UNKNOWN_STATUS: number = -1;
   public static HTTP_RESPONSE_STATUS_CODE: string = "statusCode";
   public static HTTP_RESPONSE_RESPONSE_MESSAGE: string = "responseMessage";
+  public buffer: ArrayBuffer | null = null
   private mStatusCode: number = HippyHttpResponse.UNKNOWN_STATUS;
   private mResponseMessage: string = ""
   private mRspHeaderMap: Map<string, List<string>> | null = null
-  private mInputStream: fs.Stream | undefined;
-  private mErrorStream: fs.Stream | undefined;
-  public buffer: ArrayBuffer | null = null
+  private mInputStream: fs.Stream | null = null;
+  private mErrorStream: fs.Stream | null = null;
 
   public getStatusCode(): number {
     return this.mStatusCode != null ? this.mStatusCode : HippyHttpResponse.UNKNOWN_STATUS;
@@ -72,15 +72,31 @@ export class HippyHttpResponse {
     return this.mResponseMessage;
   }
 
+  public getInputStream(): fs.Stream | null {
+    return this.mInputStream;
+  }
+
+  public setInputStream(inputStream: fs.Stream) {
+    this.mInputStream = inputStream
+  }
+
+  public getErrorStream(): fs.Stream | null {
+    return this.mErrorStream;
+  }
+
+  public setErrorStream(errStream: fs.Stream) {
+    this.mInputStream = errStream
+  }
+
   public close() {
-    if (this.mInputStream != undefined) {
+    if (this.mInputStream != null) {
       try {
         this.mInputStream.close();
       } catch (e) {
         e.printStackTrace();
       }
 
-      if (this.mErrorStream != undefined) {
+      if (this.mErrorStream != null) {
         try {
           this.mErrorStream.close();
         } catch (e) {

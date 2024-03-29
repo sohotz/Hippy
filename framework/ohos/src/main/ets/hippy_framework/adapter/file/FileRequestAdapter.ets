@@ -23,6 +23,9 @@ import { HippyJsException } from '../../common/HippyJsException';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
+import { HippyHttpResponse } from '../http/HippyHttpResponse';
+import fs from '@ohos.file.fs';
+import { FetchResultCode } from '../http/HippyResourceLoader';
 
 const FILE_REQ_TAG = "FileRequestAdapter"
 
@@ -55,20 +58,47 @@ export class FileRequestAdapter implements HippyFileAdapter {
     })
   }
 
-  public downloadFile(holder: ResourceDataHolder, callback: ProcessorCallback): Promise<request.DownloadTask> {
+  public downloadFile(mDataHolder: ResourceDataHolder, mCallback: ProcessorCallback): Promise<request.DownloadTask> {
     let downloadConfig: request.DownloadConfig = {
-      url: holder.uri,
-      header: holder.requestHeaders ?? '',
+      url: mDataHolder.uri,
+      header: mDataHolder.requestHeaders ?? '',
     };
     return new Promise<request.DownloadTask>((resolve, reject) => {
       try {
         request.downloadFile(this.ctx, downloadConfig)
           .then((data) => {
             LogUtils.i(FILE_REQ_TAG, 'succ to request the download. result: ' + JSON.stringify(data));
-            callback.onHandleCompleted();
-            return data;
+            data.on('complete', () => {
+              LogUtils.i(FILE_REQ_TAG, 'Download task completed.');
+              data.getTaskInfo().then((downloadInfo: request.DownloadInfo) => {
+                LogUtils.i(FILE_REQ_TAG, 'Succeeded in querying the download task')
+                mDataHolder.resultCode = downloadInfo.status == 0 ? FetchResultCode.OK : downloadInfo.status
+                mDataHolder.addResponseHeaderProperty(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE,
+                  downloadInfo.status.toString());
+                let filePath = downloadInfo.filePath + downloadInfo.fileName;
+                let inputStream = fs.createStreamSync(filePath, "r+");
+                if (downloadInfo.status != 0 || inputStream == null) {
+                  mDataHolder.errorMessage = downloadInfo.failedReason.toString()
+                }
+                mDataHolder.readResourceDataFromStream(inputStream);
+                mCallback.onHandleCompleted();
+              }).catch((err: HippyJsException) => {
+                LogUtils.e(FILE_REQ_TAG, `Failed to query the download task. message: ${err.message}`)
+                mDataHolder.errorMessage = err.message
+                mCallback.onHandleCompleted();
+              });
+            })
+
+            data.on('fail', (err) => {
+              LogUtils.e(FILE_REQ_TAG, `Failed to query the download task. message: ${err}`)
+              mDataHolder.errorMessage = err.toString()
+              mCallback.onHandleCompleted();
+            });
           })
           .catch((err: HippyJsException) => {
+            mDataHolder.resultCode = FetchResultCode.ERR_REMOTE_REQUEST_FAILED
+            mDataHolder.errorMessage = err.message;
+            mCallback.onHandleCompleted();
             LogUtils.e(FILE_REQ_TAG, 'Failed to request the download. Cause: ' + JSON.stringify(err));
           })
       } catch (err) {
