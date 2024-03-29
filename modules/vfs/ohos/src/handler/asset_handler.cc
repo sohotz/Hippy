@@ -24,11 +24,49 @@
 #include "footstone/string_view_utils.h"
 #include "vfs/uri.h"
 
+constexpr char kRunnerName[] = "asset_handler_runner";
+
 using string_view = footstone::string_view;
 using StringViewUtils = footstone::StringViewUtils;
 
 namespace hippy {
 inline namespace vfs {
+
+bool ReadAsset(const string_view &path, NativeResourceManager *resource_manager, UriHandler::bytes &bytes, bool is_auto_fill) {
+  auto file_path = StringViewUtils::ToStdString(StringViewUtils::ConvertEncoding(path, string_view::Encoding::Utf8).utf8_value());
+  const char *asset_path = file_path.c_str();
+  if (file_path.length() > 0 && file_path[0] == '/') {
+    file_path = file_path.substr(1);
+    asset_path = file_path.c_str();
+  }
+  FOOTSTONE_DLOG(INFO) << "asset_path = " << asset_path;
+  RawFile *asset = OH_ResourceManager_OpenRawFile(resource_manager, asset_path);
+  if (asset) {
+    auto file_size = OH_ResourceManager_GetRawFileSize(asset);
+    size_t size = static_cast<size_t>(file_size);
+    if (is_auto_fill) {
+      size += 1;
+    }
+    bytes.resize(size);
+    int read_bytes = OH_ResourceManager_ReadRawFile(asset, &bytes[0], static_cast<size_t>(file_size));
+    if (read_bytes != file_size) {
+      OH_ResourceManager_CloseRawFile(asset);
+      FOOTSTONE_LOG(ERROR) << "read bytes error, path = " << path << ", fileSize = " << file_size
+                           << ", readBytes = " << read_bytes;
+      return false;
+    }
+    if (is_auto_fill) {
+      bytes.back() = '\0';
+    }
+    OH_ResourceManager_CloseRawFile(asset);
+    FOOTSTONE_DLOG(INFO) << "path = " << path << ", len = " << bytes.length()
+                         << ", file_data = " << reinterpret_cast<const char *>(bytes.c_str());
+    return true;
+  }
+
+  FOOTSTONE_DLOG(INFO) << "ReadFile fail, file_path = " << file_path;
+  return false;
+}
 
 AssetHandler::~AssetHandler() {
   if (resource_manager_) {
@@ -51,28 +89,19 @@ void AssetHandler::RequestUntrustedContent(
     std::shared_ptr<RequestJob> request,
     std::shared_ptr<JobResponse> response,
     std::function<std::shared_ptr<UriHandler>()> next) {
-  Uri uri = Uri(request->GetUri());
-  std::string path = StringViewUtils::ToStdString(uri.GetPath().utf8_value());
-
-  RawFile *file = OH_ResourceManager_OpenRawFile(resource_manager_, path.c_str());
-  if (!file) {
-    response->SetRetCode(hippy::JobResponse::RetCode::ResourceNotFound);
-  } else {
-    response->SetRetCode(hippy::JobResponse::RetCode::Failed);
-    long size = OH_ResourceManager_GetRawFileSize(file);
-    if (size > 0) {
-      size_t fileLen = static_cast<unsigned long>(size);
-      char *buf = new char[fileLen];
-      int len = OH_ResourceManager_ReadRawFile(file, buf, fileLen);
-      if (len > 0) {
-        response->GetContent().assign(buf, static_cast<size_t>(len));
-        response->SetRetCode(hippy::JobResponse::RetCode::Success);
-      }
-      delete[] buf;
-    }
-    OH_ResourceManager_CloseRawFile(file);
+  auto uri_obj = Uri::Create(request->GetUri());
+  string_view path = uri_obj->GetPath();
+  if (path.encoding() == string_view::Encoding::Unknown) {
+    response->SetRetCode(hippy::JobResponse::RetCode::PathError);
+    return;
   }
 
+  bool ret = ReadAsset(path, resource_manager_, response->GetContent(), false);
+  if (ret) {
+    response->SetRetCode(hippy::JobResponse::RetCode::Success);
+  } else {
+    response->SetRetCode(hippy::JobResponse::RetCode::Failed);
+  }
   auto next_handler = next();
   if (next_handler) {
     next_handler->RequestUntrustedContent(request, response, next);
@@ -83,7 +112,14 @@ void AssetHandler::RequestUntrustedContent(
     std::shared_ptr<RequestJob> request,
     std::function<void(std::shared_ptr<JobResponse>)> cb,
     std::function<std::shared_ptr<UriHandler>()> next) {
-
+  auto uri_obj = Uri::Create(request->GetUri());
+  string_view path = uri_obj->GetPath();
+  if (path.encoding() == string_view::Encoding::Unknown) {
+    cb(std::make_shared<JobResponse>(UriHandler::RetCode::PathError));
+    return;
+  }
+  auto new_cb = [orig_cb = cb](std::shared_ptr<JobResponse> response) { orig_cb(response); };
+  LoadByAsset(path, request, new_cb, next);
 }
 
 void AssetHandler::LoadByAsset(const string_view& path,
@@ -91,7 +127,23 @@ void AssetHandler::LoadByAsset(const string_view& path,
                                std::function<void(std::shared_ptr<JobResponse>)> cb,
                                std::function<std::shared_ptr<UriHandler>()> next,
                                bool is_auto_fill) {
-
+  FOOTSTONE_DLOG(INFO) << "ReadAssetFile file_path = " << path;
+  {
+    std::lock_guard<std::mutex> lock_guard(mutex_);
+    if (!runner_) {
+      runner_ = request->GetWorkerManager()->CreateTaskRunner(kRunnerName);
+    }
+  }
+  runner_->PostTask([path, manager = resource_manager_, cb, is_auto_fill] {
+    UriHandler::bytes content;
+    bool ret = ReadAsset(path, manager, content, is_auto_fill);
+    if (ret) {
+      cb(std::make_shared<JobResponse>(hippy::JobResponse::RetCode::Success, "",
+                                       std::unordered_map<std::string, std::string>{}, std::move(content)));
+    } else {
+      cb(std::make_shared<JobResponse>(hippy::JobResponse::RetCode::Failed));
+    }
+  });
 }
 
 }
