@@ -17,19 +17,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyHttpAdapter, HttpTaskCallback } from './HippyHttpAdapter';
+import { HttpTaskCallback } from './HippyHttpAdapter';
 import { HippyHttpRequest } from './HippyHttpRequest';
 import { HippyHttpResponse } from './HippyHttpResponse';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { FetchResultCode } from './HippyResourceLoader';
 import { HippyException } from '../../../support/common/HippyException';
-import { DefaultHttpAdapter } from './DefaultHttpAdapter';
-import web_webview from '@ohos.web.webview'
+import web_webview from '@ohos.web.webview';
 import { HttpHeaderResponse } from './HttpHeaderResponse';
-import buffer from '@ohos.buffer';
-import { util } from '@kit.ArkTS';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { ReadOptions } from '@ohos.file.fs';
+import { buffer } from '@kit.ArkTS';
+import { HippyJsException } from '../../common/HippyJsException';
 
 const HTTP_TASK_CALLBACK_IMPL_TAG = "HttpTaskCallbackImpl"
 
@@ -48,10 +48,28 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
       response.getStatusCode().toString());
     this.mDataHolder.addResponseHeaderProperty(HippyHttpResponse.HTTP_RESPONSE_RESPONSE_MESSAGE,
       response.getResponseMessage());
-    //todo maybe still need to add response parseLogic
-    this.mDataHolder.buffer = response.buffer
+    let inputStream = response.getInputStream();
+    if (response.getStatusCode() != 200 || inputStream == null) {
+      if (response.getErrorStream() != null) {
+        let arrayBuffer = new ArrayBuffer(4096);
+        let readOption: ReadOptions = {
+          offset: 5,
+          length: 5
+        };
+        response.getErrorStream()?.read(arrayBuffer, readOption).then((readLen: number) => {
+          let buf = buffer.from(arrayBuffer, 0, readLen);
+          LogUtils.d(HTTP_TASK_CALLBACK_IMPL_TAG, `read data succeed, content of file: ${buf.toString()}`);
+          this.mDataHolder.errorMessage = buf.toString();
+          this.mCallback.onHandleCompleted();
+        }).catch((err: HippyJsException) => {
+          LogUtils.e(HTTP_TASK_CALLBACK_IMPL_TAG, "read data failed with error message: " + err.message);
+        });
+      }
+      return;
+    }
+    this.mDataHolder.readResourceDataFromStream(inputStream);
     let headers = response.getRspHeaderMaps();
-    if (headers != null) {
+    if (headers != null && headers.size > 0) {
       for (let header of headers.entries()) {
         let key = header[0]
         let list = header[1]
@@ -64,7 +82,7 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
         }
         if (list.length == 1) {
           this.mDataHolder.addResponseHeaderProperty(key, list.get(0));
-        } else if (list.length > 1) { //todo  still can be improve
+        } else if (list.length > 1) { //todo  still can be improved
           let value = ''
           for (let i = 0; i < list.length; i++) {
             if (i != list.length - 1) {

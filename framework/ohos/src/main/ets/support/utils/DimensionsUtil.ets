@@ -113,7 +113,7 @@ export class DimensionsUtil {
 
   private static getNavigationBarIsMinKeyName(): string {
     let brand: string = deviceinfo.brand;
-    console.info('the value of the device brand is :' + brand);
+    LogUtils.d(DIMENSSION_TAG, 'the value of the device brand is :' + brand);
     if (TextUtils.isEmpty(brand)) {
       return "navigationbar_is_min";
     }

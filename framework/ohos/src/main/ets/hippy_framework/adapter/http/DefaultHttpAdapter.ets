@@ -23,7 +23,7 @@ import HashMap from '@ohos.util.HashMap';
 import { HttpHeaderReuqest } from './HttpHeaderRequest';
 import List from '@ohos.util.List';
 import web_webview from '@ohos.web.webview';
-import Url from '@ohos.url'
+import Url from '@ohos.url';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { HttpTaskCallbackImpl } from './HttpTaskCallbackImpl';
@@ -31,21 +31,31 @@ import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { HippyExecutor, HippyTask } from '../../../support/common/HippyExecutor';
 import { HippyException } from '../../../support/common/HippyException';
 import { LogUtils } from '../../../support/utils/LogUtils';
-import { BusinessError } from '@kit.BasicServicesKit';
 import { HippyHttpResponse } from './HippyHttpResponse';
-import { HippyEngineContext } from '../../HippyEngineContext';
 import { http } from '@kit.NetworkKit';
+import { HippyJsException } from '../../common/HippyJsException';
 
 const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
 
 export class DefaultHttpAdapter implements HippyHttpAdapter {
   private mExecutorService: HippyExecutor | null = null
 
-  protected execute(task: HippyTask) {
-    if (this.mExecutorService == null) {
-      this.mExecutorService = new HippyExecutor()
+  static isGzipRequest(request: HippyHttpRequest): boolean {
+    let headers = request.getHeaders();
+    for (let header of headers.entries()) {
+      if (header[0] != null && header[0].toLowerCase() == HttpHeaderReuqest.ACCEPT_ENCODING.toLowerCase()) {
+        if (TextUtils.isEmpty(header[1])) {
+          return false;
+        }
+        let encodings: string[] = header[1].split(HippyHttpRequest.HTTP_HEADERS_SEPARATOR);
+        for (let i = 0; i < encodings.length; i++) {
+          if ("gzip" === encodings[i].toLowerCase() || encodings[i].toLowerCase() === "deflate") {
+            return true;
+          }
+        }
+      }
     }
-    this.mExecutorService.execute(task);
+    return false
   }
 
   public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback) {
@@ -53,18 +63,6 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     let httpRequest = this.generateHttpRequest(holder, method, nativeParams);
     this.handleRequestCookie(httpRequest);
     this.sendRequest(httpRequest, new HttpTaskCallbackImpl(holder, callback))
-  }
-
-  protected generateHttpRequest(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams:
-    HashMap<string, Object>): HippyHttpRequest {
-    if (holder.requestHeaders == null || holder.requestHeaders == undefined)
-      holder.requestHeaders = new HashMap<string, string>()
-    if (holder.requestParams == null || holder.requestParams == undefined)
-      holder.requestParams = new HashMap<string, string>()
-    let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, method,
-      holder.requestParams, nativeParams);
-    httpRequest.setUrl(holder.uri);
-    return httpRequest;
   }
 
   public handleRedirectRequest(request: HippyHttpRequest,
@@ -79,7 +77,6 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
   }
 
   public sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback) {
-    LogUtils.d(DEFAULT_HTTP_ADAPTER_TAG, `sendRequest: `)
     try {
       let httpRequest = http.createHttp();
       httpRequest.request(request.getUrl(),
@@ -127,24 +124,6 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     return response;
   }
 
-  static isGzipRequest(request: HippyHttpRequest): boolean {
-    let headers = request.getHeaders();
-    for (let header of headers.entries()) {
-      if (header[0] != null && header[0].toLowerCase() == HttpHeaderReuqest.ACCEPT_ENCODING.toLowerCase()) {
-        if (TextUtils.isEmpty(header[1])) {
-          return false;
-        }
-        let encodings: string[] = header[1].split(HippyHttpRequest.HTTP_HEADERS_SEPARATOR);
-        for (let i = 0; i < encodings.length; i++) {
-          if ("gzip" === encodings[i].toLowerCase() || encodings[i].toLowerCase() === "deflate") {
-            return true;
-          }
-        }
-      }
-    }
-    return false
-  }
-
   public async handleRequestCookie(httpRequest: HippyHttpRequest) {
     let url = httpRequest.getUrl();
     if (url != null) {
@@ -160,6 +139,61 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
         }
       }
     }
+  }
+
+  public getCookie(url: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        web_webview.WebCookieManager.fetchCookie(url)
+          .then((res) => {
+            LogUtils.d(DEFAULT_HTTP_ADAPTER_TAG, "saveCookieAsyncCallback success!");
+            return res
+          })
+          .then(() => resolve())
+          .catch((err: HippyJsException) => {
+            LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, "error: " + err.message);
+            reject(err)
+          })
+      } catch (error) {
+        LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, `ErrorCode: ${error.code}` + `;  Message: ${error.message}`);
+      }
+    });
+  }
+
+  public setCookie(url: string, keyValue: string, expires: string) {
+    if (!TextUtils.isEmpty(url) && keyValue != null) {
+      if (keyValue.trim().length == 0) {
+        this.clearCookie(url);
+      } else {
+        this.saveCookieToManager(url, keyValue, expires);
+      }
+    }
+  }
+
+  public destroyIfNeed() {
+    if (this.mExecutorService != null && !this.mExecutorService.isShutdown()) {
+      this.mExecutorService.shutdown();
+      this.mExecutorService = null;
+    }
+  }
+
+  protected execute(task: HippyTask) {
+    if (this.mExecutorService == null) {
+      this.mExecutorService = new HippyExecutor()
+    }
+    this.mExecutorService.execute(task);
+  }
+
+  protected generateHttpRequest(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams:
+    HashMap<string, Object>): HippyHttpRequest {
+    if (holder.requestHeaders == null || holder.requestHeaders == undefined)
+      holder.requestHeaders = new HashMap<string, string>()
+    if (holder.requestParams == null || holder.requestParams == undefined)
+      holder.requestParams = new HashMap<string, string>()
+    let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, method,
+      holder.requestParams, nativeParams);
+    httpRequest.setUrl(holder.uri);
+    return httpRequest;
   }
 
   protected saveCookie2Manager(url: string, cookies: List<String>) {
@@ -200,36 +234,6 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     }
   }
 
-  public getCookie(url: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      try {
-        web_webview.WebCookieManager.fetchCookie(url)
-          .then((res) => {
-            console.log("saveCookieAsyncCallback success!");
-            return res
-          })
-          .then(() => resolve())
-          .catch((err: BusinessError) => {
-            console.error("error: " + err.message);
-            reject(err)
-          })
-      } catch (error) {
-        LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, `ErrorCode: ${error.code}` + `;  Message: ${error.message}`);
-        console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-      }
-    });
-  }
-
-  public setCookie(url: string, keyValue: string, expires: string) {
-    if (!TextUtils.isEmpty(url) && keyValue != null) {
-      if (keyValue.trim().length == 0) {
-        this.clearCookie(url);
-      } else {
-        this.saveCookieToManager(url, keyValue, expires);
-      }
-    }
-  }
-
   protected resetCookieIfNeeded(cookie: string, expires: string): string {
     let kv: String[] = cookie.split("=");
     if (kv.length == 1 || (kv.length >= 2 && kv[1].trim().length == 0)) {
@@ -253,13 +257,6 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     cookieItems.forEach((cookie) => {
       web_webview.WebCookieManager.configCookieSync(url, (cookie + ";Max-Age=0"))
     })
-  }
-
-  public destroyIfNeed() {
-    if (this.mExecutorService != null && !this.mExecutorService.isShutdown()) {
-      this.mExecutorService.shutdown();
-      this.mExecutorService = null;
-    }
   }
 
   private toURL(url: string | null | undefined): Url.URL { //url验证和完善

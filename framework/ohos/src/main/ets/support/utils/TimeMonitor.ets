@@ -19,8 +19,9 @@
  */
 import ArrayList from '@ohos.util.ArrayList';
 import systemDateTime from '@ohos.systemDateTime';
-import { BusinessError } from '@ohos.base';
 import HashMap from '@ohos.util.HashMap';
+import { LogUtils } from './LogUtils';
+import { HippyJsException } from '../../hippy_framework/common/HippyJsException';
 
 export enum MonitorGroupType {
   ENGINE_INITIALIZE,
@@ -28,6 +29,8 @@ export enum MonitorGroupType {
   LOAD_INSTANCE,
   VFS_RESOURCE_LOAD
 }
+
+const TIME_MONITOR_TAG = "TimeMonitor"
 
 export class TimeMonitor {
   public static MONITOR_POINT_INIT_NATIVE_ENGINE: string = "initNativeEngine";
@@ -83,18 +86,6 @@ export class MonitorGroup {
     this.isActive = true;
   }
 
-  private checkMonitorPoint(pointKey: string): MonitorPoint | null {
-    if (this.mMonitorPoints && this.mMonitorPoints.length > 0) {
-      this.mMonitorPoints.forEach((monitorPoint) => {
-        if (monitorPoint.key == pointKey) {
-          return monitorPoint
-        }
-        return null;
-      });
-    }
-    return null;
-  }
-
   startPoint(pointKey: string): void {
     if (!this.isActive) {
       return;
@@ -137,15 +128,27 @@ export class MonitorGroup {
   getCurrentTime(): number {
     try {
       systemDateTime.getCurrentTime().then((time) => {
-        console.info(`Succeeded in getting currentTime : ${time}`);
+        LogUtils.d(TIME_MONITOR_TAG, `Succeeded in getting currentTime : ${time}`);
         return time
-      }).catch((err: BusinessError) => {
-        console.info(`Failed to get currentTime. message:${err.message}, code:${err.code}`);
+      }).catch((err: HippyJsException) => {
+        LogUtils.e(TIME_MONITOR_TAG, `Failed to get currentTime. message:${err.message}`);
       });
     } catch (e) {
-      console.info(`Failed to get currentTime. message:${e.message}, code:${e.code}`);
+      LogUtils.e(TIME_MONITOR_TAG, `Failed to get currentTime. message:${e.message}, code:${e.code}`);
     }
     return -1
+  }
+
+  private checkMonitorPoint(pointKey: string): MonitorPoint | null {
+    if (this.mMonitorPoints && this.mMonitorPoints.length > 0) {
+      this.mMonitorPoints.forEach((monitorPoint) => {
+        if (monitorPoint.key == pointKey) {
+          return monitorPoint
+        }
+        return null;
+      });
+    }
+    return null;
   }
 }
 
