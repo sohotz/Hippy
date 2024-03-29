@@ -47,7 +47,7 @@ export class HippyResourceLoader implements ResourceLoader {
     if (UrlUtils.isWebUrl(holder.uri)) {
       let fileAdapter = this.engineContext.getGlobalConfigs().getFileAdapter()
       if (fileAdapter) {
-        fileAdapter.downloadFile(holder,callback)
+        fileAdapter.downloadFile(holder, callback)
       }
     } else if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
       const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager
