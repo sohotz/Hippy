@@ -41,7 +41,7 @@ export class ResourceDataHolder {
   public nativeRequestId: number
   public index: number = -1
   public transferType: TransferType = TransferType.NORMAL;
-  public buf: buffer.Buffer | null = null
+  public buffer: ArrayBuffer | null = null
   public bytes: Uint8Array | null = new Uint8Array()
   public loadStartTime = 0;
   // 文件存储路径
@@ -73,9 +73,9 @@ export class ResourceDataHolder {
     };
     stream.read(arrayBuffer, readOption).then((readLen: number) => {
       LogUtils.d(RESOURCE_DATA_TAG, "read data succeed");
-      this.buf = buffer.from(arrayBuffer, 0, readLen);
-      LogUtils.d(RESOURCE_DATA_TAG, `The content of file: ${this.buf.toString()}`);
-      this.bytes = new Uint8Array(this.buf.buffer);
+      this.buffer = buffer.from(arrayBuffer, 0, readLen).buffer;
+      LogUtils.d(RESOURCE_DATA_TAG, `The content of file: ${this.buffer.toString()}`);
+      // this.bytes = new Uint8Array(this.buffer.buffer);
       stream.close();
     }).catch((err: HippyJsException) => {
       LogUtils.e(RESOURCE_DATA_TAG, "read data failed with error message: " + err.message);
@@ -83,7 +83,7 @@ export class ResourceDataHolder {
   }
 
   public recycle() {
-    this.buf = null;
+    this.buffer = null;
     this.bytes = null;
     this.loadStartTime = 0;
     this.transferType = TransferType.NORMAL;
@@ -94,14 +94,14 @@ export class ResourceDataHolder {
     this.resultCode = -1;
   }
 
-  public getBytes(): Uint8Array | null { //todo
-    if (this.transferType == TransferType.NORMAL) {
-      return this.bytes;
-    } else if (this.buf != null) {
-      let bytes = new Uint8Array(this.buf.buffer);
-      return bytes;
-    }
-    return null;
+  public getBytes(): ArrayBuffer | null { //todo
+    // if (this.transferType == TransferType.NORMAL) {
+    //   return this.bytes;
+    // } else if (this.buffer != null) {
+    //   let bytes = new Uint8Array(this.buffer.buffer);
+    //   return bytes;
+    // }
+    return this.buffer;
   }
 }
 
