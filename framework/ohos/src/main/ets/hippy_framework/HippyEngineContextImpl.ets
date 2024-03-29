@@ -54,7 +54,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     this.mGlobalConfigs = globalConfigs;
     const resourceLoader = new HippyResourceLoader(this)
     this.vfsManager = new VfsManager(this.libHippy)
-    this.vfsManager.addProcessorAtFirst(new DefaultProcessor(resourceLoader))
+    this.vfsManager.addProcessorAtLast(new DefaultProcessor(resourceLoader))
     this.mDomManager = domManager;
     this.mMonitor = monitor;
     this.mCoreBundleLoader = coreBundleLoader;
