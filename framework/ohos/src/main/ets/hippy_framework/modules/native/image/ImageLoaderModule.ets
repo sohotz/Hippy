@@ -24,7 +24,6 @@ import { VfsManager } from '../../../../vfs/VfsManager'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { HashMap } from '@kit.ArkTS'
-import { TextUtils } from '../../../../support/utils/TextUtils'
 import { ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { image } from '@kit.ImageKit'
 import { HippyException } from '../../../../support/common/HippyException'
@@ -115,37 +114,36 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
         reject(map);
         return;
       }
+      let resCallback = new FetchResourceCallbackImpl()
       for (let i = 0; i < urls.length; i++) {
-        this.mVfsManager.fetchResourceAsync(urls[i] as string, null, this.generateRequestParams(), new ResourceCallback(this.ctx, urls[i] as string))
+        resCallback.onFetchCompleted = (holder: ResourceDataHolder) => {
+          this.fetchCompleted(holder, urls[i] as string)
+        }
+        resCallback.onFetchProgress = (total: number, loaded: number) => {
+          // Nothing need to do here.
+        }
+        this.mVfsManager.fetchResourceAsync(urls[i] as string, null, this.generateRequestParams(), resCallback)
       }
     })
   }
 
   private prefetch(urls: Array<HippyAny>) {
+    let resCallback = new FetchResourceCallbackImpl()
     for (let i = 0; i < urls.length; i++) {
-      this.mVfsManager.fetchResourceAsync(urls[i] as string, null, this.generateRequestParams(), new ResourceCallback(this.ctx, "prefetch"))
+      resCallback.onFetchCompleted = (holder: ResourceDataHolder) => {
+        holder.recycle()
+      }
+      resCallback.onFetchProgress = (total: number, loaded: number) => {
+        // Nothing need to do here.
+      }
+      this.mVfsManager.fetchResourceAsync(urls[i] as string, null, this.generateRequestParams(), resCallback)
     }
   }
 }
 
-class ResourceCallback implements FetchResourceCallback {
-  private imageModule: ImageLoaderModule
-  private url: string
-
-  constructor(ctx: HippyEngineContext, str: string) {
-    this.imageModule = new ImageLoaderModule(ctx)
-    this.url = str
-  }
-
-  onFetchCompleted(dataHolder: ResourceDataHolder): void {
-    if ("prefetch" === this.url) {
-      dataHolder.recycle()
-    } else {
-      this.imageModule.fetchCompleted(dataHolder, this.url)
-    }
-  }
-
-  onFetchProgress(total: number, loaded: number): void {
-    // Nothing need to do here.
-  }
+class FetchResourceCallbackImpl implements FetchResourceCallback {
+  onFetchCompleted = (holder: ResourceDataHolder) => {
+  };
+  onFetchProgress = (total: number, loaded: number) => {
+  };
 }
