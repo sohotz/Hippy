@@ -36,7 +36,7 @@ import { HRValueUtils } from '../../utils/HRValueUtils';
 @Observed
 export class HRWebView extends HippyRenderBaseView {
   public url : string | null = null
-  public source: HippyMap = new Map<string, HippyValue>() as HippyMap;
+  public source: HippyMap | null = null
   public update: boolean = false
   public controller: web_webview.WebviewController = new web_webview.WebviewController()
 
@@ -47,23 +47,31 @@ export class HRWebView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny): boolean {
     if (propKey === 'url') {
       this.url = HRValueUtils.getString(propValue)
+      this.source = null
+      if (this.update) {
+        this.updateController()
+      }
+      return true
     } else if (propKey === 'source') {
-      this.source = propValue as HippyMap;
+      this.source = HRValueUtils.getMap(propValue)
+      this.url = null
 
-      let map = propValue as HippyMap
-      let src = map.get('uri') as string
-      LogUtils.d('HRWeb', `setProp source:${src}, update:${this.update}`)
-    }
-
-    if (this.update) {
-      this.updateController()
+      if (this.source) {
+        let map = this.source
+        let src = map.get('uri') as string
+        LogUtils.d('HRWeb', `setProp source:${src}, update:${this.update}`)
+        if (this.update) {
+          this.updateController()
+        }
+      }
+      return true
     }
 
     return super.setProp(propKey, propValue)
   }
 
   updateController() {
-    let source = this.source
+    let source = this.source ?? new Map<string, HippyValue>()
     let controller = this.controller
 
     if (this.url && this.url != '') {
