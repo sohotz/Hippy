@@ -304,7 +304,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     host.set("extra", extraDataMap)
     globalParams.set("HostConfig", host)
 
-    return ArgumentUtils.objectToJson(globalParams)
+    return JSON.stringify(ArgumentUtils.mapToRecord(globalParams));
   }
 
   private enableTurbo(): boolean {

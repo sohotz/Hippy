@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny } from '../common/HippyTypes'
+import { HippyAny, HippyValue } from '../common/HippyTypes'
 
 export class ArgumentUtils {
   public static objectToJson(obj: HippyAny): string {
@@ -123,6 +123,20 @@ export class ArgumentUtils {
       })
       builder += "}"
     }
+  }
+
+  public static mapToRecord(map: Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>) {
+    let record: Record<string, Object> = {};
+    map.forEach((value, key) => {
+      if (key != undefined && key != null) {
+        if (value instanceof Map) {
+          record[key] = ArgumentUtils.mapToRecord(value);
+        } else {
+          record[key] = value;
+        }
+      }
+    })
+    return record;
   }
 
 }

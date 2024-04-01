@@ -73,7 +73,8 @@ export class HippyBridgeImpl implements HippyBridge {
     this.mJsDriver.initialize(
       this.mEngineContext.getDomManagerId(),
       this.mEngineContext.getVfsId(),
-      callback)
+      callback,
+      globalConfig)
   }
 
   runScriptFromUri(uri: string, canUseCodeCache: boolean, codeCacheTag: string, callback: NativeCallback): boolean {
