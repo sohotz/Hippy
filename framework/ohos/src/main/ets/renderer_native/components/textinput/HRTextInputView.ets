@@ -52,6 +52,7 @@ export class HRTextInputView extends HippyRenderBaseView {
   public returnKeyType: EnterKeyType = EnterKeyType.Done
   public placeholder: string = ''
   public placeholderTextColor: ResourceColor = Color.Gray
+  public maxLines: number = 10000000
   public uiCtx: UIContext | null = null
 
   isListenChangeText: boolean = false
@@ -64,6 +65,9 @@ export class HRTextInputView extends HippyRenderBaseView {
   isListenContentSizeChange: boolean = false
 
   focus: boolean = false
+  previousContentWidth: number = 0
+  previousContentHeight: number = 0
+
   controller: TextInputController = new TextInputController()
   textAreaController: TextAreaController = new TextAreaController()
 
@@ -119,6 +123,9 @@ export class HRTextInputView extends HippyRenderBaseView {
       return true
     } else if (propKey === 'placeholderTextColor') {
       this.placeholderTextColor = HRValueUtils.getNumber(propValue as HippyAny)
+      return true
+    } else if (propKey === 'numberOfLines') {
+      this.maxLines = HRValueUtils.getNumber(propValue as HippyAny)
       return true
     } else if (propKey === 'keyboardType') {
       this.setKeyBoardType(propValue)
@@ -305,13 +312,26 @@ export struct HRTextInput {
 
     this.renderView.value = value
 
-    if (!this.renderView.isListenChangeText) {
-      return
+    if (this.renderView.isListenChangeText) {
+      let params = new Map<string, HippyValue>() as HippyMap;
+      params.set("text", value);
+      HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "changetext", params);
     }
 
-    let params = new Map<string, HippyValue>() as HippyMap;
-    params.set("text", value);
-    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "changetext", params);
+    if (this.renderView.isListenContentSizeChange) {
+      let controller = this.renderView.multiline ? this.renderView.textAreaController : this.renderView.controller
+      let contentRect = controller.getTextContentRect()
+      if (contentRect.width != this.renderView.previousContentWidth || contentRect.height != this.renderView.previousContentHeight) {
+        this.renderView.previousContentWidth = contentRect.width
+        this.renderView.previousContentHeight = contentRect.height
+        let contentSize = new Map<string, HippyValue>()
+        contentSize.set("width", contentRect.width)
+        contentSize.set("height", contentRect.height)
+        let eventData = new Map<string, HippyAny>()
+        eventData.set("contentSize", contentSize)
+        HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "onContentSizeChange", eventData as HippyAny)
+      }
+    }
   }
 
   onEventTextSelectionChange(start:number, end:number) {
@@ -417,6 +437,7 @@ export struct HRTextInput {
         .maxLength(this.renderView.maxLength)
         .textAlign(this.renderView.textAlign)
         .align(this.renderView.textAlignVertical)
+        .maxLines(this.renderView.maxLines)
         .onChange((value: string) => {
           this.onEventChange(value)
         })
