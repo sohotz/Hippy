@@ -298,16 +298,16 @@ export struct HRTextInput {
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
   onEventChange(value: string) {
-    if (!this.renderView.isListenChangeText) {
-      return
-    }
-
     LogUtils.d(this.TAG, `onchange:${value}`)
     if (this.renderView.value === value) {
       return
     }
 
     this.renderView.value = value
+
+    if (!this.renderView.isListenChangeText) {
+      return
+    }
 
     let params = new Map<string, HippyValue>() as HippyMap;
     params.set("text", value);
@@ -330,12 +330,12 @@ export struct HRTextInput {
   }
 
   onEventFocus() {
+    LogUtils.d(this.TAG, "onFocus")
+    this.renderView.focus = true
+
     if (!this.renderView.isListenFocus) {
       return
     }
-
-    LogUtils.d(this.TAG, "onFocus")
-    this.renderView.focus = true
 
     let params = new Map<string, HippyValue>() as HippyMap;
     params.set("text", this.renderView.value);
@@ -343,12 +343,12 @@ export struct HRTextInput {
   }
 
   onEventBlur() {
+    LogUtils.d(this.TAG, "onBlur")
+    this.renderView.focus = false
+
     if (!this.renderView.isListenBlur) {
       return
     }
-
-    LogUtils.d(this.TAG, "onBlur")
-    this.renderView.focus = false
 
     let params = new Map<string, HippyValue>() as HippyMap;
     params.set("text", this.renderView.value);
@@ -356,11 +356,11 @@ export struct HRTextInput {
   }
 
   onEventEndEditing(entryKey: EnterKeyType) {
+    LogUtils.d(this.TAG, `submit:${this.renderView.value}, keyType:${entryKey}`)
+
     if (!this.renderView.isListenEndEditing) {
       return
     }
-
-    LogUtils.d(this.TAG, `submit:${this.renderView.value}, keyType:${entryKey}`)
 
     let params = new Map<string, HippyValue>() as HippyMap;
     params.set("text", this.renderView.value);
