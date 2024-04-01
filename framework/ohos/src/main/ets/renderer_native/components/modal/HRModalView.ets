@@ -38,10 +38,7 @@ export class HRModalView extends HippyRenderBaseView {
 
   transparent: boolean = true
   animationType: TransitionEffect = TransitionEffect.OPACITY.animation({ duration: DURATION})
-  immersionStatusBar: boolean = false
   darkStatusBarText: boolean = false
-  autoHideStatusBar: boolean = false
-  autoHideNavigationBar: boolean = false
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -52,7 +49,7 @@ export class HRModalView extends HippyRenderBaseView {
     switch (propKey) {
       case "transparent":
         this.transparent = HRValueUtils.getBoolean(propValue as HippyAny, true);
-        break;
+        return true
       case "animationType":
         let type = HRValueUtils.getString(propValue as string)
         if (type === 'slide') {
@@ -62,19 +59,10 @@ export class HRModalView extends HippyRenderBaseView {
         } else if (type === 'slide_fade') {
           this.animationType = TransitionEffect.OPACITY.animation({ duration: DURATION}).combine(TransitionEffect.move(TransitionEdge.BOTTOM))
         }
-        break;
-      case "immersionStatusBar":
-        this.immersionStatusBar = HRValueUtils.getBoolean(propValue as HippyAny, false);
-        break;
+        return true
       case "darkStatusBarText":
         this.darkStatusBarText = HRValueUtils.getBoolean(propValue as HippyAny, false);
-        break;
-      case "autoHideStatusBar":
-        this.autoHideStatusBar = HRValueUtils.getBoolean(propValue as HippyAny, false);
-        break;
-      case "autoHideNavigationBar":
-        this.autoHideNavigationBar = HRValueUtils.getBoolean(propValue as HippyAny, false);
-        break;
+        return true
       default:
         break
     }
