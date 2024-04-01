@@ -32,6 +32,8 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRNodeProps } from '../../dom_node/HRNodeProps';
+import { Callback } from '@ohos.base';
+import window from '@ohos.window';
 
 type LocalFontWeight = number | FontWeight
 
@@ -304,6 +306,17 @@ export struct HRTextInput {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
+  windowPromise?: Promise<window.Window> = undefined
+  keyboardListener: Callback<number> = (height) => {
+    if (height > 0) {
+      let keyboardHeightMap = new Map<string, HippyValue>()
+      keyboardHeightMap.set("keyboardHeight", Math.round(px2vp(height)))
+      HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "keyboardWillShow", keyboardHeightMap)
+    } else {
+      HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "keyboardWillHide", null)
+    }
+  }
+
   onEventChange(value: string) {
     LogUtils.d(this.TAG, `onchange:${value}`)
     if (this.renderView.value === value) {
@@ -415,6 +428,22 @@ export struct HRTextInput {
 
   aboutToAppear(): void {
     this.renderView.uiCtx = this.getUIContext()
+
+    if (this.renderView.isListenKeyboardWillShow || this.renderView.isListenKeyboardWillHide) {
+      this.windowPromise = window.getLastWindow(getContext(this)).then((data) => {
+        data.on('keyboardHeightChange', this.keyboardListener)
+        return data
+      })
+    }
+  }
+
+  aboutToDisappear(): void {
+    if (this.windowPromise) {
+      this.windowPromise.then((data) => {
+        data.off('keyboardHeightChange', this.keyboardListener)
+      });
+      this.windowPromise = undefined
+    }
   }
 
   build() {
