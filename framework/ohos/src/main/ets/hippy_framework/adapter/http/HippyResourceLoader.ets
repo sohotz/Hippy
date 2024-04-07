@@ -55,6 +55,7 @@ export class HippyResourceLoader implements ResourceLoader {
       resManager.getRawFileContent(rawPath).then((value: Uint8Array) => {
         holder.buffer = value.buffer as ArrayBuffer
         holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE
+        callback.onHandleCompleted()
       })
     }
   }

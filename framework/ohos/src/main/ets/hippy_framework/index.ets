@@ -20,3 +20,4 @@
 export * from "./HippyEngine"
 export * from "./bridge/HippyAPIProvider"
 export * from "./HippyEngineContext"
+export * from "./adapter/log/HippyLogAdapter"
