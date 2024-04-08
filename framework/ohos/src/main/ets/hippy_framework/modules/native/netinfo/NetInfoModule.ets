@@ -80,11 +80,11 @@ export class NetInfoModule extends HippyNativeModuleBase {
         this.getCurrentConnectivity()
         break;
       }
-      case 'handleAddListener': {
+      case 'addListener': {
         this.handleAddListener(params[0] as string)
         break;
       }
-      case 'handleRemoveListener': {
+      case 'removeListener': {
         this.handleRemoveListener(params[0] as string)
         break;
       }
