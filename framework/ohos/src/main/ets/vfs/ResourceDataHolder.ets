@@ -18,13 +18,12 @@
  * limitations under the License.
  */
 
-import fs, { ReadOptions } from '@ohos.file.fs';
+import fs from '@ohos.file.fs';
 import HashMap from '@ohos.util.HashMap';
-import { HippyJsException } from '../hippy_framework/common/HippyJsException';
-import { HippyAny, HippyResource } from '../support/common/HippyTypes';
 import { LogUtils } from '../support/utils/LogUtils';
 import { FetchResourceCallback } from './FetchResourceCallback';
 import { buffer } from '@kit.ArkTS';
+import { HippyJsException } from '../hippy_framework/common/HippyJsException';
 
 const RESOURCE_DATA_TAG = "ResourceDataHolder"
 
@@ -40,7 +39,6 @@ export enum TransferType {
 
 export class ResourceDataHolder {
   static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
-
   public uri: string
   public buffer: ArrayBuffer | null = null
   public bytes: Uint8Array | null = new Uint8Array()
@@ -94,23 +92,24 @@ export class ResourceDataHolder {
   }
 
   readResourceDataFromStream(stream: fs.Stream) {
-    let arrayBuffer: ArrayBuffer | null = new ArrayBuffer(4096);
-    let readOption: ReadOptions = {
-      offset: 5,
-      length: 5
-    };
-    stream.read(arrayBuffer, readOption).then((readLen: number) => {
-      LogUtils.d(RESOURCE_DATA_TAG, "read data succeed");
-      this.buffer = buffer.from(arrayBuffer, 0, readLen).buffer;
-      LogUtils.d(RESOURCE_DATA_TAG, `The content of file: ${this.buffer?.toString()}`);
-      // this.bytes = new Uint8Array(this.buffer.buffer);
-      stream.close();
-    }).catch((err: HippyJsException) => {
-      LogUtils.e(RESOURCE_DATA_TAG, "read data failed with error message: " + err.message);
-    });
+    let arrayBuffer: ArrayBuffer = new ArrayBuffer(4096);
+    try {
+      stream.read(arrayBuffer).then((readLen: number) => {
+        LogUtils.d(RESOURCE_DATA_TAG, "read data succeed");
+        let buf = buffer.from(arrayBuffer, 0, readLen)
+        LogUtils.d(RESOURCE_DATA_TAG, `The content of buf: ${JSON.stringify(buf)}`);
+        this.buffer = buf.buffer;
+        this.bytes = new Uint8Array(this.buffer);
+        LogUtils.d(RESOURCE_DATA_TAG, `The content of file: ${JSON.stringify(this.buffer)}`);
+      }).catch((err: HippyJsException) => {
+        LogUtils.e(RESOURCE_DATA_TAG, "read data failed with error message: " + err.message);
+      });
+    } catch (err) {
+      LogUtils.e(RESOURCE_DATA_TAG, "read data failed : " + err.message);
+    }
   }
 
   public getBytes(): ArrayBuffer | null {
-    return this.buffer
+    return this.bytes
   }
 }
