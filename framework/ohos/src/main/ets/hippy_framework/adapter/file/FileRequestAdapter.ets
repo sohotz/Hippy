@@ -87,7 +87,7 @@ export class FileRequestAdapter implements HippyFileAdapter {
           LogUtils.i(FILE_REQ_TAG, 'succ to request the download. result: ' + JSON.stringify(data.getTaskInfo()));
           data.getTaskInfo().then((downloadInfo: request.DownloadInfo) => {
             LogUtils.i(FILE_REQ_TAG, 'Succeeded in querying the download task')
-            mDataHolder.resultCode = downloadInfo.status
+            mDataHolder.resultCode = FetchResultCode.OK
             mDataHolder.addResponseHeaderProperty(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE,
               downloadInfo.status.toString());
             let filePath = downloadInfo.filePath
@@ -96,7 +96,8 @@ export class FileRequestAdapter implements HippyFileAdapter {
             if (downloadInfo.status != 0) {
               mDataHolder.errorMessage = downloadInfo.failedReason.toString()
             }
-            mDataHolder.readResourceDataFromStream(inputStream);
+            mDataHolder.filePath = filePath;
+            // mDataHolder.readResourceDataFromStream(inputStream);
             mCallback.onHandleCompleted();
             inputStream.close()
           }).catch((err: HippyJsException) => {

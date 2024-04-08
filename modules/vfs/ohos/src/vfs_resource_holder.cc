@@ -76,7 +76,7 @@ namespace hippy {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_native_id = holder.Call("nativeRequestId", 0, 0);
+      auto ts_native_id = holder.Call("getNativeRequestId", 0, 0);
       auto native_id = static_cast<uint32_t>(arkTs.GetInteger(ts_native_id));
       return native_id;
     }
@@ -85,7 +85,7 @@ namespace hippy {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_uri = holder.Call("uri", 0, 0);
+      auto ts_uri = holder.Call("getUri", 0, 0);
       auto uri = arkTs.GetString(ts_uri);
       return string_view(uri);
     }
@@ -94,7 +94,7 @@ namespace hippy {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_ret_code = holder.Call("resultCode", 0, 0);
+      auto ts_ret_code = holder.Call("getResultCode", 0, 0);
       auto ret_code = arkTs.GetInteger(ts_ret_code);
       return CovertToUriHandlerRetCode(ret_code);
     }
@@ -104,14 +104,14 @@ namespace hippy {
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
       std::vector<napi_value> args = { arkTs.CreateInt(static_cast<int>(code)) };
-      holder.Call("resultCode", args);
+      holder.Call("setResultCode", args);
     }
 
     std::unordered_map<std::string, std::string> ResourceHolder::GetReqMeta() {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_req_map = holder.Call("requestHeaders", 0, 0);
+      auto ts_req_map = holder.Call("getRequestHeaders", 0, 0);
       return TsMapToUnorderedMap(ts_env_, ts_req_map);
     }
 
@@ -119,7 +119,7 @@ namespace hippy {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_rsp_map = holder.Call("responseHeaders", 0, 0);
+      auto ts_rsp_map = holder.Call("getResponseHeaders", 0, 0);
       return TsMapToUnorderedMap(ts_env_, ts_rsp_map);
     }
 
@@ -128,14 +128,14 @@ namespace hippy {
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
       std::vector<napi_value> args = { UnorderedMapToTsMap(ts_env_, rsp_meta) };
-      holder.Call("responseHeaders", args);
+      holder.Call("getRequestHeaders", args);
     }
 
     byte_string ResourceHolder::GetContent() {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_content = holder.Call("buffer", 0, 0);
+      auto ts_content = holder.Call("getBuffer", 0, 0);
 
       void *buffer_data = NULL;
       size_t byte_length = 0;
@@ -165,7 +165,7 @@ namespace hippy {
 
       auto ts_content = arkTs.CreateExternalArrayBuffer(new_buffer, content.size());
       std::vector<napi_value> args = { ts_content };
-      holder.Call("buffer", args);
+      holder.Call("SetBuffer", args);
     }
 
     void ResourceHolder::FetchComplete(napi_ref ts_obj_ref) {

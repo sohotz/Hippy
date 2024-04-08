@@ -72,6 +72,54 @@ export class ResourceDataHolder {
     this.nativeRequestId = nativeRequestId
   }
 
+  public setNativeRequestId(nativeRequestId: number) {
+    this.nativeRequestId = nativeRequestId;
+  }
+
+  public getNativeRequestId(): number {
+    return this.nativeRequestId;
+  }
+
+  public setUri(uri: string) {
+    this.uri = uri;
+  }
+
+  public getUri(): string {
+    return this.uri;
+  }
+
+  public setRequestHeaders(requestHeaders: HashMap<string, string> | null) {
+    this.requestHeaders = requestHeaders;
+  }
+
+  public getRequestHeaders(): HashMap<string, string> | null {
+    return this.requestHeaders;
+  }
+
+  public setRequestParams(requestParams: HashMap<string, string> | null) {
+    this.requestParams = requestParams;
+  }
+
+  public getRequestParams(): HashMap<string, string> | null {
+    return this.requestParams;
+  }
+
+  public getResultCode(): number {
+    return this.resultCode;
+  }
+
+  public setResultCode(resultCode: number) {
+     this.resultCode = resultCode;
+  }
+
+  public setBuffer(buffer: ArrayBuffer) {
+    this.buffer = buffer;
+  }
+
+  public getBuffer(): ArrayBuffer | null {
+    return this.buffer;
+  }
+
   public recycle() {
     this.buffer = null;
     this.bytes = null;
