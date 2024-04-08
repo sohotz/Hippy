@@ -27,9 +27,9 @@ import { HashMap } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
 import { ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { image } from '@kit.ImageKit'
-import { HippyException } from '../../../../support/common/HippyException'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
+import { HippyJsException } from '../../../common/HippyJsException'
 
 
 const IMAGE_MODULE_TAG = "ImageLoaderModule"
@@ -48,9 +48,7 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
   public fetchCompleted(dataHolder: ResourceDataHolder, url: string) {
     return new Promise<Map<string, string>>((resolve, reject) => {
       let bytes = dataHolder.getBytes();
-      if (dataHolder.resultCode
-        != ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE || bytes == null
-        || bytes == null) {
+      if (dataHolder.resultCode != ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE || bytes == null) {
         let message =
           dataHolder.errorMessage != null ? dataHolder.errorMessage : "";
         let errorMsg = "Fetch image failed, url=" + url + ", msg=" + message;
@@ -83,19 +81,18 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
   private decodeImageData(url: string, data: ArrayBuffer): Promise<Map<string, string>> {
     return new Promise<Map<string, string>>((resolve, reject) => {
       if (data && data.byteLength > 0) {
-        const imageSourceApi = image.createImageSource(data);
-        imageSourceApi.getImageInfo(0)
-          .then(imageInfo => {
-            LogUtils.d(IMAGE_MODULE_TAG, 'Succeeded in obtaining the image information.');
+        let imageSourceApi: image.ImageSource = image.CreateIncrementalSource(data);
+        imageSourceApi.getImageInfo((err: HippyJsException, imageInfo: image.ImageInfo) => {
+          if (err != undefined) {
+            let map = new Map<string, string>()
+            map.set("width", "Fetch image failed, url=" + url + ", msg=" + err.message)
+            LogUtils.e(IMAGE_MODULE_TAG, `Failed to obtaining the image information. message is ${err.message}`);
+          } else {
             let map = new Map<string, string>()
             map.set("width", imageInfo.size.width + "")
             map.set("height", imageInfo.size.height + "")
-            resolve(map)
-          }).catch((e: HippyException) => {
-          LogUtils.e(IMAGE_MODULE_TAG, 'Failed to obtain the image information.');
-          let map = new Map<string, string>()
-          map.set("width", "Fetch image failed, url=" + url + ", msg=" + e.message)
-          reject(map)
+            LogUtils.i(IMAGE_MODULE_TAG, 'Succeeded in obtaining the image information.');
+          }
         })
       }
     })
