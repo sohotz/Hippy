@@ -33,9 +33,9 @@ import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
 
 const NETWORK_MODULE_TAG = "NetworkModule"
 
-@HippyNativeModule({ name: "NetworkModule" })
+@HippyNativeModule({ name: "network" })
 export class NetworkModule extends HippyNativeModuleBase {
-  public static readonly NAME = 'NetworkModule'
+  public static readonly NAME = 'network'
 
   constructor(ctx: HippyEngineContext) {
     super(ctx)

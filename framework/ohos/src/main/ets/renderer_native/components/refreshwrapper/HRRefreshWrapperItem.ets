@@ -21,11 +21,9 @@
 import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
-import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
   HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
-import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
 export class HRRefreshWrapperItemView extends HippyRenderBaseView {
@@ -34,9 +32,6 @@ export class HRRefreshWrapperItemView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    if (propKey === 'cssPositionY') {
-      this.cssPositionY = HRValueUtils.getNumber(propValue as HippyAny)
-    }
     return super.setProp(propKey, propValue as HippyAny)
   }
 }

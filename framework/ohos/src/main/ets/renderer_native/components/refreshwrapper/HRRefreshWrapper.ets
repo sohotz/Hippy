@@ -17,15 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
+import systemDateTime from '@ohos.systemDateTime';
+import { HippyAny, HippyMap, HippyRenderCallback,
+  HippyValue } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
-import { ComposeListItem } from '@ohos.arkui.advanced.ComposeListItem';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 
 @Observed
@@ -37,6 +37,10 @@ export class HRRefreshWrapperView extends HippyRenderBaseView {
   public refreshBarVisible = false
   public uiCtx: UIContext | null = null
 
+  scrollEventEnable: boolean = true
+  scrollEventThrottle: number = 400
+  lastScrollEventTimeStamp: number = -1
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
@@ -45,9 +49,15 @@ export class HRRefreshWrapperView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
     if (propKey === 'bounceTime') {
       this.bounceTime = HRValueUtils.getNumber(propValue as HippyAny)
-    } else if (propKey === 'cssPositionY') {
-      this.cssPositionY = HRValueUtils.getNumber(propValue as HippyAny)
+      return true
+    } else if (propKey === 'onScrollEnable') {
+      this.scrollEventEnable = HRValueUtils.getBoolean(propValue as HippyAny, false)
+      return true
+    } else if (propKey === 'scrollEventThrottle') {
+      this.scrollEventThrottle = HRValueUtils.getNumber2(propValue as HippyAny, 30)
+      return true
     }
+
     return super.setProp(propKey, propValue as HippyAny)
   }
 
@@ -55,6 +65,8 @@ export class HRRefreshWrapperView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, "call: method " + method + ", params: " + params)
     if (method === 'refreshComplected') {
       this.refreshComplected()
+    } else if (method === 'startRefresh') {
+      this.startRefresh()
     }
   }
 
@@ -68,6 +80,7 @@ export class HRRefreshWrapperView extends HippyRenderBaseView {
   }
 
   startRefresh() {
+    this.scroller.scrollToIndex(0, true)
     HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_REFRESH_WRAPPER_REFRESH, null);
   }
 
@@ -77,6 +90,22 @@ export class HRRefreshWrapperView extends HippyRenderBaseView {
     })
 
     this.needRefresh = false
+  }
+
+  sendOnScrollEvent(y: number) {
+    if (this.scrollEventEnable) {
+      let currTime = systemDateTime.getTime(false)
+      if (currTime - this.lastScrollEventTimeStamp < this.scrollEventThrottle) {
+        return
+      }
+      let contentOffset = new Map<string, HippyValue>()
+      contentOffset.set("x", 0)
+      contentOffset.set("y", y)
+      let event = new Map<string, HippyAny>()
+      event.set("contentOffset", contentOffset)
+      HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_REFRESH_WRAPPER_SCROLL, event as HippyAny)
+      this.lastScrollEventTimeStamp = currTime
+    }
   }
 }
 
@@ -105,7 +134,7 @@ export struct HRRefreshWrapper {
     }
     .applyRenderViewBaseAttr(this.renderView)
     .scrollBar(BarState.Off)
-    .onScrollIndex((start)=>{
+    .onScrollIndex((start) => {
       LogUtils.d(this.TAG, `onScrollIndex, start:${start}`)
       if (start === 0) {
         this.renderView.refreshBarVisible = true
@@ -122,6 +151,9 @@ export struct HRRefreshWrapper {
       } else if (this.renderView.refreshBarVisible){
         this.renderView.bounceToHead()
       }
+    })
+    .onScroll((scrollOffset: number, scrollState: ScrollState) => {
+      this.renderView.sendOnScrollEvent(-scrollOffset)
     })
   }
 }

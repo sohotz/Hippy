@@ -28,6 +28,11 @@ using StringViewUtils = footstone::StringViewUtils;
 namespace hippy {
 inline namespace vfs {
 
+  std::shared_ptr<Uri> Uri::Create(const string_view &uri) {
+    auto ret = std::make_shared<Uri>(uri);
+    return ret;
+  }
+
   Uri::Uri(const string_view &uri) {
     u8_string_ = StringViewUtils::ConvertEncoding(uri, string_view::Encoding::Utf8).utf8_value();
   }
@@ -38,7 +43,7 @@ inline namespace vfs {
       // file: "file://foo/bar/vue2/vendor.android.js"
       // asset: "asset:/vue2/vendor.android.js"
       size_t offset = pos + 2;
-      return string_view(u8_string_.substr(offset, u8_string_.length() - offset));
+      return string_view(u8_string_.substr(offset));
     }
     return {};
   }

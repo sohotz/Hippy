@@ -27,9 +27,9 @@ import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyT
 
 const NETINFO_MODULE_TAG = "NetInfoModule"
 
-@HippyNativeModule({ name: "NetInfoModule" })
+@HippyNativeModule({ name: "NetInfo" })
 export class NetInfoModule extends HippyNativeModuleBase {
-  public static readonly NAME = 'NetInfoModule'
+  public static readonly NAME = 'NetInfo'
   private static CONNECTION_TYPE_NONE = "NONE";
   private static CONNECTION_TYPE_UNKNOWN = "UNKNOWN";
   private static MISSING_PERMISSION_MESSAGE =
@@ -80,11 +80,11 @@ export class NetInfoModule extends HippyNativeModuleBase {
         this.getCurrentConnectivity()
         break;
       }
-      case 'handleAddListener': {
+      case 'addListener': {
         this.handleAddListener(params[0] as string)
         break;
       }
-      case 'handleRemoveListener': {
+      case 'removeListener': {
         this.handleRemoveListener(params[0] as string)
         break;
       }

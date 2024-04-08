@@ -1,6 +1,6 @@
 # 环境搭建 
 
-这篇教程，讲述了如何将 Hippy 集成到 Android、iOS 、Flutter、Web(同构) 等平台。
+这篇教程，讲述了如何将 Hippy 集成到 Android、iOS、Ohos、Flutter、Web(同构) 等平台。
 <br/>
 <br/>
 <br/>
@@ -271,6 +271,91 @@ ENV['layout_engine'] = 'Yoga'
 ```
 
 之后，重新执行`pod install`命令更新项目依赖即可。
+
+# Ohos 
+
+> 注：以下文档都是假设您已经具备一定的 Ohos 开发经验。
+
+---
+
+## 前期准备
+
+- 已经安装 DevEco Studio 最新版本
+
+## Demo 体验
+
+若想快速体验，可以直接基于我们的 [Ohos Demo](https://github.com/sohotz/Hippy/tree/feature/ohos/framework/examples/ohos-demo) 来开发
+
+## 快速接入
+
+1. 创建一个 Ohos 工程
+
+2. 源码集成
+
+ - 拉取 hippy 代码到项目里（比如：根目录下）
+ > https://github.com/sohotz/Hippy.git，分支：feature/ohos
+
+ - 配置 oh-package.json5
+
+ ```json
+  "dependencies": {
+     "hippy": "file:../Hippy/framework/ohos/"
+  }
+ ```
+
+3. 初始化代码
+
+ - 获取 libhippy_app.so 接口对象和 UIAbility context
+
+  ```TypeScript
+  import libHippy from 'libhippy_app.so'
+  AppStorage.setOrCreate("libHippy", libHippy)
+  AppStorage.setOrCreate("abilityContext", this.context)
+  ```
+
+ - 创建 HippyEngine、初始化 HippyEngine、加载业务 bundle
+ 
+  ```TypeScript
+  this.hippyEngine = createHippyEngine(params)
+  this.hippyEngine.initEngine()
+  this.hippyEngine?.loadModule()
+  ```
+ 
+ - 组装 HippyRoot 组件
+
+ ```TypeScript
+  HippyRoot({
+      hippyEngine: this.hippyEngine,
+      pagerName: 'demo',
+      pagerData: {},
+      buildCustomRenderView: this.buildCustomRenderView,
+      onRenderException: (exception: HippyException) => {
+        this.exception = `${exception.message}\n${exception.stack}`
+      },
+  })
+  ```
+ 
+ - 初始化 c++ 依赖
+ 
+  ```cmake
+  project(hippy_app)
+  cmake_minimum_required(VERSION 3.14)
+
+  set(MODULE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../")
+  set(PROJECT_ROOT_DIR "${MODULE_ROOT_DIR}/../")
+  set(HIPPY_ROOT_DIR "${PROJECT_ROOT_DIR}/Hippy/")
+  set(HIPPY_CPP_DIR "${HIPPY_ROOT_DIR}/framework/ohos/src/main/cpp/impl")
+
+  add_subdirectory("${HIPPY_CPP_DIR}" ./hippy)
+
+  add_library(hippy_app SHARED
+      "main.cpp"
+  )
+
+  target_link_libraries(hippy_app PUBLIC hippy)
+  ```
+ 
+具体可以参考 [Demo](https://github.com/sohotz/Hippy/tree/feature/ohos/framework/examples/ohos-demo) 工程中 `EntryAbility.ets` `ExampleHippyPage.ets` `CMakeLists.txt` 实现
 
 # Voltron/Flutter 
 

@@ -139,7 +139,8 @@ export default abstract class HippyRenderBaseView {
         this.cssVisibility = HRValueUtils.getString(propValue) != HRNodeProps.HIDDEN ? Visibility.Visible : Visibility.Hidden
         break
       case HRNodeProps.BACKGROUND_COLOR:
-        this.cssBackgroundColor = HRValueUtils.getNumber(propValue)
+        let value = HRValueUtils.getNumber(propValue)
+        this.cssBackgroundColor = value ? value : Color.Transparent
         break
       case HRNodeProps.OPACITY:
         this.cssOpacity = HRValueUtils.getNumber2(propValue, 1.0)

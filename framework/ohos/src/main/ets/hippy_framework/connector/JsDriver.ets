@@ -19,9 +19,11 @@
  */
 import resmgr from "@ohos.resourceManager";
 import { HippyLibrary } from '../../hippy_library/HippyLibrary';
+import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
 import { LogUtils } from '../../support/utils/LogUtils';
 import { HippyCallNativeParams } from '../bridge/HippyCallNativeParams';
 import { HippyModuleManager } from '../modules/HippyModuleManager';
+import { Serializer } from '../serialization/Serializer';
 import { NativeCallback } from './NativeCallback';
 
 export class JsDriver {
@@ -37,11 +39,9 @@ export class JsDriver {
   initialize(
     domManagerId: number,
     vfsId: number,
-    callback: NativeCallback
+    callback: NativeCallback,
+    globalConfig: string
   ) {
-    // TODO(hot):
-    let globalConfig = '{"Platform":{"OS":"android","PackageName":"com.openhippy.example","APILevel":31,"VersionName":"","Localization":{"country":"CN","language":"zh","direction":0},"NightMode":false,"SDKVersion":"3.0.112"},"HostConfig":{"appVersion":"","appName":"com.openhippy.example","extra":{},"url":"","nightMode":false},"Dimensions":{"screenPhysicalPixels":{"densityDpi":440.0,"width":392.7272644042969,"scale":2.75,"statusBarHeight":31.0,"navigationBarHeight":0.0,"fontScale":2.75,"height":916.3636474609375},"windowPhysicalPixels":{"densityDpi":440.0,"width":392.7272644042969,"scale":2.75,"statusBarHeight":31.0,"navigationBarHeight":0.0,"fontScale":2.75,"height":869.0908813476562}}}';
-
     this.instanceId = this.onCreate(
       globalConfig,
       false,

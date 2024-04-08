@@ -31,8 +31,9 @@ inline namespace vfs {
 void FileHandler::RequestUntrustedContent(std::shared_ptr<RequestJob> request,
                                           std::shared_ptr<JobResponse> response,
                                           std::function<std::shared_ptr<UriHandler>()> next) {
-  Uri uri = Uri(request->GetUri());
-  string_view path = uri.GetPath();
+  string_view uri = request->GetUri();
+  auto uri_obj = Uri::Create(uri);
+  string_view path = uri_obj->GetPath();
   if (path.encoding() == string_view::Encoding::Unknown) {
     response->SetRetCode(hippy::JobResponse::RetCode::PathError);
     return;
@@ -53,8 +54,8 @@ void FileHandler::RequestUntrustedContent(
     std::shared_ptr<RequestJob> request,
     std::function<void(std::shared_ptr<JobResponse>)> cb,
     std::function<std::shared_ptr<UriHandler>()> next) {
-  Uri uri = Uri(request->GetUri());
-  string_view path = uri.GetPath();
+  auto uri_obj = Uri::Create(request->GetUri());
+  string_view path = uri_obj->GetPath();
   if (path.encoding() == string_view::Encoding::Unknown) {
     cb(std::make_shared<JobResponse>(UriHandler::RetCode::PathError));
     return;

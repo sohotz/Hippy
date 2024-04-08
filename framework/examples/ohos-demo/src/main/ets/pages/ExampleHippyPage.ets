@@ -60,7 +60,7 @@ struct ExampleHippyPage {
         loadParams.jsParams = new Map<string, HippyValue>()
         loadParams.jsParams.set(
           "msgFromNative",
-          "Hi js developer, I come from native code!"
+          "Hi js developer, I come from ohos native code!"
         )
         this.hippyEngine?.loadModule(
           loadParams,

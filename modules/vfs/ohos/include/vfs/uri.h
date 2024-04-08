@@ -33,7 +33,8 @@ constexpr char kAssetSchema[] = "asset";
 class Uri {
  public:
   using string_view = footstone::stringview::string_view;
-  
+
+  static std::shared_ptr<Uri> Create(const string_view &uri);
   Uri(const string_view& uri);
   ~Uri() = default;
 

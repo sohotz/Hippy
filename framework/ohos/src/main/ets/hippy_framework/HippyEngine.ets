@@ -46,6 +46,7 @@ import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HippyEngineManagerImpl } from './HippyEngineManagerImpl';
 import { HippyEngineContext } from './HippyEngineContext'
 import { HippyFileAdapter } from './adapter/file/HippyFileAdapter';
+import { FileRequestAdapter } from './adapter/file/FileRequestAdapter';
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
@@ -179,6 +180,9 @@ export class EngineInitParams {
     }
     if (this.preferencesStorageAdapter === null) {
       this.preferencesStorageAdapter = new PreferencesStorageAdapter(this.context)
+    }
+    if (this.fileAdapter === null) {
+      this.fileAdapter = new FileRequestAdapter(this.context);
     }
   }
 }

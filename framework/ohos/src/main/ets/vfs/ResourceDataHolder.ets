@@ -18,77 +18,15 @@
  * limitations under the License.
  */
 
-import fs from '@ohos.file.fs';
+import fs, { ReadOptions } from '@ohos.file.fs';
 import HashMap from '@ohos.util.HashMap';
+import { HippyJsException } from '../hippy_framework/common/HippyJsException';
 import { HippyAny, HippyResource } from '../support/common/HippyTypes';
+import { LogUtils } from '../support/utils/LogUtils';
 import { FetchResourceCallback } from './FetchResourceCallback';
+import { buffer } from '@kit.ArkTS';
 
-export class ResourceDataHolder {
-  static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
-  errorMessage: string | null = null
-  processorTag: string | null = null
-  resultCode: number = -1
-  public uri: string
-  public buffer: ArrayBuffer | null = null
-  responseHeaders: HashMap<string, string> | null = null
-  public requestHeaders: HashMap<string, string> | null
-  public requestParams: HashMap<string, string> | null
-  public callback: FetchResourceCallback | null
-  public requestFrom: RequestFrom
-  public nativeRequestId: number
-  public index: number = -1
-  public transferType:TransferType = TransferType.NORMAL;
-  // public buffer:ArrayBuffer = new ArrayBuffer(100)
-  // public bytes:Uint8Array = new Uint8Array()
-  public loadStartTime = 0;
-
-  constructor(uri: string, requestHeaders: HashMap<string, string> | null,
-              requestParams: HashMap<string, string> | null, callback: FetchResourceCallback | null,
-              from: RequestFrom, nativeRequestId: number) {
-    this.uri = uri
-    this.requestHeaders = requestHeaders
-    this.requestParams = requestParams
-    this.callback = callback
-    this.requestFrom = from
-    this.nativeRequestId = nativeRequestId
-  }
-
-  addResponseHeaderProperty(key: string, property: string) {
-    if (this.responseHeaders == null) {
-      this.responseHeaders = new HashMap <string, string>();
-    }
-    this.responseHeaders.set(key, property)
-  }
-
-  readResourceDataFromStream(stream: fs.Stream) {
-
-  }
-
-  public recycle() {
-    // this.buffer = null;
-    // this.bytes = null;
-    this.loadStartTime = 0;
-    this.transferType = TransferType.NORMAL;
-    this.errorMessage = null;
-    this.callback = null;
-    this.processorTag = null;
-    this.index = -1;
-    this.resultCode = -1;
-    // RecycleObject.recycle(this);
-  }
-
-  public getBytes():ArrayBuffer {//todo
-    // if (this.transferType == TransferType.NORMAL) {
-    //   return bytes;
-    // } else if (this.buffer != null) {
-    //     buffer.flip();
-    //     byte[] bytes = new byte[buffer.remaining()];
-    //     buffer.get(bytes);
-    //     return bytes;
-    // }
-    return new ArrayBuffer(100);
-  }
-}
+const RESOURCE_DATA_TAG = "ResourceDataHolder"
 
 export enum RequestFrom {
   NATIVE,
@@ -98,4 +36,81 @@ export enum RequestFrom {
 export enum TransferType {
   NORMAL,
   NIO,
+}
+
+export class ResourceDataHolder {
+  static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
+
+  public uri: string
+  public buffer: ArrayBuffer | null = null
+  public bytes: Uint8Array | null = new Uint8Array()
+  public requestHeaders: HashMap<string, string> | null
+  public requestParams: HashMap<string, string> | null
+  public responseHeaders: HashMap<string, string> | null = null
+  public callback: FetchResourceCallback | null
+  public transferType: TransferType = TransferType.NORMAL
+  public requestFrom: RequestFrom
+  public nativeRequestId: number
+  public index: number = -1
+  public loadStartTime: number = 0
+  public resultCode: number = -1
+  public requestId: string | null = null
+  public errorMessage: string | null = null
+  public processorTag: string | null = null
+  // 文件存储路径
+  public filePath = ""
+
+  constructor(uri: string,
+              requestHeaders: HashMap<string, string> | null,
+              requestParams: HashMap<string, string> | null,
+              callback: FetchResourceCallback | null,
+              from: RequestFrom,
+              nativeRequestId: number) {
+    this.uri = uri
+    this.requestHeaders = requestHeaders
+    this.requestParams = requestParams
+    this.callback = callback
+    this.requestFrom = from
+    this.nativeRequestId = nativeRequestId
+  }
+
+  public recycle() {
+    this.buffer = null;
+    this.bytes = null;
+    this.callback = null;
+    this.errorMessage = null;
+    this.processorTag = null;
+    this.loadStartTime = 0;
+    this.index = -1;
+    this.resultCode = -1;
+    this.transferType = TransferType.NORMAL;
+  }
+
+  addResponseHeaderProperty(key: string, property: string) {
+    if (this.responseHeaders == null) {
+      this.responseHeaders = new HashMap<string, string>()
+    }
+    this.responseHeaders.set(key, property)
+  }
+
+  readResourceDataFromStream(stream: fs.Stream) {
+    let arrayBuffer: ArrayBuffer | null = new ArrayBuffer(4096);
+    let readOption: ReadOptions = {
+      offset: 5,
+      length: 5
+    };
+    stream.read(arrayBuffer, readOption).then((readLen: number) => {
+      LogUtils.d(RESOURCE_DATA_TAG, "read data succeed");
+      this.buffer = buffer.from(arrayBuffer, 0, readLen).buffer;
+      LogUtils.d(RESOURCE_DATA_TAG, `The content of file: ${this.buffer?.toString()}`);
+      // this.bytes = new Uint8Array(this.buffer.buffer);
+      stream.close();
+    }).catch((err: HippyJsException) => {
+      LogUtils.e(RESOURCE_DATA_TAG, "read data failed with error message: " + err.message);
+    });
+  }
+
+  public getBytes(): ArrayBuffer | null {
+    return this.buffer
+  }
 }

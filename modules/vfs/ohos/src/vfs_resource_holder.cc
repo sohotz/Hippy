@@ -135,7 +135,7 @@ namespace hippy {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_content = holder.Call("content", 0, 0);
+      auto ts_content = holder.Call("buffer", 0, 0);
 
       void *buffer_data = NULL;
       size_t byte_length = 0;
@@ -165,7 +165,7 @@ namespace hippy {
 
       auto ts_content = arkTs.CreateExternalArrayBuffer(new_buffer, content.size());
       std::vector<napi_value> args = { ts_content };
-      holder.Call("content", args);
+      holder.Call("buffer", args);
     }
 
     void ResourceHolder::FetchComplete(napi_ref ts_obj_ref) {
