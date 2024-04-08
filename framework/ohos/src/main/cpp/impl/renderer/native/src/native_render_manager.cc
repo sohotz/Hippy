@@ -79,6 +79,86 @@ static bool IsMeasureNode(const std::string &name) {
 std::atomic<uint32_t> NativeRenderManager::unique_native_render_manager_id_{1};
 footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<hippy::NativeRenderManager>> NativeRenderManager::persistent_map_;
 
+StyleFilter::StyleFilter() {
+  // 过滤属性列表说明：
+  // 1 传递到ts的属性需要过滤，否则业务页面填一堆渲染用不到的属性，序列化/反序列化的时候严重影响性能；
+  // 2 这个列表是从Android复制过来的，ts不好自动收集，删了nativeBackgroundAndroid；
+  styles_ = {
+    "backgroundColor",
+    "borderColor",
+    "borderRadius",
+    "borderStyle",
+    "borderWidth",
+    "borderBottomColor",
+    "borderBottomStyle",
+    "borderBottomWidth",
+    "borderBottomLeftRadius",
+    "borderBottomRightRadius",
+    "borderLeftColor",
+    "borderLeftStyle",
+    "borderLeftWidth",
+    "linearGradient",
+    "borderRightColor",
+    "borderRightStyle",
+    "borderRightWidth",
+    "shadowColor",
+    "shadowOffset",
+    "shadowOffsetX",
+    "shadowOffsetY",
+    "shadowOpacity",
+    "shadowRadius",
+    "borderTopColor",
+    "borderTopStyle",
+    "borderTopWidth",
+    "borderTopLeftRadius",
+    "borderTopRightRadius",
+    "zIndex",
+    "backgroundImage",
+    "backgroundPositionX",
+    "backgroundPositionY",
+    "backgroundSize",
+    "capInsets",
+    "defaultSource",
+    "resizeMode",
+    "tintColor",
+    "tintColorBlendMode",
+    "src",
+    "fakeBold",
+    "backgroundColor",
+    "breakStrategy",
+    "color",
+    "ellipsizeMode",
+    "enableScale",
+    "fontFamily",
+    "fontSize",
+    "fontStyle",
+    "fontWeight",
+    "letterSpacing",
+    "lineHeight",
+    "lineSpacingExtra",
+    "lineSpacingMultiplier",
+    "numberOfLines",
+    "opacity",
+    "text",
+    "textAlign",
+    "textDecorationColor",
+    "textDecorationLine",
+    "textDecorationStyle",
+    "textShadowColor",
+    "textShadowOffset",
+    "textShadowRadius",
+    "verticalAlign",
+    "width",
+    "height",
+    "left",
+    "top",
+    "visibility",
+    "transform",
+    "opacity",
+    "overflow"
+  };
+}
+
 NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"),
       serializer_(std::make_shared<footstone::value::Serializer>()) {
   id_ = unique_native_render_manager_id_.fetch_add(1);
@@ -96,6 +176,7 @@ void NativeRenderManager::SetRenderDelegate(napi_env ts_env, napi_ref ts_render_
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
   CallRenderDelegateSetIdMethod(ts_env_, ts_render_provider_ref_, "setInstanceId", id_);
+  NativeRenderManager::GetStyleFilter();
 }
 
 void NativeRenderManager::InitDensity(double density) {
@@ -171,9 +252,11 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
     // 样式属性
     auto style = nodes[i]->GetStyleMap();
     auto iter = style->begin();
-    // TODO(hot): StyleFilter needed?
+    auto style_filter = NativeRenderManager::GetStyleFilter();
     while (iter != style->end()) {
-      props[iter->first] = *(iter->second);
+      if (style_filter->Enable(iter->first)) {
+        props[iter->first] = *(iter->second);
+      }
       iter++;
     }
     // 用户自定义属性
