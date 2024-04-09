@@ -24,6 +24,32 @@ import { StringLocation } from './StringLocation';
 import { StringTable } from './StringTable';
 
 export class DirectStringTable implements StringTable {
+
+  private static sIsoDecoder: util.TextDecoder | null = null
+  private static sUtf16Decoder: util.TextDecoder | null = null
+  private static sUtf8Decoder: util.TextDecoder | null = null
+
+  static getIsoDecoder(): util.TextDecoder {
+    if (!DirectStringTable.sIsoDecoder) {
+      DirectStringTable.sIsoDecoder = util.TextDecoder.create("iso-8859-1")
+    }
+    return DirectStringTable.sIsoDecoder
+  }
+
+  static getUtf16Decoder(): util.TextDecoder {
+    if (!DirectStringTable.sUtf16Decoder) {
+      DirectStringTable.sUtf16Decoder = util.TextDecoder.create("utf-16le")
+    }
+    return DirectStringTable.sUtf16Decoder
+  }
+
+  static getUtf8Decoder(): util.TextDecoder {
+    if (!DirectStringTable.sUtf8Decoder) {
+      DirectStringTable.sUtf8Decoder = util.TextDecoder.create("utf-8")
+    }
+    return DirectStringTable.sUtf8Decoder
+  }
+
   lookup(byteData: Uint8Array,
          encoding: StringEncoding,
          location: StringLocation,
@@ -33,15 +59,21 @@ export class DirectStringTable implements StringTable {
       return ''
     }
 
+    return this.lookupImpl(byteData, encoding)
+  }
+
+  lookupImpl(byteData: Uint8Array,
+             encoding: StringEncoding,
+  ): string {
     if (encoding == StringEncoding.LATIN) {
       // need iso-8859-1
-      return util.TextDecoder.create("iso-8859-1").decodeWithStream(byteData)
+      return DirectStringTable.getIsoDecoder().decode(byteData) // 没用 decodeWithStream 的原因：静态变量多次调用 decodeWithStream 会乱码
     } else if (encoding == StringEncoding.UTF16LE) {
       // utf16-le
-      return util.TextDecoder.create("utf-16le").decodeWithStream(byteData)
+      return DirectStringTable.getUtf16Decoder().decode(byteData)
     } else {
       // utf8
-      return util.TextDecoder.create("utf-8").decodeWithStream(byteData)
+      return DirectStringTable.getUtf8Decoder().decode(byteData)
     }
   }
 

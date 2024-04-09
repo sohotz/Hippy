@@ -21,6 +21,7 @@ import { HippySerValue, Oddball, SharedSerialization } from './SharedSerializati
 import { BinaryReader } from './reader/BinaryReader';
 import { StringTable } from './string/StringTable';
 import { DirectStringTable } from './string/DirectStringTable';
+import { InternalizedStringTable } from './string/InternalizedStringTable';
 import { PrimitiveSerializationTag } from './PrimitiveSerializationTag';
 import { StringLocation } from './string/StringLocation';
 import { StringEncoding } from './string/StringEncoding';
@@ -42,7 +43,7 @@ export class PrimitiveValueDeserializer extends SharedSerialization {
     if (stringTable != null) {
       this.stringTable_ = stringTable
     } else {
-      this.stringTable_ = new DirectStringTable()
+      this.stringTable_ = new InternalizedStringTable()
     }
   }
 
