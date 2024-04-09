@@ -361,23 +361,28 @@ export class HRImageView extends HippyRenderBaseView {
     if (!this.cssSrc || typeof this.cssSrc !== 'string') {
       return
     }
-    if (this.cssSrc?.startsWith(HRImageView.BASE64_IMAGE_PREFIX)) {
+    if (this.cssSrc.startsWith(HRImageView.BASE64_IMAGE_PREFIX)) {
       this.src = this.cssSrc
       return
+    } else if (this.cssSrc.startsWith(HRImageView.RAW_IMAGE_PREFIX)) {
+      this.src = this.convertToLocalPath(this.cssSrc)
+      this.src = $rawfile(this.src)
+      return
     }
-    let src = this.convertToLocalPath(this.cssSrc)
-    let listener: ImageRequestListener = {
-      onRequestStart: (imageData: ImageDataSupplier) => {},
-      onRequestSuccess: (imageData: PixelMap) => {
-        this.src = imageData
-      },
-      onRequestFail: () => {
-        // this.src = src
-      },
-      onRequestProgress: (total: number, loaded: number) => {}
-    }
-    let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
-    imageLoader.fetchImageAsync(src, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
+    this.src = this.cssSrc
+    // let src = this.cssSrc
+    // let listener: ImageRequestListener = {
+    //   onRequestStart: (imageData: ImageDataSupplier) => {},
+    //   onRequestSuccess: (imageData: PixelMap) => {
+    //     this.src = imageData
+    //   },
+    //   onRequestFail: () => {
+    //     // this.src = src
+    //   },
+    //   onRequestProgress: (total: number, loaded: number) => {}
+    // }
+    // let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
+    // imageLoader.fetchImageAsync(src, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
   }
 
   getImage() {
@@ -396,11 +401,11 @@ export class HRImageView extends HippyRenderBaseView {
 
   convertToLocalPath(uri: string): string {
     // hpfile://./assets/file_banner02.jpg
-    if (uri.startsWith(HippyResourceLoader.RAWFILE_PREFIX)) {
-      const bundlePath = this.ctx.getNativeRender().getBundlePath()
-      const pathParts = bundlePath.split('/')
-      pathParts.pop()
-      return pathParts.join('/') + '/' + uri.substring(HippyResourceLoader.RAWFILE_PREFIX.length)
+    if (uri != null && uri.startsWith("hpfile://")) {
+      let relativePath = uri.replace("hpfile://./", "");
+      let bundlePath = this.ctx.getNativeRender().getBundlePath()
+      bundlePath = bundlePath.replace("asset:/", "")
+      return bundlePath.substring(0, bundlePath.lastIndexOf("/") + 1) + relativePath
     }
     return uri
   }
