@@ -17,8 +17,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import util from '@ohos.util';
 
 export class TextUtils {
+  private static sIsoDecoder: util.TextDecoder | null = null
+  private static sUtf16Decoder: util.TextDecoder | null = null
+  private static sUtf8Decoder: util.TextDecoder | null = null
+
+  static getIsoDecoder(): util.TextDecoder {
+    if (!TextUtils.sIsoDecoder) {
+      TextUtils.sIsoDecoder = util.TextDecoder.create("iso-8859-1")
+    }
+    return TextUtils.sIsoDecoder
+  }
+
+  static getUtf16Decoder(): util.TextDecoder {
+    if (!TextUtils.sUtf16Decoder) {
+      TextUtils.sUtf16Decoder = util.TextDecoder.create("utf-16le")
+    }
+    return TextUtils.sUtf16Decoder
+  }
+
+  static getUtf8Decoder(): util.TextDecoder {
+    if (!TextUtils.sUtf8Decoder) {
+      TextUtils.sUtf8Decoder = util.TextDecoder.create("utf-8")
+    }
+    return TextUtils.sUtf8Decoder
+  }
+
   static isEmpty(value: string | null | undefined) {
     if (value === undefined || value == "" || value?.length == 0)
       return true;

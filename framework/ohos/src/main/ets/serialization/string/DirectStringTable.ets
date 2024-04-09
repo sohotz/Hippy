@@ -17,38 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import util from '@ohos.util';
 import { HippyAny } from '../../support/common/HippyTypes';
+import { TextUtils } from '../../support/utils/TextUtils';
 import { StringEncoding } from './StringEncoding';
 import { StringLocation } from './StringLocation';
 import { StringTable } from './StringTable';
 
 export class DirectStringTable implements StringTable {
-
-  private static sIsoDecoder: util.TextDecoder | null = null
-  private static sUtf16Decoder: util.TextDecoder | null = null
-  private static sUtf8Decoder: util.TextDecoder | null = null
-
-  static getIsoDecoder(): util.TextDecoder {
-    if (!DirectStringTable.sIsoDecoder) {
-      DirectStringTable.sIsoDecoder = util.TextDecoder.create("iso-8859-1")
-    }
-    return DirectStringTable.sIsoDecoder
-  }
-
-  static getUtf16Decoder(): util.TextDecoder {
-    if (!DirectStringTable.sUtf16Decoder) {
-      DirectStringTable.sUtf16Decoder = util.TextDecoder.create("utf-16le")
-    }
-    return DirectStringTable.sUtf16Decoder
-  }
-
-  static getUtf8Decoder(): util.TextDecoder {
-    if (!DirectStringTable.sUtf8Decoder) {
-      DirectStringTable.sUtf8Decoder = util.TextDecoder.create("utf-8")
-    }
-    return DirectStringTable.sUtf8Decoder
-  }
 
   lookup(byteData: Uint8Array,
          encoding: StringEncoding,
@@ -67,13 +42,13 @@ export class DirectStringTable implements StringTable {
   ): string {
     if (encoding == StringEncoding.LATIN) {
       // need iso-8859-1
-      return DirectStringTable.getIsoDecoder().decode(byteData) // 没用 decodeWithStream 的原因：静态变量多次调用 decodeWithStream 会乱码
+      return TextUtils.getIsoDecoder().decodeWithStream(byteData)
     } else if (encoding == StringEncoding.UTF16LE) {
       // utf16-le
-      return DirectStringTable.getUtf16Decoder().decode(byteData)
+      return TextUtils.getUtf16Decoder().decode(byteData) // 没用 decodeWithStream 的原因：静态变量多次调用 decodeWithStream 会乱码
     } else {
       // utf8
-      return DirectStringTable.getUtf8Decoder().decode(byteData)
+      return TextUtils.getUtf8Decoder().decodeWithStream(byteData)
     }
   }
 

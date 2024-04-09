@@ -42,6 +42,7 @@ import { HippyJavaScriptModuleBase } from './javascript/HippyJavaScriptModuleBas
 import { Dimensions } from './javascript/Dimensions'
 import { EventDispatcher } from './javascript/EventDispatcher'
 import { HippyAny, HippyArray, HippyValue } from '../../support/common/HippyTypes'
+import { TextUtils } from '../../support/utils/TextUtils'
 
 export type HippyNativeModuleCreator = (ctx: HippyEngineContext) => HippyNativeModuleBase
 export type HippyJSModuleCreator = (ctx: HippyEngineContext) => HippyJavaScriptModuleBase
@@ -162,7 +163,7 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
 
   public parseJsonData(buffer: ArrayBuffer): Array<HippyAny> {
     const bytes = new Uint8Array(buffer);
-    const textDecoder = util.TextDecoder.create('utf-8')
+    const textDecoder = TextUtils.getUtf8Decoder()
     const str = textDecoder.decodeWithStream(bytes)
     const paramArray = JSON.parse(str) as Array<HippyAny>;
     return paramArray;
