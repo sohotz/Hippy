@@ -43,9 +43,11 @@ export class ImageLoader implements ImageLoaderAdapter {
         onFetchCompleted: (dataHolder: ResourceDataHolder) => {
           if (dataHolder.resultCode == ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE) {
             const r = image.createImageSource(dataHolder.buffer as ArrayBuffer)
-            r.createPixelMap().then(value => {
-              listener.onRequestSuccess(value)
-            })
+            if (r) { // TODO: crash protect
+              r.createPixelMap().then(value => {
+                listener.onRequestSuccess(value)
+              })
+            }
           } else {
             listener.onRequestFail()
           }
