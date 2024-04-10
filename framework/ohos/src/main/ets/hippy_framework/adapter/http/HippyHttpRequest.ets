@@ -24,7 +24,6 @@ import { HashMap, util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
-// import BuildProfile from '../../../../../../BuildProfile';
 
 const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
 

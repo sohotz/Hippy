@@ -26,6 +26,7 @@ import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { FetchResultCode } from '../http/HippyResourceLoader';
 import fs from '@ohos.file.fs';
 import { HippyHttpResponse } from '../http/HippyHttpResponse';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 const FILE_REQ_TAG = "FileRequestAdapter"
 
@@ -78,50 +79,39 @@ export class FileRequestAdapter implements HippyFileAdapter {
       LogUtils.i(FILE_REQ_TAG, "file not exists");
     }
 
+    let downloadTask: request.DownloadTask;
     try {
       request.downloadFile(this.ctx, {
         url: mDataHolder.uri,
         filePath: filePath
-      })
-        .then((data) => {
-          LogUtils.i(FILE_REQ_TAG, 'succ to request the download. result: ' + JSON.stringify(data.getTaskInfo()));
-          data.getTaskInfo().then((downloadInfo: request.DownloadInfo) => {
-            LogUtils.i(FILE_REQ_TAG, 'Succeeded in querying the download task')
-            mDataHolder.resultCode = FetchResultCode.OK
-            mDataHolder.addResponseHeaderProperty(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE,
-              downloadInfo.status.toString());
-            let filePath = downloadInfo.filePath
-            let inputStream = fs.createStreamSync(filePath, "r+");
-            inputStream.flushSync();
-            if (downloadInfo.status != 0) {
-              mDataHolder.errorMessage = downloadInfo.failedReason.toString()
-            }
-            mDataHolder.filePath = filePath;
-            // mDataHolder.readResourceDataFromStream(inputStream);
-            mCallback.onHandleCompleted();
-            inputStream.close()
-          }).catch((err: HippyJsException) => {
-            LogUtils.e(FILE_REQ_TAG, `Failed to query the download task. message: ${err.message}`)
-            mDataHolder.errorMessage = err.message
-            mCallback.onHandleCompleted();
-          });
-          data.on('complete', () => {
-            LogUtils.i(FILE_REQ_TAG, 'Download task completed.');
-          })
-          data.on('fail', (err) => {
-            LogUtils.e(FILE_REQ_TAG, `Failed to query the download task. message: ${err}`)
-            mDataHolder.errorMessage = err.toString()
-            mCallback.onHandleCompleted();
-          });
-        })
-        .catch((err: HippyJsException) => {
-          mDataHolder.resultCode = FetchResultCode.ERR_REMOTE_REQUEST_FAILED
-          mDataHolder.errorMessage = err.message;
+      }, (err: BusinessError, data: request.DownloadTask) => {
+        LogUtils.i(FILE_REQ_TAG, 'Download task url:' + mDataHolder.uri);
+        LogUtils.i(FILE_REQ_TAG, 'Download task filePath:' + filePath);
+        if (err) {
+          console.error(`Failed to request the download. Code: ${err.code}, message: ${err.message}`);
+          return;
+        }
+        downloadTask = data;
+        downloadTask.on('fail', (err: number) => {
+          LogUtils.e(FILE_REQ_TAG, `Failed to download the task. Code: ${err}`);
+          mDataHolder.errorMessage = err.toString()
           mCallback.onHandleCompleted();
-          LogUtils.e(FILE_REQ_TAG, 'Failed to request the download. Cause: ' + JSON.stringify(err));
-        })
-    } catch (err) {
-      LogUtils.e(FILE_REQ_TAG, `Failed to request the download. err: ${JSON.stringify(err)}`);
+        });
+
+        downloadTask.on('complete', () => {
+          LogUtils.i(FILE_REQ_TAG, 'Download task completed.');
+          mDataHolder.resultCode = FetchResultCode.OK;
+          mDataHolder.filePath = filePath;
+          mDataHolder.readResourceDataFromStream();
+          mCallback.onHandleCompleted();
+        });
+
+        downloadTask.on('progress', (receivedSize: number, totalSize: number) => {
+          // LogUtils.i(FILE_REQ_TAG, 'Download task receivedSize:' + receivedSize + ' totalSize:' + totalSize);
+        });
+      });
+    } catch (e) {
+      LogUtils.e(FILE_REQ_TAG, `Download task Failed. err: ${e}`);
     }
   }
 

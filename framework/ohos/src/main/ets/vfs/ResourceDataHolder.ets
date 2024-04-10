@@ -153,18 +153,7 @@ export class ResourceDataHolder {
 
   // call from c++
   public getBuffer(): ArrayBuffer | null {
-    let resultBuffer: ArrayBuffer | null = null
-    let filePath = this.filePath;
-    let stat = fs.statSync(filePath);
-    if (stat && stat.size > 0) {
-      let file = fs.openSync(filePath, fs.OpenMode.READ_WRITE);
-      if (file) {
-        resultBuffer = new ArrayBuffer(stat.size);
-        fs.readSync(file.fd, resultBuffer);
-        fs.closeSync(file);
-      }
-    }
-    return resultBuffer;
+    return this.buffer;
   }
 
   public recycle() {
@@ -186,22 +175,19 @@ export class ResourceDataHolder {
     this.responseHeaders.set(key, property)
   }
 
-  readResourceDataFromStream(stream: fs.Stream) {
-    let arrayBuffer: ArrayBuffer = new ArrayBuffer(4096);
-    try {
-      stream.read(arrayBuffer).then((readLen: number) => {
-        LogUtils.d(RESOURCE_DATA_TAG, "read data succeed");
-        let buf = buffer.from(arrayBuffer, 0, readLen)
-        LogUtils.d(RESOURCE_DATA_TAG, `The content of buf: ${JSON.stringify(buf)}`);
-        this.buffer = buf.buffer;
-        this.bytes = new Uint8Array(this.buffer);
-        LogUtils.d(RESOURCE_DATA_TAG, `The content of file: ${JSON.stringify(this.buffer)}`);
-      }).catch((err: HippyJsException) => {
-        LogUtils.e(RESOURCE_DATA_TAG, "read data failed with error message: " + err.message);
-      });
-    } catch (err) {
-      LogUtils.e(RESOURCE_DATA_TAG, "read data failed : " + err.message);
+  readResourceDataFromStream() {
+    let resultBuffer: ArrayBuffer | null = null
+    let filePath = this.filePath;
+    let stat = fs.statSync(filePath);
+    if (stat && stat.size > 0) {
+      let file = fs.openSync(filePath, fs.OpenMode.READ_WRITE);
+      if (file) {
+        resultBuffer = new ArrayBuffer(stat.size);
+        fs.readSync(file.fd, resultBuffer);
+        fs.closeSync(file);
+      }
     }
+    this.buffer = resultBuffer;
   }
 
   public getBytes(): ArrayBuffer | null {

@@ -67,7 +67,7 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
       }
       return;
     }
-    this.mDataHolder.readResourceDataFromStream(inputStream);
+    // this.mDataHolder.readResourceDataFromStream(inputStream);
     let headers = response.getRspHeaderMaps();
     if (headers != null && headers.size > 0) {
       for (let header of headers.entries()) {
