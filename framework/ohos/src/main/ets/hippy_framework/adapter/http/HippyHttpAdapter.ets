@@ -33,7 +33,7 @@ export interface HippyHttpAdapter {
 
   fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback): void
 
-  getCookie(url: string): Promise<void>
+  getCookie(url: string): Promise<string>
 
   setCookie(url: string, keyValue: string, expires: string): void
 }
