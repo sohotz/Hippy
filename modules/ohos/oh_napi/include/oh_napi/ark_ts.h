@@ -109,6 +109,8 @@ class ArkTS {
   int GetInteger(napi_value value);
 
   int64_t GetInt64(napi_value value);
+  
+  bool IsArray(napi_value array);
 
   napi_value GetArrayElement(napi_value array, uint32_t index);
 

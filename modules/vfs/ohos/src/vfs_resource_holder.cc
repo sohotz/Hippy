@@ -43,33 +43,45 @@ namespace hippy {
       return (code == 0) ? UriHandler::RetCode::Success : UriHandler::RetCode::Failed;
     }
 
-    std::unordered_map<std::string, std::string> TsMapToUnorderedMap(napi_env env, napi_value ts_map) {
-      if (!ts_map) {
+    std::unordered_map<std::string, std::string> TsArrayToUnorderedMap(napi_env env, napi_value ts_array) {
+      if (!ts_array) {
         return {};
       }
-      std::unordered_map<std::string, std::string> ret_map;
+  
       ArkTS arkTs(env);
-      auto props = arkTs.GetObjectProperties(ts_map);
-      for (auto it = props.begin(); it != props.end(); it++) {
-        auto ts_key = it->first;
-        auto ts_value = it->second;
-        if (!ts_key || !ts_value) {
-          continue;
+      if (!arkTs.IsArray(ts_array)) {
+        return {};
+      }
+  
+      auto length = arkTs.GetArrayLength(ts_array);
+      if (length == 0) {
+        return {};
+      }
+
+      std::unordered_map<std::string, std::string> ret_map;
+      for (uint32_t i = 0; i < length; i+=2) {
+        auto ts_key = arkTs.GetArrayElement(ts_array, i);
+        if (i + 1 < length) {
+          auto ts_value = arkTs.GetArrayElement(ts_array, i + 1);
+          if (!ts_key || !ts_value) {
+            continue;
+          }
+          auto key = arkTs.GetString(ts_key);
+          auto value = arkTs.GetString(ts_value);
+          ret_map[key] = value;
         }
-        auto key = arkTs.GetString(ts_key);
-        auto value = arkTs.GetString(ts_value);
-        ret_map[key] = value;
       }
       return ret_map;
     }
 
-    napi_value UnorderedMapToTsMap(napi_env env, const std::unordered_map<std::string, std::string> &map) {
+    napi_value UnorderedMapToTsArray(napi_env env, const std::unordered_map<std::string, std::string> &map) {
       ArkTS arkTs(env);
-      auto ts_headers_builder = arkTs.CreateObjectBuilder();
+      std::vector<napi_value> values;
       for (auto [key, value] : map) {
-        ts_headers_builder.AddProperty(key.c_str(), value.c_str());
+        values.push_back(arkTs.CreateString(key));
+        values.push_back(arkTs.CreateString(value));
       }
-      return ts_headers_builder.Build();
+      return arkTs.CreateArray(values);
     }
 
     uint32_t ResourceHolder::GetNativeId() {
@@ -111,24 +123,24 @@ namespace hippy {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_req_map = holder.Call("getRequestHeaders", 0, 0);
-      return TsMapToUnorderedMap(ts_env_, ts_req_map);
+      auto ts_req_array = holder.Call("getRequestHeadersArray", 0, 0);
+      return TsArrayToUnorderedMap(ts_env_, ts_req_array);
     }
 
     std::unordered_map<std::string, std::string> ResourceHolder::GetRspMeta() {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      auto ts_rsp_map = holder.Call("getResponseHeaders", 0, 0);
-      return TsMapToUnorderedMap(ts_env_, ts_rsp_map);
+      auto ts_rsp_array = holder.Call("getResponseHeadersArray", 0, 0);
+      return TsArrayToUnorderedMap(ts_env_, ts_rsp_array);
     }
 
     void ResourceHolder::SetRspMeta(std::unordered_map<std::string, std::string> rsp_meta) {
       FOOTSTONE_DCHECK(ts_holder_ref_);
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
-      std::vector<napi_value> args = { UnorderedMapToTsMap(ts_env_, rsp_meta) };
-      holder.Call("setResponseHeaders", args);
+      std::vector<napi_value> args = { UnorderedMapToTsArray(ts_env_, rsp_meta) };
+      holder.Call("setResponseHeadersArray", args);
     }
 
     byte_string ResourceHolder::GetContent() {

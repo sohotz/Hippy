@@ -72,60 +72,99 @@ export class ResourceDataHolder {
     this.nativeRequestId = nativeRequestId
   }
 
+  private hashMap2Array(map: HashMap<string, string> | null): Array<string> | null {
+    if (!map) {
+      return null
+    }
+
+    let array = new Array<string>()
+    map.forEach((value: string, key: string) => {
+      array.push(key)
+      array.push(value)
+    })
+    return array
+  }
+
+  private array2HashMap(array: Array<string> | null): HashMap<string, string> | null {
+    if (!array || array.length <= 0) {
+      return null
+    }
+
+    let map = new HashMap<string, string>()
+    for (let i = 0; i < array.length; i += 2) {
+      let key = array[i]
+      if (i + 1 < array.length) {
+        let value = array[i + 1]
+        map.set(key, value)
+      }
+    }
+    return map
+  }
+
+  // call from c++
   public setNativeRequestId(nativeRequestId: number) {
     this.nativeRequestId = nativeRequestId;
   }
 
+  // call from c++
   public getNativeRequestId(): number {
     return this.nativeRequestId;
   }
 
+  // call from c++
   public setUri(uri: string) {
     this.uri = uri;
   }
 
+  // call from c++
   public getUri(): string {
     return this.uri;
   }
 
-  public setRequestHeaders(requestHeaders: HashMap<string, string> | null) {
-    this.requestHeaders = requestHeaders;
+  // call from c++
+  public getRequestHeadersArray(): Array<string> | null {
+    return this.hashMap2Array(this.requestHeaders)
   }
 
-  public getRequestHeaders(): HashMap<string, string> | null {
-    return this.requestHeaders;
+  // call from c++
+  public setResponseHeadersArray(responseHeadersArray: Array<string> | null) {
+    this.responseHeaders = this.array2HashMap(responseHeadersArray)
   }
 
-  public setRequestParams(requestParams: HashMap<string, string> | null) {
-    this.requestParams = requestParams;
+  // call from c++
+  public getResponseHeadersArray(): Array<string> | null {
+    return this.hashMap2Array(this.responseHeaders)
   }
 
-  public getRequestParams(): HashMap<string, string> | null {
-    return this.requestParams;
-  }
-
-  public setResponseHeaders(responseHeaders: HashMap<string, string> | null) {
-    this.responseHeaders = responseHeaders;
-  }
-
-  public getResponseHeaders(): HashMap<string, string> | null {
-    return this.responseHeaders
-  }
-
+  // call from c++
   public getResultCode(): number {
     return this.resultCode;
   }
 
+  // call from c++
   public setResultCode(resultCode: number) {
      this.resultCode = resultCode;
   }
 
+  // call from c++
   public setBuffer(buffer: ArrayBuffer) {
     this.buffer = buffer;
   }
 
+  // call from c++
   public getBuffer(): ArrayBuffer | null {
-    return this.buffer;
+    let resultBuffer: ArrayBuffer | null = null
+    let filePath = this.filePath;
+    let stat = fs.statSync(filePath);
+    if (stat && stat.size > 0) {
+      let file = fs.openSync(filePath, fs.OpenMode.READ_WRITE);
+      if (file) {
+        resultBuffer = new ArrayBuffer(stat.size);
+        fs.readSync(file.fd, resultBuffer);
+        fs.closeSync(file);
+      }
+    }
+    return resultBuffer;
   }
 
   public recycle() {
