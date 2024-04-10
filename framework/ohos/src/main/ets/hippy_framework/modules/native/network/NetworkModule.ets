@@ -65,18 +65,18 @@ export class NetworkModule extends HippyNativeModuleBase {
         break;
       }
       case 'setCookie': {
-        if (params != null && params instanceof Map) {
+        if (params != null && params.length > 2) {
           let url = ""
           let keyValue = ""
           let expires = ""
-          if ((params as HippyMap).get("title") !== undefined) {
-            url = (params as HippyMap).get("title") as string
+          if (params[0] !== undefined) {
+            url = params[0] as string
           }
-          if ((params as HippyMap).get("details") !== undefined) {
-            keyValue = (params as HippyMap).get("details") as string
+          if (params[1] !== undefined) {
+            keyValue = params[1] as string
           }
-          if ((params as HippyMap).get("details") !== undefined) {
-            expires = (params as HippyMap).get("details") as string
+          if (params[2] !== undefined) {
+            expires = params[2] as string
           }
           this.setCookie(url, keyValue, expires)
         }
@@ -199,8 +199,8 @@ export class NetworkModule extends HippyNativeModuleBase {
     }
   }
 
-  private getCookie(url: string): Promise<void> {
-    return new Promise((resolve, reject) => {
+  private getCookie(url: string): Promise<string> {
+    return new Promise(() => {
       let adapter = this.ctx.getGlobalConfigs().getHttpAdapter();
       if (adapter != null) {
         adapter.getCookie(url);
