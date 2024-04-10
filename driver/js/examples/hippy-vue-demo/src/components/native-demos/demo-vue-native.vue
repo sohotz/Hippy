@@ -330,10 +330,11 @@ export default {
     this.imageSize = '';
     this.netInfoText = '';
     // netInfo
-    this.netInfoText = await Vue.Native.NetInfo.fetch();
-    this.netInfoListener = Vue.Native.NetInfo.addEventListener('change', (info) => {
-      this.netInfoText = `收到通知: ${info.network_info}`;
-    });
+    // this.netInfoText = await Vue.Native.NetInfo.fetch();
+    // this.netInfoListener = Vue.Native.NetInfo.addEventListener('change', (info) => {
+    //   this.netInfoText = `收到通知: ${info.network_info}`;
+    // });
+    Hippy.bridge.callNative('ConsoleMoulde', 'log', 'zealot start00');
     fetch('https://hippyjs.org', {
       mode: 'no-cors', // 2.14.0 or above supports other options(not only method/headers/url/body)
     }).then((responseJson) => {
@@ -398,7 +399,10 @@ export default {
       }
     },
     async getSize() {
-      const result = await Vue.Native.ImageLoader.getSize('https://user-images.githubusercontent.com/12878546/148736102-7cd9525b-aceb-41c6-a905-d3156219ef16.png');
+      // const result = await Vue.Native.ImageLoader.getSize('https://user-images.githubusercontent.com/12878546/148736102-7cd9525b-aceb-41c6-a905-d3156219ef16.png');
+      // 更换小图测试
+      const result = await Vue.Native.ImageLoader.getSize('https://hippyjs.org/assets/img/tv.png');
+      
       console.log('ImageLoader getSize', result);
       this.imageSize = `${result.width}x${result.height}`;
     },
