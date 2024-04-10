@@ -128,7 +128,7 @@ namespace hippy {
       ArkTS arkTs(ts_env_);
       auto holder = arkTs.GetObject(ts_holder_ref_);
       std::vector<napi_value> args = { UnorderedMapToTsMap(ts_env_, rsp_meta) };
-      holder.Call("getRequestHeaders", args);
+      holder.Call("setResponseHeaders", args);
     }
 
     byte_string ResourceHolder::GetContent() {
@@ -165,7 +165,7 @@ namespace hippy {
 
       auto ts_content = arkTs.CreateExternalArrayBuffer(new_buffer, content.size());
       std::vector<napi_value> args = { ts_content };
-      holder.Call("SetBuffer", args);
+      holder.Call("setBuffer", args);
     }
 
     void ResourceHolder::FetchComplete(napi_ref ts_obj_ref) {

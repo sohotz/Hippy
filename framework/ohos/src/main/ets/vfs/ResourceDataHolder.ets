@@ -104,6 +104,14 @@ export class ResourceDataHolder {
     return this.requestParams;
   }
 
+  public setResponseHeaders(responseHeaders: HashMap<string, string> | null) {
+    this.responseHeaders = responseHeaders;
+  }
+
+  public getResponseHeaders(): HashMap<string, string> | null {
+    return this.responseHeaders
+  }
+
   public getResultCode(): number {
     return this.resultCode;
   }
