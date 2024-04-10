@@ -41,7 +41,6 @@ export class ResourceDataHolder {
   static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
   public uri: string
   public buffer: ArrayBuffer | null = null
-  public bytes: Uint8Array | null = new Uint8Array()
   public requestHeaders: HashMap<string, string> | null
   public requestParams: HashMap<string, string> | null
   public responseHeaders: HashMap<string, string> | null = null
@@ -158,7 +157,6 @@ export class ResourceDataHolder {
 
   public recycle() {
     this.buffer = null;
-    this.bytes = null;
     this.callback = null;
     this.errorMessage = null;
     this.processorTag = null;
@@ -175,12 +173,12 @@ export class ResourceDataHolder {
     this.responseHeaders.set(key, property)
   }
 
-  readResourceDataFromStream() {
+  setBufferByFilePath(filePath: string) {
+    this.filePath = filePath;
     let resultBuffer: ArrayBuffer | null = null
-    let filePath = this.filePath;
-    let stat = fs.statSync(filePath);
+    let stat = fs.statSync(this.filePath);
     if (stat && stat.size > 0) {
-      let file = fs.openSync(filePath, fs.OpenMode.READ_WRITE);
+      let file = fs.openSync(this.filePath, fs.OpenMode.READ_WRITE);
       if (file) {
         resultBuffer = new ArrayBuffer(stat.size);
         fs.readSync(file.fd, resultBuffer);
@@ -188,9 +186,5 @@ export class ResourceDataHolder {
       }
     }
     this.buffer = resultBuffer;
-  }
-
-  public getBytes(): ArrayBuffer | null {
-    return this.bytes
   }
 }

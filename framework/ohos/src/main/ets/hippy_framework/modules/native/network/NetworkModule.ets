@@ -155,7 +155,7 @@ export class NetworkModule extends HippyNativeModuleBase {
     // let result = util.TextDecoder.create('utf-8', dataHolder)
     // let retStr = result.encoding
     try {
-      let bytes = dataHolder.getBytes();
+      let bytes = dataHolder.getBuffer();
       if (bytes != null) {
         let textDecoder = TextUtils.getUtf8Decoder();
         // let body = textDecoder.decodeWithStream( bytes , {stream: false});

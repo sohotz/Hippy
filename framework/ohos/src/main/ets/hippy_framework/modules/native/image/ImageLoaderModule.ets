@@ -46,8 +46,8 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
 
   public fetchCompleted(dataHolder: ResourceDataHolder, url: string) {
     return new Promise<Map<string, string>>((resolve, reject) => {
-      let bytes = dataHolder.getBytes();
-      if (dataHolder.resultCode != ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE || bytes == null) {
+      let buffer = dataHolder.getBuffer();
+      if (dataHolder.resultCode != ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE || buffer == null) {
         let message =
           dataHolder.errorMessage != null ? dataHolder.errorMessage : "";
         let errorMsg = "Fetch image failed, url=" + url + ", msg=" + message;
@@ -55,7 +55,7 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
         map.set(ImageLoaderModule.ERROR_KEY_MESSAGE, errorMsg)
         reject(map);
       } else {
-        this.decodeImageData(url, bytes);
+        this.decodeImageData(url, buffer);
       }
       dataHolder.recycle();
     })

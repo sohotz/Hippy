@@ -101,8 +101,7 @@ export class FileRequestAdapter implements HippyFileAdapter {
         downloadTask.on('complete', () => {
           LogUtils.i(FILE_REQ_TAG, 'Download task completed.');
           mDataHolder.resultCode = FetchResultCode.OK;
-          mDataHolder.filePath = filePath;
-          mDataHolder.readResourceDataFromStream();
+          mDataHolder.setBufferByFilePath(filePath);
           mCallback.onHandleCompleted();
         });
 
