@@ -21,7 +21,6 @@ import { Hippy2Map, HippyMap, HippyValue } from '../common/HippyTypes';
 import deviceinfo from '@ohos.deviceInfo';
 import { TextUtils } from './TextUtils';
 import { display } from '@kit.ArkUI';
-import { HippyJsException } from '../../hippy_framework/common/HippyJsException';
 import { LogUtils } from './LogUtils';
 
 const DIMENSSION_TAG = "DimensionsUtil"
@@ -33,11 +32,10 @@ export class DimensionsUtil {
   private static SHOW_NAV_BAR_RES_NAME = "config_showNavigationBar";
   private static NAVIGATE_BAR_HEIGHT = 0;
 
-  static getDimensions(ww: number, wh: number, context: Context,
-                       shouldUseScreenDisplay: boolean): Hippy2Map {
+  static async getDimensions(ww: number, wh: number, context: Context,
+                             shouldUseScreenDisplay: boolean): Promise<Hippy2Map> {
     let displayClass: display.Display = display.getDefaultDisplaySync();
-    DimensionsUtil.getStatusBarHeight(displayClass);
-
+    await DimensionsUtil.getStatusBarHeight(displayClass);
     let dimensionMap = new Map<string, HippyValue | Map<string, HippyValue>>()
 
     let windowDisplayMetricsMap = new Map<string, HippyValue>()
@@ -62,27 +60,23 @@ export class DimensionsUtil {
     return dimensionMap
   }
 
-  public static getStatusBarHeight(displayClass: display.Display): number {
+  public static async getStatusBarHeight(displayClass: display.Display): Promise<number> {
     LogUtils.d(DIMENSSION_TAG, 'Succeeded in getting cutoutInfo.');
     if (DimensionsUtil.STATUS_BAR_HEIGHT > 0) {
       return DimensionsUtil.STATUS_BAR_HEIGHT
     }
     try {
-      let promise: Promise<display.CutoutInfo> = displayClass.getCutoutInfo();
-      promise.then((data: display.CutoutInfo) => {
-        LogUtils.d(DIMENSSION_TAG, 'Succeeded in getting cutoutInfo. Data: ' + JSON.stringify(data));
-        if (data.waterfallDisplayAreaRects.bottom.height > 0) {
-          DimensionsUtil.NAVIGATE_BAR_HEIGHT = data.waterfallDisplayAreaRects.bottom.height
-        }
-        if (data.waterfallDisplayAreaRects.top.height > 0) { //瀑布屏曲面部分显示区域
-          DimensionsUtil.STATUS_BAR_HEIGHT = data.waterfallDisplayAreaRects.top.top + data.waterfallDisplayAreaRects.top.height
-        }
-        if (DimensionsUtil.STATUS_BAR_HEIGHT < 1 && data.boundingRects && data.boundingRects.length > 0) { //挖孔、刘海等区域的边界矩形
-          DimensionsUtil.STATUS_BAR_HEIGHT = data.boundingRects[0].top + data.boundingRects[0].height
-        }
-      }).catch((err: HippyJsException) => {
-        LogUtils.e(DIMENSSION_TAG, 'Failed to obtain all the display objects. Code: ' + JSON.stringify(err));
-      });
+      let data: display.CutoutInfo = await displayClass.getCutoutInfo();
+      LogUtils.d(DIMENSSION_TAG, 'Succeeded in getting cutoutInfo. Data: ' + JSON.stringify(data));
+      if (data.waterfallDisplayAreaRects.bottom.height > 0) {
+        DimensionsUtil.NAVIGATE_BAR_HEIGHT = data.waterfallDisplayAreaRects.bottom.height
+      }
+      if (data.waterfallDisplayAreaRects.top.height > 0) { //瀑布屏曲面部分显示区域
+        DimensionsUtil.STATUS_BAR_HEIGHT = data.waterfallDisplayAreaRects.top.top + data.waterfallDisplayAreaRects.top.height
+      }
+      if (DimensionsUtil.STATUS_BAR_HEIGHT < 1 && data.boundingRects && data.boundingRects.length > 0) { //挖孔、刘海等区域的边界矩形
+        DimensionsUtil.STATUS_BAR_HEIGHT = data.boundingRects[0].top + data.boundingRects[0].height
+      }
     } catch (exception) {
       LogUtils.e(DIMENSSION_TAG, 'Failed to obtain the default display object. Code: ' + JSON.stringify(exception));
     }

@@ -179,8 +179,8 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     throw new Error('Method not implemented.');
   }
 
-  initBridge(initBridgeCallback: NativeCallback): void {
-    this.mHippyBridge.initJSBridge(this.getGlobalConfigsString(), (result: number, reason: string) => {
+  async initBridge(initBridgeCallback: NativeCallback): Promise<void> {
+    this.mHippyBridge.initJSBridge(await this.getGlobalConfigsString(), (result: number, reason: string) => {
       this.initJSDriverCallback(result, reason, initBridgeCallback);
     }, this.mGroupId);
   }
@@ -256,11 +256,11 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     LogUtils.i('hippy callFunctionCallBack', result + reason)
   }
 
-  getGlobalConfigsString(): string {
+  async getGlobalConfigsString(): Promise<string> {
     let context = this.mContext.getGlobalConfigs().getContext();
     if (context == null) return ""
     let globalParams = new Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>()
-    let dimensionMap = DimensionsUtil.getDimensions(-1, -1, context, true);
+    let dimensionMap = await DimensionsUtil.getDimensions(-1, -1, context, true);
     if (this.mContext.getGlobalConfigs() != null
       && this.mContext.getGlobalConfigs().getDeviceAdapter() != null) {
       this.mContext.getGlobalConfigs()
