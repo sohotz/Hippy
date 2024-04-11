@@ -23,5 +23,5 @@ export interface HippyDeviceAdapter {
   reviseDimensionIfNeed(context: Context, dimensionMap: Hippy2Map, shouldUseScreenDisplay: boolean,
                         systemUiVisibilityChanged: boolean): void
 
-  getDimensions(ww: number, wh: number, context: Context, shouldUseScreenDisplay: boolean): Hippy2Map
+  getDimensions(ww: number, wh: number, context: Context, shouldUseScreenDisplay: boolean): Promise<Hippy2Map>
 }
