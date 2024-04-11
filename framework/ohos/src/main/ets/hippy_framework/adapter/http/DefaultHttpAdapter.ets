@@ -141,7 +141,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     }
   }
 
-  public getCookie(url: string): Promise<void> {
+  public getCookie(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
         web_webview.WebCookieManager.fetchCookie(url)
@@ -149,13 +149,13 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
             LogUtils.d(DEFAULT_HTTP_ADAPTER_TAG, "saveCookieAsyncCallback success!");
             return res
           })
-          .then(() => resolve())
           .catch((err: HippyJsException) => {
             LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, "error: " + err.message);
             reject(err)
           })
       } catch (error) {
         LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, `ErrorCode: ${error.code}` + `;  Message: ${error.message}`);
+        reject(error.message)
       }
     });
   }
@@ -204,7 +204,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
   }
 
   protected saveCookieToManager(url: string, cookies: String, expires: string) {
-    if (this.getCookieManager() || cookies == null) {
+    if (cookies == null) {
       return;
     }
     cookies = cookies.replace("\\s+", "");
