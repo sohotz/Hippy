@@ -25,6 +25,7 @@ import { LogUtils } from '../../../../support/utils/LogUtils'
 import { media } from '@kit.MediaKit'
 import Url from '@ohos.url'
 import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import { HippyModulePromise } from '../../HippyModulePromise'
 
 const AUDIO_MODULE_TAG: string = 'AudioPlayerModule'
 
@@ -38,7 +39,7 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     this.createMediaPlayer()
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'play': {
         this.play(params[0] as string)

@@ -24,6 +24,7 @@ import { connection } from '@kit.NetworkKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import HashMap from '@ohos.util.HashMap'
 import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import { HippyModulePromise } from '../../HippyModulePromise'
 
 const NETINFO_MODULE_TAG = "NetInfoModule"
 
@@ -74,7 +75,7 @@ export class NetInfoModule extends HippyNativeModuleBase {
     this.unregisterReceiver();
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'getCurrentConnectivity': {
         this.getCurrentConnectivity()

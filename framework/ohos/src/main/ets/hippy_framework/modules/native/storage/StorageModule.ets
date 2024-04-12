@@ -23,6 +23,7 @@ import { HippyStorageAdapter } from '../../../adapter/storage/HippyStorageAdapte
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule';
 import { LogUtils } from '../../../../support/utils/LogUtils';
 import { HippyAny, HippyArray, HippyModuleCallback } from '../../../../support/common/HippyTypes';
+import { HippyModulePromise } from '../../HippyModulePromise';
 
 const STORAGE_MODULE_TAG = "StorageModule"
 
@@ -36,7 +37,7 @@ export class StorageModule extends HippyNativeModuleBase {
     this.mStorageAdapter = this.ctx.getGlobalConfigs().getStorageAdapter();
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'multiGet': {
         this.multiGet(params[0] as string[])

@@ -35,7 +35,7 @@ export interface HippyBridgeManager {
 
   destroyInstance(id: number): void;
 
-  execCallback(params: HippyMap): void;
+  execCallback(params: Hippy2Map): void;
 
   destroyBridge(isReload: boolean): void;
 

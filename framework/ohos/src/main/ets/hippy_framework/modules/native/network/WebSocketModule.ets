@@ -31,6 +31,7 @@ import { HashMap } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
 import { HippyJsException } from '../../../common/HippyJsException'
 import { LogUtils } from '../../../../support/utils/LogUtils'
+import { HippyModulePromise } from '../../HippyModulePromise'
 
 const WEBSOCKET_MODULE_TAG = "WebSocketModule";
 
@@ -165,7 +166,7 @@ export class WebSocketModule extends HippyNativeModuleBase {
     return num + 1
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'connect': {
         this.connect(params[0] as HippyMap)

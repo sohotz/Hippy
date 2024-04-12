@@ -43,8 +43,11 @@ import { Dimensions } from './javascript/Dimensions'
 import { EventDispatcher } from './javascript/EventDispatcher'
 import { HippyAny, HippyArray, HippyValue } from '../../support/common/HippyTypes'
 import { TextUtils } from '../../support/utils/TextUtils'
+import { HippyModulePromise } from './HippyModulePromise'
+import { HippyModulePromiseImpl } from './HippyModulePromiseImpl'
 
 export type HippyNativeModuleCreator = (ctx: HippyEngineContext) => HippyNativeModuleBase
+
 export type HippyJSModuleCreator = (ctx: HippyEngineContext) => HippyJavaScriptModuleBase
 
 export function hippyNativeModuleCreatorRegisterMap(): Map<string, HippyNativeModuleCreator> {
@@ -110,7 +113,13 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     LogUtils.i('hippy', 'JsDriver callNatives moduleParam: ' + moduleParam);
     let module = this.getNativeModule(moduleName)
     if (module) {
-      module.call(moduleFunc, moduleParam, null)
+      const promise: HippyModulePromise = new HippyModulePromiseImpl(
+        this.ctx,
+        params.moduleName,
+        params.moduleFunc,
+        params.callId
+      );
+      module.call(moduleFunc, moduleParam, promise)
     }
   }
 
@@ -168,5 +177,4 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     const paramArray = JSON.parse(str) as Array<HippyAny>;
     return paramArray;
   }
-
 }

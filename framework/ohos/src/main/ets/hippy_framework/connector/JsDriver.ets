@@ -165,9 +165,9 @@ export class JsDriver {
   callFunction(
     action: string,
     callback: NativeCallback,
-    buffer: ArrayBuffer
+    buffer: Uint8Array
   ) {
-    this.libHippy?.JsDriver_CallFunction(this.instanceId, action, callback, buffer)
+    this.libHippy?.JsDriver_CallFunction(this.instanceId, action, callback, buffer.buffer as ArrayBuffer)
   }
 
   public callNatives(

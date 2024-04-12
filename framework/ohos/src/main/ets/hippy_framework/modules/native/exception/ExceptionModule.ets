@@ -21,6 +21,7 @@ import { HippyNativeModule } from '../../../../support/annotation/HippyNativeMod
 import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { HippyJsException } from '../../../common/HippyJsException'
 import { HippyEngineContext } from '../../../HippyEngineContext'
+import { HippyModulePromise } from '../../HippyModulePromise'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 
 @HippyNativeModule({ name: "ExceptionModule" })
@@ -41,7 +42,7 @@ export class ExceptionModule extends HippyNativeModuleBase {
     }
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'handleException': {
         if (params != null && params instanceof Map) {

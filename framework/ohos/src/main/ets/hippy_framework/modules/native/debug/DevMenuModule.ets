@@ -21,6 +21,7 @@ import { HippyNativeModule } from '../../../../support/annotation/HippyNativeMod
 import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { HippyEngineContext } from '../../../HippyEngineContext'
+import { HippyModulePromise } from '../../HippyModulePromise'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 
 @HippyNativeModule({ name: "DevMenuModule" })
@@ -40,7 +41,7 @@ export class DevMenuModule extends HippyNativeModuleBase {
     }
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'reload': {
         this.reload()

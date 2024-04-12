@@ -17,20 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny } from '../../../support/common/HippyTypes';
-import { HippyEngineContext } from '../../HippyEngineContext';
-import { HippyModulePromise } from '../HippyModulePromise';
+import { HippyMap } from '../../support/common/HippyTypes';
 
-export class HippyNativeModuleBase {
+export interface HippyModulePromise {
 
-  public static readonly NAME: string
-  protected ctx: HippyEngineContext
+  resolve(value: HippyMap): void;
 
-  constructor(ctx: HippyEngineContext) {
-    this.ctx = ctx
-  }
+  reject(error: HippyMap): void;
 
-  call(method: string, params: Array<HippyAny>, promise: HippyModulePromise): HippyAny {
-    return null
-  }
+  isCallback(): boolean;
+
+  getCallId(): string;
+
 }
+

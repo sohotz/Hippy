@@ -30,6 +30,7 @@ import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import util from '@ohos.util'
 import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
+import { HippyModulePromise } from '../../HippyModulePromise'
 
 const NETWORK_MODULE_TAG = "NetworkModule"
 
@@ -58,10 +59,10 @@ export class NetworkModule extends HippyNativeModuleBase {
     })
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, promise: HippyModulePromise): HippyAny {
     switch (method) {
       case 'fetch': {
-        this.fetch(params[0] as HippyMap)
+        this.fetch(params[0] as HippyMap, promise)
         break;
       }
       case 'setCookie': {
@@ -95,31 +96,29 @@ export class NetworkModule extends HippyNativeModuleBase {
         break;
       }
       default:
-        super.call(method, params, callback)
+        super.call(method, params, promise)
     }
     return null;
   }
 
-  private fetch(request: HippyMap): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  private fetch(request: HippyMap, promise: HippyModulePromise) {
       let vfsManager: VfsManager = this.ctx.getVfsManager()
       let requestHeaders = new HashMap<string, string>();
       let requestParams = new HashMap<string, string>();
       try {
         this.normalizeRequest(request, requestHeaders, requestParams);
       } catch (e) {
-        reject(e.getMessage());
+        // promise.reject(e.getMessage());
         return;
       }
       let uri: string = requestParams.get(HippyHttpRequest.HTTP_URL);
       if (TextUtils.isEmpty(uri)) {
-        reject("Get url parameter failed!");
+        // promise.reject("Get url parameter failed!");
         return;
       }
 
       vfsManager.fetchResourceAsync(uri, requestHeaders, requestParams,
         new FetchResCallback(this.ctx));
-    });
   }
 
   private handleFetchResponse(dataHolder: ResourceDataHolder): HippyAny {

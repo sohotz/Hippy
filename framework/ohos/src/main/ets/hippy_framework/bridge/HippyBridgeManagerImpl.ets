@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
-import { HippyAny, HippyMap, HippyValue } from '../../support/common/HippyTypes';
+import { Hippy2Map, HippyAny, HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { ArgumentUtils } from '../../support/utils/ArgumentUtils';
 import { DimensionsUtil } from '../../support/utils/DimensionsUtil';
 import { I18nUtil } from '../../support/utils/I18nUtil';
@@ -133,8 +133,20 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     throw new Error('Method not implemented.');
   }
 
-  execCallback(params: HippyMap): void {
-    throw new Error('Method not implemented.');
+  execCallback(params: Hippy2Map): void {
+    if (this.mBridgeState == BridgeState.INITIALIZED) {
+      let binaryWriter = new BinaryWriter()
+      let serializer = new Serializer(binaryWriter)
+      serializer.writeHeader()
+      serializer.writeValue(params)
+      let buffer = binaryWriter.chunked()
+
+      this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALLBACK, this.callFunctionCallback, buffer);
+    }
+  }
+
+  public callFunctionCallback = (result: number, reason: string) => {
+    LogUtils.i('hippy execCallback', result + reason)
   }
 
   destroyBridge(isReload: boolean): void {
