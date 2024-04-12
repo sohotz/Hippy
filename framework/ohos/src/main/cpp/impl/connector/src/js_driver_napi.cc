@@ -22,6 +22,7 @@
 #include "connector/ark2js.h"
 #include "connector/js2ark.h"
 #include "connector/bridge.h"
+#include "connector/exception_handler.h"
 #include <js_native_api.h>
 #include <js_native_api_types.h>
 #include "oh_napi/data_holder.h"
@@ -125,8 +126,7 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
     hippy::bridge::CallHost(info);
   };
   param->uncaught_exception_callback = ([](const std::any& bridge, const string_view& description, const string_view& stack) {
-    // TODO(hot):
-    //ExceptionHandler::ReportJsException(bridge, description, stack);
+    ExceptionHandler::ReportJsException(bridge, description, stack);
   });
 
   std::any dom_manager;
@@ -420,8 +420,8 @@ REGISTER_OH_NAPI("JsDriver", "JsDriver_OnNativeInitEnd", OnNativeInitEnd)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_OnFirstFrameEnd", OnFirstFrameEnd)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_OnResourceLoadEnd", OnResourceLoadEnd)
 
-// TODO(hot):
 napi_value OhNapi_OnLoad(napi_env env, napi_value exports) {
+  hippy::ExceptionHandler::Init(env);
   hippy::InitBridge(env);
   return exports;
 }

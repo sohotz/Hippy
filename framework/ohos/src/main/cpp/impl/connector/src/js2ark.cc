@@ -46,8 +46,7 @@ using StringViewUtils = footstone::stringview::StringViewUtils;
 using JsDriverUtils = hippy::JsDriverUtils;
 using byte_string = std::string;
 
-// TODO(hot):
-static napi_env s_env;
+static napi_env s_env = 0;
 
 void InitBridge(napi_env env) {
   s_env = env;

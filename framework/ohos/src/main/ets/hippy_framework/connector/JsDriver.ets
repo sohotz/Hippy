@@ -21,6 +21,7 @@ import resmgr from "@ohos.resourceManager";
 import { HippyLibrary } from '../../hippy_library/HippyLibrary';
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
 import { LogUtils } from '../../support/utils/LogUtils';
+import { BridgeCallback } from '../bridge/HippyBridge';
 import { HippyCallNativeParams } from '../bridge/HippyCallNativeParams';
 import { HippyModuleManager } from '../modules/HippyModuleManager';
 import { Serializer } from '../serialization/Serializer';
@@ -29,7 +30,8 @@ import { NativeCallback } from './NativeCallback';
 export class JsDriver {
   private libHippy: HippyLibrary
   public instanceId: number = -1
-  public moduleManager: HippyModuleManager | null = null
+  private moduleManager: HippyModuleManager | null = null
+  private bridgeCallback: BridgeCallback | null = null
 
   constructor(libHippy: HippyLibrary, moduleManager: HippyModuleManager) {
     this.libHippy = libHippy
@@ -93,6 +95,10 @@ export class JsDriver {
       isReload,
       callback
     )
+  }
+
+  setBridgeCallback(bridgeCallback: BridgeCallback) {
+    this.bridgeCallback = bridgeCallback
   }
 
   loadInstance(
@@ -170,6 +176,7 @@ export class JsDriver {
     this.libHippy?.JsDriver_CallFunction(this.instanceId, action, callback, buffer.buffer as ArrayBuffer)
   }
 
+  // call from c++
   public callNatives(
     moduleName: string,
     moduleFunc: string,
@@ -189,4 +196,12 @@ export class JsDriver {
 
     LogUtils.i('hippy', 'JsDriver callNatives end');
   }
+
+  // call from c++
+  public reportException(message: string, stackTrace: string) {
+    if (message && stackTrace && this.bridgeCallback) {
+      this.bridgeCallback.reportException(message, stackTrace)
+    }
+  }
+
 }
