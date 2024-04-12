@@ -28,6 +28,9 @@ import { NativeRenderContext } from '../NativeRenderContext'
 import { HRRect } from '../utils/HRTypes'
 import { HRCreateMutation,
   HRDeleteMutation,
+  HRMove2Mutation,
+  HRMoveMutation,
+  HRMoveNodeInfo,
   HRMutation, HRMutationType,
   HRUpdateEventListenerMutation,
   HRUpdateLayoutMutation,
@@ -74,9 +77,11 @@ export class HRViewManager {
       let m = mutation as HRUpdateMutation
       this.updateProps(m.tag as number, m.props as HippyMap)
     } else if (mutation.type === HRMutationType.MOVE) {
-      // TODO(hot):
+      let m = mutation as HRMoveMutation
+      this.moveRenderView(m.nodeInfos as Array<HRMoveNodeInfo>, m.parentTag as number)
     } else if (mutation.type === HRMutationType.MOVE2) {
-      // TODO(hot):
+      let m = mutation as HRMove2Mutation
+      this.move2RenderView(m.tagArray as Array<number>, m.toParentTag as number, m.fromParentTag as number, m.index as number)
     } else if (mutation.type === HRMutationType.DELETE) {
       let m = mutation as HRDeleteMutation
       this.removeRenderView(m.tag as number)
@@ -124,6 +129,40 @@ export class HRViewManager {
     } else {
       LogUtils.d(this.TAG, "insertSubRenderView parentTag:" +
         parentTag + ", child:" + childTag)
+    }
+  }
+
+  private moveRenderView(nodeInfoArray: Array<HRMoveNodeInfo>, parentTag: number): void {
+    let parent = this.viewRegistry.get(parentTag)
+    if (!parent) {
+      LogUtils.w(this.TAG, "moveNode: get parent failed!")
+      return
+    }
+
+    nodeInfoArray.sort((a: HRMoveNodeInfo, b: HRMoveNodeInfo) => a.index - b.index)
+    for (let i = 0; i < nodeInfoArray.length; i++) {
+      let info = nodeInfoArray[i]
+      let child = this.viewRegistry.get(info.tag)
+      if (child) {
+        child.removeFromParentView()
+        parent.addSubRenderView(child, info.index)
+      }
+    }
+  }
+
+  private move2RenderView(tagArray: Array<number>, newParentTag: number, oldParentTag: number, index: number): void {
+    let oldParent = this.viewRegistry.get(oldParentTag)
+    let newParent = this.viewRegistry.get(newParentTag)
+    if (!oldParent || !newParent) {
+      LogUtils.w(this.TAG, "moveRenderView: oldParent=" + oldParentTag + ", newParent=" + newParentTag)
+      return
+    }
+    for (let i = 0; i < tagArray.length; i++) {
+      let child = this.viewRegistry.get(tagArray[i])
+      if (child) {
+        child.removeFromParentView()
+        newParent.addSubRenderView(child, i + index)
+      }
     }
   }
 
