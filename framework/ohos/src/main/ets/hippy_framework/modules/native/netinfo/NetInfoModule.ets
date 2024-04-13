@@ -22,8 +22,7 @@ import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { connection } from '@kit.NetworkKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
-import HashMap from '@ohos.util.HashMap'
-import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import { HippyAny } from '../../../../support/common/HippyTypes'
 import { HippyModulePromise } from '../../HippyModulePromise'
 
 const NETINFO_MODULE_TAG = "NetInfoModule"
@@ -33,9 +32,6 @@ export class NetInfoModule extends HippyNativeModuleBase {
   public static readonly NAME = 'NetInfo'
   private static CONNECTION_TYPE_NONE = "NONE";
   private static CONNECTION_TYPE_UNKNOWN = "UNKNOWN";
-  private static MISSING_PERMISSION_MESSAGE =
-    "To use NetInfo on Android, add the following to your AndroidManifest.xml:\n"
-      + "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />";
   private netConnection: connection.NetConnection
   private mNoNetworkPermission = false;
 
@@ -78,7 +74,7 @@ export class NetInfoModule extends HippyNativeModuleBase {
   public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'getCurrentConnectivity': {
-        this.getCurrentConnectivity()
+        this.getCurrentConnectivity(callback)
         break;
       }
       case 'addListener': {
@@ -95,17 +91,17 @@ export class NetInfoModule extends HippyNativeModuleBase {
     return null;
   }
 
-  private getCurrentConnectivity(): Promise<HashMap<string, string>> {
-    return new Promise((resolve, reject) => {
-      if (this.mNoNetworkPermission) {
-        reject(NetInfoModule.MISSING_PERMISSION_MESSAGE);
-        return
-      }
-      connection.getDefaultNet().then((data) => {
-        let map = new HashMap<string, string>();
-        map.set("network_info", JSON.stringify(data));
-        resolve(map);
-      })
+  private getCurrentConnectivity(promise: HippyModulePromise) {
+    if (this.mNoNetworkPermission) {
+      let map = new Map<string, string>();
+      map.set("network_info", "no netWork permission");
+      promise.reject(map);
+      return
+    }
+    connection.getDefaultNet().then((data) => {
+      let map = new Map<string, string>();
+      map.set("network_info", JSON.stringify(data));
+      promise.resolve(map);
     })
   }
 
