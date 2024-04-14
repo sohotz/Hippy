@@ -27,6 +27,11 @@ import { HippyModuleManager } from '../modules/HippyModuleManager';
 import { Serializer } from '../serialization/Serializer';
 import { NativeCallback } from './NativeCallback';
 
+export class V8InitParams {
+  public initialHeapSize: number = 0
+  public maximumHeapSize: number = 0
+}
+
 export class JsDriver {
   private libHippy: HippyLibrary
   public instanceId: number = -1
@@ -47,11 +52,12 @@ export class JsDriver {
     this.instanceId = this.onCreate(
       globalConfig,
       false,
-      false,
+      false, // TODO:
       false,
       callback,
       -1,
       domManagerId,
+      null,
       vfsId,
       0
     )
@@ -65,10 +71,16 @@ export class JsDriver {
     callback: NativeCallback,
     groupId: number,
     domManagerId: number,
-    //v8InitParams: ,
+    v8InitParams: V8InitParams | null,
     vfsId: number,
     devtoolsId: number
   ): number {
+    let v8ParamArray: Array<number> | null = null
+    if (v8InitParams) {
+      v8ParamArray = new Array<number>()
+      v8ParamArray[0] = v8InitParams.initialHeapSize
+      v8ParamArray[1] = v8InitParams.maximumHeapSize
+    }
     return this.libHippy?.JsDriver_CreateJsDriver(
       this,
       globalConfig,
@@ -78,7 +90,7 @@ export class JsDriver {
       callback,
       groupId,
       domManagerId,
-      //v8InitParams: ,
+      v8ParamArray,
       vfsId,
       devtoolsId
     )
