@@ -37,11 +37,6 @@
 #include "footstone/worker_manager.h"
 #include "vfs/handler/asset_handler.h"
 
-// TODO(hot):
-#ifndef JS_V8
-#define JS_V8
-#endif
-
 #ifdef JS_V8
 #include "driver/vm/v8/v8_vm.h"
 #endif

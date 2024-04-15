@@ -30,6 +30,15 @@ include("${PROJECT_ROOT_DIR}/buildconfig/cmake/compiler_toolchain.cmake")
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_CXX_STANDARD 17)
 
+# Ohos系统上，配置本来应该放到生成so对应的build-profile.json5里。
+#（externalNativeOptions里arguments项）
+# 现在源码集成配置需在app的build-profile.json5里，不方便，所以先放在这里。
+# 后续hippy产物的独立后，放到hippy模块的build-profile.json5里。
+if (OHOS)
+  set(JS_ENGINE "V8")
+  set(ENABLE_INSPECTOR false)
+endif ()
+
 # region library
 add_library(${PROJECT_NAME} STATIC)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
@@ -42,14 +51,11 @@ if (V8_WITHOUT_INSPECTOR)
 endif()
 # endregion
 
-# TODO(hot):
-if (OHOS)
-  set(JS_ENGINE "V8")
-  add_subdirectory("${PROJECT_SOURCE_DIR}/v8_ohos" ./v8_ohos)
-endif ()
-
 # region vm
 if ("${JS_ENGINE}" STREQUAL "V8")
+  if (OHOS)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/v8_ohos" ./v8_ohos)
+  endif ()
   if (NOT TARGET v8)
     if (NOT V8_COMPONENT)
       message(FATAL_ERROR "The V8_COMPONENT variable must be set")
@@ -154,9 +160,17 @@ target_link_libraries(${PROJECT_NAME} PRIVATE dom)
 
 # region devtools
 if (ENABLE_INSPECTOR)
+if (OHOS)
+  GlobalPackages_Add_devtools_backend()
+else ()
   GlobalPackages_Add(devtools_backend)
+endif ()
   target_link_libraries(${PROJECT_NAME} PUBLIC devtools_backend)
+if (OHOS)
+  GlobalPackages_Add_devtools_integration()
+else ()
   GlobalPackages_Add(devtools_integration)
+endif ()
   target_link_libraries(${PROJECT_NAME} PUBLIC devtools_integration)
 endif ()
 # endregion
