@@ -47,15 +47,15 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
   }
 
   public fetchCompleted(dataHolder: ResourceDataHolder, url: string, promise: HippyModulePromise) {
-    let buffer = dataHolder.getBuffer();
-    if (buffer == null) {
+    let path = dataHolder.filePath;
+    if (dataHolder.resultCode != ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE || TextUtils.isEmpty(path)) {
       let message = dataHolder.errorMessage != null ? dataHolder.errorMessage : "";
       let errorMsg = "Fetch image failed, url=" + url + ", msg=" + message;
       let map = new Map<string, string>()
       map.set(ImageLoaderModule.ERROR_KEY_MESSAGE, errorMsg)
       promise.reject(map);
     } else {
-      this.decodeImageData(url, buffer, promise);
+      this.decodeImageData(url, path, promise);
     }
     dataHolder.recycle();
   }
@@ -76,24 +76,23 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
     return null;
   }
 
-  private decodeImageData(url: string, data: ArrayBuffer, promise: HippyModulePromise) {
-    if (data && data.byteLength > 0) {
-      let imageSourceApi: image.ImageSource = image.CreateIncrementalSource(data);
-      imageSourceApi.getImageInfo((err: HippyJsException, imageInfo: image.ImageInfo) => {
-        let map = new Map<string, string>()
-        if (err != undefined) {
-          map.set("width", "Fetch image failed, url=" + url + ", msg=" + err.message)
-          LogUtils.e(IMAGE_MODULE_TAG, `Failed to obtaining the image information. message is ${err.message}`);
-          promise.resolve(map);
-        } else {
-          map.set("width", imageInfo.size.width + "")
-          map.set("height", imageInfo.size.height + "")
-          LogUtils.i(IMAGE_MODULE_TAG, 'Succeeded in obtaining the image information.');
-          promise.resolve(map);
-        }
+  private decodeImageData(url: string, filePath: string, promise: HippyModulePromise) {
+    let sourceOptions: image.SourceOptions = { sourceDensity: 120 };
+    let imageSourceApi: image.ImageSource = image.createImageSource(filePath, sourceOptions);
+    imageSourceApi.getImageInfo((err: HippyJsException, imageInfo: image.ImageInfo) => {
+      let map = new Map<string, string>()
+      if (err != undefined) {
+        map.set("width", "Fetch image failed, url=" + url + ", msg=" + err.message)
+        LogUtils.e(IMAGE_MODULE_TAG, `Failed to obtaining the image information. message is ${err.message}`);
         promise.resolve(map);
-      })
-    }
+      } else {
+        map.set("width", imageInfo.size.width + "")
+        map.set("height", imageInfo.size.height + "")
+        LogUtils.i(IMAGE_MODULE_TAG, 'Succeeded in obtaining the image information.');
+        promise.resolve(map);
+      }
+      promise.resolve(map);
+    })
   }
 
   private generateRequestParams(): HashMap<string, string> {
