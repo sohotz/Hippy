@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { HippyAny, HippyMap, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import { HippyAny, HippyMap } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
 import { ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
 import { HippyEngineContext } from '../../../HippyEngineContext'
@@ -28,7 +28,6 @@ import { TextUtils } from '../../../../support/utils/TextUtils'
 import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
 import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
 import { LogUtils } from '../../../../support/utils/LogUtils'
-import util from '@ohos.util'
 import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
 import { HippyModulePromise } from '../../HippyModulePromise'
 
@@ -102,23 +101,26 @@ export class NetworkModule extends HippyNativeModuleBase {
   }
 
   private fetch(request: HippyMap, promise: HippyModulePromise) {
-      let vfsManager: VfsManager = this.ctx.getVfsManager()
-      let requestHeaders = new HashMap<string, string>();
-      let requestParams = new HashMap<string, string>();
-      try {
-        this.normalizeRequest(request, requestHeaders, requestParams);
-      } catch (e) {
-        // promise.reject(e.getMessage());
-        return;
-      }
-      let uri: string = requestParams.get(HippyHttpRequest.HTTP_URL);
-      if (TextUtils.isEmpty(uri)) {
-        // promise.reject("Get url parameter failed!");
-        return;
-      }
+    let map = new Map<string, string>()
+    let vfsManager: VfsManager = this.ctx.getVfsManager()
+    let requestHeaders = new HashMap<string, string>();
+    let requestParams = new HashMap<string, string>();
+    try {
+      this.normalizeRequest(request, requestHeaders, requestParams);
+    } catch (e) {
+      map.set('request', e.getmessage)
+      promise.resolve(map);
+      return;
+    }
+    let uri: string = requestParams.get(HippyHttpRequest.HTTP_URL);
+    if (TextUtils.isEmpty(uri)) {
+      map.set('request', 'Get url parameter failed!')
+      promise.resolve(map);
+      return;
+    }
 
-      vfsManager.fetchResourceAsync(uri, requestHeaders, requestParams,
-        new FetchResCallback(this.ctx));
+    vfsManager.fetchResourceAsync(uri, requestHeaders, requestParams,
+      new FetchResCallback(this.ctx));
   }
 
   private handleFetchResponse(dataHolder: ResourceDataHolder): HippyAny {
@@ -166,35 +168,39 @@ export class NetworkModule extends HippyNativeModuleBase {
     return responseMap
   }
 
-  private normalizeRequest(request: HippyMap, requestHeaders: HashMap<String, String>, requestParams: HashMap<String, String>) {
-    let entry = request.entries();
-    if (entry !== null) {
-      for (let header of request.entries()) {
-        let key = header[0]
-        let value = header[1]
-        if (key == null || value == null) {
-          continue;
+  private normalizeRequest(request: HippyMap, requestHeaders: HashMap<string, string>, requestParams: HashMap<String, String>) {
+    if (request instanceof Object) {
+      let entry: string[][] = Object.entries(request)
+      if (entry !== null && entry.length > 0) {
+        for (let i = 0; i < entry.length; i++) {
+          LogUtils.i(NETWORK_MODULE_TAG, entry[i].toString());
+          let key = entry[i][0]
+          let value = entry[i][1]
+          if (key == null || value == null) {
+            continue;
+          }
+          if (key == HippyHttpRequest.HTTP_HEADERS) {
+
+            this.normalizeRequestHeaders(value, requestHeaders);
+            continue;
+          }
+          requestParams.set(key, value)
         }
-        if (key == HippyHttpRequest.HTTP_HEADERS && value instanceof Map) {
-          this.normalizeRequestHeaders(value, requestHeaders);
-          continue;
-        }
-        requestParams.set(key, value.toString());
       }
     }
   }
 
-  private normalizeRequestHeaders(headers: HippyMap, requestHeaders: HashMap<String, String>) {
-    if (headers.entries() == null) return
-    for (let header of headers.entries()) {
-      let key = header[0]
-      let value = header[1]
-      if (key == null || value == null) {
+  private normalizeRequestHeaders(headers: string, requestHeaders: HashMap<string, string>) {
+    if (Object.entries(headers) == null) return
+    let valueEntry: string[][] = Object.entries(headers)
+    if (valueEntry == null || valueEntry.length < 1) return
+
+    for (let j = 0; j < valueEntry.length; j++) {
+      LogUtils.i(NETWORK_MODULE_TAG, valueEntry[j].toString());
+      if (valueEntry[j][0] == null || valueEntry[j][1] == null) {
         continue;
       }
-      if (value instanceof String) {
-        requestHeaders.set(key, value.toString());
-      }
+      requestHeaders.set(valueEntry[j][0], valueEntry[j][1])
     }
   }
 
