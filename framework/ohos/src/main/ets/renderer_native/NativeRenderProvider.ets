@@ -190,7 +190,7 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
         lowerCaseEventName = lowerCaseEventName.substring(this.EVENT_PREFIX.length)
     }
 
-    if (eventType != HREventType.GESTURE && !this.renderImpl.checkRegisteredEvent(rootId, nodeId, eventName)) {
+    if (eventType != HREventType.GESTURE && !this.renderImpl.checkRegisteredEvent(rootId, nodeId, lowerCaseEventName)) {
         return;
     }
     LogUtils.d(this.TAG, "dispatchEvent: id " + nodeId + ", eventName " + eventName
