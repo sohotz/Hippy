@@ -114,8 +114,8 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
   if (arkTs.IsArray(args[vm_param_index]) && arkTs.GetArrayLength(args[vm_param_index]) >= 2) {
     has_vm_init_param = true;
   }
-  auto vfs_id = arkTs.GetInteger(args[9]);
-  auto devtools_id = arkTs.GetInteger(args[10]);
+  // auto vfs_id = arkTs.GetInteger(args[9]);
+  // auto devtools_id = arkTs.GetInteger(args[10]);
 
   FOOTSTONE_LOG(INFO) << "CreateJsDriver begin, enable_v8_serialization = " << static_cast<uint32_t>(enable_v8_serialization)
                       << ", is_dev_module = " << static_cast<uint32_t>(is_dev_module)
