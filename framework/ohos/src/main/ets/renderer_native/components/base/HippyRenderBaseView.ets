@@ -82,6 +82,8 @@ export default abstract class HippyRenderBaseView {
   eventAttachedToWindow: (() => void) | null = null
   eventDetachedFromWindow: (() => void) | null = null
 
+  events: Map<string, HippyAny> | null = null
+
   // used for intercept pull up
   hasHandledPullUp: boolean = false
   savedTouchDownPositionX: number = 0
@@ -182,6 +184,20 @@ export default abstract class HippyRenderBaseView {
         break
     }
     return true
+  }
+
+  updateEventListener(newEvents: HippyMap) {
+    this.events = newEvents
+  }
+
+  checkRegisteredEvent(eventName: string): boolean {
+    if (this.events && this.events.has(eventName)) {
+      let value = this.events.get(eventName)
+      if (typeof value == 'boolean') {
+        return value
+      }
+    }
+    return false
   }
 
   private setTransformProp(propKey: string, propValue: HippyAny): boolean {

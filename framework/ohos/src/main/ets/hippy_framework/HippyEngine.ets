@@ -47,6 +47,7 @@ import { HippyEngineManagerImpl } from './HippyEngineManagerImpl';
 import { HippyEngineContext } from './HippyEngineContext'
 import { HippyFileAdapter } from './adapter/file/HippyFileAdapter';
 import { FileRequestAdapter } from './adapter/file/FileRequestAdapter';
+import { LogUtils } from '../support/utils/LogUtils';
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
@@ -62,6 +63,7 @@ export interface HippyEngine {
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
   params.check()
+  LogUtils.enableDebugLog(params.enableLog)
   return new HippyEngineManagerImpl(params)
 }
 

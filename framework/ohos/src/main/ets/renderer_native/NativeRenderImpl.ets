@@ -156,8 +156,7 @@ export class NativeRenderImpl implements NativeRender {
   }
 
   destroyRoot(rootId: number) {
-    // TODO(hot):
-    //HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), rootId)
+
   }
 
   createNode(rootId: number, nodeList: Array<HippyAny>) {
@@ -326,6 +325,15 @@ export class NativeRenderImpl implements NativeRender {
       m.props = eventProps
       viewManager.addMutations(m)
     }
+  }
+
+  checkRegisteredEvent(rootId: number, nodeId: number, eventName: string): boolean {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return false
+    }
+
+    return viewManager.checkRegisteredEvent(nodeId, eventName)
   }
 
   callUIFunction(rootId: number, nodeId: number, functionName: string, params: Array<HippyAny>, callback: HippyRenderCallback | null) {

@@ -195,7 +195,9 @@ export struct HRScroll {
   }
 
   emitScrollEvent(eventName: string) {
-    // TODO(hot): checkRegisteredEvent
+    if (!HREventUtils.checkRegisteredEvent(this.renderView.ctx, this.renderView.tag, eventName)) {
+      return;
+    }
 
     let contentInset = new Map<string, number>() as HippyMap;
     contentInset.set("top", 0);
