@@ -45,6 +45,8 @@ import { HippyAny, HippyArray, HippyValue } from '../../support/common/HippyType
 import { TextUtils } from '../../support/utils/TextUtils'
 import { HippyModulePromise } from './HippyModulePromise'
 import { HippyModulePromiseImpl } from './HippyModulePromiseImpl'
+import { BinaryReader } from '../../serialization/reader/BinaryReader'
+import { Deserializer } from '../serialization/Deserializer'
 
 export type HippyNativeModuleCreator = (ctx: HippyEngineContext) => HippyNativeModuleBase
 
@@ -81,7 +83,7 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
   private cachedJSModuleMap: Map<string, HippyJavaScriptModuleBase> = new Map();
   private mEnableV8Serialization: boolean;
 
-  constructor(ctx: HippyEngineContext, enableV8Serialization = false) {
+  constructor(ctx: HippyEngineContext, enableV8Serialization = true) {
     this.ctx = ctx;
     this.nativeModuleCreatorRegisterMap = hippyNativeModuleCreatorRegisterMap();
     this.jsModuleCreatorRegisterMap = hippyJSModuleCreatorRegisterMap();
@@ -109,7 +111,7 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     const moduleFunc = params.moduleFunc;
 
     // callNative 参数反序列化
-    let moduleParam = this.bytesToArgument(buffer, false);
+    let moduleParam = this.bytesToArgument(buffer);
     LogUtils.i('hippy', 'JsDriver callNatives moduleParam: ' + moduleParam);
     let module = this.getNativeModule(moduleName)
     if (module) {
@@ -150,12 +152,12 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     }
   }
 
-  public bytesToArgument(buffer: ArrayBuffer, useJSValueType: boolean): Array<HippyAny> {
+  public bytesToArgument(buffer: ArrayBuffer): Array<HippyAny> {
     let result = new Array<HippyAny>();
     if (buffer) {
       try {
         if (this.mEnableV8Serialization) {
-          // result = this.parseV8SerializeData(buffer, useJSValueType);
+          result = this.parseV8SerializeData(buffer);
         } else {
           result = this.parseJsonData(buffer);
         }
@@ -166,9 +168,14 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     return result;
   }
 
-  // public parseV8SerializeData(buffer: ArrayBuffer, useJSValueType: boolean) {
-  //
-  // }
+  public parseV8SerializeData(buffer: ArrayBuffer): Array<HippyAny> {
+      const bytes = new Uint8Array(buffer);
+      const reader = new BinaryReader(bytes);
+      const serializer = new Deserializer(reader, null);
+      serializer.reset();
+      serializer.readHeader();
+      return serializer.readValue() as Array<HippyAny>;
+  }
 
   public parseJsonData(buffer: ArrayBuffer): Array<HippyAny> {
     const bytes = new Uint8Array(buffer);

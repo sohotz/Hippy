@@ -207,7 +207,7 @@ export class Deserializer extends PrimitiveValueDeserializer {
     return map as HippyMap
   }
 
-  private readJSProperties(map: HippyMap, endTag: Number): number {
+  private readJSProperties(map: HippyMap | null, endTag: Number): number {
     let keyLocation: StringLocation, valueLocation: StringLocation
     if (endTag == JSSerializationTag.END_DENSE_JS_ARRAY) {
       keyLocation = StringLocation.DENSE_ARRAY_KEY
@@ -231,7 +231,7 @@ export class Deserializer extends PrimitiveValueDeserializer {
           map.set(String(key).valueOf(), value as HippyValue)
         } else if (typeof key == 'string') {
           if (key == "null") {
-            map.set(null, value as HippyValue)
+            map.set('', value as HippyValue)
           } else {
             map.set(key, value as HippyValue)
           }

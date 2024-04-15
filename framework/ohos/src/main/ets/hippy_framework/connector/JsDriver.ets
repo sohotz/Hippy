@@ -52,7 +52,7 @@ export class JsDriver {
     this.instanceId = this.onCreate(
       globalConfig,
       false,
-      false, // TODO:
+      true, // TODO:
       false,
       callback,
       -1,
