@@ -47,19 +47,20 @@ export class JsDriver {
     domManagerId: number,
     vfsId: number,
     callback: NativeCallback,
-    globalConfig: string
+    globalConfig: string,
+    mEnableV8Serialization: boolean
   ) {
     this.instanceId = this.onCreate(
       globalConfig,
-      false,
-      true, // TODO:
-      false,
+      false, // TODO useLowMemoryMode
+      mEnableV8Serialization,
+      false, // TODO isDevModule
       callback,
-      -1,
+      -1, // TODO groupId
       domManagerId,
-      null,
+      null, // TODO v8InitParams
       vfsId,
-      0
+      0 // TODO devtoolsId
     )
   }
 

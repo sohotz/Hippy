@@ -77,7 +77,8 @@ export class HippyBridgeImpl implements HippyBridge {
       this.mEngineContext.getDomManagerId(),
       this.mEngineContext.getVfsId(),
       callback,
-      globalConfig)
+      globalConfig,
+      this.mEnableV8Serialization)
   }
 
   runScriptFromUri(uri: string, canUseCodeCache: boolean, codeCacheTag: string, callback: NativeCallback): boolean {
