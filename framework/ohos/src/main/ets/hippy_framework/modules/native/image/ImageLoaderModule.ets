@@ -53,7 +53,7 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
       let errorMsg = "Fetch image failed, url=" + url + ", msg=" + message;
       let map = new Map<string, string>()
       map.set(ImageLoaderModule.ERROR_KEY_MESSAGE, errorMsg)
-      promise.reject(map);
+      promise.resolve(map);
     } else {
       this.decodeImageData(url, path, promise);
     }

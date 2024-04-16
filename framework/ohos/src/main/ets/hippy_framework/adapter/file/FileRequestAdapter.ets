@@ -25,7 +25,6 @@ import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { FetchResultCode } from '../http/HippyResourceLoader';
 import fs from '@ohos.file.fs';
-import { HippyHttpResponse } from '../http/HippyHttpResponse';
 import { BusinessError } from '@kit.BasicServicesKit';
 
 const FILE_REQ_TAG = "FileRequestAdapter"
@@ -87,8 +86,8 @@ export class FileRequestAdapter implements HippyFileAdapter {
       }, (err: BusinessError, data: request.DownloadTask) => {
         LogUtils.i(FILE_REQ_TAG, 'Download task url:' + mDataHolder.uri);
         LogUtils.i(FILE_REQ_TAG, 'Download task filePath:' + filePath);
-        if (err) {
-          console.error(`Failed to request the download. Code: ${err.code}, message: ${err.message}`);
+        if (err != undefined) {
+          LogUtils.i(FILE_REQ_TAG, `Failed to request the download. Code: ${err.code}, message: ${err.message}`);
           return;
         }
         downloadTask = data;
@@ -106,7 +105,7 @@ export class FileRequestAdapter implements HippyFileAdapter {
         });
 
         downloadTask.on('progress', (receivedSize: number, totalSize: number) => {
-          // LogUtils.i(FILE_REQ_TAG, 'Download task receivedSize:' + receivedSize + ' totalSize:' + totalSize);
+          LogUtils.i(FILE_REQ_TAG, 'Download task receivedSize:' + receivedSize + ' totalSize:' + totalSize);
         });
       });
     } catch (e) {
