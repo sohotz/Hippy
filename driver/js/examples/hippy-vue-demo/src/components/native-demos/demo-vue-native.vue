@@ -330,19 +330,17 @@ export default {
     this.imageSize = '';
     this.netInfoText = '';
     // netInfo
-    // this.netInfoText = await Vue.Native.NetInfo.fetch();
-    // this.netInfoListener = Vue.Native.NetInfo.addEventListener('change', (info) => {
-    //   this.netInfoText = `收到通知: ${info.network_info}`;
-    // });
-    Hippy.bridge.callNative('ConsoleMoulde', 'log', 'zealot start00');
+    this.netInfoText = await Vue.Native.NetInfo.fetch();
+    this.netInfoListener = Vue.Native.NetInfo.addEventListener('change', (info) => {
+      this.netInfoText = `收到通知: ${info.network_info}`;
+    });
     fetch('https://hippyjs.org', {
       mode: 'no-cors', // 2.14.0 or above supports other options(not only method/headers/url/body)
     }).then((responseJson) => {
       this.fetchText = `成功状态: ${responseJson.status}`;
-    })
-      .catch((error) => {
+    }).catch((error) => {
         this.fetchText =  `收到错误: ${error}`;
-      });
+    });
   },
   async mounted() {
     this.app = getApp();
