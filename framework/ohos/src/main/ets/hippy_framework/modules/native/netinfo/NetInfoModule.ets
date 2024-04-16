@@ -95,7 +95,7 @@ export class NetInfoModule extends HippyNativeModuleBase {
     if (this.mNoNetworkPermission) {
       let map = new Map<string, string>();
       map.set("network_info", "no netWork permission");
-      promise.reject(map);
+      promise.resolve(map);
       return
     }
     connection.getDefaultNet().then((data) => {
