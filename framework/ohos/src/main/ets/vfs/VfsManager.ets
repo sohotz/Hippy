@@ -219,14 +219,14 @@ export class VfsManager {
         this.onProgress(progressCallbackId, total, loaded)
       }
     }
-    this.fetchResourceAsyncImpl(uri, UriType.NORMAL, requestHeaders, requestParams, callback, RequestFrom.NATIVE, nativeRequestId)
+    this.fetchResourceAsyncImpl(uri, UriType.FILE, requestHeaders, requestParams, callback, RequestFrom.NATIVE, nativeRequestId)
   }
 
   // for c++
   doLocalTraversalsSync(uri: string,
                         requestHeaders: Map<string, string> | null,
                         requestParams: Map<string, string> | null) {
-    return this.fetchResourceSyncImpl(uri, UriType.NORMAL, requestHeaders, requestParams, RequestFrom.NATIVE)
+    return this.fetchResourceSyncImpl(uri, UriType.FILE, requestHeaders, requestParams, RequestFrom.NATIVE)
   }
 
   doNativeTraversalsAsync(id: number, holder: ResourceDataHolder, callback: FetchResourceCallback) {

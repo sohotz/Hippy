@@ -48,7 +48,7 @@ export class HippyHttpRequest {
 
   constructor(headers: Map<string, string>, method: string,
               initParams: Map<string, string>, nativeParams: Map<string, Object>) {
-    this.mHeaders = (headers == null) ? new Map() : headers;
+    this.mHeaders = (headers == null) ? new Map<string, string>() : headers;
     this.mInitParams = initParams;
     this.mNativeParams = nativeParams;
     this.setMethod(method);
