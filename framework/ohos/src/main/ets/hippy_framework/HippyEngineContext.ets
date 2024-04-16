@@ -30,7 +30,7 @@ export interface HippyEngineContext {
 
   getComponentName(): string
 
-  getNativeParams() : HashMap<string, Object>
+  getNativeParams() : Map<string, Object>
 
   getVfsManager(): VfsManager
 

@@ -17,13 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyMap } from '../../support/common/HippyTypes';
+import { HippyMap, HippyValue } from '../../support/common/HippyTypes';
 
 export interface HippyModulePromise {
 
-  resolve(value: HippyMap): void;
+  resolve(value: HippyMap | string): void;
 
-  reject(error: HippyMap): void;
+  reject(error: HippyMap | string): void;
 
   isCallback(): boolean;
 

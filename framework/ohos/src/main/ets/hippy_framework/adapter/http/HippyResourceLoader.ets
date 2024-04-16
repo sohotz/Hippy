@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
+import { ResourceDataHolder, UriType } from '../../../vfs/ResourceDataHolder';
 import { ResourceLoader } from '../../../vfs/ResourceLoader';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { UrlUtils } from '../../../support/utils/UrlUtils';
@@ -45,9 +45,16 @@ export class HippyResourceLoader implements ResourceLoader {
 
   fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback) {
     if (UrlUtils.isWebUrl(holder.uri)) {
-      let fileAdapter = this.engineContext.getGlobalConfigs().getFileAdapter()
-      if (fileAdapter) {
-        fileAdapter.downloadFile(holder, callback)
+      if(holder.uriType === UriType.NORMAL) {
+        let httpAdapter = this.engineContext.getGlobalConfigs().getHttpAdapter()
+        if (httpAdapter) {
+          httpAdapter.fetch(holder, http.RequestMethod.GET, this.engineContext.getNativeParams(), callback)
+        }
+      } else {
+        let fileAdapter = this.engineContext.getGlobalConfigs().getFileAdapter()
+        if (fileAdapter) {
+          fileAdapter.downloadFile(holder, callback)
+        }
       }
     } else if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
       const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager

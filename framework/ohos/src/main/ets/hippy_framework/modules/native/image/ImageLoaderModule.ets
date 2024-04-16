@@ -24,7 +24,7 @@ import { VfsManager } from '../../../../vfs/VfsManager'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { HashMap } from '@kit.ArkTS'
-import { ResourceDataHolder } from '../../../../vfs/ResourceDataHolder'
+import { ResourceDataHolder, UriType } from '../../../../vfs/ResourceDataHolder'
 import { image } from '@kit.ImageKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
@@ -95,8 +95,8 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
     })
   }
 
-  private generateRequestParams(): HashMap<string, string> {
-    let requestParams = new HashMap<string, string>();
+  private generateRequestParams(): Map<string, string> {
+    let requestParams = new Map<string, string>();
     requestParams.set("Content-Type", "image");
     return requestParams;
   }
@@ -116,7 +116,11 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
       resCallback.onFetchProgress = (total: number, loaded: number) => {
         // Nothing need to do here.
       }
-      this.mVfsManager.fetchResourceAsync(urls[i] as string, null, this.generateRequestParams(), resCallback)
+      this.mVfsManager.fetchResourceAsync(
+        urls[i] as string,
+        UriType.FILE, null,
+        this.generateRequestParams(),
+        resCallback)
     }
   }
 
@@ -129,7 +133,7 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
       resCallback.onFetchProgress = (total: number, loaded: number) => {
         // Nothing need to do here.
       }
-      this.mVfsManager.fetchResourceAsync(urls[i] as string, null, this.generateRequestParams(), resCallback)
+      this.mVfsManager.fetchResourceAsync(urls[i] as string,  UriType.FILE, null, this.generateRequestParams(), resCallback)
     }
   }
 }

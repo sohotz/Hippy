@@ -48,8 +48,7 @@ export class HttpTaskCallbackImpl implements HttpTaskCallback {
       response.getStatusCode().toString());
     this.mDataHolder.addResponseHeaderProperty(HippyHttpResponse.HTTP_RESPONSE_RESPONSE_MESSAGE,
       response.getResponseMessage());
-    let inputStream = response.getInputStream();
-    if (response.getStatusCode() != 200 || inputStream == null) {
+    if (response.getStatusCode() != 200) {
       if (response.getErrorStream() != null) {
         let arrayBuffer = new ArrayBuffer(4096);
         let readOption: ReadOptions = {

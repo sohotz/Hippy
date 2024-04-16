@@ -27,7 +27,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   private mEngineInitParams: EngineInitParams;
   private mGlobalConfigs: HippyGlobalConfigs;
   public vfsManager: VfsManager
-  public nativeParams: HashMap<string, Object> = new HashMap()
+  public nativeParams: Map<string, Object> = new Map<string, Object>()
   private mDomManager: DomManager;
   private mMonitor: TimeMonitor;
   private mModuleManager: HippyModuleManager;
@@ -154,7 +154,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     return this.mBridgeManager;
   }
 
-  getNativeParams() : HashMap<string, Object> {
+  getNativeParams() : Map<string, Object> {
     return this.nativeParams
   }
 

@@ -21,6 +21,7 @@ import { Hippy2Map, HippyMap, HippyValue } from '../../support/common/HippyTypes
 import { TextUtils } from '../../support/utils/TextUtils';
 import { HippyEngineContext } from '../HippyEngineContext';
 import { HippyModulePromise } from './HippyModulePromise';
+import { inspector } from '@kit.ArkUI';
 
 
 export class HippyModulePromiseImpl implements HippyModulePromise {
@@ -45,11 +46,11 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
     this.mCallId = callId;
   }
 
-  resolve(value: HippyMap): void {
+  resolve(value: HippyMap | string): void {
     this.doCallback(HippyModulePromiseImpl.PROMISE_CODE_SUCCESS, value);
   }
 
-  reject(error: HippyMap): void {
+  reject(error: HippyMap | string): void {
     this.doCallback(HippyModulePromiseImpl.PROMISE_CODE_OTHER_ERROR, error);
   }
 
@@ -62,7 +63,7 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
     return this.mCallId;
   }
 
-  public doCallback(code: number, resultObject: HippyMap): void {
+  public doCallback(code: number, resultObject: HippyMap | string): void {
     if (this.context == null || !this.isCallback()) {
       return;
     }

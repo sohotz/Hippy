@@ -37,13 +37,19 @@ export enum TransferType {
   NIO,
 }
 
+export enum UriType {
+  NORMAL,
+  FILE,
+}
+
 export class ResourceDataHolder {
   static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
   public uri: string
+  public uriType: UriType
   public buffer: ArrayBuffer | null = null
-  public requestHeaders: HashMap<string, string> | null
-  public requestParams: HashMap<string, string> | null
-  public responseHeaders: HashMap<string, string> | null = null
+  public requestHeaders: Map<string, string> | null
+  public requestParams: Map<string, string> | null
+  public responseHeaders: Map<string, string> | null = null
   public callback: FetchResourceCallback | null
   public transferType: TransferType = TransferType.NORMAL
   public requestFrom: RequestFrom
@@ -58,12 +64,14 @@ export class ResourceDataHolder {
   public filePath = ""
 
   constructor(uri: string,
-              requestHeaders: HashMap<string, string> | null,
-              requestParams: HashMap<string, string> | null,
+              uriType: UriType,
+              requestHeaders: Map<string, string> | null,
+              requestParams: Map<string, string> | null,
               callback: FetchResourceCallback | null,
               from: RequestFrom,
               nativeRequestId: number) {
     this.uri = uri
+    this.uriType = uriType
     this.requestHeaders = requestHeaders
     this.requestParams = requestParams
     this.callback = callback
@@ -71,7 +79,7 @@ export class ResourceDataHolder {
     this.nativeRequestId = nativeRequestId
   }
 
-  private hashMap2Array(map: HashMap<string, string> | null): Array<string> | null {
+  private hashMap2Array(map: Map<string, string> | null): Array<string> | null {
     if (!map) {
       return null
     }
@@ -84,12 +92,12 @@ export class ResourceDataHolder {
     return array
   }
 
-  private array2HashMap(array: Array<string> | null): HashMap<string, string> | null {
+  private array2HashMap(array: Array<string> | null): Map<string, string> | null {
     if (!array || array.length <= 0) {
       return null
     }
 
-    let map = new HashMap<string, string>()
+    let map = new Map<string, string>()
     for (let i = 0; i < array.length; i += 2) {
       let key = array[i]
       if (i + 1 < array.length) {
@@ -168,7 +176,7 @@ export class ResourceDataHolder {
 
   addResponseHeaderProperty(key: string, property: string) {
     if (this.responseHeaders == null) {
-      this.responseHeaders = new HashMap<string, string>()
+      this.responseHeaders = new Map<string, string>()
     }
     this.responseHeaders.set(key, property)
   }
