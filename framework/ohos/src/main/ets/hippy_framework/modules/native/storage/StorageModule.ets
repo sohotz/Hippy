@@ -37,26 +37,26 @@ export class StorageModule extends HippyNativeModuleBase {
     this.mStorageAdapter = this.ctx.getGlobalConfigs().getStorageAdapter();
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
+  public call(method: string, params: Array<HippyAny>, promise: HippyModulePromise): HippyAny {
     switch (method) {
       case 'multiGet': {
-        this.multiGet(params[0] as string[], callback)
+        this.multiGet(params[0] as string[], promise)
         break;
       }
       case 'multiSet': {
-        this.multiSet(params[0] as HippyArray, callback)
+        this.multiSet(params[0] as HippyArray, promise)
         break;
       }
       case 'multiRemove': {
-        this.multiRemove(params[0] as string[], callback)
+        this.multiRemove(params[0] as string[], promise)
         break;
       }
       case 'getAllKeys': {
-        this.getAllKeys(callback)
+        this.getAllKeys(promise)
         break;
       }
       default:
-        super.call(method, params, callback)
+        super.call(method, params, promise)
     }
     return null;
   }
@@ -64,37 +64,30 @@ export class StorageModule extends HippyNativeModuleBase {
   private multiGet(keys: string[], promise: HippyModulePromise) {
     let map = new Map<string, string>()
     if (keys == null || keys.length <= 0) {
-      map.set("multiGet", "Invalid Key")
-      promise.resolve(map);
+      promise.reject('Invalid Key');
     }
     if (this.mStorageAdapter == null) {
-      map.set("multiGet", "Database Null")
-      promise.resolve(map);
+      promise.reject('Database Null');
     }
     this.mStorageAdapter?.multiGet(keys).then(result => {
       if (result == null || result.length <= 0) {
-        map.set("multiGet", "result Null")
-        promise.resolve(map);
+        promise.reject('result Null');
       }
       let data = new Array<[key: string, value: string]>();
       result.forEach((value, index, result) => {
         data.push([value[0], value[1]])
       })
       LogUtils.i(STORAGE_MODULE_TAG, 'multiGet:' + data);
-      map.set("multiGet", JSON.stringify(data))
-      promise.resolve(map);
+      promise.resolve(data);
     })
   }
 
   private multiSet(params: HippyArray, promise: HippyModulePromise) {
-    let map = new Map<string, string>()
     if (params == null || params.length <= 0) {
-      map.set("multiSet", "Invalid Key")
-      promise.resolve(map);
+      promise.reject('Invalid Key');
     }
     if (this.mStorageAdapter == null) {
-      map.set("multiSet", "Database Null")
-      promise.resolve(map);
+      promise.reject('Database Null');
     }
     try {
       let data = new Array<[key: string, value: string]>();
@@ -109,51 +102,43 @@ export class StorageModule extends HippyNativeModuleBase {
         if (err == undefined) {
           LogUtils.i(STORAGE_MODULE_TAG, "multiSet succ");
         } else {
-          map.set("multiSet", JSON.stringify(err))
-          promise.resolve(map);
+          promise.resolve('success');
         }
       })
     } catch (e) {
       LogUtils.i(STORAGE_MODULE_TAG, "multiSet fail:" + e);
-      map.set("multiSet", e.getMessage())
-      promise.resolve(map);
+      promise.reject(e.getMessage());
     }
   }
 
   private multiRemove(keys: string[], promise: HippyModulePromise) {
     let map = new Map<string, string>()
     if (keys == null || keys.length <= 0) {
-      map.set("multiRemove", "Invalid Key")
-      promise.resolve(map);
+      promise.reject('Invalid Key');
     }
     if (this.mStorageAdapter == null) {
-      map.set("multiRemove", "Database Null")
-      promise.resolve(map);
+      promise.reject('Database Null');
     }
     this.mStorageAdapter?.multiRemove(keys).then((err) => {
       if (err == undefined) {
         LogUtils.i(STORAGE_MODULE_TAG, "multiRemove succ");
+        promise.resolve("success");
       } else {
         LogUtils.i(STORAGE_MODULE_TAG, "multiRemove fail:" + err);
-        map.set("multiRemove", JSON.stringify(err))
-        promise.resolve(map);
+        promise.reject(JSON.stringify(err));
       }
     })
   }
 
   private getAllKeys(promise: HippyModulePromise) {
-    let map = new Map<string, string>()
     if (this.mStorageAdapter == null) {
-      map.set("getAllKeys", "Database Null")
-      promise.resolve(map);
+      promise.reject('Database Null');
     }
     this.mStorageAdapter?.getAllKeys().then((result) => {
       if (result == null || result.length <= 0) {
-        map.set("getAllKeys", "")
-        promise.resolve(map);
+        promise.resolve('data is null');
       } else {
-        map.set("getAllKeys", JSON.stringify(result))
-        promise.resolve(map);
+        promise.resolve(JSON.stringify(result));
       }
     })
   }

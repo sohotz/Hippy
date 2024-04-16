@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Hippy2Map, HippyMap, HippyValue } from '../../support/common/HippyTypes';
+import { Hippy2Map, HippyArray, HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { TextUtils } from '../../support/utils/TextUtils';
 import { HippyEngineContext } from '../HippyEngineContext';
 import { HippyModulePromise } from './HippyModulePromise';
@@ -46,11 +46,11 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
     this.mCallId = callId;
   }
 
-  resolve(value: HippyMap | string): void {
+  resolve(value: HippyMap | string | HippyArray): void {
     this.doCallback(HippyModulePromiseImpl.PROMISE_CODE_SUCCESS, value);
   }
 
-  reject(error: HippyMap | string): void {
+  reject(error: HippyMap | string | HippyArray): void {
     this.doCallback(HippyModulePromiseImpl.PROMISE_CODE_OTHER_ERROR, error);
   }
 
@@ -63,12 +63,12 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
     return this.mCallId;
   }
 
-  public doCallback(code: number, resultObject: HippyMap | string): void {
+  public doCallback(code: number, resultObject: HippyMap | string | HippyArray): void {
     if (this.context == null || !this.isCallback()) {
       return;
     }
 
-    const resultMap: Hippy2Map = new Map<string, HippyMap | HippyValue>();
+    const resultMap: Map<string, HippyMap | HippyValue | HippyArray> = new Map<string, HippyMap | HippyValue | HippyArray>();
     resultMap.set("result", code);
     resultMap.set("moduleName", this.mModuleName);
     resultMap.set("moduleFunc", this.mModuleFunc);

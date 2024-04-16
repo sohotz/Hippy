@@ -18,7 +18,9 @@
  * limitations under the License.
  */
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
-import { Hippy2Map, HippyAny, HippyMap, HippyValue } from '../../support/common/HippyTypes';
+import { Hippy2Map, HippyAny,
+  HippyArray,
+  HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { ArgumentUtils } from '../../support/utils/ArgumentUtils';
 import { DimensionsUtil } from '../../support/utils/DimensionsUtil';
 import { I18nUtil } from '../../support/utils/I18nUtil';
@@ -133,7 +135,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     throw new Error('Method not implemented.');
   }
 
-  execCallback(params: Hippy2Map): void {
+  execCallback(params: Map<string, HippyMap | HippyValue | HippyArray>): void {
     if (this.mBridgeState == BridgeState.INITIALIZED) {
       let binaryWriter = new BinaryWriter()
       let serializer = new Serializer(binaryWriter)
