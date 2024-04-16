@@ -24,6 +24,7 @@ import { connection } from '@kit.NetworkKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { HippyAny } from '../../../../support/common/HippyTypes'
 import { HippyModulePromise } from '../../HippyModulePromise'
+import { HippyJsException } from '../../../common/HippyJsException'
 
 const NETINFO_MODULE_TAG = "NetInfoModule"
 
@@ -93,15 +94,17 @@ export class NetInfoModule extends HippyNativeModuleBase {
 
   private getCurrentConnectivity(promise: HippyModulePromise) {
     if (this.mNoNetworkPermission) {
-      let map = new Map<string, string>();
-      map.set("network_info", "no netWork permission");
-      promise.reject(map);
+      LogUtils.e('getCurrentConnectivity', 'no netWork permission');
+      promise.reject('no netWork permission');
       return
     }
     connection.getDefaultNet().then((data) => {
       let map = new Map<string, string>();
       map.set("network_info", JSON.stringify(data));
       promise.resolve(map);
+    }).catch((err: HippyJsException) => {
+      LogUtils.e('getCurrentConnectivity', err.message);
+      promise.reject(err.message);
     })
   }
 
