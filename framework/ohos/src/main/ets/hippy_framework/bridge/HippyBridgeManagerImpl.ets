@@ -159,7 +159,6 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
   callJavaScriptModule(moduleName: string, methodName: string, params: HippyMap): void {
     if (this.mBridgeState == BridgeState.INITIALIZED) {
-      // TODO(hot):
       let map = new Map<string, HippyAny>()
       map.set("moduleName", moduleName)
       map.set("methodName", methodName)

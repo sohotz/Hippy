@@ -65,6 +65,7 @@ export class HRDisplaySyncUtils {
   private static stopPostFrame(): void {
     HRDisplaySyncUtils.sBackDisplaySync?.stop()
     HRDisplaySyncUtils.sBackDisplaySync?.off("frame", HRDisplaySyncUtils.sCallback)
+    HRDisplaySyncUtils.sBackDisplaySync = null
   }
 
   // Register frame callback listener, should call in ui thread.

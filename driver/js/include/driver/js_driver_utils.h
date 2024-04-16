@@ -66,7 +66,9 @@ class JsDriverUtils {
   static void CallJs(const string_view& action,
                      const std::shared_ptr<Scope>& scope,
                      std::function<void(CALL_FUNCTION_CB_STATE, string_view)> cb,
-                     byte_string buffer_data);
+                     byte_string buffer_data,
+                     std::function<void()> on_js_runner
+    );
 
   static void CallNative(hippy::napi::CallbackInfo& info,
                          const std::function<void(std::shared_ptr<Scope>,

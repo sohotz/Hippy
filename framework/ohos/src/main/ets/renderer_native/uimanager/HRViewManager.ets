@@ -91,6 +91,7 @@ export class HRViewManager {
     } else if (mutation.type === HRMutationType.UPDATE_EVENT_LISTENER) {
       let m = mutation as HRUpdateEventListenerMutation
       this.updateProps(m.tag as number, m.props as HippyMap)
+      this.updateEventListener(m.tag as number, m.props as HippyMap)
     }
   }
 
@@ -179,6 +180,21 @@ export class HRViewManager {
         })
       }
     }
+  }
+
+  private updateEventListener(nodeId: number, props: HippyMap) {
+    let renderView = this.viewRegistry.get(nodeId)
+    if (renderView) {
+      renderView.updateEventListener(props)
+    }
+  }
+
+  public checkRegisteredEvent(nodeId: number, eventName: string): boolean {
+    let renderView = this.viewRegistry.get(nodeId)
+    if (renderView) {
+      return renderView.checkRegisteredEvent(eventName)
+    }
+    return false
   }
 
   private setRenderViewFrame(tag: number, frame: HRRect): void {

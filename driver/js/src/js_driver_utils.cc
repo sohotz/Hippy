@@ -440,12 +440,15 @@ void JsDriverUtils::DestroyInstance(std::shared_ptr<Engine>&& engine,
 void JsDriverUtils::CallJs(const string_view& action,
                            const std::shared_ptr<Scope>& scope,
                            std::function<void(CALL_FUNCTION_CB_STATE, string_view)> cb,
-                           byte_string buffer_data
+                           byte_string buffer_data,
+                           std::function<void()> on_js_runner
                            ) {
   auto runner = scope->GetTaskRunner();
   std::weak_ptr<Scope> weak_scope = scope;
   auto callback = [weak_scope, cb = std::move(cb), action,
-      buffer_data_ = std::move(buffer_data)] {
+      buffer_data_ = std::move(buffer_data),
+      on_js_runner = std::move(on_js_runner)] {
+    on_js_runner();
     auto scope = weak_scope.lock();
     if (!scope) {
       FOOTSTONE_DLOG(WARNING) << "CallJs scope invalid";
