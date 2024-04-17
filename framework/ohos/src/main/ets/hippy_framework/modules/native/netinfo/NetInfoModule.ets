@@ -24,7 +24,6 @@ import { connection } from '@kit.NetworkKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { HippyAny } from '../../../../support/common/HippyTypes'
 import { HippyModulePromise } from '../../HippyModulePromise'
-import { HippyJsException } from '../../../common/HippyJsException'
 
 const NETINFO_MODULE_TAG = "NetInfoModule"
 
@@ -44,15 +43,12 @@ export class NetInfoModule extends HippyNativeModuleBase {
   public getCurrentConnectionType(): string {
     try {
       let netHandle = connection.getDefaultNetSync();
-      let arrayTypes: Promise<Array<connection.NetBearType>> = connection.getNetCapabilities(netHandle)
-        .then((data) => {
-          LogUtils.i(NETINFO_MODULE_TAG, "currentConnectionType: " + JSON.stringify(data));
-          return data.bearerTypes
-        })
-      if (arrayTypes == null) {
+      let netCapabilities = connection.getNetCapabilitiesSync(netHandle);
+      LogUtils.i(NETINFO_MODULE_TAG, "currentConnectionType: " + netCapabilities.bearerTypes);
+      if (netCapabilities == null || netCapabilities.bearerTypes == null) {
         return NetInfoModule.CONNECTION_TYPE_NONE
       } else {
-        return arrayTypes.toString()
+        return this.getBareTypeValue(netCapabilities.bearerTypes[0])
       }
     } catch (e) {
       LogUtils.d(NETINFO_MODULE_TAG, "currentConnectionType error: " + e.message);
@@ -92,6 +88,18 @@ export class NetInfoModule extends HippyNativeModuleBase {
     return null;
   }
 
+  private getBareTypeValue(num: number): string {
+    if (num == 0) {
+      return 'BEARER_CELLULAR';
+    } else if (num == 1) {
+      return 'BEARER_WIFI';
+    } else if (num == 3) {
+      return 'BEARER_ETHERNET';
+    } else {
+      return NetInfoModule.CONNECTION_TYPE_UNKNOWN;
+    }
+  }
+
   private getCurrentConnectivity(promise: HippyModulePromise) {
     if (this.mNoNetworkPermission) {
       let map = new Map<string, string>();
@@ -99,14 +107,10 @@ export class NetInfoModule extends HippyNativeModuleBase {
       promise.resolve(map);
       return
     }
-    connection.getDefaultNet().then((data) => {
-      let map = new Map<string, string>();
-      map.set("network_info", JSON.stringify(data));
-      promise.resolve(map);
-    }).catch((err: HippyJsException) => {
-      LogUtils.e('getCurrentConnectivity', err.message);
-      promise.reject(err.message);
-    })
+    let type = this.getCurrentConnectionType()
+    let map = new Map<string, string>();
+    map.set("network_info", type);
+    promise.resolve(map);
   }
 
   private unregisterConnect() {
