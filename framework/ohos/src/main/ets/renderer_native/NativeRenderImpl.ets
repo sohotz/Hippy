@@ -45,6 +45,7 @@ import { HRCreateMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation
 } from './uimanager/HRMutation'
+import { HippyEndBatchCallback } from './uimanager/HRViewManager'
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
 import { HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
@@ -301,6 +302,7 @@ export class NativeRenderImpl implements NativeRender {
     }
 
     viewManager.applyMutations()
+    viewManager.notifyEndBatchCallbacks()
   }
 
   updateEventListener(rootId: number, eventList: Array<HippyAny>) {
@@ -344,6 +346,22 @@ export class NativeRenderImpl implements NativeRender {
 
     LogUtils.d(this.TAG,  "callUIFunction: rootId " + rootId + ", id " + nodeId + ", functionName " + functionName + ", params" + params)
     viewManager.callViewMethod(nodeId, functionName, params, callback)
+  }
+
+  addEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+    viewManager.addEndBatchCallback(cb)
+  }
+
+  removeEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+    viewManager.removeEndBatchCallback(cb)
   }
 
   private textPropsOnly:string[] = ["textAlign","numberOfLines","breakStrategy","ellipsizeMode"];//只有text有，span没有的属性

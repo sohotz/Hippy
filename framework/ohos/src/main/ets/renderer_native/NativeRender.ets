@@ -25,6 +25,7 @@ import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
 import { FrameworkProxy } from './FrameworkProxy'
 import { HRManager } from './uimanager/HRManager';
+import { HippyEndBatchCallback } from './uimanager/HRViewManager';
 
 export interface NativeRender {
   attachToRootView(rootId: number): void
@@ -55,4 +56,8 @@ export interface NativeRender {
   updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean): void
 
   handleRenderException(exception: HippyException): void
+
+  addEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void
+
+  removeEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void
 }

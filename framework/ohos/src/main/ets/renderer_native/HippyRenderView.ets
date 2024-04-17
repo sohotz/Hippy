@@ -26,7 +26,7 @@ import {
   HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import { HRImage, HRImageView } from './components/image/HRImageView';
 import { HRListItem, HRListItemView } from './components/list/HRListItemView';
-import { HRList, HRListView } from './components/list/HRListView';
+import { HRListView } from './components/list/HRListView';
 import { HRModal, HRModalView } from './components/modal/HRModalView';
 import { HRTextInput, HRTextInputView } from './components/textinput/HRTextInputView'
 import { HRViewPager, HRViewPagerView } from './components/pager/HRViewPager';
@@ -47,6 +47,7 @@ import { LogUtils } from '../support/utils/LogUtils';
 import { HRPullHeader, HRPullHeaderView } from './components/pullheader/HRPullHeader';
 import { HRPullFooter, HRPullFooterView } from './components/pullfooter/HRPullFooter';
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils';
+import { HRList } from './components/list/HRList';
 
 export type HRComponent = HRDivView | HRScroll | HRModal | null
 

@@ -36,6 +36,8 @@ import { HRCreateMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation } from './HRMutation'
 
+export type HippyEndBatchCallback = () => void
+
 export class HRViewManager {
   private readonly TAG = "HRViewManager"
   private ctx: NativeRenderContext
@@ -44,6 +46,7 @@ export class HRViewManager {
   private viewRegistry: Map<number, HippyRenderBaseView> = new Map()
   private viewCreatorRegisterMap: Map<string, HRRenderViewCreator> | null = null
   private mutations: HRMutation[] = []
+  private endBatchCallbacks: HippyEndBatchCallback[] = []
 
   constructor(rootView: HippyRenderView) {
     this.ctx = rootView.ctx
@@ -230,6 +233,25 @@ export class HRViewManager {
       }
     }
     return null
+  }
+
+  addEndBatchCallback(cb: HippyEndBatchCallback): void {
+    if (this.endBatchCallbacks.indexOf(cb) < 0) {
+      this.endBatchCallbacks.push(cb)
+    }
+  }
+
+  removeEndBatchCallback(cb: HippyEndBatchCallback): void {
+    const pos = this.endBatchCallbacks.indexOf(cb)
+    if (pos >= 0) {
+      this.endBatchCallbacks.splice(pos, 1)
+    }
+  }
+
+  notifyEndBatchCallbacks(): void {
+    this.endBatchCallbacks.forEach(cb => {
+      cb()
+    })
   }
 
 }
