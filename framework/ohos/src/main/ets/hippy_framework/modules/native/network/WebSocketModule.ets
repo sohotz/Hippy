@@ -30,9 +30,9 @@ import { HippyModulePromise } from '../../HippyModulePromise'
 
 const WEBSOCKET_MODULE_TAG = "WebSocketModule";
 
-@HippyNativeModule({ name: "" })
+@HippyNativeModule({ name: "websocket" })
 export class WebSocketModule extends HippyNativeModuleBase {
-  public static readonly NAME = 'WebSocketModule'
+  public static readonly NAME = 'websocket'
   private static PARAM_KEY_SOCKET_URL = "url";
   private static PARAM_KEY_SOCKET_ID = "id";
   private static PARAM_KEY_CODE = "code";
