@@ -18,12 +18,7 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import {
-  HippyAny,
-  HippyMap,
-  HippyModuleCallback,
-  HippyValue
-} from '../../../../support/common/HippyTypes'
+import { HippyAny, HippyMap } from '../../../../support/common/HippyTypes'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { webSocket } from '@kit.NetworkKit'
@@ -35,10 +30,9 @@ import { HippyModulePromise } from '../../HippyModulePromise'
 
 const WEBSOCKET_MODULE_TAG = "WebSocketModule";
 
-@HippyNativeModule({ name: "WebSocketModule" })
+@HippyNativeModule({ name: "" })
 export class WebSocketModule extends HippyNativeModuleBase {
   public static readonly NAME = 'WebSocketModule'
-  private mWebSocketConnections: HashMap<Number, webSocket.WebSocket>
   private static PARAM_KEY_SOCKET_URL = "url";
   private static PARAM_KEY_SOCKET_ID = "id";
   private static PARAM_KEY_CODE = "code";
@@ -46,6 +40,7 @@ export class WebSocketModule extends HippyNativeModuleBase {
   private static PARAM_KEY_HEADERS = "headers";
   private static PARAM_KEY_TYPE = "type";
   private static PARAM_KEY_DATA = "data";
+  private mWebSocketConnections: HashMap<Number, webSocket.WebSocket>
   private sWebSocketIds = 0
 
   constructor(ctx: HippyEngineContext) {
@@ -53,38 +48,76 @@ export class WebSocketModule extends HippyNativeModuleBase {
     this.mWebSocketConnections = new HashMap<number, webSocket.WebSocket>();
   }
 
-  private connect(request: HippyMap): Promise<HippyAny> {
+  public destroy() {
+    let size = this.mWebSocketConnections.length;
+    if (size == 0) {
+      return;
+    }
+
+    for (let key of this.mWebSocketConnections.keys()) {
+      let value = this.mWebSocketConnections.get(key)
+      if (value != null) {
+        value.close();
+      }
+    }
+
+    this.mWebSocketConnections.clear();
+  }
+
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
+    switch (method) {
+      case 'connect': {
+        this.connect(params[0] as HippyMap, callback)
+        break;
+      }
+      case 'send': {
+        this.send(params[0] as HippyMap)
+        break;
+      }
+      case 'close': {
+        this.close(params[0] as HippyMap)
+        break;
+      }
+      default:
+        super.call(method, params, callback)
+    }
+    return null;
+  }
+
+  protected removeSocketConnection(socketId: number) {
+    this.mWebSocketConnections.remove(socketId);
+  }
+
+  private connect(request: HippyMap, promise: HippyModulePromise) {
     let returnValue: HippyMap = new Map();
-    return new Promise((resolve, reject) => {
-      if (request == null) {
-        returnValue.set(WebSocketModule.PARAM_KEY_CODE, -1);
-        returnValue.set(WebSocketModule.PARAM_KEY_REASON, "invalid connect param");
-        resolve(returnValue);
-        return;
-      }
+    if (request == null) {
+      returnValue.set(WebSocketModule.PARAM_KEY_CODE, -1);
+      returnValue.set(WebSocketModule.PARAM_KEY_REASON, "invalid connect param");
+      promise.resolve(returnValue);
+      return;
+    }
 
-      let url = request.get(WebSocketModule.PARAM_KEY_SOCKET_URL) + "";
-      if (TextUtils.isEmpty(url)) {
-        returnValue.set(WebSocketModule.PARAM_KEY_CODE, -1);
-        returnValue.set(WebSocketModule.PARAM_KEY_REASON, "no valid url for websocket");
-        resolve(returnValue);
-        return;
-      }
+    let url = request.get(WebSocketModule.PARAM_KEY_SOCKET_URL) + "";
+    if (TextUtils.isEmpty(url)) {
+      returnValue.set(WebSocketModule.PARAM_KEY_CODE, -1);
+      returnValue.set(WebSocketModule.PARAM_KEY_REASON, "no valid url for websocket");
+      promise.resolve(returnValue);
+      return;
+    }
 
-      let webSocketId = this.addAndGet(this.sWebSocketIds);
-      let ws = webSocket.createWebSocket();
-      ws.connect(url).then((value) => {
-        LogUtils.i(WEBSOCKET_MODULE_TAG, "connect success")
-        this.mWebSocketConnections.set(webSocketId, ws);
+    let webSocketId = this.addAndGet(this.sWebSocketIds);
+    let ws = webSocket.createWebSocket();
+    ws.connect(url).then((value) => {
+      LogUtils.i(WEBSOCKET_MODULE_TAG, "connect success")
+      this.mWebSocketConnections.set(webSocketId, ws);
 
-        returnValue.set(WebSocketModule.PARAM_KEY_CODE, 0);
-        returnValue.set(WebSocketModule.PARAM_KEY_REASON, "");
-        returnValue.set(WebSocketModule.PARAM_KEY_SOCKET_ID, webSocketId);
-        resolve(returnValue);
-      }).catch((err: HippyJsException) => {
-        LogUtils.e(WEBSOCKET_MODULE_TAG, "connect fail, error:" + JSON.stringify(err))
-      });
-    })
+      returnValue.set(WebSocketModule.PARAM_KEY_CODE, 0);
+      returnValue.set(WebSocketModule.PARAM_KEY_REASON, "");
+      returnValue.set(WebSocketModule.PARAM_KEY_SOCKET_ID, webSocketId);
+      promise.resolve(returnValue);
+    }).catch((err: HippyJsException) => {
+      LogUtils.e(WEBSOCKET_MODULE_TAG, "connect fail, error:" + JSON.stringify(err))
+    });
   }
 
   private send(param: HippyMap) {
@@ -142,47 +175,7 @@ export class WebSocketModule extends HippyNativeModuleBase {
     }
   }
 
-  public destroy() {
-    let size = this.mWebSocketConnections.length;
-    if (size == 0) {
-      return;
-    }
-
-    for (let key of this.mWebSocketConnections.keys()) {
-      let value = this.mWebSocketConnections.get(key)
-      if (value != null) {
-        value.close();
-      }
-    }
-
-    this.mWebSocketConnections.clear();
-  }
-
-  protected removeSocketConnection(socketId: number) {
-    this.mWebSocketConnections.remove(socketId);
-  }
-
   private addAndGet(num: number): number {
     return num + 1
-  }
-
-  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
-    switch (method) {
-      case 'connect': {
-        this.connect(params[0] as HippyMap)
-        break;
-      }
-      case 'send': {
-        this.send(params[0] as HippyMap)
-        break;
-      }
-      case 'close': {
-        this.close(params[0] as HippyMap)
-        break;
-      }
-      default:
-        super.call(method, params, callback)
-    }
-    return null;
   }
 }
