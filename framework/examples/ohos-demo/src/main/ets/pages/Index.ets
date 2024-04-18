@@ -22,25 +22,140 @@ import { router } from '@kit.ArkUI'
 @Entry
 @Component
 struct Index {
+  @State page_management_icon:Resource = $r('app.media.page_management_2x')
+  @State page_setting_icon:Resource = $r('app.media.setting_2x')
 
   build() {
     Column() {
-      Text("vue2")
-        .backgroundColor(Color.White)
-        .markAnchor({x: '50%', y: '50%'})
-        .position({x: '50%', y: '30%'})
-        .size({width:100, height: 40})
-        .fontSize(16)
-        .fontWeight(FontWeight.Bold)
-        .textAlign(TextAlign.Center)
-        .borderWidth(1)
-        .onClick(() => {
+      Text("DEMO")
+        .height(54)
+        .fontColor(Color.Black)
+        .margin({top:20})
+        .fontWeight(500)
+        .fontSize(17)
+
+      Row() {
+        Image($r('app.media.logo_1x'))
+          .width(50)
+          .height('100%')
+        Image($r('app.media.hippy_2x'))
+          .width(135)
+          .height(29)
+          .margin({left:12})
+      }
+      .height(50)
+      .margin({top:164})
+
+      Text("This is Hippy DEMO")
+        .margin({top:10})
+        .fontColor('#1E304A')
+        .fontWeight(500)
+        .fontSize(17)
+
+      Text("Ver£º3.0.0")
+        .margin({top:10})
+        .fontColor('#A1ACBD')
+        .fontWeight(400)
+        .fontSize(14)
+
+      Text($r('app.string.hippy_desc'))
+        .width(262)
+        //.margin({left:72, top:74})
+        .margin({top:74})
+        .fontColor('#A1ACBD')
+        .fontWeight(400)
+        .fontSize(14)
+        .lineHeight(35)
+
+      Blank()
+      Row() {
+        Column() {
+          Image($r('app.media.start_prompt_2x'))
+            .width(136)
+            .height(36)
+        }
+        .width('50%')
+      }
+      .width('100%')
+
+      Row() {
+        Column() {
+          RelativeContainer() {
+            Image(this.page_management_icon)
+              .width(19)
+              .height(21)
+              .margin({ top: 8 })
+              .alignRules({
+                top: { anchor: "__container__", align: VerticalAlign.Top },
+                middle: { anchor: "__container__", align: HorizontalAlign.Center }
+              })
+              .id('page_management_icon')
+
+              Text('Page Manage')
+                .fontColor('#4A5970')
+                .fontWeight(400)
+                .fontSize(11)
+                .margin({ top: 2 })
+                .alignRules({
+                  top: { anchor: "page_management_icon", align: VerticalAlign.Bottom },
+                  bottom:{anchor:"__container__", align:VerticalAlign.Bottom},
+                  middle: { anchor: "__container__", align: HorizontalAlign.Center },
+                  bias:{vertical:0.656}
+                })
+                .height('13fp')
+                .id("page_management_text")
+          }
+          .height('100%')
+        }
+        .height(52)
+        .width('50%')
+        .onTouch((event?: TouchEvent)=>{
+          if (event) {
+            if (event.type === TouchType.Down) {
+              this.page_management_icon = $r('app.media.page_management_pressed_2x')
+            } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+              this.page_management_icon = $r('app.media.page_management_2x')
+            }
+          }
+        })
+        .onClick(()=>{
           router.pushUrl({
-            url: 'pages/ExampleHippyPage',
+            url: 'pages/PageManagement',
             params: {}
           })
         })
-    }
-  }
 
+        Column() {
+          Image(this.page_setting_icon)
+            .width(19)
+            .height(21)
+            .margin({top:8})
+
+          Text('Setting')
+            .margin({top:2})
+            .fontColor('#4A5970')
+            .fontWeight(400)
+            .fontSize(11)
+        }
+        .height(52)
+        .width('50%')
+        .onTouch((event?: TouchEvent)=>{
+          if (event) {
+            if (event.type === TouchType.Down) {
+              this.page_setting_icon = $r('app.media.setting_pressed_2x')
+            } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+              this.page_setting_icon = $r('app.media.setting_2x')
+            }
+          }
+        })
+      }
+      .width('100%')
+      .backgroundColor(Color.White)
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor($r('app.color.home_background'))
+    .align(Alignment.Center)
+    .expandSafeArea()
+  }
 }
