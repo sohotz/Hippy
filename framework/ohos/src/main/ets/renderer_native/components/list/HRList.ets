@@ -49,11 +49,10 @@ export struct HRList {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
-  private CURRENT_OFFSET: string = "contentOffset";
+  private CONTENT_OFFSET: string = "contentOffset";
   private pullAction: ScrollAction = ScrollAction.None;
   private headerView: HRPullHeaderView | null = null;
   private footerView: HRPullFooterView | null = null;
-  private footerYOff: number = 0;
   private lastScrollTime: number = 0;
   private isLastTimeReachEnd: boolean = false;
 
@@ -66,6 +65,8 @@ export struct HRList {
 
   private lastMoveY: number = 0
 
+  private initOffsetUsed: boolean = false
+
   private endBatchCallback: HippyEndBatchCallback | null = null
 
   dataSource: HRListDataSource | null = null
@@ -75,6 +76,8 @@ export struct HRList {
     if (childrenCount > 0) {
       if (this.children[0] instanceof HRPullHeaderView) {
         this.headerView = this.children[0] as HRPullHeaderView
+        this.renderView.hasPullHeader = true
+        this.renderView.pullHeaderHeight = this.headerView.cssHeight
       }
       if (this.children[childrenCount - 1] instanceof HRPullFooterView) {
         this.footerView = this.children[childrenCount - 1] as HRPullFooterView
@@ -82,6 +85,7 @@ export struct HRList {
     }
 
     let fullY = 0
+    this.stickyArray.splice(0, this.stickyArray.length)
     this.children.forEach((element, index) => {
       fullY += element.cssHeight
 
@@ -105,14 +109,33 @@ export struct HRList {
 
   aboutToAppear(): void {
     LogUtils.d(this.TAG, "aboutToAppear: ")
-    this.dataSource = new HRListDataSource(this.children)
     this.renderView.uiCtx = this.getUIContext()
 
+    this.dataSource = new HRListDataSource(this.children)
     this.handleOnChildrenUpdated()
 
     this.endBatchCallback = () => {
       this.handleOnChildrenUpdated()
       this.dataSource?.notifyReload()
+
+      if (!this.initOffsetUsed) {
+        this.initOffsetUsed = true
+        if (this.renderView.initialOffset > 0) {
+          let y = 0
+          let offset = this.renderView.scroller.currentOffset()
+          if (offset) {
+            y = offset.yOffset
+          } else if (this.headerView) {
+            y = this.headerView.cssHeight
+          }
+          let yOffset = y + this.renderView.initialOffset
+          this.renderView.scroller.scrollTo({
+            xOffset: 0,
+            yOffset: yOffset,
+            animation: true
+          })
+        }
+      }
     }
     this.renderView.ctx.getNativeRender().addEndBatchCallback(this.renderView.ctx.getRootId(), this.endBatchCallback)
   }
@@ -123,6 +146,10 @@ export struct HRList {
   }
 
   emitScrollEvent(eventName: string) {
+    if (!HREventUtils.checkRegisteredEvent(this.renderView.ctx, this.renderView.tag, eventName)) {
+      return
+    }
+
     let contentInset = new Map<string, number>() as HippyMap;
     contentInset.set("top", 0);
     contentInset.set("bottom", 0);
@@ -153,59 +180,11 @@ export struct HRList {
   checkSendOnScrollEvent() {
     if (this.renderView.onScrollEventEnable) {
       let currentTime = systemDateTime.getTime(false);
-      // this.currentOffset = this.renderView.scroller.currentOffset().yOffset;
       if (currentTime - this.lastScrollTime >= this.renderView.scrollEventThrottle) {
         this.lastScrollTime = currentTime;
-        this.emitScrollEvent(HREventUtils.EVENT_REFRESH_WRAPPER_SCROLL);
+        this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_ON_SCROLL);
       }
     }
-  }
-
-  // 可视面积小于10%，任务view当前已经不在可视区域
-  calculateExposureState(currentRatio: number) {
-    if (currentRatio >= 1) {
-      this.renderView.exposureState = this.renderView.EXPOSURE_STATE_FULL_VISIBLE;
-    } else if (currentRatio > 0.1) {
-      this.renderView.exposureState = this.renderView.EXPOSURE_STATE_PART_VISIBLE;
-    } else {
-      this.renderView.exposureState = this.renderView.EXPOSURE_STATE_INVISIBLE;
-    }
-  }
-
-  moveToExposureState(state: number) {
-    if (state == this.renderView.exposureState) {
-      return;
-    }
-    switch (state) {
-      case this.renderView.EXPOSURE_STATE_FULL_VISIBLE:
-        if (this.renderView.exposureState == this.renderView.EXPOSURE_STATE_INVISIBLE) {
-          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_WILL_APPEAR, null);
-        }
-        HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_APPEAR, null);
-        break;
-      case this.renderView.EXPOSURE_STATE_PART_VISIBLE:
-        if (this.renderView.exposureState == this.renderView.EXPOSURE_STATE_FULL_VISIBLE) {
-          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_WILL_DISAPPEAR, null);
-        } else {
-          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_WILL_APPEAR, null);
-        }
-        break;
-      case this.renderView.EXPOSURE_STATE_INVISIBLE:
-        if (this.renderView.exposureState == this.renderView.EXPOSURE_STATE_FULL_VISIBLE) {
-          HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_WILL_DISAPPEAR, null);
-        }
-        HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, HREventUtils.EVENT_LIST_ITEM_DISAPPEAR, null);
-        break;
-      default:
-        break;
-    }
-  }
-
-  checkSendExposureEvent() {
-    if (!this.renderView.exposureEventEnabled) {
-      return;
-    }
-    this.moveToExposureState(this.renderView.exposureState);
   }
 
   /**
@@ -223,16 +202,11 @@ export struct HRList {
   }
 
   isReachEnd(lastIndex: number): boolean {
-    if (this.renderView.preloadItemNumber > 0 && (this.children.length - lastIndex) < this.renderView.preloadItemNumber) {
+    if (this.renderView.preloadItemNumber > 0 && lastIndex >= (this.children.length - this.renderView.preloadItemNumber)) {
       return true;
     } else {
       return false;
     }
-  }
-
-  handleScrollEvent(lastIndex: number) {
-    this.checkSendOnScrollEvent();
-    this.checkSendExposureEvent();
   }
 
   sendOnReachedEvent() {
@@ -254,12 +228,21 @@ export struct HRList {
 
     if (!this.isDragging) {
       this.isDragging = true
+      if (this.renderView.scrollBeginDragEventEnable) {
+        this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_BEGIN_DRAG)
+      }
     }
   }
 
   private checkEndDrag() {
     if (this.isDragging) {
       this.isDragging = false
+      if (this.renderView.scrollEndDragEventEnable) {
+        this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_END_DRAG)
+      }
+      if (this.renderView.momentumScrollBeginEventEnable) {
+        this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_BEGIN);
+      }
 
       let offset = this.renderView.scroller.currentOffset()
       let y = offset.yOffset
@@ -267,21 +250,23 @@ export struct HRList {
       if (this.headerView && this.pullAction == ScrollAction.PullHeader) {
         if (y <= 0) {
           HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
-            HREventUtils.EVENT_LIST_HEADER_RELEASED, null)
+            HREventUtils.EVENT_PULL_HEADER_RELEASED, null)
         } else if (y < this.headerView.cssHeight) {
           this.renderView.scroller.scrollToIndex(1, true)
         }
+        this.pullAction = ScrollAction.None
       } else if (this.footerView && this.pullAction == ScrollAction.PullFooter) {
         if (this.renderView.footerViewFullVisibleYOffset > 0 && y >= this.renderView.footerViewFullVisibleYOffset) {
           HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
-            HREventUtils.EVENT_LIST_FOOTER_RELEASED, null)
+            HREventUtils.EVENT_PULL_FOOTER_RELEASED, null)
         } else if (y > this.renderView.lastItemFullVisibleYOffset) {
           this.renderView.scroller.scrollTo({
-            "xOffset": 0,
-            "yOffset": this.renderView.lastItemFullVisibleYOffset + this.renderView.dtYOffset,
-            "animation": true
+            xOffset: 0,
+            yOffset: this.renderView.lastItemFullVisibleYOffset + this.renderView.dtYOffset,
+            animation: true
           })
         }
+        this.pullAction = ScrollAction.None
       }
     }
   }
@@ -305,9 +290,9 @@ export struct HRList {
           this.pullAction = ScrollAction.PullFooter
         } else {
           this.renderView.scroller.scrollTo({
-            "xOffset": 0,
-            "yOffset": this.renderView.lastItemFullVisibleYOffset + this.renderView.dtYOffset,
-            "animation": true
+            xOffset: 0,
+            yOffset: this.renderView.lastItemFullVisibleYOffset + this.renderView.dtYOffset,
+            animation: true
           })
         }
       } else {
@@ -320,19 +305,18 @@ export struct HRList {
 
   private checkPullOnScroll() {
     let offset = this.renderView.scroller.currentOffset();
-    let xOff: number = offset.xOffset;
     let yOff: number = offset.yOffset;
 
     if (this.headerView && this.pullAction === ScrollAction.PullHeader) {
       let params = new Map<string, Number>() as HippyMap;
-      params.set(this.CURRENT_OFFSET, -yOff + this.headerView.cssHeight);
+      params.set(this.CONTENT_OFFSET, -yOff + this.headerView.cssHeight);
       HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
-        HREventUtils.EVENT_LIST_HEADER_PULLING, params);
+        HREventUtils.EVENT_PULL_HEADER_PULLING, params);
     } else if (this.footerView && this.pullAction === ScrollAction.PullFooter) {
       let params = new Map<string, Number>() as HippyMap;
-      params.set(this.CURRENT_OFFSET, yOff);
+      params.set(this.CONTENT_OFFSET, yOff - this.renderView.dtYOffset - this.renderView.lastItemFullVisibleYOffset);
       HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
-        HREventUtils.EVENT_LIST_FOOTER_PULLING, params);
+        HREventUtils.EVENT_PULL_FOOTER_PULLING, params);
     }
   }
 
@@ -375,7 +359,12 @@ export struct HRList {
           }
           .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean, currentRatio: number) => {
             this.checkPullOnItemVisibleAreaChange(index, isVisible, currentRatio)
-            this.checkStickyOnItemVisibleAreaChange(index, isVisible, currentRatio)
+            if (this.renderView.rowShouldSticky) {
+              this.checkStickyOnItemVisibleAreaChange(index, isVisible, currentRatio)
+            }
+            if (this.renderView.exposureEventEnabled && item instanceof HRListItemView) {
+              item.checkExposureView(isVisible ? currentRatio : 0.0)
+            }
           })
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
@@ -383,7 +372,7 @@ export struct HRList {
       .enableScrollInteraction(this.renderView.scrollEnabled)
       .cachedCount(this.renderView.cachedCount)
       .scrollBar(BarState.Off)
-      .edgeEffect(EdgeEffect.Spring)
+      .edgeEffect(this.renderView.edgeEffect)
       .onTouch((e: TouchEvent) => {
         switch (e.type) {
           case TouchType.Down:
@@ -402,69 +391,42 @@ export struct HRList {
       })
       .onScrollIndex((firstIndex: number, lastIndex: number, centerIndex: number) => {
         LogUtils.d(this.TAG, "onScrollIndex: firstIndex=" + firstIndex +
-          ", lastIndex=" + lastIndex + ", centerIndex=" + centerIndex + ",Yoffset=" + this.renderView.scroller.currentOffset()
+          ", lastIndex=" + lastIndex + ", centerIndex=" + centerIndex + ",yOffset=" + this.renderView.scroller.currentOffset()
           .yOffset);
         this.checkSendReachEndEvent(lastIndex);
-        this.checkSendExposureEvent();
       })
       .onScroll((scrollOffset: number, scrollState: ScrollState) => {
-        this.handleScrollEvent(scrollOffset);
+        this.checkSendOnScrollEvent();
         this.checkPullOnScroll()
       })
       .onScrollStart(() => {
         LogUtils.d(this.TAG, "onScroll: onScrollStart=");
-        this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_BEGIN);
       })
       .onScrollStop(() => {
-        // LogUtils.d(this.TAG, "onScroll: onScrollStop=");
-        // this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_END);
-        // let xOff: number = this.renderView.scroller.currentOffset().xOffset;
-        // let yOff: number = this.renderView.scroller.currentOffset().yOffset;
-        // this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_ON_SCROLL)
-        //
-        // //scroll to head then release
-        // if (this.headerView && this.pullAction == ScrollAction.PullHeader) {
-        //   LogUtils.d(this.TAG, "onScroll: onScrollStop=ScrollAction.PullHeader" + yOff);
-        //   if (this.renderView.edgeState == EdgeAction.ReachStart) {
-        //     LogUtils.d(this.TAG, "onScroll: onScrollStop=this.renderView.edgeState == EdgeAction.ReachStart" + yOff);
-        //     HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
-        //       HREventUtils.EVENT_LIST_HEADER_RELEASED, null);
-        //   } else {
-        //     LogUtils.d(this.TAG, "onScroll: onScrollStop=scrollToIndex" + yOff);
-        //     this.renderView.scroller.scrollToIndex(1, true)
-        //   }
-        //   this.pullAction = ScrollAction.None;
-        // }
+        LogUtils.d(this.TAG, "onScroll: onScrollStop=");
+        if (this.renderView.momentumScrollEndEventEnable) {
+          this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_END);
+        }
+        if (this.renderView.onScrollEventEnable) {
+          this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_ON_SCROLL);
+        }
       })
       .onReachStart(() => {
         LogUtils.d(this.TAG, 'onReachStart')
-        // this.renderView.edgeState = EdgeAction.ReachStart;
-        // if (this.pullAction === ScrollAction.ReleaseHeader) {
-        //   this.pullAction = ScrollAction.None;
-        // }
       })
       .onReachEnd(() => {
         LogUtils.d(this.TAG, 'onReachEnd')
         this.sendOnReachedEvent();
-        // this.renderView.edgeState = EdgeAction.ReachEnd;
-        // if (this.pullAction === ScrollAction.ReleaseFooter) {
-        //   this.pullAction = ScrollAction.None;
-        //   this.renderView.edgeState = EdgeAction.None;
-        // }
-        // this.footerYOff = this.renderView.scroller.currentOffset().yOffset;
-      })
-      .onDragStart(() => this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_BEGIN_DRAG))
-      .onDragEnd(() => this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_END_DRAG))
-      .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean, currentRatio: number) => {
-        this.calculateExposureState(currentRatio);
       })
 
       // sticky item
-      ForEach(this.stickyArray, (index: number) => {
-        if (index == this.stickyIndex) {
-          this.buildRenderView(this.children[index], null)
-        }
-      })
+      if (this.renderView.rowShouldSticky) {
+        ForEach(this.stickyArray, (index: number) => {
+          if (index == this.stickyIndex) {
+            this.buildRenderView(this.children[index], null)
+          }
+        })
+      }
     }.applyRenderViewBaseAttr(this.renderView)
   }
 }

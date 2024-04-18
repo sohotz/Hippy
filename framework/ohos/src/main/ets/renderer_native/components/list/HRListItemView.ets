@@ -25,11 +25,18 @@ import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView'
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { HREventUtils } from '../../utils/HREventUtils'
 
 @Observed
 export class HRListItemView extends HippyRenderBaseView {
   private readonly TAG = "HRListItemView"
   public sticky: boolean = false
+
+  static readonly EXPOSURE_STATE_FULL_VISIBLE: number = 1;
+  static readonly EXPOSURE_STATE_INVISIBLE: number = 2;
+  static readonly EXPOSURE_STATE_PART_VISIBLE: number = 3;
+
+  exposureState: number = HRListItemView.EXPOSURE_STATE_INVISIBLE;
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -50,6 +57,53 @@ export class HRListItemView extends HippyRenderBaseView {
     this.cssWidth = frame.width
     this.cssHeight = frame.height
   }
+
+  checkExposureView(currentRatio: number) {
+    let newState = this.calculateExposureState(currentRatio);
+    this.moveToExposureState(newState);
+  }
+
+  // 可视面积小于10%，任务view当前已经不在可视区域
+  private calculateExposureState(currentRatio: number): number {
+    if (currentRatio >= 1) {
+      return HRListItemView.EXPOSURE_STATE_FULL_VISIBLE;
+    } else if (currentRatio > 0.1) {
+      return HRListItemView.EXPOSURE_STATE_PART_VISIBLE;
+    } else {
+      return HRListItemView.EXPOSURE_STATE_INVISIBLE;
+    }
+  }
+
+  private moveToExposureState(state: number) {
+    if (state == this.exposureState) {
+      return;
+    }
+    switch (state) {
+      case HRListItemView.EXPOSURE_STATE_FULL_VISIBLE:
+        if (this.exposureState == HRListItemView.EXPOSURE_STATE_INVISIBLE) {
+          HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_ITEM_WILL_APPEAR, null);
+        }
+        HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_ITEM_APPEAR, null);
+        break;
+      case HRListItemView.EXPOSURE_STATE_PART_VISIBLE:
+        if (this.exposureState == HRListItemView.EXPOSURE_STATE_FULL_VISIBLE) {
+          HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_ITEM_WILL_DISAPPEAR, null);
+        } else {
+          HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_ITEM_WILL_APPEAR, null);
+        }
+        break;
+      case HRListItemView.EXPOSURE_STATE_INVISIBLE:
+        if (this.exposureState == HRListItemView.EXPOSURE_STATE_FULL_VISIBLE) {
+          HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_ITEM_WILL_DISAPPEAR, null);
+        }
+        HREventUtils.sendComponentEvent(this.ctx, this.tag, HREventUtils.EVENT_LIST_ITEM_DISAPPEAR, null);
+        break;
+      default:
+        break;
+    }
+    this.exposureState = state
+  }
+
 }
 
 @Component

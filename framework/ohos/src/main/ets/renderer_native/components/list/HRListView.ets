@@ -26,25 +26,25 @@ import { HRValueUtils } from '../../utils/HRValueUtils';
 @Observed
 export class HRListView extends HippyRenderBaseView {
   private readonly TAG = "HRListView"
-  public flex: number = 0
   public scrollForward: number = NestedScrollMode.SELF_FIRST
   public scrollBackward: number = NestedScrollMode.SELF_FIRST
-  public readonly EXPOSURE_STATE_FULL_VISIBLE: number = 1;
-  public readonly EXPOSURE_STATE_INVISIBLE: number = 2;
-  public readonly EXPOSURE_STATE_PART_VISIBLE: number = 3;
   public scroller: ListScroller = new ListScroller()
   public uiCtx: UIContext | null = null
   listDirection: Axis = Axis.Vertical;
   scrollEnabled: boolean = true;
   initialOffset: number = 0;
-  initialIndex: number = 0;
+  edgeEffect: EdgeEffect = EdgeEffect.Spring;
   cachedCount: number = 0;
   scrollEventThrottle: number = 30;
   preloadItemNumber: number = 0;
-  onScrollEventEnable: boolean = true;
-  exposureEventEnabled: Boolean = true;
-  exposureState: number = this.EXPOSURE_STATE_INVISIBLE;
+  exposureEventEnabled: Boolean = false;
   rowShouldSticky: boolean = false
+
+  scrollBeginDragEventEnable: boolean = false
+  scrollEndDragEventEnable: boolean = false
+  momentumScrollBeginEventEnable: boolean = false
+  momentumScrollEndEventEnable: boolean = false
+  onScrollEventEnable: boolean = false
 
   lastItemFullVisibleYOffset: number = 0
   footerViewFullVisibleYOffset: number = 0
@@ -52,6 +52,9 @@ export class HRListView extends HippyRenderBaseView {
   // 只有下滑一下触发了headerView的创建yOffset才变对。
   // 所以这里做个修正：dtYOffset = 初始yOffset - headerView的高度
   dtYOffset: number = 0
+
+  hasPullHeader: boolean = false
+  pullHeaderHeight: number = 0
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -62,18 +65,15 @@ export class HRListView extends HippyRenderBaseView {
     switch (propKey) {
       case 'nestedScrollTopPriority':
         {
-          let pvalue = HRValueUtils.getString(propValue as HippyAny)
-          if (pvalue === 'parent') {
+          let value = HRValueUtils.getString(propValue as HippyAny)
+          if (value === 'parent') {
             this.scrollForward = NestedScrollMode.PARENT_FIRST
             //this.scrollBackward = NestedScrollMode.PARENT_FIRST
-          } else if (pvalue === 'self') {
+          } else if (value === 'self') {
             this.scrollForward = NestedScrollMode.SELF_FIRST
             //this.scrollBackward = NestedScrollMode.SELF_FIRST
           }
         }
-        return true
-      case "cssHeight":
-        this.cssHeight = HRValueUtils.getNumber(propValue as HippyAny);
         return true
       case "horizontal":
         this.listDirection = HRValueUtils.getBoolean(propValue as HippyAny, false) == true ? Axis.Horizontal : Axis.Vertical;
@@ -88,19 +88,35 @@ export class HRListView extends HippyRenderBaseView {
         this.cachedCount = HRValueUtils.getNumber(propValue as HippyAny);
         return true
       case "scrollEventThrottle":
-        this.scrollEventThrottle = HRValueUtils.getNumber(propValue as HippyAny);
+        this.scrollEventThrottle = HRValueUtils.getNumber2(propValue as HippyAny, 30);
         return true
       case "preloadItemNumber":
         this.preloadItemNumber = HRValueUtils.getNumber(propValue as HippyAny);
         return true
       case "exposureEventEnabled":
-        this.exposureEventEnabled = HRValueUtils.getBoolean(propValue as HippyAny, true);
+        this.exposureEventEnabled = HRValueUtils.getBoolean(propValue as HippyAny, false);
         return true
       case 'rowShouldSticky':
         this.rowShouldSticky = HRValueUtils.getBoolean(propValue as HippyAny, false);
         return true
       case 'bounces':
-
+        let b = HRValueUtils.getBoolean(propValue as HippyAny, true);
+        this.edgeEffect = b ? EdgeEffect.Spring : EdgeEffect.None;
+        return true
+      case 'scrollbegindrag':
+        this.scrollBeginDragEventEnable = HRValueUtils.getBoolean(propValue as HippyAny, false)
+        return true
+      case 'scrollenddrag':
+        this.scrollEndDragEventEnable = HRValueUtils.getBoolean(propValue as HippyAny, false)
+        return true
+      case 'momentumscrollbegin':
+        this.momentumScrollBeginEventEnable = HRValueUtils.getBoolean(propValue as HippyAny, false)
+        return true
+      case 'momentumscrollend':
+        this.momentumScrollEndEventEnable = HRValueUtils.getBoolean(propValue as HippyAny, false)
+        return true
+      case 'scroll':
+        this.onScrollEventEnable = HRValueUtils.getBoolean(propValue as HippyAny, false)
         return true
       default:
         break;
@@ -115,27 +131,33 @@ export class HRListView extends HippyRenderBaseView {
     switch (method) {
       case "scrollToIndex":
         {
-          let startOff = params[0] as number;
-          let endOff = params[1] as number;
-          let needAnimation = params[2] as boolean;
-          this.scroller.scrollToItemInGroup(1, endOff-4)
+          let xIndex = HRValueUtils.getNumber(params[0])
+          let yIndex = HRValueUtils.getNumber(params[1])
+          let animated = HRValueUtils.getBoolean(params[2], false)
+          let index = this.listDirection == Axis.Vertical ? yIndex : xIndex
+          this.scroller.scrollToIndex(this.hasPullHeader ? index + 1 : index, animated)
         }
         break;
       case "scrollToContentOffset":
         {
-          let startOff = params[0] as number;
-          let endOff = params[1] as number;
-          let needAnimation = params[2] as boolean;
+          let xOffset = HRValueUtils.getNumber(params[0])
+          let yOffset = HRValueUtils.getNumber(params[1])
+          let animated = HRValueUtils.getBoolean(params[2], false)
+          if (this.listDirection == Axis.Vertical) {
+            yOffset += this.pullHeaderHeight
+          } else {
+            xOffset += this.pullHeaderHeight
+          }
           this.scroller.scrollTo({
-            xOffset: 0,
-            yOffset: endOff,
-            animation: needAnimation
+            xOffset: xOffset,
+            yOffset: yOffset,
+            animation: animated
           })
         }
         break;
       case "scrollToTop":
         {
-          this.scroller.scrollToIndex(0);
+          this.scroller.scrollToIndex(this.hasPullHeader ? 1 : 0)
         }
         break
       default:
