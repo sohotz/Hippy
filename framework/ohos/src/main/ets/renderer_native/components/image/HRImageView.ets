@@ -31,6 +31,7 @@ import { ImageDataSupplier } from './ImageDataSupplier';
 import { HashMap } from '@kit.ArkTS';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HippyResourceLoader } from '../../../hippy_framework/adapter/http/HippyResourceLoader';
+import { UrlUtils } from '../../../support/utils/UrlUtils';
 
 interface ImageLoadEvent {
   width: number
@@ -368,21 +369,25 @@ export class HRImageView extends HippyRenderBaseView {
       this.src = this.convertToLocalPath(this.cssSrc)
       this.src = $rawfile(this.src)
       return
+    } else if (UrlUtils.isWebUrl(this.cssSrc)) {
+      this.src = this.cssSrc
+      return
     }
-    this.src = this.cssSrc
-    // let src = this.cssSrc
-    // let listener: ImageRequestListener = {
-    //   onRequestStart: (imageData: ImageDataSupplier) => {},
-    //   onRequestSuccess: (imageData: PixelMap) => {
-    //     this.src = imageData
-    //   },
-    //   onRequestFail: () => {
-    //     // this.src = src
-    //   },
-    //   onRequestProgress: (total: number, loaded: number) => {}
-    // }
-    // let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
-    // imageLoader.fetchImageAsync(src, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
+
+    // for asset:/xxx
+    let src = this.cssSrc
+    let listener: ImageRequestListener = {
+      onRequestStart: (imageData: ImageDataSupplier) => {},
+      onRequestSuccess: (imageData: PixelMap) => {
+        this.src = imageData
+      },
+      onRequestFail: () => {
+        // this.src = src
+      },
+      onRequestProgress: (total: number, loaded: number) => {}
+    }
+    let imageLoader = this.ctx.getNativeRender()!.getImageLoader()!
+    imageLoader.fetchImageAsync(src, listener, new HashMap<string, HippyAny>(), this.cssWidth, this.cssHeight)
   }
 
   getImage() {
