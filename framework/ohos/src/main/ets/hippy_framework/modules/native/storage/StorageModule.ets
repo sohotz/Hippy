@@ -22,7 +22,8 @@ import { HippyNativeModuleBase } from '../HippyNativeModuleBase';
 import { HippyStorageAdapter } from '../../../adapter/storage/HippyStorageAdapter';
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule';
 import { LogUtils } from '../../../../support/utils/LogUtils';
-import { HippyAny, HippyArray, HippyModuleCallback } from '../../../../support/common/HippyTypes';
+import { HippyAny, HippyArray } from '../../../../support/common/HippyTypes';
+import { HippyModulePromise } from '../../HippyModulePromise';
 
 const STORAGE_MODULE_TAG = "StorageModule"
 
@@ -36,123 +37,109 @@ export class StorageModule extends HippyNativeModuleBase {
     this.mStorageAdapter = this.ctx.getGlobalConfigs().getStorageAdapter();
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, promise: HippyModulePromise): HippyAny {
     switch (method) {
       case 'multiGet': {
-        this.multiGet(params[0] as string[])
+        this.multiGet(params[0] as string[], promise)
         break;
       }
       case 'multiSet': {
-        this.multiSet(params[0] as HippyArray)
+        this.multiSet(params[0] as HippyArray, promise)
         break;
       }
       case 'multiRemove': {
-        this.multiRemove(params[0] as string[])
+        this.multiRemove(params[0] as string[], promise)
         break;
       }
       case 'getAllKeys': {
-        this.getAllKeys()
+        this.getAllKeys(promise)
         break;
       }
       default:
-        super.call(method, params, callback)
+        super.call(method, params, promise)
     }
     return null;
   }
 
-  private multiGet(keys: string[]): Promise<[key: string, value: string][]> {
-    return new Promise<[key: string, value: string][]>((resolve, reject) => {
-      if (keys == null || keys.length <= 0) {
-        reject("Invalid Key");
-        return;
+  private multiGet(keys: string[], promise: HippyModulePromise) {
+    let map = new Map<string, string>()
+    if (keys == null || keys.length <= 0) {
+      promise.reject('Invalid Key');
+    }
+    if (this.mStorageAdapter == null) {
+      promise.reject('Database Null');
+    }
+    this.mStorageAdapter?.multiGet(keys).then(result => {
+      if (result == null || result.length <= 0) {
+        promise.reject('result Null');
       }
-      if (this.mStorageAdapter == null) {
-        reject("Database Null");
-        return;
-      }
-      return this.mStorageAdapter.multiGet(keys).then(result => {
-        if (result == null || result.length <= 0) {
-          reject("result Null");
-          return;
-        }
-        let data = new Array<[key: string, value: string]>();
-        result.forEach((value, index, result) => {
-          data.push([value[0], value[1]])
-        })
-        LogUtils.i(STORAGE_MODULE_TAG, 'multiGet:' + data);
-        resolve(data);
+      let data = new Array<[key: string, value: string]>();
+      result.forEach((value, index, result) => {
+        data.push([value[0], value[1]])
       })
+      LogUtils.i(STORAGE_MODULE_TAG, 'multiGet:' + data);
+      promise.resolve(data);
     })
   }
 
-  private multiSet(params: HippyArray): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (params == null || params.length <= 0) {
-        reject("Invalid Key");
-        return;
-      }
-      if (this.mStorageAdapter == null) {
-        reject("Database Null");
-        return;
-      }
-      try {
-        let data = new Array<[key: string, value: string]>();
-        for (let i = 0; i < params.length; i++) {
-          if (params[i] instanceof Array) {
-            data.push([(params[i] as HippyArray)[0] as string, (params[i] as HippyArray)[1] as string]);
-          }
+  private multiSet(params: HippyArray, promise: HippyModulePromise) {
+    if (params == null || params.length <= 0) {
+      promise.reject('Invalid Key');
+    }
+    if (this.mStorageAdapter == null) {
+      promise.reject('Database Null');
+    }
+    try {
+      let data = new Array<[key: string, value: string]>();
+      for (let i = 0; i < params.length; i++) {
+        if (params[i] instanceof Array) {
+          data.push([(params[i] as HippyArray)[0] as string, (params[i] as HippyArray)[1] as string]);
         }
-        LogUtils.i(STORAGE_MODULE_TAG, params[0] + '、' + data);
+      }
+      LogUtils.i(STORAGE_MODULE_TAG, params[0] + '、' + data);
 
-        this.mStorageAdapter.multiSet(data).then((err) => {
-          if (err == undefined) {
-            LogUtils.i(STORAGE_MODULE_TAG, "multiSet succ");
-          } else {
-            reject(err)
-          }
-        })
-      } catch (e) {
-        LogUtils.i(STORAGE_MODULE_TAG, "multiSet fail:" + e);
-        reject(e.getMessage());
-      }
-    })
-  }
-
-  private multiRemove(keys: string[]): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (keys == null || keys.length <= 0) {
-        reject("Invalid Key");
-        return;
-      }
-      if (this.mStorageAdapter == null) {
-        reject("Database Null");
-        return;
-      }
-      return this.mStorageAdapter.multiRemove(keys).then((err) => {
+      this.mStorageAdapter?.multiSet(data).then((err) => {
         if (err == undefined) {
-          LogUtils.i(STORAGE_MODULE_TAG, "multiRemove succ");
+          LogUtils.i(STORAGE_MODULE_TAG, "multiSet succ");
         } else {
-          LogUtils.i(STORAGE_MODULE_TAG, "multiRemove fail:" + err);
-          reject(err)
+          promise.resolve('success');
         }
       })
+    } catch (e) {
+      LogUtils.i(STORAGE_MODULE_TAG, "multiSet fail:" + e);
+      promise.reject(e.getMessage());
+    }
+  }
+
+  private multiRemove(keys: string[], promise: HippyModulePromise) {
+    let map = new Map<string, string>()
+    if (keys == null || keys.length <= 0) {
+      promise.reject('Invalid Key');
+    }
+    if (this.mStorageAdapter == null) {
+      promise.reject('Database Null');
+    }
+    this.mStorageAdapter?.multiRemove(keys).then((err) => {
+      if (err == undefined) {
+        LogUtils.i(STORAGE_MODULE_TAG, "multiRemove succ");
+        promise.resolve("success");
+      } else {
+        LogUtils.i(STORAGE_MODULE_TAG, "multiRemove fail:" + err);
+        promise.reject(JSON.stringify(err));
+      }
     })
   }
 
-  private getAllKeys(): Promise<string[]> {
-    return new Promise<string[]>((resolve, reject) => {
-      if (this.mStorageAdapter == null) {
-        reject("Database Null");
-        return;
+  private getAllKeys(promise: HippyModulePromise) {
+    if (this.mStorageAdapter == null) {
+      promise.reject('Database Null');
+    }
+    this.mStorageAdapter?.getAllKeys().then((result) => {
+      if (result == null || result.length <= 0) {
+        promise.resolve('data is null');
+      } else {
+        promise.resolve(JSON.stringify(result));
       }
-      return this.mStorageAdapter.getAllKeys().then((result) => {
-        if (result == null || result.length <= 0) {
-          reject([]);
-          return;
-        } else {
-          resolve(result)
-        }
-      })
     })
   }
 }

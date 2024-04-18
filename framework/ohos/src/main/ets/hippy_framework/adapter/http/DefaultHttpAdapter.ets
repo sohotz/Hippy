@@ -19,7 +19,6 @@
  */
 import { HippyHttpAdapter, HttpTaskCallback } from './HippyHttpAdapter';
 import { HippyHttpRequest } from './HippyHttpRequest';
-import HashMap from '@ohos.util.HashMap';
 import { HttpHeaderReuqest } from './HttpHeaderRequest';
 import List from '@ohos.util.List';
 import web_webview from '@ohos.web.webview';
@@ -34,6 +33,7 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 import { HippyHttpResponse } from './HippyHttpResponse';
 import { http } from '@kit.NetworkKit';
 import { HippyJsException } from '../../common/HippyJsException';
+import { HippyModulePromise } from '../../modules/HippyModulePromise';
 
 const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
 
@@ -58,7 +58,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     return false
   }
 
-  public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback) {
+  public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: Map<string, Object>, callback: ProcessorCallback) {
     holder.processorTag = DefaultHttpAdapter.name
     let httpRequest = this.generateHttpRequest(holder, method, nativeParams);
     this.handleRequestCookie(httpRequest);
@@ -141,23 +141,22 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     }
   }
 
-  public getCookie(url: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      try {
-        web_webview.WebCookieManager.fetchCookie(url)
-          .then((res) => {
-            LogUtils.d(DEFAULT_HTTP_ADAPTER_TAG, "saveCookieAsyncCallback success!");
-            return res
-          })
-          .then(() => resolve())
-          .catch((err: HippyJsException) => {
-            LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, "error: " + err.message);
-            reject(err)
-          })
-      } catch (error) {
-        LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, `ErrorCode: ${error.code}` + `;  Message: ${error.message}`);
-      }
-    });
+  public getCookie(url: string, promise: HippyModulePromise) {
+    try {
+      web_webview.WebCookieManager.fetchCookie(url)
+        .then((res) => {
+          LogUtils.d(DEFAULT_HTTP_ADAPTER_TAG, "saveCookieAsyncCallback success!");
+          promise.resolve(res);
+          return res
+        })
+        .catch((err: HippyJsException) => {
+          LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, "error: " + err.message);
+          promise.reject(err.message)
+        })
+    } catch (error) {
+      LogUtils.e(DEFAULT_HTTP_ADAPTER_TAG, `ErrorCode: ${error.code}` + `;  Message: ${error.message}`);
+      promise.reject(error.message)
+    }
   }
 
   public setCookie(url: string, keyValue: string, expires: string) {
@@ -185,11 +184,11 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
   }
 
   protected generateHttpRequest(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams:
-    HashMap<string, Object>): HippyHttpRequest {
+    Map<string, Object>): HippyHttpRequest {
     if (holder.requestHeaders == null || holder.requestHeaders == undefined)
-      holder.requestHeaders = new HashMap<string, string>()
+      holder.requestHeaders = new Map<string, string>()
     if (holder.requestParams == null || holder.requestParams == undefined)
-      holder.requestParams = new HashMap<string, string>()
+      holder.requestParams = new Map<string, string>()
     let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, method,
       holder.requestParams, nativeParams);
     httpRequest.setUrl(holder.uri);
@@ -204,7 +203,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
   }
 
   protected saveCookieToManager(url: string, cookies: String, expires: string) {
-    if (this.getCookieManager() || cookies == null) {
+    if (cookies == null) {
       return;
     }
     cookies = cookies.replace("\\s+", "");

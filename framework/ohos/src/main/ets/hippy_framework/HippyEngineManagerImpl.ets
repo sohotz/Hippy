@@ -251,6 +251,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   }
 
   handleNativeException(exception: HippyException): void {
+    this.mGlobalConfigs.getExceptionHandler()?.handleNativeException(exception, true);
   }
 
   updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean): void {

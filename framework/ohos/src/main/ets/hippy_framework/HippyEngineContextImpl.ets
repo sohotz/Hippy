@@ -21,12 +21,13 @@ import { DefaultProcessor } from '../vfs/DefaultProcessor';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HippyJsException } from './common/HippyJsException';
+import { BridgeCallback } from './bridge/HippyBridge';
 
 export class HippyEngineContextImpl implements HippyEngineContext {
   private mEngineInitParams: EngineInitParams;
   private mGlobalConfigs: HippyGlobalConfigs;
   public vfsManager: VfsManager
-  public nativeParams: HashMap<string, Object> = new HashMap()
+  public nativeParams: Map<string, Object> = new Map<string, Object>()
   private mDomManager: DomManager;
   private mMonitor: TimeMonitor;
   private mModuleManager: HippyModuleManager;
@@ -86,7 +87,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     // JsDriver注册
     this.mJsDriver = new JsDriver(this.libHippy, this.mModuleManager)
     // BridgeManager注册
-    this.mBridgeManager = new HippyBridgeManagerImpl(
+    let bridgeManagerImpl = new HippyBridgeManagerImpl(
       this,
       coreBundleLoader,
       params.enableV8Serialization,
@@ -96,6 +97,8 @@ export class HippyEngineContextImpl implements HippyEngineContext {
       params.thirdPartyAdapter,
       params.v8InitParams,
       this.mJsDriver);
+    this.mBridgeManager = bridgeManagerImpl
+    this.mJsDriver.setBridgeCallback(bridgeManagerImpl)
   }
 
   onRuntimeInitialized(): void {
@@ -151,7 +154,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     return this.mBridgeManager;
   }
 
-  getNativeParams() : HashMap<string, Object> {
+  getNativeParams() : Map<string, Object> {
     return this.nativeParams
   }
 

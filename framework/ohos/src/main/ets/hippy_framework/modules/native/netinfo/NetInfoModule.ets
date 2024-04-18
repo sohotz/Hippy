@@ -17,13 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { connection } from '@kit.NetworkKit'
 import { LogUtils } from '../../../../support/utils/LogUtils'
-import HashMap from '@ohos.util.HashMap'
-import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import { HippyAny } from '../../../../support/common/HippyTypes'
+import { HippyModulePromise } from '../../HippyModulePromise'
 
 const NETINFO_MODULE_TAG = "NetInfoModule"
 
@@ -32,9 +33,6 @@ export class NetInfoModule extends HippyNativeModuleBase {
   public static readonly NAME = 'NetInfo'
   private static CONNECTION_TYPE_NONE = "NONE";
   private static CONNECTION_TYPE_UNKNOWN = "UNKNOWN";
-  private static MISSING_PERMISSION_MESSAGE =
-    "To use NetInfo on Android, add the following to your AndroidManifest.xml:\n"
-      + "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />";
   private netConnection: connection.NetConnection
   private mNoNetworkPermission = false;
 
@@ -46,15 +44,12 @@ export class NetInfoModule extends HippyNativeModuleBase {
   public getCurrentConnectionType(): string {
     try {
       let netHandle = connection.getDefaultNetSync();
-      let arrayTypes: Promise<Array<connection.NetBearType>> = connection.getNetCapabilities(netHandle)
-        .then((data) => {
-          LogUtils.i(NETINFO_MODULE_TAG, "currentConnectionType: " + JSON.stringify(data));
-          return data.bearerTypes
-        })
-      if (arrayTypes == null) {
+      let netCapabilities = connection.getNetCapabilitiesSync(netHandle);
+      LogUtils.i(NETINFO_MODULE_TAG, "currentConnectionType: " + netCapabilities.bearerTypes);
+      if (netCapabilities == null || netCapabilities.bearerTypes == null) {
         return NetInfoModule.CONNECTION_TYPE_NONE
       } else {
-        return arrayTypes.toString()
+        return this.getBareTypeValue(netCapabilities.bearerTypes[0])
       }
     } catch (e) {
       LogUtils.d(NETINFO_MODULE_TAG, "currentConnectionType error: " + e.message);
@@ -74,10 +69,10 @@ export class NetInfoModule extends HippyNativeModuleBase {
     this.unregisterReceiver();
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'getCurrentConnectivity': {
-        this.getCurrentConnectivity()
+        this.getCurrentConnectivity(callback)
         break;
       }
       case 'addListener': {
@@ -94,18 +89,29 @@ export class NetInfoModule extends HippyNativeModuleBase {
     return null;
   }
 
-  private getCurrentConnectivity(): Promise<HashMap<string, string>> {
-    return new Promise((resolve, reject) => {
-      if (this.mNoNetworkPermission) {
-        reject(NetInfoModule.MISSING_PERMISSION_MESSAGE);
-        return
-      }
-      connection.getDefaultNet().then((data) => {
-        let map = new HashMap<string, string>();
-        map.set("network_info", JSON.stringify(data));
-        resolve(map);
-      })
-    })
+  private getBareTypeValue(num: number): string {
+    if (num == 0) {
+      return 'BEARER_CELLULAR';
+    } else if (num == 1) {
+      return 'BEARER_WIFI';
+    } else if (num == 3) {
+      return 'BEARER_ETHERNET';
+    } else {
+      return NetInfoModule.CONNECTION_TYPE_UNKNOWN;
+    }
+  }
+
+  private getCurrentConnectivity(promise: HippyModulePromise) {
+    if (this.mNoNetworkPermission) {
+      let map = new Map<string, string>();
+      map.set("network_info", "no netWork permission");
+      promise.resolve(map);
+      return
+    }
+    let type = this.getCurrentConnectionType()
+    let map = new Map<string, string>();
+    map.set("network_info", type);
+    promise.resolve(map);
   }
 
   private unregisterConnect() {

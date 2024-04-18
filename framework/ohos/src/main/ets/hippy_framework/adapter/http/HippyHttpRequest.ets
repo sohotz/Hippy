@@ -20,11 +20,10 @@
 import { HttpHeaderReuqest } from './HttpHeaderRequest';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import I18n from '@ohos.i18n';
-import { HashMap, util } from '@kit.ArkTS';
+import { util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
 
-// import BuildProfile from '../../../../../../BuildProfile';
 
 const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
 
@@ -42,14 +41,14 @@ export class HippyHttpRequest {
   private mUseCaches: boolean = true;
   private mRedirectTimes: number = 0
   private mUrl: string = ""
-  private mHeaders: HashMap<string, string>
+  private mHeaders: Map<string, string>
   private mMethod: http.RequestMethod = http.RequestMethod.GET
-  private mInitParams: HashMap<string, string>
-  private mNativeParams: HashMap<string, Object>
+  private mInitParams: Map<string, string>
+  private mNativeParams: Map<string, Object>
 
-  constructor(headers: HashMap<string, string>, method: string,
-              initParams: HashMap<string, string>, nativeParams: HashMap<string, Object>) {
-    this.mHeaders = (headers == null) ? new HashMap() : headers;
+  constructor(headers: Map<string, string>, method: string,
+              initParams: Map<string, string>, nativeParams: Map<string, Object>) {
+    this.mHeaders = (headers == null) ? new Map<string, string>() : headers;
     this.mInitParams = initParams;
     this.mNativeParams = nativeParams;
     this.setMethod(method);
@@ -63,7 +62,7 @@ export class HippyHttpRequest {
     return undefined
   }
 
-  public getNativeParams(): HashMap<string, Object> {
+  public getNativeParams(): Map<string, Object> {
     return this.mNativeParams;
   }
 
@@ -86,7 +85,7 @@ export class HippyHttpRequest {
     return this.mRedirectTimes++;
   }
 
-  public getHeaders(): HashMap<string, string> {
+  public getHeaders(): Map<string, string> {
     return this.mHeaders;
   }
 

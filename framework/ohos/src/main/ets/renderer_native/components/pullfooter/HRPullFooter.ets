@@ -21,41 +21,41 @@
 import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
-import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
   HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRRect } from '../../utils/HRTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { HRListView } from '../list/HRListView';
 
 @Observed
 export class HRPullFooterView extends HippyRenderBaseView {
   private readonly TAG = "HRPullFooterView"
   public sticky: boolean = false
-  //public collapseTime: number = 1000
+
   constructor(ctx: NativeRenderContext) {
     super(ctx)
-    this.cssVisibility = Visibility.None
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    // TODO: xxxxx
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
     switch (propKey) {
       case "sticky":
         this.sticky = HRValueUtils.getBoolean(propValue as HippyAny, false);
-        break
-      case "cssPositionX":
-        this.cssPositionX = HRValueUtils.getNumber(propValue as HippyAny);
-        break;
-      case "cssPositionY":
-        this.cssPositionY = HRValueUtils.getNumber(propValue as HippyAny);
-        break;
+        return true
       default:
         break;
     }
+
     return super.setProp(propKey, propValue as HippyAny)
+  }
+
+  protected updateRenderViewFrame(frame: HRRect): void {
+    this.cssPositionX = 0
+    this.cssPositionY = 0
+    this.cssWidth = frame.width
+    this.cssHeight = frame.height
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
@@ -63,15 +63,14 @@ export class HRPullFooterView extends HippyRenderBaseView {
     switch (method) {
       case "collapsePullFooter":
         {
-          //setTimeout(() => {
-          //  LogUtils.d(this.TAG, "delay : " + this.collapseTime)
-            this.cssVisibility = Visibility.None
-            if (this.parentView) {
-              this.parentView.setProp("cssPositionX", 0);
-              this.parentView.setProp("cssPositionY", 0);
-              this.parentView.setProp("cssHeight", this.parentView.cssHeight+this.cssHeight)
-            }
-          //}, this.collapseTime);
+          if (this.parentView && this.parentView instanceof HRListView) {
+            let listParentView = this.parentView as HRListView
+            listParentView.scroller.scrollTo({
+              "xOffset": 0,
+              "yOffset": listParentView.footerViewFullVisibleYOffset + listParentView.dtYOffset,
+              "animation": true
+            })
+          }
         }
         break;
       default:
@@ -87,18 +86,11 @@ export struct HRPullFooter {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
-  private controller: SwiperController = new SwiperController()
-  private PAGE_ITEM_POSITION: string = "position";
-  @State index: number = 0
 
   aboutToAppear() {
   }
 
   aboutToDisappear() {
-  }
-
-  setPage(index: number) {
-    this.index = index
   }
 
   build() {

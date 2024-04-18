@@ -28,6 +28,7 @@ import {
   HippyMap,
   HippyModuleCallback
 } from '../../../../support/common/HippyTypes';
+import { HippyModulePromise } from '../../HippyModulePromise';
 
 const UTILS_MODULE_TAG = "UtilsModule"
 
@@ -39,7 +40,7 @@ export class UtilsModule extends HippyNativeModuleBase {
     super(ctx)
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'vibrate': {
         if (params != null && params instanceof Map) {

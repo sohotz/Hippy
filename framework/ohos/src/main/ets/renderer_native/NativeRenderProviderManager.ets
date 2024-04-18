@@ -26,7 +26,6 @@ export class NativeRenderProviderManager {
     NativeRenderProviderManager.sProviderMap.set(instanceId, provider)
   }
 
-  // TODO(hot): to invoke
   static removeRenderProvider(instanceId: number) {
     NativeRenderProviderManager.sProviderMap.delete(instanceId)
   }

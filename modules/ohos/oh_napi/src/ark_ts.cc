@@ -230,6 +230,14 @@ double ArkTS::GetDouble(napi_value value) {
   return result;
 }
 
+bool ArkTS::IsArray(napi_value array) {
+  napi_status status;
+  bool result = false;
+  status = napi_is_array(env_, array, &result);
+  this->MaybeThrowFromStatus(status, "Failed to is array");
+  return result;
+}
+
 napi_value ArkTS::GetArrayElement(napi_value array, uint32_t index) {
   napi_value result;
   auto status = napi_get_element(env_, array, index, &result);

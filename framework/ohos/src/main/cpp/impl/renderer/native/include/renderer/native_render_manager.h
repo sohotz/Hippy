@@ -36,6 +36,21 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class StyleFilter {
+public:
+  StyleFilter();
+  ~StyleFilter() = default;
+  StyleFilter(const StyleFilter &) = delete;
+  StyleFilter(StyleFilter &&) = delete;
+  StyleFilter &operator=(const StyleFilter &) = delete;
+  StyleFilter &operator=(StyleFilter &&) = delete;
+
+  bool Enable(const std::string &style) { return styles_.find(style) != styles_.end(); }
+
+private:
+  std::unordered_set<std::string> styles_;
+};
+
 class NativeRenderManager : public RenderManager, public std::enable_shared_from_this<NativeRenderManager> {
  public:
   NativeRenderManager();
@@ -80,6 +95,11 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
 
   static footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<NativeRenderManager>>& PersistentMap() {
     return persistent_map_;
+  }
+
+  static std::shared_ptr<StyleFilter> GetStyleFilter() {
+    static std::shared_ptr<StyleFilter> style_filter = std::make_shared<StyleFilter>();
+    return style_filter;
   }
 
  private:

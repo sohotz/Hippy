@@ -21,15 +21,22 @@ import resmgr from "@ohos.resourceManager";
 import { HippyLibrary } from '../../hippy_library/HippyLibrary';
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
 import { LogUtils } from '../../support/utils/LogUtils';
+import { BridgeCallback } from '../bridge/HippyBridge';
 import { HippyCallNativeParams } from '../bridge/HippyCallNativeParams';
 import { HippyModuleManager } from '../modules/HippyModuleManager';
 import { Serializer } from '../serialization/Serializer';
 import { NativeCallback } from './NativeCallback';
 
+export class V8InitParams {
+  public initialHeapSize: number = 0
+  public maximumHeapSize: number = 0
+}
+
 export class JsDriver {
   private libHippy: HippyLibrary
   public instanceId: number = -1
-  public moduleManager: HippyModuleManager | null = null
+  private moduleManager: HippyModuleManager | null = null
+  private bridgeCallback: BridgeCallback | null = null
 
   constructor(libHippy: HippyLibrary, moduleManager: HippyModuleManager) {
     this.libHippy = libHippy
@@ -40,18 +47,20 @@ export class JsDriver {
     domManagerId: number,
     vfsId: number,
     callback: NativeCallback,
-    globalConfig: string
+    globalConfig: string,
+    mEnableV8Serialization: boolean
   ) {
     this.instanceId = this.onCreate(
       globalConfig,
-      false,
-      false,
-      false,
+      false, // TODO useLowMemoryMode
+      mEnableV8Serialization,
+      false, // TODO isDevModule
       callback,
-      -1,
+      -1, // TODO groupId
       domManagerId,
+      null, // TODO v8InitParams
       vfsId,
-      0
+      0 // TODO devtoolsId
     )
   }
 
@@ -63,10 +72,16 @@ export class JsDriver {
     callback: NativeCallback,
     groupId: number,
     domManagerId: number,
-    //v8InitParams: ,
+    v8InitParams: V8InitParams | null,
     vfsId: number,
     devtoolsId: number
   ): number {
+    let v8ParamArray: Array<number> | null = null
+    if (v8InitParams) {
+      v8ParamArray = new Array<number>()
+      v8ParamArray[0] = v8InitParams.initialHeapSize
+      v8ParamArray[1] = v8InitParams.maximumHeapSize
+    }
     return this.libHippy?.JsDriver_CreateJsDriver(
       this,
       globalConfig,
@@ -76,7 +91,7 @@ export class JsDriver {
       callback,
       groupId,
       domManagerId,
-      //v8InitParams: ,
+      v8ParamArray,
       vfsId,
       devtoolsId
     )
@@ -93,6 +108,10 @@ export class JsDriver {
       isReload,
       callback
     )
+  }
+
+  setBridgeCallback(bridgeCallback: BridgeCallback) {
+    this.bridgeCallback = bridgeCallback
   }
 
   loadInstance(
@@ -165,11 +184,12 @@ export class JsDriver {
   callFunction(
     action: string,
     callback: NativeCallback,
-    buffer: ArrayBuffer
+    buffer: Uint8Array
   ) {
-    this.libHippy?.JsDriver_CallFunction(this.instanceId, action, callback, buffer)
+    this.libHippy?.JsDriver_CallFunction(this.instanceId, action, callback, buffer.buffer as ArrayBuffer)
   }
 
+  // call from c++
   public callNatives(
     moduleName: string,
     moduleFunc: string,
@@ -189,4 +209,12 @@ export class JsDriver {
 
     LogUtils.i('hippy', 'JsDriver callNatives end');
   }
+
+  // call from c++
+  public reportException(message: string, stackTrace: string) {
+    if (message && stackTrace && this.bridgeCallback) {
+      this.bridgeCallback.reportException(message, stackTrace)
+    }
+  }
+
 }

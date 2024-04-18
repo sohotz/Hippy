@@ -65,10 +65,12 @@
 #include "footstone/worker_manager.h"
 #include "vfs/uri_loader.h"
 #include "VFSUriHandler.h"
+#include "footstone/logging.h"
 
 #import "NativeRenderManager.h"
 #import "HippyRootView.h"
 #import "UIView+Hippy.h"
+#import "UIView+MountEvent.h"
 
 
 #ifdef ENABLE_INSPECTOR
@@ -99,6 +101,35 @@ typedef NS_ENUM(NSUInteger, HippyBridgeFields) {
     HippyBridgeFieldParams,
     HippyBridgeFieldCallID,
 };
+
+/// Set the log delegate for hippy core module
+static inline void registerLogDelegateToHippyCore() {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        footstone::LogMessage::InitializeDelegate([](const std::ostringstream& stream, footstone::LogSeverity severity) {
+            HippyLogLevel logLevel = HippyLogLevelInfo;
+            
+            switch (severity) {
+                case footstone::TDF_LOG_INFO:
+                    logLevel = HippyLogLevelInfo;
+                    break;
+                case footstone::TDF_LOG_WARNING:
+                    logLevel = HippyLogLevelWarning;
+                    break;
+                case footstone::TDF_LOG_ERROR:
+                    logLevel = HippyLogLevelError;
+                    break;
+                case footstone::TDF_LOG_FATAL:
+                    logLevel = HippyLogLevelFatal;
+                    break;
+                default:
+                    break;
+            }
+            HippyLogNativeInternal(logLevel, "tdf", 0, @"%s", stream.str().c_str());
+        });
+    });
+}
+
 
 @interface HippyBridge() {
     NSMutableArray<Class<HippyImageProviderProtocol>> *_imageProviders;
@@ -194,8 +225,11 @@ dispatch_queue_t HippyBridgeQueue() {
         _bundlesQueue = [[HippyBundleOperationQueue alloc] init];
         _startTime = footstone::TimePoint::SystemNow();
         HippyLogInfo(@"HippyBridge init begin, self:%p", self);
+        registerLogDelegateToHippyCore();
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(rootViewContentDidAppear:)
                                                      name:HippyContentDidAppearNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onFirstContentfulPaintEnd:)
+                                                     name:HippyFirstContentfulPaintEndNotification object:nil];
         HippyExecuteOnMainThread(^{
             self->_isOSNightMode = [HippyDeviceBaseInfo isUIScreenInOSDarkMode];
             self.cachedDimensionsInfo = hippyExportedDimensions(self);
@@ -221,15 +255,45 @@ dispatch_queue_t HippyBridgeQueue() {
 - (void)rootViewContentDidAppear:(NSNotification *)noti {
     UIView *rootView = [noti object];
     if (rootView) {
-        auto domManager = _javaScriptExecutor.pScope->GetDomManager().lock();
-        if (domManager) {
-            auto viewRenderManager = [rootView renderManager];
-            if (_renderManager == viewRenderManager.lock()) {
-                auto entry = _javaScriptExecutor.pScope->GetPerformance()->PerformanceNavigation("hippyInit");
+        auto viewRenderManager = [rootView renderManager];
+        if (_renderManager && _renderManager == viewRenderManager.lock()) {
+            std::shared_ptr<hippy::Scope> scope = _javaScriptExecutor.pScope;
+            if (!scope) {
+                return;
+            }
+            auto domManager = scope->GetDomManager().lock();
+            auto performance = scope->GetPerformance();
+            if (domManager && performance) {
+                auto entry = performance->PerformanceNavigation(hippy::kPerfNavigationHippyInit);
+                if (!entry) {
+                    return;
+                }
                 entry->SetHippyDomStart(domManager->GetDomStartTimePoint());
                 entry->SetHippyDomEnd(domManager->GetDomEndTimePoint());
                 entry->SetHippyFirstFrameStart(domManager->GetDomEndTimePoint());
                 entry->SetHippyFirstFrameEnd(footstone::TimePoint::SystemNow());
+            }
+        }
+    }
+}
+
+- (void)onFirstContentfulPaintEnd:(NSNotification *)noti {
+    UIView *fcpView = [noti object];
+    if (fcpView) {
+        auto viewRenderManager = [fcpView renderManager];
+        if (_renderManager && _renderManager == viewRenderManager.lock()) {
+            std::shared_ptr<hippy::Scope> scope = _javaScriptExecutor.pScope;
+            if (!scope) {
+                return;
+            }
+            auto domManager = scope->GetDomManager().lock();
+            auto performance = scope->GetPerformance();
+            if (domManager && performance) {
+                auto entry = performance->PerformanceNavigation(hippy::kPerfNavigationHippyInit);
+                if (!entry) {
+                    return;
+                }
+                entry->SetHippyFirstContentfulPaintEnd(footstone::TimePoint::SystemNow());
             }
         }
     }
@@ -296,6 +360,13 @@ dispatch_queue_t HippyBridgeQueue() {
     return [_moduleSetup moduleForClass:moduleClass];
 }
 
+- (HippyModuleData *)moduleDataForName:(NSString *)moduleName {
+    if (moduleName) {
+        return _moduleSetup.moduleDataByName[moduleName];
+    }
+    return nil;
+}
+
 - (void)addImageProviderClass:(Class<HippyImageProviderProtocol>)cls {
     HippyAssertParam(cls);
     @synchronized (self) {
@@ -329,7 +400,7 @@ dispatch_queue_t HippyBridgeQueue() {
 }
 
 - (BOOL)moduleIsInitialized:(Class)moduleClass {
-    return [_moduleSetup moduleIsInitialized:moduleClass];
+    return [_moduleSetup isModuleInitialized:moduleClass];
 }
 
 
@@ -381,12 +452,12 @@ dispatch_queue_t HippyBridgeQueue() {
         _displayLink = [[HippyDisplayLink alloc] init];
 
         // Setup all extra and internal modules
-        [_moduleSetup setupModulesCompletion:^{
+        [_moduleSetup setupModulesWithCompletionBlock:^{
             HippyBridge *strongSelf = weakSelf;
             if (strongSelf) {
                 dispatch_semaphore_signal(strongSelf.moduleSemaphore);
                 footstone::TimePoint endTime = footstone::TimePoint::SystemNow();
-                auto enty = strongSelf.javaScriptExecutor.pScope->GetPerformance()->PerformanceNavigation("hippyInit");
+                auto enty = strongSelf.javaScriptExecutor.pScope->GetPerformance()->PerformanceNavigation(hippy::kPerfNavigationHippyInit);
                 enty->SetHippyNativeInitStart(strongSelf->_startTime);
                 enty->SetHippyNativeInitEnd(endTime);
             }
@@ -911,7 +982,7 @@ dispatch_queue_t HippyBridgeQueue() {
 }
 
 - (BOOL)moduleSetupComplete {
-    return _moduleSetup.moduleSetupComplete;
+    return _moduleSetup.isModuleSetupComplete;
 }
 
 - (void)invalidate {

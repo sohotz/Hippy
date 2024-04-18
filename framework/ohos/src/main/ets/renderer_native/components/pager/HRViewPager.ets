@@ -48,17 +48,22 @@ export class HRViewPagerView extends HippyRenderBaseView {
     if (propKey === 'initialPage') {
       this.initialPage = HRValueUtils.getNumber(propValue as HippyAny);
       this.index = this.initialPage
+      return true
     } else if (propKey === 'scrollEnabled') {
       let enable = HRValueUtils.getBoolean(propValue as HippyAny, true)
       this.disableSwipe = !enable
+      return true
     } else if (propKey === 'direction') {
       if (HRValueUtils.getString(propValue as HippyAny) === 'vertical') {
         this.vertical = true
       }
+      return true
     } else if (propKey === 'vertical') {
       this.vertical = true
+      return true
     } else if (propKey === 'pageMargin') {
       this.prevMargin = this.nextMargin = HRValueUtils.getNumber(propValue as HippyAny)
+      return true
     }
     return super.setProp(propKey, propValue as HippyAny)
   }

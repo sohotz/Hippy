@@ -47,6 +47,7 @@ import { HippyEngineManagerImpl } from './HippyEngineManagerImpl';
 import { HippyEngineContext } from './HippyEngineContext'
 import { HippyFileAdapter } from './adapter/file/HippyFileAdapter';
 import { FileRequestAdapter } from './adapter/file/FileRequestAdapter';
+import { LogUtils } from '../support/utils/LogUtils';
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
@@ -62,6 +63,7 @@ export interface HippyEngine {
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
   params.check()
+  LogUtils.enableDebugLog(params.enableLog)
   return new HippyEngineManagerImpl(params)
 }
 
@@ -107,7 +109,7 @@ export class EngineInitParams {
   // 可选参数 自定义的，用来提供Native modules、JavaScript modules、View controllers的管理器。1个或多个
   public providers: Array<HippyAPIProvider> | null = null;
   // public processors: Array<Processor> | null = null;
-  //Optional  is use V8 serialization or json
+  // Optional  is use V8 serialization or json
   public enableV8Serialization = true;
   // 可选参数 是否打印引擎的完整的log。默认为false
   public enableLog = false;

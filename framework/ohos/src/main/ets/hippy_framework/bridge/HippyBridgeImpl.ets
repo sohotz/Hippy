@@ -24,8 +24,11 @@ import { HippyEngineContext } from '../HippyEngineContext';
 import { V8InitParams } from '../HippyEngine';
 import { MonitorGroupType, TimeMonitor } from '../../support/utils/TimeMonitor';
 import { HippyBridgeManagerImpl } from './HippyBridgeManagerImpl';
+import { LogUtils } from '../../support/utils/LogUtils';
 
 export class HippyBridgeImpl implements HippyBridge {
+
+  public static TAG: string = "HippyBridgeImpl";
   private mEngineContext: HippyEngineContext;
   private mBridgeCallback: BridgeCallback;
   private mEnableV8Serialization: boolean;
@@ -74,7 +77,8 @@ export class HippyBridgeImpl implements HippyBridge {
       this.mEngineContext.getDomManagerId(),
       this.mEngineContext.getVfsId(),
       callback,
-      globalConfig)
+      globalConfig,
+      this.mEnableV8Serialization)
   }
 
   runScriptFromUri(uri: string, canUseCodeCache: boolean, codeCacheTag: string, callback: NativeCallback): boolean {
@@ -115,13 +119,52 @@ export class HippyBridgeImpl implements HippyBridge {
   }
 
   callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array) {
+    const functionName = this.getCallFunctionName(functionId)
     if (functionId == HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE) {
       // TODO loadInstance 参数序列化
       this.mJsDriver.loadInstance(buffer, callback);
     } else if (functionId == HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE) {
       // mJsDriver.unloadInstance(buffer, 0, length);
     } else {
-      // mJsDriver.callFunction(functionName, callback, buffer, 0, length);
+      this.mJsDriver.callFunction(functionName, callback, buffer);
     }
+  }
+
+  private getCallFunctionName(functionId: number): string {
+    let action = '';
+    switch (functionId) {
+      case HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE: {
+        action = "loadInstance";
+        break;
+      }
+      case HippyBridgeManagerImpl.FUNCTION_ACTION_RESUME_INSTANCE: {
+        action = "resumeInstance";
+        break;
+      }
+      case HippyBridgeManagerImpl.FUNCTION_ACTION_PAUSE_INSTANCE: {
+        action = "pauseInstance";
+        break;
+      }
+      case HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE: {
+        action = "destroyInstance";
+        break;
+      }
+      case HippyBridgeManagerImpl.FUNCTION_ACTION_CALLBACK: {
+        action = "callBack";
+        break;
+      }
+      case HippyBridgeManagerImpl.FUNCTION_ACTION_CALL_JS_MODULE: {
+        action = "callJsModule";
+        break;
+      }
+      case HippyBridgeManagerImpl.FUNCTION_ACTION_ON_WEBSOCKET_MESSAGE: {
+        action = "onWebsocketMsg";
+        break;
+      }
+      default:
+        LogUtils.w(HippyBridgeImpl.TAG, "getCallFunctionName: Unknown function id=" + functionId);
+
+    }
+    return action;
   }
 }

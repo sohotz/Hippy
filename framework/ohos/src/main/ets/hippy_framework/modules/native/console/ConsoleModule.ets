@@ -20,6 +20,7 @@
 import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes';
 import { LogUtils } from '../../../../support/utils/LogUtils';
 import { HippyEngineContext } from '../../../HippyEngineContext';
+import { HippyModulePromise } from '../../HippyModulePromise';
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase';
 
 const CONSOLE_LOG_TAG: string = 'hippy_console'
@@ -31,7 +32,7 @@ export class ConsoleModule extends HippyNativeModuleBase {
     super(ctx)
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback | null): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'log': {
         this.log(params[0] as string)

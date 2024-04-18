@@ -23,9 +23,9 @@ import { HippyJsException } from '../../common/HippyJsException';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
-import { HippyHttpResponse } from '../http/HippyHttpResponse';
-import fs from '@ohos.file.fs';
 import { FetchResultCode } from '../http/HippyResourceLoader';
+import fs from '@ohos.file.fs';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 const FILE_REQ_TAG = "FileRequestAdapter"
 
@@ -58,52 +58,69 @@ export class FileRequestAdapter implements HippyFileAdapter {
     })
   }
 
-  public downloadFile(mDataHolder: ResourceDataHolder, mCallback: ProcessorCallback): Promise<request.DownloadTask> {
-    let downloadConfig: request.DownloadConfig = {
-      url: mDataHolder.uri,
-      header: mDataHolder.requestHeaders ?? '',
-    };
-    return new Promise<request.DownloadTask>((resolve, reject) => {
-      try {
-        request.downloadFile(this.ctx, downloadConfig)
-          .then((data) => {
-            LogUtils.i(FILE_REQ_TAG, 'succ to request the download. result: ' + JSON.stringify(data));
-            data.on('complete', () => {
-              LogUtils.i(FILE_REQ_TAG, 'Download task completed.');
-              data.getTaskInfo().then((downloadInfo: request.DownloadInfo) => {
-                LogUtils.i(FILE_REQ_TAG, 'Succeeded in querying the download task')
-                mDataHolder.resultCode = downloadInfo.status == 0 ? FetchResultCode.OK : downloadInfo.status
-                mDataHolder.addResponseHeaderProperty(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE,
-                  downloadInfo.status.toString());
-                let filePath = downloadInfo.filePath + downloadInfo.fileName;
-                let inputStream = fs.createStreamSync(filePath, "r+");
-                if (downloadInfo.status != 0 || inputStream == null) {
-                  mDataHolder.errorMessage = downloadInfo.failedReason.toString()
-                }
-                mDataHolder.readResourceDataFromStream(inputStream);
-                mCallback.onHandleCompleted();
-              }).catch((err: HippyJsException) => {
-                LogUtils.e(FILE_REQ_TAG, `Failed to query the download task. message: ${err.message}`)
-                mDataHolder.errorMessage = err.message
-                mCallback.onHandleCompleted();
-              });
-            })
+  public downloadFile(mDataHolder: ResourceDataHolder, mCallback: ProcessorCallback) {
+    let filePath = this.ctx.filesDir + '/' + this.geFileName(mDataHolder.uri);
+    let res = fs.accessSync(filePath);
+    if (res) {
+      let stat = fs.statSync(filePath);
+      LogUtils.i(FILE_REQ_TAG, "get file info succeed, the size of file is " + stat.size);
+      fs.unlinkSync(filePath);
+      fs.stat(filePath).then((stat: fs.Stat) => {
+        fs.unlink(filePath).then(() => {
+          LogUtils.i(FILE_REQ_TAG, "remove file succeed");
+        }).catch((err: HippyJsException) => {
+          LogUtils.e(FILE_REQ_TAG, "remove file failed with error message: " + err.message);
+        });
+      }).catch((err: HippyJsException) => {
+        LogUtils.e(FILE_REQ_TAG, "getFileInfo failed with error:" + err);
+      });
+    } else {
+      LogUtils.i(FILE_REQ_TAG, "file not exists");
+    }
 
-            data.on('fail', (err) => {
-              LogUtils.e(FILE_REQ_TAG, `Failed to query the download task. message: ${err}`)
-              mDataHolder.errorMessage = err.toString()
-              mCallback.onHandleCompleted();
-            });
-          })
-          .catch((err: HippyJsException) => {
-            mDataHolder.resultCode = FetchResultCode.ERR_REMOTE_REQUEST_FAILED
-            mDataHolder.errorMessage = err.message;
-            mCallback.onHandleCompleted();
-            LogUtils.e(FILE_REQ_TAG, 'Failed to request the download. Cause: ' + JSON.stringify(err));
-          })
-      } catch (err) {
-        LogUtils.e(FILE_REQ_TAG, 'err.code : ' + err.code + ', err.message : ' + err.message);
-      }
-    })
+    let downloadTask: request.DownloadTask;
+    try {
+      request.downloadFile(this.ctx, {
+        url: mDataHolder.uri,
+        filePath: filePath
+      }, (err: BusinessError, data: request.DownloadTask) => {
+        LogUtils.i(FILE_REQ_TAG, 'Download task url:' + mDataHolder.uri);
+        LogUtils.i(FILE_REQ_TAG, 'Download task filePath:' + filePath);
+        if (err != undefined) {
+          LogUtils.i(FILE_REQ_TAG, `Failed to request the download. Code: ${err.code}, message: ${err.message}`);
+          return;
+        }
+        downloadTask = data;
+        downloadTask.on('fail', (err: number) => {
+          LogUtils.e(FILE_REQ_TAG, `Failed to download the task. Code: ${err}`);
+          mDataHolder.errorMessage = err.toString()
+          mCallback.onHandleCompleted();
+        });
+
+        downloadTask.on('complete', () => {
+          LogUtils.i(FILE_REQ_TAG, 'Download task completed.');
+          mDataHolder.resultCode = FetchResultCode.OK;
+          mDataHolder.setBufferByFilePath(filePath);
+          mCallback.onHandleCompleted();
+        });
+
+        downloadTask.on('progress', (receivedSize: number, totalSize: number) => {
+          LogUtils.i(FILE_REQ_TAG, 'Download task receivedSize:' + receivedSize + ' totalSize:' + totalSize);
+        });
+      });
+    } catch (e) {
+      LogUtils.e(FILE_REQ_TAG, `Download task Failed. err: ${e}`);
+    }
+  }
+
+  private geFileName(url: string): string {
+    // 找到最后一个斜杠的位置
+    const lastIndex = url.lastIndexOf('/');
+    // 如果找到了斜杠，则截取斜杠之后的部分作为图片名
+    if (lastIndex !== -1) {
+      return url.slice(lastIndex + 1);
+    }
+    // 如果没有找到斜杠，则整个URL可能就是图片名
+    return url;
   }
 }

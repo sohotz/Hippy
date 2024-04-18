@@ -17,13 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import util from '@ohos.util';
 import { HippyAny } from '../../support/common/HippyTypes';
+import { TextUtils } from '../../support/utils/TextUtils';
 import { StringEncoding } from './StringEncoding';
 import { StringLocation } from './StringLocation';
 import { StringTable } from './StringTable';
 
 export class DirectStringTable implements StringTable {
+
   lookup(byteData: Uint8Array,
          encoding: StringEncoding,
          location: StringLocation,
@@ -33,15 +34,21 @@ export class DirectStringTable implements StringTable {
       return ''
     }
 
+    return this.lookupImpl(byteData, encoding)
+  }
+
+  lookupImpl(byteData: Uint8Array,
+             encoding: StringEncoding,
+  ): string {
     if (encoding == StringEncoding.LATIN) {
       // need iso-8859-1
-      return util.TextDecoder.create("iso-8859-1").decodeWithStream(byteData)
+      return TextUtils.getIsoDecoder().decodeWithStream(byteData)
     } else if (encoding == StringEncoding.UTF16LE) {
       // utf16-le
-      return util.TextDecoder.create("utf-16le").decodeWithStream(byteData)
+      return TextUtils.getUtf16Decoder().decode(byteData) // 没用 decodeWithStream 的原因：静态变量多次调用 decodeWithStream 会乱码
     } else {
       // utf8
-      return util.TextDecoder.create("utf-8").decodeWithStream(byteData)
+      return TextUtils.getUtf8Decoder().decodeWithStream(byteData)
     }
   }
 

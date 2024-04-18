@@ -102,7 +102,7 @@ import icon from './qb_icon_new.png';
 | getHeaderStyle           | 设置 `PullHeader` 容器的样式。当设置了 `horizontal=true` 启用横向 `ListView` 时，需显式设置 `PullHeader` 宽度。`最低支持版本2.14.1`              | `() => styleObject`                                    | `Android、iOS、Voltron` |
 | getFooterStyle           | 设置 `PullFooter` 容器的样式。当设置了 `horizontal=true` 启用横向 `ListView` 时，需显式设置 `PullFooter` 宽度。`最低支持版本2.14.1`              | `() => styleObject`                                    | `Android、iOS、Voltron` |
 | getRowType            | 指定一个函数，在其中返回对应条目的类型（返回Number类型的自然数，默认是0），List 将对同类型条目进行复用，所以合理的类型拆分，可以很好地提升 List 性能。`注意：同一 type 的 item 组件由于复用可能不会走完整组件创建生命周期` | `(index: number) => number`                                    | `Android、iOS、hippy-react-web、Web-Renderer、Voltron` |
-| horizontal       | 指定 `ListView` 是否采用横向布局。`default: undefined` 纵向布局，Android `2.14.1` 版本后可设置 `false` 显式固定纵向布局；iOS 暂不支持横向 `ListView`| `boolean \| undefined`   | `Android、hippy-react-web、Voltron` |
+| horizontal       | 指定 `ListView` 是否采用横向布局。`default: undefined` 纵向布局，Android `2.14.1` 版本后可设置 `false` 显式固定纵向布局；iOS 从 `3.0` 开始支持横向 `ListView`| `boolean \| undefined`   | `Android、iOS、hippy-react-web、Voltron` |
 | initialListSize       | 指定在组件刚挂载的时候渲染多少行数据。用这个属性来确保首屏显示合适数量的数据，而不是花费太多帧时间逐步显示出来。 | `number`                                                    | `Android、iOS、Web-Renderer、Voltron` |
 | initialContentOffset  | 初始位移值。在列表初始化时即可指定滚动距离，避免初始化后再通过 scrollTo 系列方法产生的闪动。Android 在 `2.8.0` 版本后支持        | `number`                                             | `Android、iOS、Web-Renderer、Voltron`    |
 | onAppear     | 当有`ListViewItem`滑动进入屏幕时（曝光）触发，入参返回曝光的`ListViewItem`对应索引值。 | `(index) => void` | `Android、iOS、hippy-react-web、Web-Renderer、Voltron` |
@@ -179,6 +179,8 @@ import icon from './qb_icon_new.png';
 | supportedOrientations | 支持屏幕翻转方向                                                            | `enum (portrait, portrait-upside-down, landscape, landscape-left, landscape-right)[]` | `iOS`    |
 | immersionStatusBar    | 是否是沉浸式状态栏。`default: false`                                        | `boolean`                                                    | `Android、Voltron`    |
 | darkStatusBarText     | 是否是亮色主体文字，默认字体是黑色的，改成 true 后会认为 Modal 背景为暗色调，字体就会改成白色。 | `boolean`                                                    | `Android、iOS、Voltron`    |
+| autoHideStatusBar     | 是否在`Modal`显示时自动隐藏状态栏。<strong>Android 中仅 api28 以上生效。</strong> `default: false` | `boolean` | `Android` |
+| autoHideNavigationBar | 是否在`Modal`显示时自动隐藏导航栏。 `default: false` | `boolean` | `Android` |
 | onShow                | 在`Modal`显示时会执行此回调函数。                            | `Function`                                                   | `Android、iOS、hippy-react-web、Web-Renderer、Voltron` |
 | onOrientationChange   | 屏幕旋转方向改变时执行会回调                       | `Function`                                                   | `Android、iOS`    |
 | onRequestClose        | 在 `Modal` 请求关闭时会执行此回调函数，一般时在 Android 系统里按下硬件返回按钮时触发，一般要在里面处理关闭弹窗。 | `Function`                                                   | `Android、hippy-react-web、Voltron` |
@@ -514,15 +516,13 @@ import icon from './qb_icon_new.png';
 | interItemSpacing  | item 间的垂直间距  | `number`   | `Android、iOS、Voltron`  |
 | contentInset      | 内容缩进 ，默认值 `{ top:0, left:0, bottom:0, right:0 }`  | `Object`   | `Android、iOS、Voltron`   |
 | renderItem             | 这里的入参是当前 item 的 index，在这里可以凭借 index 获取到瀑布流一个具体单元格的数据，从而决定如何渲染这个单元格。 | `(index: number) => React.ReactElement`                                   | `Android、iOS、Voltron`    |
-| renderBanner | 如何渲染 Banner。 | `() => React.ReactElement` |  `iOS、Voltron`
+| renderBanner | 如何渲染 Banner。 | `() => React.ReactElement` |  `Android、iOS、Voltron`
 | getItemStyle           | 设置`WaterfallItem`容器的样式。  | `(index: number) => styleObject`                                    | `Android、iOS、Voltron`    |
 | getItemType            | 指定一个函数，在其中返回对应条目的类型（返回Number类型的自然数，默认是0），List 将对同类型条目进行复用，所以合理的类型拆分，可以很好地提升list 性能。 | `(index: number) => number`                                    | `Android、iOS、Voltron`    |
 | getItemKey             | 指定一个函数，在其中返回对应条目的 Key 值，详见 [React 官文](//reactjs.org/docs/lists-and-keys.html) | `(index: number) => any`                                    | `Android、iOS、Voltron`    |
 | preloadItemNumber     | 滑动到瀑布流底部前提前预加载的 item 数量 | `number` | `Android、iOS、Voltron` |
 | onEndReached          | 当所有的数据都已经渲染过，并且列表被滚动到最后一条时，将触发 `onEndReached` 回调。 | `Function`                                                  | `Android、iOS、Voltron`    |
-| containPullHeader | 是否包含`PullHeader`组件，默认 `false` ；`Android` 暂不支持，可暂时用 `RefreshWrapper` 组件替代  | `boolean`  | `iOS、Voltron`    |
-| renderPullHeader | 如何渲染 `PullHeader`，此时 `containPullHeader` 默认设置成 `true` |  `() => React.ReactElement` | `iOS、Voltron`    |
-| containPullFooter | 是否包含`PullFooter`组件，默认 `false`  | `boolean`  | `Android、iOS、Voltron`    |
+| renderPullHeader | 如何渲染 `PullHeader`，此时 `containPullHeader` 默认设置成 `true` |  `() => React.ReactElement` | `Android、iOS、Voltron`    |
 | renderPullFooter | 如何渲染 `PullFooter`，此时 `containPullFooter` 默认设置成 `true` |  `() => React.ReactElement` | `Android、iOS、Voltron` |
 | onScroll              | 当触发 `WaterFall` 的滑动事件时回调。`startEdgePos`表示距离 List 顶部边缘滚动偏移量；`endEdgePos`表示距离 List 底部边缘滚动偏移量；`firstVisibleRowIndex`表示当前可见区域内第一个元素的索引；`lastVisibleRowIndex`表示当前可见区域内最后一个元素的索引；`visibleRowFrames`表示当前可见区域内所有 item 的信息(x，y，width，height)    | `nativeEvent: { startEdgePos: number, endEdgePos: number, firstVisibleRowIndex: number, lastVisibleRowIndex: number, visibleRowFrames: Object[] }` | `Android、iOS、Voltron`
 

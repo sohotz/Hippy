@@ -21,42 +21,32 @@
 import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
-import { HREventUtils } from '../../utils/HREventUtils'
-import { HRRect } from '../../utils/HRTypes';
 import HippyRenderBaseView, {
   HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRListView } from '../list/HRListView';
+import { HRRect } from '../../utils/HRTypes';
 
 @Observed
 export class HRPullHeaderView extends HippyRenderBaseView {
   private readonly TAG = "HRPullHeaderView"
-  private CURRENT_OFFSET: string = "contentOffset";
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    // TODO: xxxxx
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", propValue: " + propValue)
-    switch (propKey) {
-      case "cssPositionX":
-        this.cssPositionX = HRValueUtils.getNumber(propValue as HippyAny);
-        break;
-      case "cssPositionY":
-        this.cssPositionY = HRValueUtils.getNumber(propValue as HippyAny);
-        break;
-      default:
-        break;
-    }
-    let ret : boolean = super.setProp(propKey, propValue as HippyAny)
-    if (propKey === "visibility") {
-      LogUtils.d(this.TAG, "setProp: visibility " + this.cssVisibility)
-    }
-    return ret;
+    return super.setProp(propKey, propValue as HippyAny)
+  }
+
+  protected updateRenderViewFrame(frame: HRRect): void {
+    this.cssPositionX = 0
+    this.cssPositionY = 0
+    this.cssWidth = frame.width
+    this.cssHeight = frame.height
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
@@ -83,6 +73,7 @@ export class HRPullHeaderView extends HippyRenderBaseView {
         }
         break
       case 'expandPullHeader':
+        this.onHeaderRefresh()
         break
       default:
         break
@@ -90,10 +81,16 @@ export class HRPullHeaderView extends HippyRenderBaseView {
   }
 
   onHeadRefreshFinish() {
-    let listView:HRListView = this.parentView as HRListView
-    listView.uiCtx?.runScopedTask(()=>{
-      listView.scroller.scrollToItemInGroup(1, 1)
-      listView.edgeState = 0
+    let listView: HRListView = this.parentView as HRListView
+    listView.uiCtx?.runScopedTask(() => {
+      listView.scroller.scrollToIndex(1, true)
+    })
+  }
+
+  onHeaderRefresh() {
+    let listView: HRListView = this.parentView as HRListView
+    listView.uiCtx?.runScopedTask(() => {
+      listView.scroller.scrollToIndex(0, true)
     })
   }
 }
@@ -105,9 +102,6 @@ export struct HRPullHeader {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
-  private controller: SwiperController = new SwiperController()
-  private PAGE_ITEM_POSITION: string = "position";
-  @State index: number = 0
 
   aboutToAppear() {
   }

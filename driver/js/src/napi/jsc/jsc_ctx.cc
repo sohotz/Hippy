@@ -794,7 +794,8 @@ std::shared_ptr<CtxValue> JSCCtx::CreateObject(const std::unordered_map<std::sha
     auto ctx_value = std::static_pointer_cast<JSCCtxValue>(it.second);
     if (!ctx_value) {
       auto error = CreateException("CreateObject ctx_value is nullptr");
-      return nullptr;
+      SetException(std::static_pointer_cast<JSCCtxValue>(error));
+      continue;
     }
     JSObjectSetProperty(context_, obj, object_key, ctx_value->value_, kJSPropertyAttributeNone, &exception);
     if (exception) {
@@ -817,7 +818,7 @@ std::shared_ptr<CtxValue> JSCCtx::CreateArray(size_t count,
   JSValueRef values[count];  // NOLINT(runtime/arrays)
   for (size_t i = 0; i < count; i++) {
     auto ele_value = std::static_pointer_cast<JSCCtxValue>(array[i]);
-    values[i] = ele_value->value_;
+    values[i] = ele_value ? ele_value->value_ : nullptr;
   }
 
   JSValueRef exception = nullptr;
@@ -900,7 +901,7 @@ std::shared_ptr<CtxValue> JSCCtx::CallFunction(const std::shared_ptr<CtxValue>& 
   auto function_object = JSValueToObject(context_, function_value->value_, &exception);
   if (exception) {
     SetException(std::make_shared<JSCCtxValue>(context_, exception));
-
+    FOOTSTONE_LOG(ERROR) << GetExceptionMessage(exception_);
     return nullptr;
   }
 
@@ -908,6 +909,7 @@ std::shared_ptr<CtxValue> JSCCtx::CallFunction(const std::shared_ptr<CtxValue>& 
   auto receiver_object = JSValueToObject(context_, receiver_value->value_, &exception);
   if (exception) {
     SetException(std::make_shared<JSCCtxValue>(context_, exception));
+    FOOTSTONE_LOG(ERROR) << GetExceptionMessage(exception_);
     return nullptr;
   }
 
@@ -915,6 +917,7 @@ std::shared_ptr<CtxValue> JSCCtx::CallFunction(const std::shared_ptr<CtxValue>& 
     auto ret_value_ref = JSObjectCallAsFunction(context_, function_object, receiver_object, 0, nullptr, &exception);
     if (exception) {
       SetException(std::make_shared<JSCCtxValue>(context_, exception));
+      FOOTSTONE_LOG(ERROR) << GetExceptionMessage(exception_);
       return nullptr;
     }
     return std::make_shared<JSCCtxValue>(context_, ret_value_ref);
@@ -929,6 +932,7 @@ std::shared_ptr<CtxValue> JSCCtx::CallFunction(const std::shared_ptr<CtxValue>& 
   auto ret_value_ref = JSObjectCallAsFunction(context_, function_object, receiver_object, argc, values, &exception);
   if (exception) {
     SetException(std::make_shared<JSCCtxValue>(context_, exception));
+    FOOTSTONE_LOG(ERROR) << GetExceptionMessage(exception_);
     return nullptr;
   }
 

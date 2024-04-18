@@ -38,7 +38,6 @@ namespace hippy {
 class OhNapiTaskRunner : public AbstractTaskRunner  {
  public:
 
-  // TODO(hot):
   static OhNapiTaskRunner *Instance(napi_env env);
 
   OhNapiTaskRunner(napi_env env);

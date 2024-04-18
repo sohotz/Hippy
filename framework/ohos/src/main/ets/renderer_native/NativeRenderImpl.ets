@@ -39,11 +39,13 @@ import { HRCreateMutation,
   HRDeleteMutation,
   HRMove2Mutation,
   HRMoveMutation,
+  HRMoveNodeInfo,
   HRMutation,
   HRUpdateEventListenerMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation
 } from './uimanager/HRMutation'
+import { HippyEndBatchCallback } from './uimanager/HRViewManager'
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
 import { HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
@@ -155,8 +157,7 @@ export class NativeRenderImpl implements NativeRender {
   }
 
   destroyRoot(rootId: number) {
-    // TODO(hot):
-    //HRDisplaySyncUtils.unregisterDoFrameListener(this.ctx.getInstanceId(), rootId)
+
   }
 
   createNode(rootId: number, nodeList: Array<HippyAny>) {
@@ -227,14 +228,21 @@ export class NativeRenderImpl implements NativeRender {
       return
     }
 
+    if (nodeList.length == 0) {
+      return
+    }
+
+    let m: HRMoveMutation = new HRMoveMutation()
+    m.parentTag = pid
+    m.nodeInfos = new Array<HRMoveNodeInfo>()
     for (let i = 0; i < nodeList.length; i++) {
       let node = nodeList[i] as Map<string, HippyAny>
-      let m: HRMoveMutation = new HRMoveMutation()
-      m.tag = node.get('id') as number
-      m.parentTag = node.get('pId') as number
-      m.index = node.get('index') as number
-      viewManager.addMutations(m)
+      let tag = node.get('id') as number
+      let index = node.get('index') as number
+      let info = new HRMoveNodeInfo(tag, index)
+      m.nodeInfos.push(info)
     }
+    viewManager.addMutations(m)
   }
 
   moveNode2(rootId: number, id_array: Array<number>, to_pid: number, from_pid: number, index: number) {
@@ -243,15 +251,16 @@ export class NativeRenderImpl implements NativeRender {
       return
     }
 
-    for (let i = 0; i < id_array.length; i++) {
-      let id = id_array[i]
-      let m: HRMove2Mutation = new HRMove2Mutation()
-      m.tag = id
-      m.toParentTag = to_pid
-      m.fromParentTag = from_pid
-      m.index = index
-      viewManager.addMutations(m)
+    if (id_array.length == 0) {
+      return
     }
+
+    let m: HRMove2Mutation = new HRMove2Mutation()
+    m.tagArray = id_array
+    m.toParentTag = to_pid
+    m.fromParentTag = from_pid
+    m.index = index
+    viewManager.addMutations(m)
   }
 
   deleteNode(rootId: number, id_array: Array<number>) {
@@ -293,6 +302,7 @@ export class NativeRenderImpl implements NativeRender {
     }
 
     viewManager.applyMutations()
+    viewManager.notifyEndBatchCallbacks()
   }
 
   updateEventListener(rootId: number, eventList: Array<HippyAny>) {
@@ -319,6 +329,15 @@ export class NativeRenderImpl implements NativeRender {
     }
   }
 
+  checkRegisteredEvent(rootId: number, nodeId: number, eventName: string): boolean {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return false
+    }
+
+    return viewManager.checkRegisteredEvent(nodeId, eventName)
+  }
+
   callUIFunction(rootId: number, nodeId: number, functionName: string, params: Array<HippyAny>, callback: HippyRenderCallback | null) {
     let viewManager = this.renderManager.getViewManager(rootId)
     if (!viewManager) {
@@ -327,6 +346,22 @@ export class NativeRenderImpl implements NativeRender {
 
     LogUtils.d(this.TAG,  "callUIFunction: rootId " + rootId + ", id " + nodeId + ", functionName " + functionName + ", params" + params)
     viewManager.callViewMethod(nodeId, functionName, params, callback)
+  }
+
+  addEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+    viewManager.addEndBatchCallback(cb)
+  }
+
+  removeEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return
+    }
+    viewManager.removeEndBatchCallback(cb)
   }
 
   private textPropsOnly:string[] = ["textAlign","numberOfLines","breakStrategy","ellipsizeMode"];//只有text有，span没有的属性

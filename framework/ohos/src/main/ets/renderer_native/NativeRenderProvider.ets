@@ -61,6 +61,10 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
     return this.renderImpl
   }
 
+  destroy() {
+    NativeRenderProviderManager.removeRenderProvider(this.instanceId)
+  }
+
   bytesToArgument(buffer: ArrayBuffer): Array<HippyAny> {
     let binaryReader = new BinaryReader(new Uint8Array(buffer))
     let deserializer = new NativeRenderDeserializer(binaryReader, null)
@@ -185,8 +189,8 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
     if (lowerCaseEventName.startsWith(this.EVENT_PREFIX)) {
         lowerCaseEventName = lowerCaseEventName.substring(this.EVENT_PREFIX.length)
     }
-    // TODO(hot): to checkRegisteredEvent
-    if (eventType != HREventType.GESTURE && false) {
+
+    if (eventType != HREventType.GESTURE && !this.renderImpl.checkRegisteredEvent(rootId, nodeId, lowerCaseEventName)) {
         return;
     }
     LogUtils.d(this.TAG, "dispatchEvent: id " + nodeId + ", eventName " + eventName

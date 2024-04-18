@@ -21,18 +21,22 @@
 import HashMap from '@ohos.util.HashMap';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { Processor } from './Processor';
-import { ResourceDataHolder, RequestFrom } from './ResourceDataHolder';
+import { ResourceDataHolder, RequestFrom, UriType } from './ResourceDataHolder';
 import { ProcessorCallback } from './ProcessorCallback';
 import { FetchResourceCallback } from './FetchResourceCallback';
 
 class ProcessorCallbackImpl implements ProcessorCallback {
-  onHandleCompleted = () => {}
-  goNext = () => {}
+  onHandleCompleted = () => {
+  }
+  goNext = () => {
+  }
 }
 
 class FetchResourceCallbackImpl implements FetchResourceCallback {
-  onFetchCompleted = (holder: ResourceDataHolder) => {}
-  onFetchProgress = (total: number, loaded: number) => {}
+  onFetchCompleted = (holder: ResourceDataHolder) => {
+  }
+  onFetchProgress = (total: number, loaded: number) => {
+  }
 }
 
 export class VfsManager {
@@ -76,31 +80,43 @@ export class VfsManager {
     this.processorChain.splice(0, this.processorChain.length)
   }
 
-  fetchResourceSync(uri: string, requestHeaders: HashMap<string, string> | null,
-                    requestParams: HashMap<string, string> | null) : ResourceDataHolder {
+  fetchResourceSync(uri: string,
+                    uriType: UriType,
+                    requestHeaders: Map<string, string> | null,
+                    requestParams: Map<string, string> | null): ResourceDataHolder {
     this.onFetchResourceStart()
-    const holder = this.fetchResourceSyncImpl(uri, requestHeaders, requestParams, RequestFrom.LOCAL)
+    const holder = this.fetchResourceSyncImpl(uri, uriType, requestHeaders, requestParams, RequestFrom.LOCAL)
     this.onFetchResourceEnd(holder)
     return holder
   }
 
-  fetchResourceSyncImpl(uri: string, requestHeaders: HashMap<string, string> | null,
-                        requestParams: HashMap<string, string> | null, from: RequestFrom) : ResourceDataHolder {
-    let holder = new ResourceDataHolder(uri, requestHeaders, requestParams, null, from, -1)
+  fetchResourceSyncImpl(uri: string,
+                        uriType: UriType,
+                        requestHeaders: Map<string, string> | null,
+                        requestParams: Map<string, string> | null,
+                        from: RequestFrom): ResourceDataHolder {
+    let holder = new ResourceDataHolder(uri, uriType, requestHeaders, requestParams, null, from, -1)
     this.traverseForward(holder, true)
     return holder
   }
 
-  fetchResourceAsync(uri: string, requestHeaders:HashMap<string, string> | null,
-                     requestParams:HashMap<string, string> | null, callback: FetchResourceCallback ) {
+  fetchResourceAsync(uri: string,
+                     uriType: UriType,
+                     requestHeaders: Map<string, string> | null,
+                     requestParams: Map<string, string> | null,
+                     callback: FetchResourceCallback) {
     this.onFetchResourceStart()
-    this.fetchResourceAsyncImpl(uri, requestHeaders, requestParams, callback, RequestFrom.LOCAL, -1)
+    this.fetchResourceAsyncImpl(uri, uriType, requestHeaders, requestParams, callback, RequestFrom.LOCAL, -1)
   }
 
-  fetchResourceAsyncImpl(uri: string, requestHeaders: HashMap<string, string> | null,
-                         requestParams: HashMap<string, string> | null, callback: FetchResourceCallback,
-                         from: RequestFrom, nativeRequestId: number) {
-    let holder = new ResourceDataHolder(uri, requestHeaders, requestParams, callback, from, nativeRequestId)
+  fetchResourceAsyncImpl(uri: string,
+                         uriType: UriType,
+                         requestHeaders: Map<string, string> | null,
+                         requestParams: Map<string, string> | null,
+                         callback: FetchResourceCallback,
+                         from: RequestFrom,
+                         nativeRequestId: number) {
+    let holder = new ResourceDataHolder(uri, uriType, requestHeaders, requestParams, callback, from, nativeRequestId)
     this.traverseForward(holder, false)
   }
 
@@ -189,9 +205,11 @@ export class VfsManager {
   }
 
   // for c++
-  doLocalTraversalsAsync(uri: string, requestHeaders: HashMap<string, string> | null,
-                         requestParams: HashMap<string, string> | null,
-                         nativeRequestId: number, progressCallbackId: number) {
+  doLocalTraversalsAsync(uri: string,
+                         requestHeaders: Map<string, string> | null,
+                         requestParams: Map<string, string> | null,
+                         nativeRequestId: number,
+                         progressCallbackId: number) {
     const callback = new FetchResourceCallbackImpl()
     callback.onFetchCompleted = (holder: ResourceDataHolder) => {
       this.onTraversalsEndAsync(holder)
@@ -201,13 +219,14 @@ export class VfsManager {
         this.onProgress(progressCallbackId, total, loaded)
       }
     }
-    this.fetchResourceAsyncImpl(uri, requestHeaders, requestParams, callback, RequestFrom.NATIVE, nativeRequestId)
+    this.fetchResourceAsyncImpl(uri, UriType.FILE, requestHeaders, requestParams, callback, RequestFrom.NATIVE, nativeRequestId)
   }
 
   // for c++
-  doLocalTraversalsSync(uri: string, requestHeaders: HashMap<string, string> | null,
-                        requestParams: HashMap<string, string> | null) {
-    return this.fetchResourceSyncImpl(uri, requestHeaders, requestParams, RequestFrom.NATIVE)
+  doLocalTraversalsSync(uri: string,
+                        requestHeaders: Map<string, string> | null,
+                        requestParams: Map<string, string> | null) {
+    return this.fetchResourceSyncImpl(uri, UriType.FILE, requestHeaders, requestParams, RequestFrom.NATIVE)
   }
 
   doNativeTraversalsAsync(id: number, holder: ResourceDataHolder, callback: FetchResourceCallback) {
@@ -225,5 +244,4 @@ export class VfsManager {
   onProgress(callbackId: number, total: number, loaded: number) {
     this.libHippy.VfsManager_OnJniDelegateInvokeProgress(callbackId, total, loaded)
   }
-
 }

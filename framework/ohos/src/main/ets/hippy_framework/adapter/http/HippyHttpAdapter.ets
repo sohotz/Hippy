@@ -25,15 +25,16 @@ import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { HippyException } from '../../../support/common/HippyException';
 import { http } from '@kit.NetworkKit';
+import { HippyModulePromise } from '../../modules/HippyModulePromise';
 
 export interface HippyHttpAdapter {
   destroyIfNeed(): void
 
   sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback): void
 
-  fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: HashMap<string, Object>, callback: ProcessorCallback): void
+  fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: Map<string, Object>, callback: ProcessorCallback): void
 
-  getCookie(url: string): Promise<void>
+  getCookie(url: string, promise: HippyModulePromise): void
 
   setCookie(url: string, keyValue: string, expires: string): void
 }

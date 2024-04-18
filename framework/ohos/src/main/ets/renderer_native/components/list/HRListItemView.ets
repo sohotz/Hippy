@@ -29,7 +29,7 @@ import { HRValueUtils } from '../../utils/HRValueUtils';
 @Observed
 export class HRListItemView extends HippyRenderBaseView {
   private readonly TAG = "HRListItemView"
-  public sticky:boolean = false
+  public sticky: boolean = false
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -39,6 +39,7 @@ export class HRListItemView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, `propKey:${propKey}, propValue:${propValue}`)
     if (propKey === 'sticky') {
       this.sticky = HRValueUtils.getBoolean(propValue as HippyAny, false)
+      return true
     }
     return super.setProp(propKey, propValue as HippyAny)
   }

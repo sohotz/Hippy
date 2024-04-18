@@ -24,7 +24,8 @@ import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { media } from '@kit.MediaKit'
 import Url from '@ohos.url'
-import { HippyAny, HippyModuleCallback } from '../../../../support/common/HippyTypes'
+import { HippyAny } from '../../../../support/common/HippyTypes'
+import { HippyModulePromise } from '../../HippyModulePromise'
 
 const AUDIO_MODULE_TAG: string = 'AudioPlayerModule'
 
@@ -38,10 +39,10 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     this.createMediaPlayer()
   }
 
-  public call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback): HippyAny {
+  public call(method: string, params: Array<HippyAny>, callback: HippyModulePromise): HippyAny {
     switch (method) {
       case 'play': {
-        this.play(params[0] as string)
+        this.play(params[0] as string, callback)
         break;
       }
       case 'goBack': {
@@ -100,58 +101,58 @@ export class AudioPlayerModule extends HippyNativeModuleBase {
     return this.mState
   }
 
-  private async play(streamingURL: string): Promise<string> {
+  private async play(streamingURL: string, promise: HippyModulePromise) {
     if (this.mMediaPlayer == null) {
       await this.createMediaPlayer()
     }
-    return new Promise<string>((resolve, reject) => {
-      if (this.mMediaPlayer != null) {
-        this.mMediaPlayer.url = Url.URL.parseURL(streamingURL).toString();
-        try {
-          this.mMediaPlayer.on('stateChange', async (state, reason) => {
-            switch (state) {
-              case 'idle':
-                LogUtils.e(AUDIO_MODULE_TAG, 'state idle called')
-                break;
-              case 'initialized':
-                LogUtils.e(AUDIO_MODULE_TAG, 'initialized prepared called')
-                break;
-              case 'prepared':
-                LogUtils.e(AUDIO_MODULE_TAG, 'state prepared called')
-                this.resume()
-                break;
-              case 'playing':
-                LogUtils.e(AUDIO_MODULE_TAG, 'state playing called')
-                break;
-              case 'paused':
-                LogUtils.e(AUDIO_MODULE_TAG, 'state paused called')
-                break;
-              case 'completed':
-                LogUtils.e(AUDIO_MODULE_TAG, 'state completed called')
-                this.mState = "completed"
-                break;
-              case 'stopped':
-                LogUtils.e(AUDIO_MODULE_TAG, 'state stopped called')
-                break;
-              case 'released':
-                LogUtils.e(AUDIO_MODULE_TAG, 'state released called')
-                break;
-              case 'error':
-                LogUtils.e(AUDIO_MODULE_TAG, 'state error called')
-                break;
-              default:
-                LogUtils.e(AUDIO_MODULE_TAG, 'unkown state :' + state)
-                break;
-            }
-          })
-          resolve("OK");
-        } catch (error) {
-          LogUtils.e(AUDIO_MODULE_TAG, "play error: " + error)
-          reject("ERROR");
-        }
+    if (this.mMediaPlayer != null) {
+      this.mMediaPlayer.url = Url.URL.parseURL(streamingURL).toString();
+      let map = new Map<string, string>()
+      try {
+        this.mMediaPlayer.on('stateChange', async (state, reason) => {
+          switch (state) {
+            case 'idle':
+              LogUtils.e(AUDIO_MODULE_TAG, 'state idle called')
+              break;
+            case 'initialized':
+              LogUtils.e(AUDIO_MODULE_TAG, 'initialized prepared called')
+              break;
+            case 'prepared':
+              LogUtils.e(AUDIO_MODULE_TAG, 'state prepared called')
+              this.resume()
+              break;
+            case 'playing':
+              LogUtils.e(AUDIO_MODULE_TAG, 'state playing called')
+              break;
+            case 'paused':
+              LogUtils.e(AUDIO_MODULE_TAG, 'state paused called')
+              break;
+            case 'completed':
+              LogUtils.e(AUDIO_MODULE_TAG, 'state completed called')
+              this.mState = "completed"
+              break;
+            case 'stopped':
+              LogUtils.e(AUDIO_MODULE_TAG, 'state stopped called')
+              break;
+            case 'released':
+              LogUtils.e(AUDIO_MODULE_TAG, 'state released called')
+              break;
+            case 'error':
+              LogUtils.e(AUDIO_MODULE_TAG, 'state error called')
+              break;
+            default:
+              LogUtils.e(AUDIO_MODULE_TAG, 'unkown state :' + state)
+              break;
+          }
+        })
+        map.set("play", "OK")
+        promise.resolve(map);
+      } catch (error) {
+        LogUtils.e(AUDIO_MODULE_TAG, "play error: " + error)
+        map.set("play", "ERROR")
+        promise.resolve(map);
       }
-    })
-
+    }
   }
 
   private goBack(seconds: number) {

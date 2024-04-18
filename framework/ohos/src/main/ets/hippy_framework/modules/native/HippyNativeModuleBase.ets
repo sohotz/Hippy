@@ -17,8 +17,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyModuleCallback } from '../../../support/common/HippyTypes';
+import { HippyAny } from '../../../support/common/HippyTypes';
 import { HippyEngineContext } from '../../HippyEngineContext';
+import { HippyModulePromise } from '../HippyModulePromise';
 
 export class HippyNativeModuleBase {
 
@@ -29,7 +30,7 @@ export class HippyNativeModuleBase {
     this.ctx = ctx
   }
 
-  call(method: string, params: Array<HippyAny>, callback: HippyModuleCallback | null): HippyAny {
+  call(method: string, params: Array<HippyAny>, promise: HippyModulePromise): HippyAny {
     return null
   }
 }

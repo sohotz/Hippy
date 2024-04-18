@@ -28,10 +28,15 @@ import { NativeRenderContext } from '../NativeRenderContext'
 import { HRRect } from '../utils/HRTypes'
 import { HRCreateMutation,
   HRDeleteMutation,
+  HRMove2Mutation,
+  HRMoveMutation,
+  HRMoveNodeInfo,
   HRMutation, HRMutationType,
   HRUpdateEventListenerMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation } from './HRMutation'
+
+export type HippyEndBatchCallback = () => void
 
 export class HRViewManager {
   private readonly TAG = "HRViewManager"
@@ -41,6 +46,7 @@ export class HRViewManager {
   private viewRegistry: Map<number, HippyRenderBaseView> = new Map()
   private viewCreatorRegisterMap: Map<string, HRRenderViewCreator> | null = null
   private mutations: HRMutation[] = []
+  private endBatchCallbacks: HippyEndBatchCallback[] = []
 
   constructor(rootView: HippyRenderView) {
     this.ctx = rootView.ctx
@@ -74,9 +80,11 @@ export class HRViewManager {
       let m = mutation as HRUpdateMutation
       this.updateProps(m.tag as number, m.props as HippyMap)
     } else if (mutation.type === HRMutationType.MOVE) {
-      // TODO(hot):
+      let m = mutation as HRMoveMutation
+      this.moveRenderView(m.nodeInfos as Array<HRMoveNodeInfo>, m.parentTag as number)
     } else if (mutation.type === HRMutationType.MOVE2) {
-      // TODO(hot):
+      let m = mutation as HRMove2Mutation
+      this.move2RenderView(m.tagArray as Array<number>, m.toParentTag as number, m.fromParentTag as number, m.index as number)
     } else if (mutation.type === HRMutationType.DELETE) {
       let m = mutation as HRDeleteMutation
       this.removeRenderView(m.tag as number)
@@ -86,6 +94,7 @@ export class HRViewManager {
     } else if (mutation.type === HRMutationType.UPDATE_EVENT_LISTENER) {
       let m = mutation as HRUpdateEventListenerMutation
       this.updateProps(m.tag as number, m.props as HippyMap)
+      this.updateEventListener(m.tag as number, m.props as HippyMap)
     }
   }
 
@@ -127,6 +136,40 @@ export class HRViewManager {
     }
   }
 
+  private moveRenderView(nodeInfoArray: Array<HRMoveNodeInfo>, parentTag: number): void {
+    let parent = this.viewRegistry.get(parentTag)
+    if (!parent) {
+      LogUtils.w(this.TAG, "moveNode: get parent failed!")
+      return
+    }
+
+    nodeInfoArray.sort((a: HRMoveNodeInfo, b: HRMoveNodeInfo) => a.index - b.index)
+    for (let i = 0; i < nodeInfoArray.length; i++) {
+      let info = nodeInfoArray[i]
+      let child = this.viewRegistry.get(info.tag)
+      if (child) {
+        child.removeFromParentView()
+        parent.addSubRenderView(child, info.index)
+      }
+    }
+  }
+
+  private move2RenderView(tagArray: Array<number>, newParentTag: number, oldParentTag: number, index: number): void {
+    let oldParent = this.viewRegistry.get(oldParentTag)
+    let newParent = this.viewRegistry.get(newParentTag)
+    if (!oldParent || !newParent) {
+      LogUtils.w(this.TAG, "moveRenderView: oldParent=" + oldParentTag + ", newParent=" + newParentTag)
+      return
+    }
+    for (let i = 0; i < tagArray.length; i++) {
+      let child = this.viewRegistry.get(tagArray[i])
+      if (child) {
+        child.removeFromParentView()
+        newParent.addSubRenderView(child, i + index)
+      }
+    }
+  }
+
   private updateProps(tag: number, props: HippyMap) {
     let renderView = this.viewRegistry.get(tag)
     if (renderView) {
@@ -140,6 +183,21 @@ export class HRViewManager {
         })
       }
     }
+  }
+
+  private updateEventListener(nodeId: number, props: HippyMap) {
+    let renderView = this.viewRegistry.get(nodeId)
+    if (renderView) {
+      renderView.updateEventListener(props)
+    }
+  }
+
+  public checkRegisteredEvent(nodeId: number, eventName: string): boolean {
+    let renderView = this.viewRegistry.get(nodeId)
+    if (renderView) {
+      return renderView.checkRegisteredEvent(eventName)
+    }
+    return false
   }
 
   private setRenderViewFrame(tag: number, frame: HRRect): void {
@@ -175,6 +233,25 @@ export class HRViewManager {
       }
     }
     return null
+  }
+
+  addEndBatchCallback(cb: HippyEndBatchCallback): void {
+    if (this.endBatchCallbacks.indexOf(cb) < 0) {
+      this.endBatchCallbacks.push(cb)
+    }
+  }
+
+  removeEndBatchCallback(cb: HippyEndBatchCallback): void {
+    const pos = this.endBatchCallbacks.indexOf(cb)
+    if (pos >= 0) {
+      this.endBatchCallbacks.splice(pos, 1)
+    }
+  }
+
+  notifyEndBatchCallbacks(): void {
+    this.endBatchCallbacks.forEach(cb => {
+      cb()
+    })
   }
 
 }

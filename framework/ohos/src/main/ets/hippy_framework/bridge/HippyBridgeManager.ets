@@ -17,7 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Hippy2Map, HippyMap } from '../../support/common/HippyTypes';
+import { Hippy2Map, HippyAny, HippyArray, HippyMap,
+  HippyValue } from '../../support/common/HippyTypes';
 import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAdapter';
 import { NativeCallback } from '../connector/NativeCallback';
 import { HippyBundleLoader } from './bundleloader/HippyBundleLoader';
@@ -35,7 +36,7 @@ export interface HippyBridgeManager {
 
   destroyInstance(id: number): void;
 
-  execCallback(params: HippyMap): void;
+  execCallback(params: Map<string, HippyMap | HippyValue | HippyArray>): void;
 
   destroyBridge(isReload: boolean): void;
 

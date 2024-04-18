@@ -72,7 +72,8 @@ static napi_value CallFunction(napi_env env, napi_callback_info info) {
     [env, callback_ref](CALLFUNCTION_CB_STATE state, const string_view &msg) {
       CallArkMethod(env, callback_ref, static_cast<int>(state), msg);
     },
-    std::move(buffer), []() {});
+    std::move(buffer),
+    []() {});
   return arkTs.GetUndefined();
 }
 

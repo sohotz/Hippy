@@ -332,7 +332,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
   }
 
   // perfromance start time
-  auto entry = scope->GetPerformance()->PerformanceNavigation("hippyInit");
+  auto entry = scope->GetPerformance()->PerformanceNavigation(kPerfNavigationHippyInit);
   entry->BundleInfoOfUrl(uri).execute_source_start_ = footstone::TimePoint::SystemNow();
 
 #ifdef JS_V8
@@ -441,7 +441,8 @@ void JsDriverUtils::CallJs(const string_view& action,
                            const std::shared_ptr<Scope>& scope,
                            std::function<void(CALL_FUNCTION_CB_STATE, string_view)> cb,
                            byte_string buffer_data,
-                           std::function<void()> on_js_runner) {
+                           std::function<void()> on_js_runner
+                           ) {
   auto runner = scope->GetTaskRunner();
   std::weak_ptr<Scope> weak_scope = scope;
   auto callback = [weak_scope, cb = std::move(cb), action,
@@ -473,7 +474,6 @@ void JsDriverUtils::CallJs(const string_view& action,
         scope->SetBridgeObject(function);
       }
     }
-    FOOTSTONE_DCHECK(action.encoding() == string_view::Encoding::Utf16);
     std::shared_ptr<CtxValue> action_value = context->CreateString(action);
     std::shared_ptr<CtxValue> params;
     auto vm = engine->GetVM();

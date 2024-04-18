@@ -30,7 +30,6 @@ import { HRValueUtils } from '../../utils/HRValueUtils'
 export class HRRichTextView extends HippyRenderBaseView {
   private readonly TAG = "HRRichTextView"
   maxLines: number = 10000000
-  // TODO(hot):
   text: string = ""
   fontColor: number | null = null
   fontSize: number = HRNodeProps.FONT_SIZE_SP

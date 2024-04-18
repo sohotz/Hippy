@@ -44,7 +44,7 @@ export interface HippyLibrary {
     callback: NativeCallback,
     groupId: number,
     domManagerId: number,
-    //v8InitParams: ,
+    v8ParamArray: Array<number> | null,
     vfsId: number,
     devtoolsId: number
   ): number;

@@ -22,6 +22,7 @@
 #include "connector/ark2js.h"
 #include "connector/js2ark.h"
 #include "connector/bridge.h"
+#include "connector/exception_handler.h"
 #include <js_native_api.h>
 #include <js_native_api_types.h>
 #include "oh_napi/data_holder.h"
@@ -36,11 +37,6 @@
 #include "footstone/worker_manager.h"
 #include "vfs/handler/asset_handler.h"
 
-// TODO(hot):
-#ifndef JS_V8
-#define JS_V8
-#endif
-
 #ifdef JS_V8
 #include "driver/vm/v8/v8_vm.h"
 #endif
@@ -51,6 +47,7 @@ inline namespace connector {
 inline namespace driver {
 
 using string_view = footstone::stringview::string_view;
+using byte_string = std::string;
 using u8string = footstone::string_view::u8string;
 using StringViewUtils = footstone::stringview::StringViewUtils;
 using Ctx = hippy::Ctx;
@@ -101,32 +98,56 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
   auto args = arkTs.GetCallbackArgs(info);
   auto object_ref = arkTs.CreateReference(args[0]);
   std::string global_config_str = arkTs.GetString(args[1]);
+  // auto single_thread_mode = arkTs.GetBoolean(args[2]);
+  auto enable_v8_serialization = arkTs.GetBoolean(args[3]);
+  auto is_dev_module = arkTs.GetBoolean(args[4]);
   auto callback_ref = arkTs.CreateReference(args[5]);
   int64_t group_id = static_cast<int64_t>(arkTs.GetInteger(args[6]));
   uint32_t dom_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[7]));
+  auto has_vm_init_param = false;
+  const int vm_param_index = 8;
+  if (arkTs.IsArray(args[vm_param_index]) && arkTs.GetArrayLength(args[vm_param_index]) >= 2) {
+    has_vm_init_param = true;
+  }
+  // auto vfs_id = arkTs.GetInteger(args[9]);
+  // auto devtools_id = arkTs.GetInteger(args[10]);
 
-  FOOTSTONE_LOG(INFO) << "CreateJsDriver begin, group_id = " << group_id;
+  FOOTSTONE_LOG(INFO) << "CreateJsDriver begin, enable_v8_serialization = " << static_cast<uint32_t>(enable_v8_serialization)
+                      << ", is_dev_module = " << static_cast<uint32_t>(is_dev_module)
+                      << ", group_id = " << group_id;
 
   string_view global_config(global_config_str);
 
 #ifdef JS_V8
   auto param = std::make_shared<V8VMInitParam>();
-  // TODO(hot):
-  param->enable_v8_serialization = false;
-  param->is_debug = false;
-
+  param->enable_v8_serialization = enable_v8_serialization;
+  param->is_debug = is_dev_module;
+  if (has_vm_init_param) {
+    auto ts_value0 = arkTs.GetArrayElement(args[vm_param_index], 0);
+    auto ts_value1 = arkTs.GetArrayElement(args[vm_param_index], 1);
+    auto initial_heap_size_in_bytes = arkTs.GetInteger(ts_value0);
+    auto maximum_heap_size_in_bytes = arkTs.GetInteger(ts_value1);
+    param->initial_heap_size_in_bytes =
+      footstone::check::checked_numeric_cast<int, size_t>(initial_heap_size_in_bytes);
+    param->maximum_heap_size_in_bytes =
+      footstone::check::checked_numeric_cast<int, size_t>(maximum_heap_size_in_bytes);
+    FOOTSTONE_CHECK(initial_heap_size_in_bytes <= maximum_heap_size_in_bytes);
+  }
 #else
   auto param = std::make_shared<VMInitParam>();
 #endif
 #ifdef ENABLE_INSPECTOR
-  // TODO(hot):
+  if (param->is_debug) {
+    auto devtools_data_source =
+      devtools::DevtoolsDataSource::Find(footstone::checked_numeric_cast<int, uint32_t>(devtools_id));
+    param->devtools_data_source = devtools_data_source;
+  }
 #endif
   auto call_host_callback = [](CallbackInfo& info, void* data) {
     hippy::bridge::CallHost(info);
   };
   param->uncaught_exception_callback = ([](const std::any& bridge, const string_view& description, const string_view& stack) {
-    // TODO(hot):
-    //ExceptionHandler::ReportJsException(bridge, description, stack);
+    ExceptionHandler::ReportJsException(bridge, description, stack);
   });
 
   std::any dom_manager;
@@ -175,7 +196,47 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
 
 static napi_value DestroyJsDriver(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
-  // TODO(hot):
+  auto args = arkTs.GetCallbackArgs(info);
+  auto scope_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  // auto single_thread_mode = arkTs.GetBoolean(args[1]);
+  auto is_reload = arkTs.GetInteger(args[2]);
+  auto callback_ref = arkTs.CreateReference(args[3]);
+
+  {
+    std::unique_lock<std::mutex> lock(scope_mutex);
+    if (!scope_initialized_map[scope_id]) {
+      auto iter = scope_cv_map.find(scope_id);
+      if (iter != scope_cv_map.end()) {
+        auto &cv = iter->second;
+        cv->wait(lock, [scope_id] { return scope_initialized_map[scope_id]; });
+      }
+    }
+    scope_initialized_map.erase(scope_id);
+    scope_cv_map.erase(scope_id);
+  }
+  auto scope = GetScope(scope_id);
+  auto engine = scope->GetEngine().lock();
+  FOOTSTONE_CHECK(engine);
+  {
+    std::lock_guard<std::mutex> lock(holder_mutex);
+    auto it = engine_holder.find(engine.get());
+    if (it != engine_holder.end()) {
+      engine_holder.erase(it);
+    }
+  }
+  auto flag = hippy::global_data_holder.Erase(scope_id);
+  FOOTSTONE_CHECK(flag);
+  JsDriverUtils::DestroyInstance(
+    std::move(engine), std::move(scope),
+    [env, callback_ref](bool ret) {
+      if (ret) {
+        hippy::bridge::CallArkMethod(env, callback_ref, INIT_CB_STATE::SUCCESS);
+      } else {
+        hippy::bridge::CallArkMethod(env, callback_ref, INIT_CB_STATE::DESTROY_ERROR);
+      }
+    },
+    is_reload);
+
   return arkTs.GetUndefined();
 }
 
@@ -184,16 +245,20 @@ static napi_value LoadInstance(napi_env env, napi_callback_info info) {
   auto args = arkTs.GetCallbackArgs(info);
   uint32_t scope_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
 
-  void *data = NULL;
+  void *buffer_data = NULL;
   size_t byte_length = 0;
-  bool result = arkTs.GetArrayBufferInfo(args[1], &data, &byte_length);
-  FOOTSTONE_CHECK(result && byte_length > 0);
+  if (arkTs.IsArrayBuffer(args[1])) {
+    arkTs.GetArrayBufferInfo(args[1], &buffer_data, &byte_length);
+  }
+  FOOTSTONE_CHECK(byte_length > 0);
 
-  // TODO(hot):
-  std::string buffer_data(static_cast<char*>(data), byte_length);
+  byte_string buffer;
+  if (buffer_data && byte_length > 0) {
+    buffer.assign(static_cast<char *>(buffer_data), byte_length);
+  }
 
   auto scope = GetScope(scope_id);
-  JsDriverUtils::LoadInstance(scope, std::move(buffer_data));
+  JsDriverUtils::LoadInstance(scope, std::move(buffer));
   return arkTs.GetUndefined();
 }
 
@@ -261,7 +326,13 @@ static napi_value RunScriptFromUri(napi_env env, napi_callback_info info) {
     loader->RegisterUriHandler(kAssetSchema, asset_handler);
   }
 #ifdef ENABLE_INSPECTOR
-  // TODO(hot):
+  auto devtools_data_source = scope->GetDevtoolsDataSource();
+  if (devtools_data_source) {
+    auto network_notification = devtools_data_source->GetNotificationCenter()->network_notification;
+    auto devtools_handler = std::make_shared<hippy::devtools::DevtoolsHandler>();
+    devtools_handler->SetNetworkNotification(network_notification);
+    loader->RegisterUriInterceptor(devtools_handler);
+  }
 #endif
   auto is_local_file = asset_manager ? true : false;
   auto func = [scope, env, callback_ref, script_name,
@@ -420,8 +491,8 @@ REGISTER_OH_NAPI("JsDriver", "JsDriver_OnNativeInitEnd", OnNativeInitEnd)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_OnFirstFrameEnd", OnFirstFrameEnd)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_OnResourceLoadEnd", OnResourceLoadEnd)
 
-// TODO(hot):
 napi_value OhNapi_OnLoad(napi_env env, napi_value exports) {
+  hippy::ExceptionHandler::Init(env);
   hippy::InitBridge(env);
   return exports;
 }

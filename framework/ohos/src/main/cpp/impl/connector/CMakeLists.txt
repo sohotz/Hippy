@@ -75,6 +75,7 @@ set(PUBLIC_SOURCE_SET
   src/js_driver_napi.cc
   src/ark2js.cc
   src/js2ark.cc
+  src/exception_handler.cc
   src/native_renderer_napi.cc)
 target_sources(${PROJECT_NAME} PUBLIC ${PUBLIC_SOURCE_SET})
 # endregion

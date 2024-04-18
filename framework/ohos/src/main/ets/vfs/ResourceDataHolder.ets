@@ -18,13 +18,12 @@
  * limitations under the License.
  */
 
-import fs, { ReadOptions } from '@ohos.file.fs';
+import fs from '@ohos.file.fs';
 import HashMap from '@ohos.util.HashMap';
-import { HippyJsException } from '../hippy_framework/common/HippyJsException';
-import { HippyAny, HippyResource } from '../support/common/HippyTypes';
 import { LogUtils } from '../support/utils/LogUtils';
 import { FetchResourceCallback } from './FetchResourceCallback';
 import { buffer } from '@kit.ArkTS';
+import { HippyJsException } from '../hippy_framework/common/HippyJsException';
 
 const RESOURCE_DATA_TAG = "ResourceDataHolder"
 
@@ -38,15 +37,19 @@ export enum TransferType {
   NIO,
 }
 
+export enum UriType {
+  NORMAL,
+  FILE,
+}
+
 export class ResourceDataHolder {
   static RESOURCE_LOAD_SUCCESS_CODE: number = 0;
-
   public uri: string
+  public uriType: UriType
   public buffer: ArrayBuffer | null = null
-  public bytes: Uint8Array | null = new Uint8Array()
-  public requestHeaders: HashMap<string, string> | null
-  public requestParams: HashMap<string, string> | null
-  public responseHeaders: HashMap<string, string> | null = null
+  public requestHeaders: Map<string, string> | null
+  public requestParams: Map<string, string> | null
+  public responseHeaders: Map<string, string> | null = null
   public callback: FetchResourceCallback | null
   public transferType: TransferType = TransferType.NORMAL
   public requestFrom: RequestFrom
@@ -61,12 +64,14 @@ export class ResourceDataHolder {
   public filePath = ""
 
   constructor(uri: string,
-              requestHeaders: HashMap<string, string> | null,
-              requestParams: HashMap<string, string> | null,
+              uriType: UriType,
+              requestHeaders: Map<string, string> | null,
+              requestParams: Map<string, string> | null,
               callback: FetchResourceCallback | null,
               from: RequestFrom,
               nativeRequestId: number) {
     this.uri = uri
+    this.uriType = uriType
     this.requestHeaders = requestHeaders
     this.requestParams = requestParams
     this.callback = callback
@@ -74,9 +79,92 @@ export class ResourceDataHolder {
     this.nativeRequestId = nativeRequestId
   }
 
+  private hashMap2Array(map: Map<string, string> | null): Array<string> | null {
+    if (!map) {
+      return null
+    }
+
+    let array = new Array<string>()
+    map.forEach((value: string, key: string) => {
+      array.push(key)
+      array.push(value)
+    })
+    return array
+  }
+
+  private array2HashMap(array: Array<string> | null): Map<string, string> | null {
+    if (!array || array.length <= 0) {
+      return null
+    }
+
+    let map = new Map<string, string>()
+    for (let i = 0; i < array.length; i += 2) {
+      let key = array[i]
+      if (i + 1 < array.length) {
+        let value = array[i + 1]
+        map.set(key, value)
+      }
+    }
+    return map
+  }
+
+  // call from c++
+  public setNativeRequestId(nativeRequestId: number) {
+    this.nativeRequestId = nativeRequestId;
+  }
+
+  // call from c++
+  public getNativeRequestId(): number {
+    return this.nativeRequestId;
+  }
+
+  // call from c++
+  public setUri(uri: string) {
+    this.uri = uri;
+  }
+
+  // call from c++
+  public getUri(): string {
+    return this.uri;
+  }
+
+  // call from c++
+  public getRequestHeadersArray(): Array<string> | null {
+    return this.hashMap2Array(this.requestHeaders)
+  }
+
+  // call from c++
+  public setResponseHeadersArray(responseHeadersArray: Array<string> | null) {
+    this.responseHeaders = this.array2HashMap(responseHeadersArray)
+  }
+
+  // call from c++
+  public getResponseHeadersArray(): Array<string> | null {
+    return this.hashMap2Array(this.responseHeaders)
+  }
+
+  // call from c++
+  public getResultCode(): number {
+    return this.resultCode;
+  }
+
+  // call from c++
+  public setResultCode(resultCode: number) {
+     this.resultCode = resultCode;
+  }
+
+  // call from c++
+  public setBuffer(buffer: ArrayBuffer) {
+    this.buffer = buffer;
+  }
+
+  // call from c++
+  public getBuffer(): ArrayBuffer | null {
+    return this.buffer;
+  }
+
   public recycle() {
     this.buffer = null;
-    this.bytes = null;
     this.callback = null;
     this.errorMessage = null;
     this.processorTag = null;
@@ -88,29 +176,23 @@ export class ResourceDataHolder {
 
   addResponseHeaderProperty(key: string, property: string) {
     if (this.responseHeaders == null) {
-      this.responseHeaders = new HashMap<string, string>()
+      this.responseHeaders = new Map<string, string>()
     }
     this.responseHeaders.set(key, property)
   }
 
-  readResourceDataFromStream(stream: fs.Stream) {
-    let arrayBuffer: ArrayBuffer | null = new ArrayBuffer(4096);
-    let readOption: ReadOptions = {
-      offset: 5,
-      length: 5
-    };
-    stream.read(arrayBuffer, readOption).then((readLen: number) => {
-      LogUtils.d(RESOURCE_DATA_TAG, "read data succeed");
-      this.buffer = buffer.from(arrayBuffer, 0, readLen).buffer;
-      LogUtils.d(RESOURCE_DATA_TAG, `The content of file: ${this.buffer?.toString()}`);
-      // this.bytes = new Uint8Array(this.buffer.buffer);
-      stream.close();
-    }).catch((err: HippyJsException) => {
-      LogUtils.e(RESOURCE_DATA_TAG, "read data failed with error message: " + err.message);
-    });
-  }
-
-  public getBytes(): ArrayBuffer | null {
-    return this.buffer
+  setBufferByFilePath(filePath: string) {
+    this.filePath = filePath;
+    let resultBuffer: ArrayBuffer | null = null
+    let stat = fs.statSync(this.filePath);
+    if (stat && stat.size > 0) {
+      let file = fs.openSync(this.filePath, fs.OpenMode.READ_WRITE);
+      if (file) {
+        resultBuffer = new ArrayBuffer(stat.size);
+        fs.readSync(file.fd, resultBuffer);
+        fs.closeSync(file);
+      }
+    }
+    this.buffer = resultBuffer;
   }
 }

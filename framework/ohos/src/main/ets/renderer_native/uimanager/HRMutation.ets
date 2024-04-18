@@ -55,11 +55,20 @@ export class HRUpdateMutation {
   }
 }
 
+export class HRMoveNodeInfo {
+  tag: number
+  index: number
+
+  constructor(tag: number, index: number) {
+    this.tag = tag
+    this.index = index
+  }
+}
+
 export class HRMoveMutation {
   type: HRMutationType
-  tag: number | null = null
+  nodeInfos: Array<HRMoveNodeInfo> | null = null
   parentTag: number | null = null
-  index: number | null = null
 
   constructor() {
     this.type = HRMutationType.MOVE
@@ -68,7 +77,7 @@ export class HRMoveMutation {
 
 export class HRMove2Mutation {
   type: HRMutationType
-  tag: number | null = null
+  tagArray: Array<number> | null = null
   toParentTag: number | null = null
   fromParentTag: number | null = null
   index: number | null = null

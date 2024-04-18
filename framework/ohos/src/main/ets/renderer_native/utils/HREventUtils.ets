@@ -119,6 +119,16 @@ export class HREventUtils {
   // On scroll view momentum end.
   static readonly EVENT_SCROLLER_MOMENTUM_END = "momentumScrollEnd"
 
+  static checkRegisteredEvent(ctx: NativeRenderContext, nodeId: number, eventName: string): boolean {
+    let intanceId = ctx.getInstanceId()
+    let rootId = ctx.getRootId()
+    let provider = NativeRenderProviderManager.getRenderProvider(intanceId)
+    if (provider) {
+      return provider.getNativeRenderImpl().checkRegisteredEvent(rootId, nodeId, eventName.toLowerCase())
+    }
+    return false
+  }
+
   static sendComponentEvent(ctx: NativeRenderContext, nodeId: number, eventName: string, params: HippyAny) {
     HREventUtils.send(ctx, nodeId, eventName, params, false, false, HREventType.COMPONENT)
   }
