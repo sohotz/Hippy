@@ -11,6 +11,14 @@
     {
       "name": "EntryAbility_label",
       "value": "Hippy"
+    },
+    {
+      "name": "hippy_desc",
+      "value": "提供极致流畅体验的可复用列表，通过binding模式实现高效的前端-终端通讯"
+    },
+    {
+      "name": "page_add_item_tips_text",
+      "value": "添加页"
     }
   ]
 }
