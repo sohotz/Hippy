@@ -72,6 +72,11 @@ export struct HRWaterfall {
       if (this.children[childrenCount - 1] instanceof HRPullFooterView) {
         this.footerView = this.children[childrenCount - 1] as HRPullFooterView
       }
+
+      if (this.bannerView) {
+        this.bannerView.cssPositionX = 0
+        this.bannerView.cssPositionY = 0
+      }
     }
   }
 
