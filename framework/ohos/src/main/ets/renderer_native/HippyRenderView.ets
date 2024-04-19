@@ -31,8 +31,8 @@ import { HRModal, HRModalView } from './components/modal/HRModalView';
 import { HRTextInput, HRTextInputView } from './components/textinput/HRTextInputView'
 import { HRViewPager, HRViewPagerView } from './components/pager/HRViewPager';
 import { HRViewPagerItem, HRViewPagerItemView } from './components/pager/HRViewPagerItem';
-import { HRWaterfall, HRWaterfallView } from './components/waterfall/HRWaterfall';
-import { HRWaterfallItem, HRWaterfallItemView } from './components/waterfall/HRWaterfallItem';
+import { HRWaterfall } from './components/waterfall/HRWaterfall';
+import { HRWaterfallItem, HRWaterfallItemView } from './components/waterfall/HRWaterfallItemView';
 import { HRRefreshWrapper,HRRefreshWrapperView } from './components/refreshwrapper/HRRefreshWrapper';
 import { HRRefreshWrapperItem, HRRefreshWrapperItemView } from './components/refreshwrapper/HRRefreshWrapperItem';
 import { HRRichText, HRRichTextView } from './components/richtext/HRRichTextView';
@@ -48,6 +48,7 @@ import { HRPullHeader, HRPullHeaderView } from './components/pullheader/HRPullHe
 import { HRPullFooter, HRPullFooterView } from './components/pullfooter/HRPullFooter';
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils';
 import { HRList } from './components/list/HRList';
+import { HRWaterfallView } from './components/waterfall/HRWaterfallView';
 
 export type HRComponent = HRDivView | HRScroll | HRModal | null
 

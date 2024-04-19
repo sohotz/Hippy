@@ -26,6 +26,7 @@ import HippyRenderBaseView, {
   HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HRRect } from '../../utils/HRTypes';
 
 @Observed
 export class HRWaterfallItemView extends HippyRenderBaseView {
@@ -38,6 +39,13 @@ export class HRWaterfallItemView extends HippyRenderBaseView {
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
     return super.setProp(propKey, propValue as HippyAny)
+  }
+
+  protected updateRenderViewFrame(frame: HRRect): void {
+    this.cssPositionX = 0
+    this.cssPositionY = 0
+    this.cssWidth = frame.width
+    this.cssHeight = frame.height
   }
 }
 
@@ -68,7 +76,7 @@ export struct HRWaterfallItem {
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  // .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)

@@ -29,8 +29,8 @@ import { HRTextInputView } from './textinput/HRTextInputView'
 import { HRWebView } from './web/HRWebView'
 import { HRViewPagerView } from './pager/HRViewPager'
 import { HRViewPagerItemView } from './pager/HRViewPagerItem'
-import { HRWaterfallView } from './waterfall/HRWaterfall'
-import { HRWaterfallItemView } from './waterfall/HRWaterfallItem'
+import { HRWaterfallView } from './waterfall/HRWaterfallView'
+import { HRWaterfallItemView } from './waterfall/HRWaterfallItemView'
 import { HRRefreshWrapperView } from './refreshwrapper/HRRefreshWrapper'
 import { HRRefreshWrapperItemView } from './refreshwrapper/HRRefreshWrapperItem'
 import { HRPullHeaderView } from './pullheader/HRPullHeader'
@@ -48,7 +48,7 @@ export function hippyRenderViewCreatorRegisterMap(): Map<string, HRRenderViewCre
   registerMap.set("ListView", (ctx): HippyRenderBaseView => new HRListView(ctx))
   registerMap.set("ListViewItem", (ctx): HippyRenderBaseView => new HRListItemView(ctx))
   registerMap.set("ScrollView", (ctx): HippyRenderBaseView => new HRScrollView(ctx))
-  registerMap.set("TextInput", (ctx): HippyRenderBaseView => new HRTextInputView(ctx))  
+  registerMap.set("TextInput", (ctx): HippyRenderBaseView => new HRTextInputView(ctx))
   registerMap.set("WebView", (ctx): HippyRenderBaseView => new HRWebView(ctx))
   registerMap.set("ViewPager", (ctx): HippyRenderBaseView => new HRViewPagerView(ctx))
   registerMap.set("ViewPagerItem", (ctx): HippyRenderBaseView => new HRViewPagerItemView(ctx))

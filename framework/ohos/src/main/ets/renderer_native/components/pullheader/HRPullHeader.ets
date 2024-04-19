@@ -28,6 +28,7 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRListView } from '../list/HRListView';
 import { HRRect } from '../../utils/HRTypes';
+import { HRWaterfallView } from '../waterfall/HRWaterfallView';
 
 @Observed
 export class HRPullHeaderView extends HippyRenderBaseView {
@@ -81,18 +82,32 @@ export class HRPullHeaderView extends HippyRenderBaseView {
   }
 
   onHeadRefreshFinish() {
-    let listView: HRListView = this.parentView as HRListView
-    listView.uiCtx?.runScopedTask(() => {
-      listView.scroller.scrollToIndex(1, true)
-    })
+    if (this.parentView) {
+      if (this.parentView instanceof HRListView) {
+        let listView = this.parentView as HRListView
+        listView.uiCtx?.runScopedTask(() => {
+          listView.scroller.scrollToIndex(1, true)
+        })
+      } else if (this.parentView instanceof HRWaterfallView) {
+        let waterView = this.parentView as HRWaterfallView
+        waterView.uiCtx?.runScopedTask(() => {
+          waterView.onHeadRefreshFinish()
+        })
+      }
+    }
   }
 
   onHeaderRefresh() {
-    let listView: HRListView = this.parentView as HRListView
-    listView.uiCtx?.runScopedTask(() => {
-      listView.scroller.scrollToIndex(0, true)
-    })
+    if (this.parentView) {
+      if (this.parentView instanceof HRListView) {
+        let listView = this.parentView as HRListView
+        listView.uiCtx?.runScopedTask(() => {
+          listView.scroller.scrollToIndex(0, true)
+        })
+      }
+    }
   }
+
 }
 
 @Component
@@ -124,7 +139,7 @@ export struct HRPullHeader {
 function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .key(HIPPY_COMPONENT_KEY_PREFIX + $$.tag)
   .backgroundColor($$.cssBackgroundColor)
-  .position({x: $$.cssPositionX, y: $$.cssPositionY})
+  // .position({x: $$.cssPositionX, y: $$.cssPositionY})
   .size({width:$$.cssWidth, height: $$.cssHeight})
   .opacity($$.cssOpacity)
   .clip($$.cssOverflow)
