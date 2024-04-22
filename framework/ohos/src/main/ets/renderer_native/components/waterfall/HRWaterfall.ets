@@ -138,8 +138,7 @@ export struct HRWaterfall {
       .alignItems(VerticalAlign.Bottom)
     }
   }
-
-  // WaterFlow 的 footer 设置了没有效果
+  
   @Builder
   customFooter() {
     if (this.footerView) {
