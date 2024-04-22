@@ -184,14 +184,19 @@ export class ResourceDataHolder {
   setBufferByFilePath(filePath: string) {
     this.filePath = filePath;
     let resultBuffer: ArrayBuffer | null = null
-    let stat = fs.statSync(this.filePath);
-    if (stat && stat.size > 0) {
-      let file = fs.openSync(this.filePath, fs.OpenMode.READ_WRITE);
-      if (file) {
-        resultBuffer = new ArrayBuffer(stat.size);
-        fs.readSync(file.fd, resultBuffer);
-        fs.closeSync(file);
+    let res = fs.accessSync(filePath);
+    if (res) {
+      let stat = fs.statSync(this.filePath);
+      if (stat && stat.size > 0) {
+        let file = fs.openSync(this.filePath, fs.OpenMode.READ_WRITE);
+        if (file) {
+          resultBuffer = new ArrayBuffer(stat.size);
+          fs.readSync(file.fd, resultBuffer);
+          fs.closeSync(file);
+        }
       }
+    } else {
+      LogUtils.i(RESOURCE_DATA_TAG, `file not exists, ${filePath}`);
     }
     this.buffer = resultBuffer;
   }
