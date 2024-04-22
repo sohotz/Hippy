@@ -34,8 +34,7 @@ export class DevMenuModule extends HippyNativeModuleBase {
 
   private reload() {
     try {
-      //todo
-      // this.ctx.getDevSupportManager().getDevImp().reload();
+      this.ctx.getDevSupportManager().getDevImp().reload();
     } catch (e) {
       LogUtils.e("HippyDevMemo", "reload error: " + e.getMessage());
     }
