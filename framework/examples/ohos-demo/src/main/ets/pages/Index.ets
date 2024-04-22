@@ -52,7 +52,7 @@ struct Index {
         .fontWeight(500)
         .fontSize(17)
 
-      Text("Ver£º3.0.0")
+      Text("Verï¼š3.0.0")
         .margin({top:10})
         .fontColor('#A1ACBD')
         .fontWeight(400)
