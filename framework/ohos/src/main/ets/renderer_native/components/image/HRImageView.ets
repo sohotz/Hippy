@@ -80,6 +80,8 @@ export class HRImageView extends HippyRenderBaseView {
   cssSrc: string | Resource | null = null
   cssAlt: string | Resource | null = null
   cssResizeMode: ImageFit = ImageFit.Fill
+  imageRepeat: ImageRepeat = ImageRepeat.NoRepeat
+  resizable: ResizableOptions | null = null
   cssTintColor: number[] = [0] // RGBA
   cssColorFilter: ColorFilter = [0]
   cssTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.SRC_ATOP
@@ -108,13 +110,14 @@ export class HRImageView extends HippyRenderBaseView {
         this.cssResizeMode = ImageFit.Cover
         break;
       case 'center':
-        this.cssResizeMode = ImageFit.Contain
+        this.cssResizeMode = ImageFit.ScaleDown
         break;
       case 'origin':
         this.cssResizeMode = ImageFit.None
         break;
       case 'repeat':
-        this.cssResizeMode = ImageFit.Contain
+        this.cssResizeMode = ImageFit.ScaleDown
+        this.imageRepeat = ImageRepeat.XY
         break;
       case 'fitXY':
         this.cssResizeMode = ImageFit.Fill
@@ -321,6 +324,18 @@ export class HRImageView extends HippyRenderBaseView {
           this.setColorFilterMatrix()
         }
         return true
+      case 'capInsets':
+        let map = HRValueUtils.getMap(propValue as HippyAny)
+        if (map) {
+          let left = Math.round(HRValueUtils.getNumber(map.get("left")))
+          let top = Math.round(HRValueUtils.getNumber(map.get("top")))
+          let right = Math.round(HRValueUtils.getNumber(map.get("right")))
+          let bottom = Math.round(HRValueUtils.getNumber(map.get("bottom")))
+          this.resizable = { slice: { top: top, right: right, bottom: bottom, left: left }}
+        } else {
+          this.resizable = null
+        }
+        return true
       default:
         break
     }
@@ -424,7 +439,9 @@ export struct HRImage {
       .applyRenderViewBaseAttr(this.renderView)
       .alt(this.renderView.cssAlt)
       .objectFit(this.renderView.cssResizeMode)
+      .objectRepeat(this.renderView.imageRepeat)
       .colorFilter(this.renderView.cssColorFilter)
+      .resizable(this.renderView.resizable)
       .onComplete(this.renderView.onCompleteCallback)
       .onError(this.renderView.onErrorCallback)
   }
