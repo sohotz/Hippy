@@ -20,7 +20,7 @@
 import { HippyGlobalConfigs } from '../../hippy_framework/HippyGlobalConfigs';
 import { DevRemoteServerData } from './DevRemoteServerData';
 import util from '@ohos.util';
-import { TextUtils } from '../utils/TextUtils';
+import { TextUtils } from '../../support/utils/TextUtils';
 
 export class DevServerHelper {
   private static BUNDLE_URL_FORMAT = "%s://%s/%s?platform=android&dev=%s&hot=%s&minify=%s";

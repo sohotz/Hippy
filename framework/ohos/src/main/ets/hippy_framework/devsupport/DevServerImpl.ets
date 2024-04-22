@@ -26,7 +26,7 @@ import { DevServerConfig } from './DevServerConfig';
 import { DevServerHelper } from './DevServerHelper';
 import { DevServerInterface } from './DevServerInterface';
 import Stack from '@ohos.util.Stack';
-import { HippyException } from '../common/HippyException';
+import { HippyException } from '../../support/common/HippyException';
 
 export class DevServerImpl implements DevServerInterface, OnReloadListener {
   private static TAG = "DevServerImpl";
@@ -95,9 +95,9 @@ export class DevServerImpl implements DevServerInterface, OnReloadListener {
   }
 
   getDevButton(rootId: number): View | null {
-    if (this.mDevButtonMaps != null) {
-      return this.mDevButtonMaps.get(rootId) as View;
-    }
+    // if (this.mDevButtonMaps != null) {
+    //   return this.mDevButtonMaps.get(rootId) as View;
+    // }
     return null;
   }
 }

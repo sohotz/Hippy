@@ -17,10 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TextUtils } from '../utils/TextUtils';
 import Url from '@ohos.url';
 import { util } from '@kit.ArkTS';
-import { LogUtils } from '../utils/LogUtils';
+import { TextUtils } from '../../support/utils/TextUtils';
+import { LogUtils } from '../../support/utils/LogUtils';
 
 export class DevRemoteServerData {
   private static KEY_DEBUG_URL = "debugUrl";

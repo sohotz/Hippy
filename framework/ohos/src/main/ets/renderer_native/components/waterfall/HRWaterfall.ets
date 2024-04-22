@@ -138,7 +138,7 @@ export struct HRWaterfall {
       .alignItems(VerticalAlign.Bottom)
     }
   }
-  
+
   @Builder
   customFooter() {
     if (this.footerView) {

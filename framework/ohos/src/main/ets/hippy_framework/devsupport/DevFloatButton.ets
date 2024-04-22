@@ -17,12 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { display } from '@kit.ArkUI';
 
 export class DevFloatButton{
   private mWidth: number;
 
   constructor(context: Context) {
-    super();
+    // super();
     this.mWidth = this.dip2px(context) as number;
     this.buildBackground();
     // setFocusable(true);
