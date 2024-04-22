@@ -25,12 +25,13 @@ import { HippyGlobalConfigs } from './HippyGlobalConfigs';
 import { HashMap } from '@kit.ArkTS';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HippyJsException } from './common/HippyJsException';
+import { DevSupportManager } from './devsupport/DevSupportManager';
 
 export interface HippyEngineContext {
 
   getComponentName(): string
 
-  getNativeParams() : Map<string, Object>
+  getNativeParams(): Map<string, Object>
 
   getVfsManager(): VfsManager
 
@@ -45,7 +46,8 @@ export interface HippyEngineContext {
   getBridgeManager(): HippyBridgeManager
 
   // TODO
-  // DevSupportManager getDevSupportManager();
+  getDevSupportManager(): DevSupportManager
+
   //
   // DevtoolsManager getDevtoolsManager();
 
@@ -65,8 +67,10 @@ export interface HippyEngineContext {
   // int getEngineId();
   //
   getDomManagerId(): number;
+
   //
   getVfsId(): number;
+
   //
   // int getDevtoolsId();
   //

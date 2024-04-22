@@ -1,6 +1,5 @@
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HRRenderViewCreator } from '../renderer_native/components/HippyRenderRegisterMap';
-import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 import { PixelUtil } from '../support/utils/PixelUtil';
 import { TimeMonitor } from '../support/utils/TimeMonitor';
@@ -15,31 +14,31 @@ import { EngineInitParams } from './HippyEngine';
 import { HippyEngineContext } from './HippyEngineContext';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
 import { HippyModuleManagerImpl } from './modules/HippyModuleManagerImpl';
-import { HashMap } from '@kit.ArkTS';
 import { HippyResourceLoader } from './adapter/http/HippyResourceLoader';
 import { DefaultProcessor } from '../vfs/DefaultProcessor';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HippyJsException } from './common/HippyJsException';
-import { BridgeCallback } from './bridge/HippyBridge';
+import { DevSupportManager } from './devsupport/DevSupportManager';
 
 export class HippyEngineContextImpl implements HippyEngineContext {
-  private mEngineInitParams: EngineInitParams;
-  private mGlobalConfigs: HippyGlobalConfigs;
   public vfsManager: VfsManager
   public nativeParams: Map<string, Object> = new Map<string, Object>()
+  public mCoreBundleLoader: HippyBundleLoader | null = null;
+  public nativeRenderProvider: NativeRenderProvider | null = null
+  public nativeRenderer: NativeRenderer | null = null
+  private mEngineInitParams: EngineInitParams;
+  private mGlobalConfigs: HippyGlobalConfigs;
   private mDomManager: DomManager;
   private mMonitor: TimeMonitor;
   private mModuleManager: HippyModuleManager;
   private mBridgeManager: HippyBridgeManager;
-  public mCoreBundleLoader: HippyBundleLoader | null = null;
   private providers: Array<HippyAPIProvider> | null = null
-  public nativeRenderProvider: NativeRenderProvider | null = null
-  public nativeRenderer: NativeRenderer | null = null
   private libHippy: HippyLibrary
   private mJsDriver: JsDriver
-
   // TODO
+  private mDevSupportManager: DevSupportManager;
+
   // private mDevtoolsManager: DevtoolsManager;
 
 
@@ -99,6 +98,13 @@ export class HippyEngineContextImpl implements HippyEngineContext {
       this.mJsDriver);
     this.mBridgeManager = bridgeManagerImpl
     this.mJsDriver.setBridgeCallback(bridgeManagerImpl)
+    this.mDevSupportManager = new DevSupportManager(globalConfigs, params.debugMode, params.debugServerHost,
+      params.debugBundleName, params.remoteServerUrl);
+    // this.mDevSupportManager.setDevCallback(this);
+  }
+
+  getDevSupportManager(): DevSupportManager {
+    return this.mDevSupportManager;
   }
 
   onRuntimeInitialized(): void {
@@ -154,7 +160,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     return this.mBridgeManager;
   }
 
-  getNativeParams() : Map<string, Object> {
+  getNativeParams(): Map<string, Object> {
     return this.nativeParams
   }
 
