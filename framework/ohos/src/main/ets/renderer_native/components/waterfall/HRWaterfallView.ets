@@ -28,7 +28,7 @@ export type HippyHeadRefreshFinishCallback = () => void
 @Observed
 export class HRWaterfallView extends HippyRenderBaseView {
   private readonly TAG = "HRWaterfallView"
-  public edgeEffect: EdgeEffect = EdgeEffect.Spring;
+  public edgeEffect: EdgeEffect = EdgeEffect.None;
   public padding: Padding = { top: 0, right: 0, bottom: 0, left: 0 };
   public scrollEventThrottle: number = 30
   public preloadItemNumber: number = 0
@@ -49,7 +49,7 @@ export class HRWaterfallView extends HippyRenderBaseView {
     LogUtils.d(this.TAG, `setProp: propKey:${propKey} , value:${propValue}`)
     switch (propKey) {
       case 'bounces':
-        let b = HRValueUtils.getBoolean(propValue as HippyAny, true);
+        let b = HRValueUtils.getBoolean(propValue as HippyAny, false);
         this.edgeEffect = b ? EdgeEffect.Spring : EdgeEffect.None;
         return true
       case 'contentInset':
