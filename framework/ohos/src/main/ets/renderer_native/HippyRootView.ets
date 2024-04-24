@@ -21,6 +21,7 @@ import window from '@ohos.window';
 import { HippyEngine } from '../hippy_framework';
 import { HippyException } from '../support/common/HippyException';
 import { HippyRecord } from '../support/common/HippyTypes';
+import { LogUtils } from '../support/utils/LogUtils';
 import HippyRenderBaseView from './components/base/HippyRenderBaseView';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import { FrameworkProxy } from './FrameworkProxy';
@@ -221,7 +222,7 @@ export struct HippyRoot {
           .width('100%')
           .height('100%')
           .onAppear(() => {
-            console.log("did hippy render")
+            LogUtils.d("hippy", "did hippy render")
           })
       } else {
 
