@@ -18,8 +18,10 @@
  * limitations under the License.
  */
 import { router } from '@kit.ArkUI'
+import { HippyEngine } from 'hippy'
 import { DriverSetting } from './DriverSetting'
 import { RendererSetting } from './RendererSetting'
+import { image } from '@kit.ImageKit'
 
 export enum DriverMode {
   JS_REACT,
@@ -42,11 +44,17 @@ export class InitParams {
   isDebugMode:boolean = false
   isSnapShotMode:boolean = false
   debugServerHost:string = DEFAULT_DEBUG_SERVER_HOST
+  hippyEngine:HippyEngine | null = null
+  snapShot:image.PixelMap | null = null
+
+  index:number = -1 //only using for router.params
 }
 
 @Entry
 @Component
 struct PageConfiguration {
+  @StorageLink('pageManagementItems') pageitems:InitParams[]  = [] //AppStorage.get('pageManagementItems') as InitParams[]
+
   @State driver:Resource = $r('app.string.driver_js_react')
   private driverSettingDlg:CustomDialogController = {} as CustomDialogController
   @Provide driverMode:DriverMode = DriverMode.JS_REACT

@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { router } from '@kit.ArkUI'
+import { componentSnapshot, router } from '@kit.ArkUI'
 import {
   createHippyEngine,
   EngineInitParams,
@@ -32,35 +32,49 @@ import { LogUtils } from 'hippy/src/main/ets/support/utils/LogUtils'
 import { ExampleAPIProvider } from '../hippyExtend/ExampleAPIProvider'
 import { ExampleCustomComponent, ExampleCustomComponentView } from '../hippyExtend/ExampleCustomComponentView'
 import { DriverMode, InitParams } from './PageConfiguration'
+import { image } from '@kit.ImageKit'
 
 @Entry
 @Component
 struct ExampleHippyPage {
+  @StorageLink('pageManagementItems') pageitems:InitParams[]  = [] //AppStorage.get('pageManagementItems') as InitParams[]
+  itemInfo:InitParams | null = null
+
   @StorageLink('libHippy') private libHippy: HippyLibrary | null = null
   @StorageLink('abilityContext') private abilityContext: Context | null = null
   @State exception: string = ""
   private hippyEngine: HippyEngine | null = null
 
   aboutToAppear(): void {
-    let configParams = router.getParams() as InitParams
+    this.itemInfo = router.getParams() as InitParams
+    if (this.itemInfo.index != -1) {
+      let item = this.pageitems[this.itemInfo.index] as InitParams
+      this.hippyEngine = item.hippyEngine as HippyEngine
+    } else {
+      let params = new EngineInitParams(this.libHippy!, this.abilityContext!)
+      params.debugServerHost = this.itemInfo.debugServerHost
+      params.debugMode = this.itemInfo.isDebugMode
+      //params.enableLog = true
 
-    let params = new EngineInitParams(this.libHippy!, this.abilityContext!)
-    params.providers = new Array(new ExampleAPIProvider())
+      params.providers = new Array(new ExampleAPIProvider())
 
-    params.coreJSAssetsPath = "react/vendor.ohos.js"
-    if (configParams.driver === DriverMode.JS_VUE_2) {
-      params.coreJSAssetsPath = "vue2/vendor.ohos.js"
-    } else if (configParams.driver === DriverMode.JS_VUE_3) {
-      params.coreJSAssetsPath = "vue3/vendor.ohos.js"
+      params.coreJSAssetsPath = "react/vendor.ohos.js"
+      if (this.itemInfo.driver === DriverMode.JS_VUE_2) {
+        params.coreJSAssetsPath = "vue2/vendor.ohos.js"
+      } else if (this.itemInfo.driver === DriverMode.JS_VUE_3) {
+        params.coreJSAssetsPath = "vue3/vendor.ohos.js"
+      }
+
+      this.hippyEngine = createHippyEngine(params)
+      this.itemInfo.hippyEngine = this.hippyEngine
     }
 
-    this.hippyEngine = createHippyEngine(params)
     this.hippyEngine.initEngine((statusCode: EngineInitStatus, msg: string) => {
       if (statusCode == EngineInitStatus.STATUS_OK) {
         let jsAssetPath = 'react/index.ohos.js'
-        if (configParams.driver === DriverMode.JS_VUE_2) {
+        if (this.itemInfo?.driver === DriverMode.JS_VUE_2) {
           jsAssetPath = "vue2/index.ohos.js"
-        } else if (configParams.driver === DriverMode.JS_VUE_3) {
+        } else if (this.itemInfo?.driver === DriverMode.JS_VUE_3) {
           jsAssetPath = "vue3/index.ohos.js"
         }
 
@@ -105,6 +119,18 @@ struct ExampleHippyPage {
         .width(55)
         .height(54)
         .onClick(() => {
+          componentSnapshot.get('HippyRoot',(error: Error, pixmap: image.PixelMap) => {
+            if (error) {
+              LogUtils.d('HippyPage', "error: " + JSON.stringify(error))
+              return
+            }
+
+            let item  = this.itemInfo as InitParams
+            if (item.index === -1) {
+              item.snapShot = pixmap
+              this.pageitems.push(item)
+            }
+          })
           router.back()
         })
         .id('btn_back')
@@ -144,6 +170,8 @@ struct ExampleHippyPage {
         },
       })
         .layoutWeight(1)
+        .id('HippyRoot')
+
       if (this.exception) {
         Text(this.exception)
       }

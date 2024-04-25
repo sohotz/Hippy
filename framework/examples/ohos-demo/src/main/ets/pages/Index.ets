@@ -80,15 +80,15 @@ struct Index {
 
       Row() {
         Column() {
-          RelativeContainer() {
+         // RelativeContainer() {
             Image(this.page_management_icon)
               .width(19)
               .height(21)
               .margin({ top: 8 })
-              .alignRules({
-                top: { anchor: "__container__", align: VerticalAlign.Top },
-                middle: { anchor: "__container__", align: HorizontalAlign.Center }
-              })
+              // .alignRules({
+              //   top: { anchor: "__container__", align: VerticalAlign.Top },
+              //   middle: { anchor: "__container__", align: HorizontalAlign.Center }
+              // })
               .id('page_management_icon')
 
               Text('Page Manage')
@@ -96,16 +96,16 @@ struct Index {
                 .fontWeight(400)
                 .fontSize(11)
                 .margin({ top: 2 })
-                .alignRules({
-                  top: { anchor: "page_management_icon", align: VerticalAlign.Bottom },
-                  bottom:{anchor:"__container__", align:VerticalAlign.Bottom},
-                  middle: { anchor: "__container__", align: HorizontalAlign.Center },
-                  bias:{vertical:0.656}
-                })
-                .height('13fp')
+                // .alignRules({
+                //   top: { anchor: "page_management_icon", align: VerticalAlign.Bottom },
+                //   bottom:{anchor:"__container__", align:VerticalAlign.Bottom},
+                //   middle: { anchor: "__container__", align: HorizontalAlign.Center },
+                //   bias:{vertical:0.656}
+                // })
+                // .height('13fp')
                 .id("page_management_text")
-          }
-          .height('100%')
+          //}
+          //.height('100%')
         }
         .height(52)
         .width('50%')
@@ -147,6 +147,12 @@ struct Index {
               this.page_setting_icon = $r('app.media.setting_2x')
             }
           }
+        })
+        .onClick(()=>{
+          router.pushUrl({
+            url: 'pages/PageSetting',
+            params: {}
+          })
         })
       }
       .width('100%')

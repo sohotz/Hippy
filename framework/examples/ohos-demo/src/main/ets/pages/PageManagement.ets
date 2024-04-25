@@ -18,6 +18,8 @@
  * limitations under the License.
  */
 import { router } from '@kit.ArkUI'
+import storage from '@ohos.data.storage'
+import { DriverMode, InitParams } from './PageConfiguration'
 
 //dimens.xml
 const page_index_item_margin:number = 16
@@ -30,7 +32,31 @@ const page_item_attribute_prompt_height:number = 23
 @Entry
 @Component
 struct PageManagement {
-  @State pageitems:number[] = []
+  @StorageLink('pageManagementItems') pageitems:InitParams[] = [] //AppStorage.get('pageManagementItems') as InitParams[]
+
+  getDriverDisplayTips(param:InitParams):string {
+    let tips = ''
+    switch (param.driver) {
+      case DriverMode.JS_REACT:
+       tips =  'React'
+        break;
+      case DriverMode.JS_VUE_2:
+        tips =  'Vue2.0'
+        break;
+      case DriverMode.JS_VUE_3:
+        tips =  'Vue3.0'
+        break;
+      case DriverMode.VL:
+        tips =  'VL'
+        break;
+    }
+
+    if (param.isDebugMode) {
+      tips += " + debug"
+    }
+
+    return tips
+  }
 
   build() {
     Column() {
@@ -66,24 +92,28 @@ struct PageManagement {
       //getPageIndexItemWidth ===> margin | grid | margin | grid margin
       Grid() {
         //generateBitmapFromView <====> .ets
-        ForEach(this.pageitems, ()=>{
+        ForEach(this.pageitems, (item:InitParams, index:number)=>{
           GridItem() { //TODO: no android:elevation="3dp"
             Column() {
               Row() {
-                Image($r('app.media.startIcon'))
-                  .width(page_item_add_image_width)
-                  .height(page_item_add_image_height)
-                  .onClick(()=>{
-                    router.pushUrl({
-                      url: 'pages/PageConfiguration',
-                      params: {}
-                    })
-                  })
+                Image(item.snapShot)
+                  // .width(page_item_add_image_width)
+                  // .height(page_item_add_image_height)
+                  .objectFit(ImageFit.Contain)
               }
               .width('100%')
               .height('calc(100% - 23vp)')  //page_item_attribute_prompt_height
               .backgroundColor(Color.White)
               .justifyContent(FlexAlign.Center)
+              .onClick(()=>{
+                let params = new InitParams()
+                params.index = index
+
+                router.pushUrl({
+                  url: 'pages/ExampleHippyPage',
+                  params: params
+                })
+              })
 
               Row() {
                 Row() {
@@ -95,7 +125,7 @@ struct PageManagement {
                 .width(30)
                 .height(28)
                 .onClick(()=>{
-                  this.pageitems.pop()
+                  this.pageitems?.splice(index, 1)
                 })
               }
               .width('100%')
@@ -107,7 +137,7 @@ struct PageManagement {
                   .width(12)
                   .height(12)
 
-                Text('Reactive')
+                Text(this.getDriverDisplayTips(item))
                   .margin({left:4})
                   .fontColor('#4A5970')
                   .fontWeight(400)
@@ -119,6 +149,9 @@ struct PageManagement {
           }
           .width('100%')
           .aspectRatio(page_item_default_width/page_item_default_height)
+        }, (item:InitParams, index:number)=>{
+          let time = (new Date()).getTime() //force render when itemlist changing
+          return `PageManagementItem_${index}_${time}`
         })
 
         //add page item
@@ -139,6 +172,7 @@ struct PageManagement {
             .height('calc(100% - 23vp)')  //page_item_attribute_prompt_height
             .backgroundColor(Color.White)
             .justifyContent(FlexAlign.Center)
+            //.shadow(ShadowStyle.OUTER_DEFAULT_SM)
 
             Row() {
               Image($r('app.media.page_item_add_4x'))

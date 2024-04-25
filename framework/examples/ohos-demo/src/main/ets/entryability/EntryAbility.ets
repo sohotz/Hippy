@@ -36,6 +36,9 @@ export default class EntryAbility extends UIAbility {
 
     AppStorage.setOrCreate("libHippy", libHippy)
     AppStorage.setOrCreate("abilityContext", this.context)
+
+    let pageManagementItems:Object[] = []
+    AppStorage.setOrCreate("pageManagementItems", pageManagementItems)
   }
 
   onDestroy() {
