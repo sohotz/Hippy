@@ -19,6 +19,10 @@
     {
       "name": "page_add_item_tips_text",
       "value": "添加页"
+    },
+    {
+      "name":"page_setting_building_title",
+      "value": "页面建设中..."
     }
   ]
 }

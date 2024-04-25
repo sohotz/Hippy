@@ -51,6 +51,10 @@
     {
       "name":"renderer_flutter",
       "value": "Flutter"
+    },
+    {
+      "name":"page_setting_building_title",
+      "value": "Coming soon"
     }
   ]
 }
