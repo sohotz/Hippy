@@ -123,7 +123,6 @@ export class HRImageView extends HippyRenderBaseView {
         this.cssResizeMode = ImageFit.Fill
         break;
       default:
-        console.log(`unknown resizeMode : ${pvalue}`)
         this.cssResizeMode = ImageFit.Fill
         break;
     }
@@ -264,7 +263,6 @@ export class HRImageView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    console.log(`propKey is : ${propKey},propValue is : ${propValue}`)
     switch (propKey) {
       case HRNodeProps.VERTICAL_ALIGN:
         if(this.isImageSpan()) {

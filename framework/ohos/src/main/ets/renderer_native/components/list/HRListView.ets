@@ -46,13 +46,6 @@ export class HRListView extends HippyRenderBaseView {
   momentumScrollEndEventEnable: boolean = false
   onScrollEventEnable: boolean = false
 
-  lastItemFullVisibleYOffset: number = 0
-  footerViewFullVisibleYOffset: number = 0
-  // 当initialIndex设为1时，初始yOffset并不是headerView的高度，而是一个200+的值，
-  // 只有下滑一下触发了headerView的创建yOffset才变对。
-  // 所以这里做个修正：dtYOffset = 初始yOffset - headerView的高度
-  dtYOffset: number = 0
-
   hasPullHeader: boolean = false
   pullHeaderHeight: number = 0
 

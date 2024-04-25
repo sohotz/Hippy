@@ -44,7 +44,6 @@ export class HRViewPagerView extends HippyRenderBaseView {
   }
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
-    console.log(`HRViewPagerView: propKey is : ${propKey},propValue is : ${propValue}`)
     if (propKey === 'initialPage') {
       this.initialPage = HRValueUtils.getNumber(propValue as HippyAny);
       this.index = this.initialPage

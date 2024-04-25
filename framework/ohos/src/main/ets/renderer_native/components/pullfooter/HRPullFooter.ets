@@ -65,11 +65,6 @@ export class HRPullFooterView extends HippyRenderBaseView {
         {
           if (this.parentView && this.parentView instanceof HRListView) {
             let listParentView = this.parentView as HRListView
-            listParentView.scroller.scrollTo({
-              "xOffset": 0,
-              "yOffset": listParentView.footerViewFullVisibleYOffset + listParentView.dtYOffset,
-              "animation": true
-            })
           }
         }
         break;

@@ -79,6 +79,13 @@ export class ImageLoaderModule extends HippyNativeModuleBase {
   private decodeImageData(url: string, filePath: string, promise: HippyModulePromise) {
     let sourceOptions: image.SourceOptions = { sourceDensity: 120 };
     let imageSourceApi: image.ImageSource = image.createImageSource(filePath, sourceOptions);
+    if (!imageSourceApi) {
+      let errorMsg = "Create image source failed, url=" + url + ", filePath=" + filePath;
+      let map = new Map<string, string>()
+      map.set("error", errorMsg)
+      promise.resolve(map);
+      return;
+    }
     imageSourceApi.getImageInfo((err: HippyJsException, imageInfo: image.ImageInfo) => {
       let map = new Map<string, string>()
       if (err != undefined) {

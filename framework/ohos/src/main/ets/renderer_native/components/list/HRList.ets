@@ -60,12 +60,14 @@ export struct HRList {
   private stickyArray: number[] = []
   private stickyStack: number[] = []
 
-  private isFirstTouch: boolean = true
   private isDragging: boolean = false
 
   private lastMoveY: number = 0
 
   private initOffsetUsed: boolean = false
+  private headerViewFullVisible: boolean = false
+  private footerViewFullVisible: boolean = false
+  private lastItemFullVisibleYOffset: number = 0
 
   private endBatchCallback: HippyEndBatchCallback | null = null
 
@@ -84,27 +86,14 @@ export struct HRList {
       }
     }
 
-    let fullY = 0
     this.stickyArray.splice(0, this.stickyArray.length)
     this.children.forEach((element, index) => {
-      fullY += element.cssHeight
-
       if (element instanceof HRListItemView) {
         if ((element as HRListItemView).sticky) {
           this.stickyArray.push(index)
         }
       }
     })
-
-    fullY -= this.renderView.cssHeight
-
-    if (this.footerView) {
-      this.renderView.lastItemFullVisibleYOffset = fullY - this.footerView.cssHeight
-      this.renderView.footerViewFullVisibleYOffset = fullY
-    } else {
-      this.renderView.lastItemFullVisibleYOffset = fullY
-      this.renderView.footerViewFullVisibleYOffset = 0
-    }
   }
 
   aboutToAppear(): void {
@@ -215,17 +204,6 @@ export struct HRList {
   }
 
   private checkBeginDrag() {
-    if (this.isFirstTouch) {
-      this.isFirstTouch = false
-      if (this.headerView) {
-        let offset = this.renderView.scroller.currentOffset()
-        if (offset) {
-          let y = offset.yOffset
-          this.renderView.dtYOffset = y - this.headerView.cssHeight
-        }
-      }
-    }
-
     if (!this.isDragging) {
       this.isDragging = true
       if (this.renderView.scrollBeginDragEventEnable) {
@@ -244,27 +222,21 @@ export struct HRList {
         this.emitScrollEvent(HREventUtils.EVENT_SCROLLER_MOMENTUM_BEGIN);
       }
 
-      let offset = this.renderView.scroller.currentOffset()
-      let y = offset.yOffset
-      y -= this.renderView.dtYOffset
       if (this.headerView && this.pullAction == ScrollAction.PullHeader) {
-        if (y <= 0) {
+        if (this.headerViewFullVisible) {
           HREventUtils.sendComponentEvent(this.headerView.ctx, this.headerView.tag,
             HREventUtils.EVENT_PULL_HEADER_RELEASED, null)
-        } else if (y < this.headerView.cssHeight) {
+        } else {
           this.renderView.scroller.scrollToIndex(1, true)
         }
         this.pullAction = ScrollAction.None
       } else if (this.footerView && this.pullAction == ScrollAction.PullFooter) {
-        if (this.renderView.footerViewFullVisibleYOffset > 0 && y >= this.renderView.footerViewFullVisibleYOffset) {
+        if (this.footerViewFullVisible) {
           HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
             HREventUtils.EVENT_PULL_FOOTER_RELEASED, null)
-        } else if (y > this.renderView.lastItemFullVisibleYOffset) {
-          this.renderView.scroller.scrollTo({
-            xOffset: 0,
-            yOffset: this.renderView.lastItemFullVisibleYOffset + this.renderView.dtYOffset,
-            animation: true
-          })
+        } else {
+          let lastIndex = this.dataSource!.totalCount() - 1
+          this.renderView.scroller.scrollToIndex(lastIndex - 1, true, ScrollAlign.END)
         }
         this.pullAction = ScrollAction.None
       }
@@ -275,30 +247,43 @@ export struct HRList {
     let lastIndex = this.dataSource!.totalCount() - 1
     if (this.headerView && index == 0) {
       if (isVisible) {
-        this.renderView.dtYOffset = 0
         if (this.isDragging) {
           this.pullAction = ScrollAction.PullHeader
+          if (currentRatio >= 1.0) {
+            this.headerViewFullVisible = true
+          } else {
+            this.headerViewFullVisible = false
+          }
         } else {
           this.renderView.scroller.scrollToIndex(1, true)
         }
-      } else if (currentRatio <= 0.0) {
-        this.pullAction = ScrollAction.None
+      } else {
+        this.headerViewFullVisible = false
+        if (currentRatio <= 0.0) {
+          this.pullAction = ScrollAction.None
+        }
       }
     } else if (this.footerView && index == lastIndex) {
       if (isVisible) {
         if (this.isDragging) {
           this.pullAction = ScrollAction.PullFooter
+          if (currentRatio >= 1.0) {
+            this.footerViewFullVisible = true
+          } else {
+            this.footerViewFullVisible = false
+          }
         } else {
-          this.renderView.scroller.scrollTo({
-            xOffset: 0,
-            yOffset: this.renderView.lastItemFullVisibleYOffset + this.renderView.dtYOffset,
-            animation: true
-          })
+          this.renderView.scroller.scrollToIndex(lastIndex - 1, true, ScrollAlign.END)
         }
       } else {
+        this.footerViewFullVisible = false
         if (currentRatio <= 0.0) {
           this.pullAction = ScrollAction.None
         }
+      }
+    } else if (this.footerView && index == lastIndex - 1) {
+      if (isVisible && currentRatio >= 1.0) {
+        this.lastItemFullVisibleYOffset = this.renderView.scroller.currentOffset().yOffset
       }
     }
   }
@@ -314,7 +299,7 @@ export struct HRList {
         HREventUtils.EVENT_PULL_HEADER_PULLING, params);
     } else if (this.footerView && this.pullAction === ScrollAction.PullFooter) {
       let params = new Map<string, Number>() as HippyMap;
-      params.set(this.CONTENT_OFFSET, yOff - this.renderView.dtYOffset - this.renderView.lastItemFullVisibleYOffset);
+      params.set(this.CONTENT_OFFSET, yOff - this.lastItemFullVisibleYOffset);
       HREventUtils.sendComponentEvent(this.footerView.ctx, this.footerView.tag,
         HREventUtils.EVENT_PULL_FOOTER_PULLING, params);
     }
@@ -421,11 +406,16 @@ export struct HRList {
 
       // sticky item
       if (this.renderView.rowShouldSticky) {
-        ForEach(this.stickyArray, (index: number) => {
-          if (index == this.stickyIndex) {
-            this.buildRenderView(this.children[index], null)
-          }
-        })
+        Column() {
+          ForEach(this.stickyArray, (index: number) => {
+            if (index == this.stickyIndex) {
+              this.buildRenderView(this.children[index], null)
+            }
+          })
+        }
+        .width("100%")
+        .height("100%")
+        .hitTestBehavior(HitTestMode.Transparent)
       }
     }.applyRenderViewBaseAttr(this.renderView)
   }
