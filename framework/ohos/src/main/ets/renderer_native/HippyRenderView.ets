@@ -211,7 +211,7 @@ export struct HippyRender {
         children: $$.children,
         buildRenderView: this.buildRenderView,
         buildCustomRenderView: this.buildCustomRenderView
-      })
+      }).reuseId($$.type)
     } else if ($$ instanceof HRTextInputView) {
       HRTextInput({ renderView: $$ as HRTextInputView, children: $$.children, buildRenderView: this.buildRenderView })
     } else if ($$ instanceof HRWebView) {
@@ -236,7 +236,7 @@ export struct HippyRender {
         children: $$.children,
         buildRenderView: this.buildRenderView,
         buildCustomRenderView: this.buildCustomRenderView
-      })
+      }).reuseId($$.type)
     } else if ($$ instanceof HRWaterfallView) {
       HRWaterfall({
         renderView: $$ as HRWaterfallView,

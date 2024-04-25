@@ -34,7 +34,7 @@ export class HRListView extends HippyRenderBaseView {
   scrollEnabled: boolean = true;
   initialOffset: number = 0;
   edgeEffect: EdgeEffect = EdgeEffect.Spring;
-  cachedCount: number = 0;
+  cachedCount: number = 4;
   scrollEventThrottle: number = 30;
   preloadItemNumber: number = 0;
   exposureEventEnabled: Boolean = false;

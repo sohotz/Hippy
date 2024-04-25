@@ -30,6 +30,7 @@ import { HREventUtils } from '../../utils/HREventUtils'
 @Observed
 export class HRListItemView extends HippyRenderBaseView {
   private readonly TAG = "HRListItemView"
+  public type: string = ""
   public sticky: boolean = false
 
   static readonly EXPOSURE_STATE_FULL_VISIBLE: number = 1;
@@ -44,7 +45,16 @@ export class HRListItemView extends HippyRenderBaseView {
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(this.TAG, `propKey:${propKey}, propValue:${propValue}`)
-    if (propKey === 'sticky') {
+    if (propKey === 'type' || propKey === 'itemViewType') {
+      if (typeof propValue == 'string') {
+        this.type = propValue
+      } else if (typeof propValue == 'number') {
+        this.type = String(propValue)
+      } else {
+        this.type = "NoType" + this.tag
+      }
+      return true
+    } else if (propKey === 'sticky') {
       this.sticky = HRValueUtils.getBoolean(propValue as HippyAny, false)
       return true
     }
@@ -107,11 +117,15 @@ export class HRListItemView extends HippyRenderBaseView {
 }
 
 @Component
+@Reusable
 export struct HRListItem {
   @ObjectLink renderView: HRListItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
+
+  aboutToReuse(params: Record<string, Object>): void {
+  }
 
   build() {
     Stack() {

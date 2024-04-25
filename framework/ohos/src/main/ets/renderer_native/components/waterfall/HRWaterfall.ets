@@ -171,6 +171,7 @@ export struct HRWaterfall {
             .columnsTemplate(this.renderView.columnsTemplate)
             .columnsGap(this.renderView.columnSpacing)
             .rowsGap(this.renderView.interItemSpacing)
+            .cachedCount(4)
             .nestedScroll({
               scrollForward: NestedScrollMode.PARENT_FIRST,
               scrollBackward: NestedScrollMode.SELF_FIRST

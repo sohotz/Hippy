@@ -31,6 +31,7 @@ import { HRRect } from '../../utils/HRTypes';
 @Observed
 export class HRWaterfallItemView extends HippyRenderBaseView {
   private readonly TAG = "HRWaterfallItemView"
+  public type: string = ""
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -38,6 +39,16 @@ export class HRWaterfallItemView extends HippyRenderBaseView {
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     LogUtils.d(this.TAG, "setProp: propKey " + propKey + ", value: " + propValue)
+    if (propKey === 'type') {
+      if (typeof propValue == 'string') {
+        this.type = propValue
+      } else if (typeof propValue == 'number') {
+        this.type = String(propValue)
+      } else {
+        this.type = "NoType" + this.tag
+      }
+      return true
+    }
     return super.setProp(propKey, propValue as HippyAny)
   }
 
@@ -50,12 +61,16 @@ export class HRWaterfallItemView extends HippyRenderBaseView {
 }
 
 @Component
+@Reusable
 export struct HRWaterfallItem {
   private readonly TAG = "HRWaterfallItem"
   @ObjectLink renderView: HRWaterfallItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
   @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
+
+  aboutToReuse(params: Record<string, Object>): void {
+  }
 
   aboutToAppear(): void {
     LogUtils.d(this.TAG, "aboutToAppear ")
