@@ -363,33 +363,6 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
   std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
 
   CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode", root->GetId(), pid, buffer_pair);
-
-  /*
-  // TODO:
-  std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
-  JNIEnv* j_env = instance->AttachCurrentThread();
-
-  jobject j_buffer;
-  auto j_size = footstone::check::checked_numeric_cast<size_t, jint>(buffer_pair.second);
-  j_buffer = j_env->NewByteArray(j_size);
-  j_env->SetByteArrayRegion(reinterpret_cast<jbyteArray>(j_buffer), 0, j_size,
-                            reinterpret_cast<const jbyte*>(buffer_pair.first));
-  jobject j_object = j_render_delegate_->GetObj();
-  jclass j_class = j_env->GetObjectClass(j_object);
-  if (!j_class) {
-    FOOTSTONE_LOG(ERROR) << "CallNativeMethod j_class error";
-    return;
-  }
-  jmethodID j_method_id = j_env->GetMethodID(j_class, "moveNode", "(II[B)V");
-  if (!j_method_id) {
-    FOOTSTONE_LOG(ERROR) << "moveNode" << " j_method_id error";
-    return;
-  }
-  j_env->CallVoidMethod(j_object, j_method_id, root->GetId(), pid, j_buffer);
-  JNIEnvironment::ClearJEnvException(j_env);
-  j_env->DeleteLocalRef(j_buffer);
-  j_env->DeleteLocalRef(j_class);
-  */
 }
 
 void NativeRenderManager::DeleteRenderNode(std::weak_ptr<RootNode> root_node,
@@ -406,39 +379,6 @@ void NativeRenderManager::DeleteRenderNode(std::weak_ptr<RootNode> root_node,
   }
 
   CallRenderDelegateDeleteNodeMethod(ts_env_, ts_render_provider_ref_, "deleteNode", root->GetId(), ids);
-
-  /*
-  std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
-  JNIEnv* j_env = instance->AttachCurrentThread();
-
-  jintArray j_int_array;
-  auto size = footstone::check::checked_numeric_cast<size_t, jint>(nodes.size());
-  j_int_array = j_env->NewIntArray(size);
-  std::vector<jint> id;
-  id.resize(nodes.size());
-  for (size_t i = 0; i < nodes.size(); i++) {
-    id[i] = footstone::check::checked_numeric_cast<uint32_t, jint>(nodes[i]->GetRenderInfo().id);
-  }
-  j_env->SetIntArrayRegion(j_int_array, 0, size, &id[0]);
-
-  jobject j_object = j_render_delegate_->GetObj();
-  jclass j_class = j_env->GetObjectClass(j_object);
-  if (!j_class) {
-    FOOTSTONE_LOG(ERROR) << "CallNativeMethod j_class error";
-    return;
-  }
-
-  jmethodID j_method_id = j_env->GetMethodID(j_class, "deleteNode", "(I[I)V");
-  if (!j_method_id) {
-    FOOTSTONE_LOG(ERROR) << "deleteNode j_cb_id error";
-    return;
-  }
-
-  j_env->CallVoidMethod(j_object, j_method_id, root->GetId(), j_int_array);
-  JNIEnvironment::ClearJEnvException(j_env);
-  j_env->DeleteLocalRef(j_int_array);
-  j_env->DeleteLocalRef(j_class);
-*/
 }
 
 void NativeRenderManager::UpdateLayout(std::weak_ptr<RootNode> root_node,
@@ -487,34 +427,6 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
   }
 
   CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode2", root->GetId(), moved_ids, to_pid, from_pid, index);
-
-  /*
-  std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
-  JNIEnv* j_env = instance->AttachCurrentThread();
-
-  jintArray j_int_array;
-  auto j_size = footstone::check::checked_numeric_cast<size_t, jint>(moved_ids.size());
-  j_int_array = j_env->NewIntArray(j_size);
-  j_env->SetIntArrayRegion(j_int_array, 0, j_size, &moved_ids[0]);
-
-  jobject j_object = j_render_delegate_->GetObj();
-  jclass j_class = j_env->GetObjectClass(j_object);
-  if (!j_class) {
-    FOOTSTONE_LOG(ERROR) << "CallNativeMethod j_class error";
-    return;
-  }
-
-  jmethodID j_method_id = j_env->GetMethodID(j_class, "moveNode", "(I[IIII)V");
-  if (!j_method_id) {
-    FOOTSTONE_LOG(ERROR) << "moveNode j_cb_id error";
-    return;
-  }
-
-  j_env->CallVoidMethod(j_object, j_method_id, root->GetId(), j_int_array, to_pid, from_pid, index);
-  JNIEnvironment::ClearJEnvException(j_env);
-  j_env->DeleteLocalRef(j_int_array);
-  j_env->DeleteLocalRef(j_class);
-  */
 }
 
 void NativeRenderManager::EndBatch(std::weak_ptr<RootNode> root_node) {
@@ -574,41 +486,6 @@ void NativeRenderManager::CallFunction(std::weak_ptr<RootNode> root_node,
   auto buffer_pair = std::make_pair(reinterpret_cast<uint8_t*>(new_buffer), param_bson.size());
 
   CallRenderDelegateCallFunctionMethod(ts_env_, ts_render_provider_ref_, "callUIFunction", root->GetId(), node->GetId(), cb_id, name, buffer_pair);
-
-  /*
-  std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
-  JNIEnv* j_env = instance->AttachCurrentThread();
-
-  jobject j_object = j_render_delegate_->GetObj();
-  jclass j_class = j_env->GetObjectClass(j_object);
-  if (!j_class) {
-    FOOTSTONE_LOG(ERROR) << "CallJs j_class error";
-    return;
-  }
-
-  jmethodID j_method_id = j_env->GetMethodID(j_class, "callUIFunction", "(IIJLjava/lang/String;[B)V");
-  if (!j_method_id) {
-    FOOTSTONE_LOG(ERROR) << "CallJs j_method_id error";
-    return;
-  }
-
-  std::vector<uint8_t> param_bson;
-  param.ToBson(param_bson);
-
-  jbyteArray j_buffer;
-  auto j_size = footstone::check::checked_numeric_cast<size_t, jint>(param_bson.size());
-  j_buffer = j_env->NewByteArray(j_size);
-  j_env->SetByteArrayRegion(reinterpret_cast<jbyteArray>(j_buffer), 0, j_size,
-                            reinterpret_cast<const jbyte*>(param_bson.data()));
-
-  jstring j_name = j_env->NewStringUTF(name.c_str());
-
-  j_env->CallVoidMethod(j_object, j_method_id, root->GetId(), node->GetId(), (jlong)cb_id, j_name, j_buffer);
-  JNIEnvironment::ClearJEnvException(j_env);
-  j_env->DeleteLocalRef(j_buffer);
-  j_env->DeleteLocalRef(j_name);
-  j_env->DeleteLocalRef(j_class);
-  */
 }
 
 void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint32_t dom_id,
@@ -646,90 +523,15 @@ float NativeRenderManager::PxToDp(float px) const { return px / density_; }
 
 void NativeRenderManager::CallNativeMethod(const std::string& method, uint32_t root_id, const std::pair<uint8_t*, size_t>& buffer) {
   hippy::CallRenderDelegateMethod(ts_env_, ts_render_provider_ref_, method, root_id, buffer);
-
-/*
-  std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
-  JNIEnv* j_env = instance->AttachCurrentThread();
-
-  jobject j_buffer;
-  auto j_size = footstone::check::checked_numeric_cast<size_t, jint>(buffer.second);
-  j_buffer = j_env->NewByteArray(j_size);
-  j_env->SetByteArrayRegion(reinterpret_cast<jbyteArray>(j_buffer), 0, j_size,
-                            reinterpret_cast<const jbyte*>(buffer.first));
-
-  jobject j_object = j_render_delegate_->GetObj();
-  jclass j_class = j_env->GetObjectClass(j_object);
-  if (!j_class) {
-    FOOTSTONE_LOG(ERROR) << "CallNativeMethod j_class error";
-    return;
-  }
-
-  jmethodID j_method_id = j_env->GetMethodID(j_class, method.c_str(), "(I[B)V");
-  if (!j_method_id) {
-    FOOTSTONE_LOG(ERROR) << method << " j_method_id error";
-    return;
-  }
-
-  j_env->CallVoidMethod(j_object, j_method_id, root_id, j_buffer);
-  JNIEnvironment::ClearJEnvException(j_env);
-  j_env->DeleteLocalRef(j_buffer);
-  j_env->DeleteLocalRef(j_class);
-  //*/
 }
 
 void NativeRenderManager::CallNativeMethod(const std::string& method, uint32_t root_id) {
   hippy::CallRenderDelegateMethod(ts_env_, ts_render_provider_ref_, method, root_id);
-
-  /*
-  std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
-  JNIEnv* j_env = instance->AttachCurrentThread();
-
-  jobject j_object = j_render_delegate_->GetObj();
-  jclass j_class = j_env->GetObjectClass(j_object);
-  if (!j_class) {
-    FOOTSTONE_LOG(ERROR) << "CallNativeMethod j_class error";
-    return;
-  }
-
-  jmethodID j_method_id = j_env->GetMethodID(j_class, method.c_str(), "(I)V");
-  if (!j_method_id) {
-    FOOTSTONE_LOG(ERROR) << method << " j_method_id error";
-    return;
-  }
-
-  j_env->CallVoidMethod(j_object, j_method_id, root_id);
-  JNIEnvironment::ClearJEnvException(j_env);
-  j_env->DeleteLocalRef(j_class);
-*/
 }
 
 void NativeRenderManager::CallNativeMeasureMethod(const uint32_t root_id, const int32_t id, const float width, const int32_t width_mode,
                                                  const float height, const int32_t height_mode, int64_t& result) {
   CallRenderDelegateMeasureMethod(ts_env_, ts_render_provider_ref_, "measure", root_id, static_cast<uint32_t>(id), width, width_mode, height, height_mode, result);
-
-  /*
-  std::shared_ptr<JNIEnvironment> instance = JNIEnvironment::GetInstance();
-  JNIEnv* j_env = instance->AttachCurrentThread();
-
-  jobject j_object = j_render_delegate_->GetObj();
-  jclass j_class = j_env->GetObjectClass(j_object);
-  if (!j_class) {
-    FOOTSTONE_LOG(ERROR) << "CallNativeMethod j_class error";
-    return;
-  }
-
-  jmethodID j_method_id = j_env->GetMethodID(j_class, "measure", "(IIFIFI)J");
-  if (!j_method_id) {
-    FOOTSTONE_LOG(ERROR) << "measure j_method_id error";
-    return;
-  }
-
-  jlong measure_result = j_env->CallLongMethod(j_object, j_method_id, root_id, id, width, width_mode, height, height_mode);
-  JNIEnvironment::ClearJEnvException(j_env);
-
-  result = static_cast<int64_t>(measure_result);
-  j_env->DeleteLocalRef(j_class);
-*/
 }
 
 std::string HippyValueToString(const HippyValue &value) {
