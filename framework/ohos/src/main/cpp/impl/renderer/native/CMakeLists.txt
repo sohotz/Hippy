@@ -55,6 +55,34 @@ target_link_libraries(${PROJECT_NAME} PRIVATE oh_napi)
 # region source set
 set(SOURCE_SET
   src/native_render_manager.cc
-  src/native_render_impl_napi.cc)
+  src/native_render_impl_napi.cc
+  src/arkui/arkui_node.cc
+  src/arkui/image_node.cc
+  src/arkui/list_node.cc
+  src/arkui/refresh_node.cc
+  src/arkui/scroll_node.cc
+  src/arkui/span_node.cc
+  src/arkui/stack_node.cc
+  src/arkui/swiper_node.cc
+  src/arkui/text_area_node.cc
+  src/arkui/text_input_node.cc
+  src/arkui/text_node.cc
+  src/arkui/water_flow_node.cc
+  src/arkui/web_node.cc
+  src/components/base_view.cc
+  src/components/div_view.cc
+  src/components/image_view.cc
+  src/components/list_view.cc
+  src/components/modal_view.cc
+  src/components/pager_view.cc
+  src/components/pull_footer_view.cc
+  src/components/pull_header_view.cc
+  src/components/refresh_wrapper_view.cc
+  src/components/rich_text_view.cc
+  src/components/scroll_view.cc
+  src/components/text_input_view.cc
+  src/components/waterfall_view.cc
+  src/components/web_view.cc
+  )
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_SET})
 # endregion

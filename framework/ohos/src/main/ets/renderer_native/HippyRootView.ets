@@ -163,6 +163,8 @@ export struct HippyRoot {
   onRenderException: ((exception: HippyException) => void) | null = null
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private static sRootIdCounter = 0
+  private rootId: number = -1
+  private renderIntanceId: number = -1
   private renderExceptionListener = new HippyRenderExceptionListener()
   @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void
   @State showRenderView: boolean = false
@@ -180,17 +182,17 @@ export struct HippyRoot {
       this.renderExceptionListener.nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
 
       HippyRoot.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
-      let rootId = HippyRoot.sRootIdCounter
-      let renderIntanceId = this.hippyEngine.getNativeRenderProvider()!.getInstanceId()
+      this.rootId = HippyRoot.sRootIdCounter
+      this.renderIntanceId = this.hippyEngine.getNativeRenderProvider()!.getInstanceId()
       let customRenderViewCreatorMap = this.hippyEngine.getNativeRenderProvider()!.getCustomRenderViewCreatorMap()
       let nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
-      this.rootView = new HippyRootView(renderIntanceId, rootId, customRenderViewCreatorMap, nativeRender,
+      this.rootView = new HippyRootView(this.renderIntanceId, this.rootId, customRenderViewCreatorMap, nativeRender,
                                         this.pagerName, this.pagerData, this.renderExceptionListener)
       if (this.initViewSize && this.rootView) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
       if (this.onRootViewCreated) {
-        this.onRootViewCreated(rootId)
+        this.onRootViewCreated(this.rootId)
       }
       this.rootView.setDidCreateRenderViewCallback(() => {
         this.showRenderView = true
@@ -225,7 +227,13 @@ export struct HippyRoot {
             LogUtils.d("hippy", "did hippy render")
           })
       } else {
-
+        XComponent({
+          id: this.renderIntanceId + "_" + this.rootId,
+          type: "node",
+          libraryname: 'hippy_module'
+        })
+          .width("100%")
+          .height("100%")
       }
     }
     .width('100%')
