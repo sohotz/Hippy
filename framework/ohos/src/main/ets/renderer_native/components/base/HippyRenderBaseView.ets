@@ -224,7 +224,7 @@ export default abstract class HippyRenderBaseView {
     }
 
     let size = colorStopList.length
-    let colorsArray = new Array<Array<number>>()
+    let colorsArray = new Array<[ResourceColor, number]>()
     for (let i = 0; i < size; i++) {
       let colorStop = HRValueUtils.getMap(colorStopList[i])
       if (!colorStop) {

@@ -1,7 +1,7 @@
 {
-  "hvigorVersion": "4.0.2",
+  "hvigorVersion": "file:../dependencies/hvigor-4.3.0.tgz",
   "dependencies": {
-    "@ohos/hvigor-ohos-plugin": "4.0.2"
+    "@ohos/hvigor-ohos-plugin": "file:../dependencies/hvigor-ohos-plugin-4.3.0.tgz"
   },
   "execution": {
     // "daemon": true,                          /* Enable daemon compilation. Default: true */
