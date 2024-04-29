@@ -20,46 +20,23 @@
  *
  */
 
-#include "renderer/arkui/arkui_node.h"
+#include "renderer/uimanager/hr_view_manager.h"
+#include "renderer/native_render_context.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : node_handle_(nodeHandle) {
-  
+HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id): nativeXComponent_(nullptr) {
+  ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id);
+  root_view_ = std::make_shared<RootView>(ctx_);
 }
 
-ArkUINode::~ArkUINode() {
-  if (node_handle_ != nullptr) {
+void HRViewManager::AttachToNativeXComponent(OH_NativeXComponent *nativeXComponent) {
+  if (nativeXComponent == nativeXComponent_) {
+    return;
   }
-}
-
-ArkUINode::ArkUINode(ArkUINode &&other) noexcept : node_handle_(std::move(other.node_handle_)) {
-  other.node_handle_ = nullptr;
-}
-
-ArkUINode &ArkUINode::operator=(ArkUINode &&other) noexcept {
-  std::swap(node_handle_, other.node_handle_);
-  return *this;
-}
-
-ArkUI_NodeHandle ArkUINode::GetArkUINodeHandle() { return node_handle_; }
-
-void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {}
-
-void ArkUINode::MarkDirty() {
-
-}
-
-ArkUINode &ArkUINode::SetPosition() {
-
-  return *this;
-}
-
-ArkUINode &ArkUINode::SetSize() {
-
-  return *this;
+  nativeXComponent_ = nativeXComponent;
 }
 
 } // namespace native

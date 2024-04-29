@@ -22,12 +22,31 @@
 
 #pragma once
 
+#include <string>
+#include "renderer/arkui/arkui_node.h"
+#include "renderer/native_render_context.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class BaseView {
+public:
+  BaseView(std::shared_ptr<NativeRenderContext> &ctx);
+  virtual ~BaseView() = default;
+  
+  void SetTag(int tag) { tag_ = tag; }
+  void SetViewType(std::string &type) { view_type_ = type; }
 
+//   virtual ArkUINode &GetLocalRootArkUINode() = 0;
+
+private:
+  std::shared_ptr<NativeRenderContext> ctx_;
+  int tag_;
+  std::string view_type_;
+  std::vector<std::shared_ptr<BaseView>> children_;
+  std::weak_ptr<BaseView> parent_;
+};
 
 }  // namespace native
 }  // namespace render

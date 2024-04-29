@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <ace/xcomponent/native_interface_xcomponent.h>
 #include <atomic>
 #include <memory>
 #include <unordered_set>
@@ -31,6 +32,7 @@
 #include "footstone/persistent_object_map.h"
 #include "footstone/serializer.h"
 #include "footstone/macros.h"
+#include "renderer/native_render_provider.h"
 
 namespace hippy {
 inline namespace render {
@@ -102,7 +104,9 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
     return style_filter;
   }
 
- private:
+  void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id);
+
+private:
   inline void MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, uint32_t node_id);
 
   inline float DpToPx(float dp) const;
@@ -144,6 +148,8 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   std::weak_ptr<DomManager> dom_manager_;
   static std::atomic<uint32_t> unique_native_render_manager_id_;
   static footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<NativeRenderManager>> persistent_map_;
+  
+  std::shared_ptr<NativeRenderProvider> render_provider_;
 };
 
 }  // namespace native

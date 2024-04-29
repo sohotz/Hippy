@@ -56,6 +56,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE oh_napi)
 set(SOURCE_SET
   src/native_render_manager.cc
   src/native_render_impl_napi.cc
+  src/native_render_provider.cc
+  src/native_render_impl.cc
+  src/native_render_context.cc
+  src/uimanager/hr_manager.cc
+  src/uimanager/hr_view_manager.cc
+  src/virtual/hr_virtual_view_manager.cc
+  src/virtual/hr_virtual_view.cc
   src/arkui/arkui_node.cc
   src/arkui/image_node.cc
   src/arkui/list_node.cc
@@ -79,6 +86,7 @@ set(SOURCE_SET
   src/components/pull_header_view.cc
   src/components/refresh_wrapper_view.cc
   src/components/rich_text_view.cc
+  src/components/root_view.cc
   src/components/scroll_view.cc
   src/components/text_input_view.cc
   src/components/waterfall_view.cc

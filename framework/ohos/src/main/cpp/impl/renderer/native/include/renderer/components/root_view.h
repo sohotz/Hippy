@@ -20,47 +20,22 @@
  *
  */
 
-#include "renderer/arkui/arkui_node.h"
+#pragma once
+
+#include "renderer/components/base_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : node_handle_(nodeHandle) {
+class RootView : public BaseView {
+public:
+  RootView(std::shared_ptr<NativeRenderContext> &ctx);
+  ~RootView();
   
-}
+private:
 
-ArkUINode::~ArkUINode() {
-  if (node_handle_ != nullptr) {
-  }
-}
-
-ArkUINode::ArkUINode(ArkUINode &&other) noexcept : node_handle_(std::move(other.node_handle_)) {
-  other.node_handle_ = nullptr;
-}
-
-ArkUINode &ArkUINode::operator=(ArkUINode &&other) noexcept {
-  std::swap(node_handle_, other.node_handle_);
-  return *this;
-}
-
-ArkUI_NodeHandle ArkUINode::GetArkUINodeHandle() { return node_handle_; }
-
-void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {}
-
-void ArkUINode::MarkDirty() {
-
-}
-
-ArkUINode &ArkUINode::SetPosition() {
-
-  return *this;
-}
-
-ArkUINode &ArkUINode::SetSize() {
-
-  return *this;
-}
+};
 
 } // namespace native
 } // namespace render

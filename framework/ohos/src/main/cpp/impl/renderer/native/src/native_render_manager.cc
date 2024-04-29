@@ -162,6 +162,8 @@ StyleFilter::StyleFilter() {
 NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"),
       serializer_(std::make_shared<footstone::value::Serializer>()) {
   id_ = unique_native_render_manager_id_.fetch_add(1);
+  
+  render_provider_ = std::make_shared<NativeRenderProvider>(id_);
 }
 
 NativeRenderManager::~NativeRenderManager() {
@@ -711,6 +713,10 @@ void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, 
       }
     }
   }
+}
+
+void NativeRenderManager::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id) {
+  render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id);
 }
 
 }  // namespace native

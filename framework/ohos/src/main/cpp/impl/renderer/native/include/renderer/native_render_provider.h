@@ -20,47 +20,29 @@
  *
  */
 
-#include "renderer/arkui/arkui_node.h"
+#pragma once
+
+#include "renderer/native_render_impl.h"
+#include <memory>
+#include <sys/types.h>
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : node_handle_(nodeHandle) {
+class NativeRenderProvider {
+public:
+  NativeRenderProvider(uint32_t instance_id);
+  ~NativeRenderProvider() = default;
   
-}
+  uint32_t GetInstanceId() { return instance_id_; }
 
-ArkUINode::~ArkUINode() {
-  if (node_handle_ != nullptr) {
-  }
-}
+  void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id);
 
-ArkUINode::ArkUINode(ArkUINode &&other) noexcept : node_handle_(std::move(other.node_handle_)) {
-  other.node_handle_ = nullptr;
-}
-
-ArkUINode &ArkUINode::operator=(ArkUINode &&other) noexcept {
-  std::swap(node_handle_, other.node_handle_);
-  return *this;
-}
-
-ArkUI_NodeHandle ArkUINode::GetArkUINodeHandle() { return node_handle_; }
-
-void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {}
-
-void ArkUINode::MarkDirty() {
-
-}
-
-ArkUINode &ArkUINode::SetPosition() {
-
-  return *this;
-}
-
-ArkUINode &ArkUINode::SetSize() {
-
-  return *this;
-}
+private:
+  uint32_t instance_id_;
+  std::shared_ptr<NativeRenderImpl> render_impl_;
+};
 
 } // namespace native
 } // namespace render

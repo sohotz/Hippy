@@ -20,9 +20,16 @@
  *
  */
 
+#include "renderer/components/base_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(-1) {
+  
+}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

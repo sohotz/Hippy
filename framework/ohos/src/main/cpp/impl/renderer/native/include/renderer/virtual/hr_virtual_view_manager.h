@@ -20,47 +20,20 @@
  *
  */
 
-#include "renderer/arkui/arkui_node.h"
+#pragma once
+
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : node_handle_(nodeHandle) {
-  
-}
+class HRVirtualViewManager {
+public:
+  HRVirtualViewManager();
+  ~HRVirtualViewManager() = default;
 
-ArkUINode::~ArkUINode() {
-  if (node_handle_ != nullptr) {
-  }
-}
-
-ArkUINode::ArkUINode(ArkUINode &&other) noexcept : node_handle_(std::move(other.node_handle_)) {
-  other.node_handle_ = nullptr;
-}
-
-ArkUINode &ArkUINode::operator=(ArkUINode &&other) noexcept {
-  std::swap(node_handle_, other.node_handle_);
-  return *this;
-}
-
-ArkUI_NodeHandle ArkUINode::GetArkUINodeHandle() { return node_handle_; }
-
-void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {}
-
-void ArkUINode::MarkDirty() {
-
-}
-
-ArkUINode &ArkUINode::SetPosition() {
-
-  return *this;
-}
-
-ArkUINode &ArkUINode::SetSize() {
-
-  return *this;
-}
+private:
+};
 
 } // namespace native
 } // namespace render

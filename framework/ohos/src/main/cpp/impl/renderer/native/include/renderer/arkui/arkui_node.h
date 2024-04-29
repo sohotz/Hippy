@@ -22,9 +22,49 @@
 
 #pragma once
 
+#include <arkui/native_node.h>
+#include <arkui/native_type.h>
+#include <memory>
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+enum class ArkUIHitTestMode : int32_t {
+  DEFAULT,
+  BLOCK,
+  TRANSPARENT,
+  NONE,
+};
+
+class ArkUINode {
+protected:
+  ArkUINode(const ArkUINode &other) = delete;
+  ArkUINode &operator=(const ArkUINode &other) = delete;
+
+  ArkUINode &operator=(ArkUINode &&other) noexcept;
+  ArkUINode(ArkUINode &&other) noexcept;
+
+public:
+  using Alignment = ArkUI_Alignment;
+  
+  ArkUINode(ArkUI_NodeHandle nodeHandle);
+  virtual ~ArkUINode();
+
+  ArkUI_NodeHandle GetArkUINodeHandle();
+  
+  void MarkDirty();
+
+  virtual ArkUINode &SetPosition();
+  virtual ArkUINode &SetSize();
+
+  virtual void OnNodeEvent(ArkUI_NodeEvent *event);
+
+protected:
+
+  ArkUI_NodeHandle node_handle_;
+};
+
+} // namespace native
 } // namespace render
 } // namespace hippy

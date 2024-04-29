@@ -20,47 +20,34 @@
  *
  */
 
-#include "renderer/arkui/arkui_node.h"
+#pragma once
+
+#include <memory>
+#include <map>
+#include "renderer/uimanager/hr_view_manager.h"
+#include "renderer/virtual/hr_virtual_view_manager.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : node_handle_(nodeHandle) {
+class HRManager {
+public:
+  HRManager(uint32_t instance_id);
+  ~HRManager() = default;
   
-}
+//   void InitViewManager(uint32_t root_id);
+  std::shared_ptr<HRViewManager> GetViewManager(uint32_t root_id);
+  std::shared_ptr<HRVirtualViewManager> GetVirtualNodeManager(uint32_t root_id);
 
-ArkUINode::~ArkUINode() {
-  if (node_handle_ != nullptr) {
-  }
-}
+private:
+  void AddViewManager(uint32_t root_id, std::shared_ptr<HRViewManager> &view_manager);
+  void AddVirtualNodeManager(uint32_t root_id, std::shared_ptr<HRVirtualViewManager> &virtual_view_manager);
 
-ArkUINode::ArkUINode(ArkUINode &&other) noexcept : node_handle_(std::move(other.node_handle_)) {
-  other.node_handle_ = nullptr;
-}
-
-ArkUINode &ArkUINode::operator=(ArkUINode &&other) noexcept {
-  std::swap(node_handle_, other.node_handle_);
-  return *this;
-}
-
-ArkUI_NodeHandle ArkUINode::GetArkUINodeHandle() { return node_handle_; }
-
-void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {}
-
-void ArkUINode::MarkDirty() {
-
-}
-
-ArkUINode &ArkUINode::SetPosition() {
-
-  return *this;
-}
-
-ArkUINode &ArkUINode::SetSize() {
-
-  return *this;
-}
+  uint32_t instance_id_;
+  std::map<uint32_t, std::shared_ptr<HRViewManager>> view_manager_map_;
+  std::map<uint32_t, std::shared_ptr<HRVirtualViewManager>> virtual_view_manager_map_;
+};
 
 } // namespace native
 } // namespace render
