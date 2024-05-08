@@ -22,17 +22,27 @@
 
 #pragma once
 
+#include "renderer/virtual/hr_virtual_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
+using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
+
 class HRVirtualViewManager {
 public:
   HRVirtualViewManager();
   ~HRVirtualViewManager() = default;
-
+  
+  std::shared_ptr<HRVirtualView> CreateVirtualNode(uint32_t root_id, uint32_t id, uint32_t pid, int32_t index, HippyValueObjectType &props);
+  void AddVirtualNode(uint32_t id, std::shared_ptr<HRVirtualView> &view);
+  void RemoveVirtualNode(uint32_t id);
+  std::shared_ptr<HRVirtualView> GetVirtualNode(uint32_t id);
+  std::vector<std::shared_ptr<HRVirtualView>> GetVirtualChildrenNode(uint32_t id);
+  
 private:
+  std::map<uint32_t, std::shared_ptr<HRVirtualView>> virtual_views_;
 };
 
 } // namespace native

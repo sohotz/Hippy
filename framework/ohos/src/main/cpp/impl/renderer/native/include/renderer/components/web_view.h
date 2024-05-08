@@ -22,9 +22,24 @@
 
 #pragma once
 
+#include "renderer/components/base_view.h"
+#include "renderer/arkui/web_node.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+class WebView : public BaseView {
+public:
+  WebView(std::shared_ptr<NativeRenderContext> &ctx);
+  ~WebView();
+
+  WebNode &GetLocalRootArkUINode() override;
+  
+private:
+  WebNode webNode_;
+};
+
+} // namespace native
 } // namespace render
 } // namespace hippy

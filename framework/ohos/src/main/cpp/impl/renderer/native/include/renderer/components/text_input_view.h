@@ -22,9 +22,23 @@
 
 #pragma once
 
+#include "renderer/components/base_view.h"
+#include "renderer/arkui/stack_node.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+class TextInputView : public BaseView {
+public:
+  TextInputView(std::shared_ptr<NativeRenderContext> &ctx);
+  ~TextInputView();
+
+  StackNode &GetLocalRootArkUINode() override;
+private:
+  StackNode stackNode_;
+};
+
+} // namespace native
 } // namespace render
 } // namespace hippy

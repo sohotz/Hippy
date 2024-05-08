@@ -25,6 +25,9 @@
 #include <arkui/native_node.h>
 #include <arkui/native_type.h>
 #include <memory>
+#include <string>
+#include "footstone/logging.h"
+#include "renderer/utils/hr_types.h"
 
 namespace hippy {
 inline namespace render {
@@ -55,14 +58,26 @@ public:
   
   void MarkDirty();
 
-  virtual ArkUINode &SetPosition();
-  virtual ArkUINode &SetSize();
+  virtual ArkUINode &SetPosition(const HRPosition &position);
+  virtual ArkUINode &SetSize(const HRSize &size);
+  virtual ArkUINode &SetBorderWidth(float top, float right, float bottom, float left);
+  virtual ArkUINode &SetBorderColor(uint32_t top, uint32_t right, uint32_t bottom, uint32_t left);
+  virtual ArkUINode &SetBorderRadius(float topLeft, float topRight, float bottomLeft, float bottomRight);
+  virtual ArkUINode &SetBorderStyle(HRBorderStyle top, HRBorderStyle right, HRBorderStyle bottom, HRBorderStyle left);
+  virtual ArkUINode &SetBackgroundColor(uint32_t color);
 
   virtual void OnNodeEvent(ArkUI_NodeEvent *event);
 
 protected:
+  void MaybeThrow(int32_t status) {
+    if (status != 0) {
+      auto message = std::string("ArkUINode operation failed with status: ") + std::to_string(status);
+      FOOTSTONE_LOG(ERROR) << message;
+      throw std::runtime_error(std::move(message));
+    }
+  }
 
-  ArkUI_NodeHandle node_handle_;
+  ArkUI_NodeHandle nodeHandle_;
 };
 
 } // namespace native

@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/pull_footer_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+PullFooterView::~PullFooterView() {}
+
+StackNode &PullFooterView::GetLocalRootArkUINode() { return stackNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy

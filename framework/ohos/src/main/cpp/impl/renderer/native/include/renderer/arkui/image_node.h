@@ -22,9 +22,49 @@
 
 #pragma once
 
+#include "renderer/arkui/arkui_node.h"
+#include "renderer/utils/hr_types.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+class ImageNodeDelegate {
+public:
+  virtual ~ImageNodeDelegate() = default;
+  virtual void OnComplete(float width, float height){}
+  virtual void OnError(int32_t errorCode){}
+};
+
+class ImageNode : public ArkUINode {
+protected:
+  ImageNodeDelegate *imageNodeDelegate_;
+  std::string uri_;
+
+public:
+  ImageNode();
+  ~ImageNode();
+  ImageNode &SetSources(std::string const &src);
+  ImageNode &SetResizeMode(HRImageResizeMode const &mode);
+  ImageNode &SetTintColor(uint32_t sharedColor);
+  ImageNode &SetBlur(float blur);
+  ImageNode &SetObjectRepeat(HRImageResizeMode const &resizeMode);
+
+  ImageNode &SetInterpolation(int32_t interpolation);
+  ImageNode &SetDraggable(bool draggable);
+  ImageNode &SetFocusable(bool focusable);
+  ImageNode &SetResizeMethod(std::string const &resizeMethod);
+  ImageNode &SetAlt(std::string const &src);
+
+  ImageNode &ResetFocusable();
+  ImageNode &ResetResizeMethod();
+
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void SetNodeDelegate(ImageNodeDelegate *imageNodeDelegate);
+
+  std::string GetUri();
+};
+
+} // namespace native
 } // namespace render
 } // namespace hippy

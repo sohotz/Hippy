@@ -59,13 +59,17 @@ set(SOURCE_SET
   src/native_render_provider.cc
   src/native_render_impl.cc
   src/native_render_context.cc
+  src/uimanager/hr_mutation.cc
   src/uimanager/hr_manager.cc
   src/uimanager/hr_view_manager.cc
   src/virtual/hr_virtual_view_manager.cc
   src/virtual/hr_virtual_view.cc
   src/arkui/arkui_node.cc
+  src/arkui/arkui_node_registry.cc
   src/arkui/image_node.cc
   src/arkui/list_node.cc
+  src/arkui/native_dialog_api.cc
+  src/arkui/native_node_api.cc
   src/arkui/refresh_node.cc
   src/arkui/scroll_node.cc
   src/arkui/span_node.cc
@@ -76,19 +80,24 @@ set(SOURCE_SET
   src/arkui/text_node.cc
   src/arkui/water_flow_node.cc
   src/arkui/web_node.cc
+  src/components/hippy_render_view_creator.cc
   src/components/base_view.cc
   src/components/div_view.cc
   src/components/image_view.cc
+  src/components/list_item_view.cc
   src/components/list_view.cc
   src/components/modal_view.cc
+  src/components/pager_item_view.cc
   src/components/pager_view.cc
   src/components/pull_footer_view.cc
   src/components/pull_header_view.cc
+  src/components/refresh_wrapper_item_view.cc
   src/components/refresh_wrapper_view.cc
   src/components/rich_text_view.cc
   src/components/root_view.cc
   src/components/scroll_view.cc
   src/components/text_input_view.cc
+  src/components/waterfall_item_view.cc
   src/components/waterfall_view.cc
   src/components/web_view.cc
   )

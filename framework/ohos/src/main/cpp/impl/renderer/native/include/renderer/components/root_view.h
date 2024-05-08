@@ -23,16 +23,17 @@
 #pragma once
 
 #include "renderer/components/base_view.h"
+#include "renderer/components/div_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RootView : public BaseView {
+class RootView : public DivView {
 public:
   RootView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RootView();
-  
+
 private:
 
 };

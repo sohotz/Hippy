@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/scroll_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+ScrollView::ScrollView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+ScrollView::~ScrollView() {}
+
+StackNode &ScrollView::GetLocalRootArkUINode() { return stackNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy

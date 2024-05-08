@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/pull_header_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+PullHeaderView::PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+PullHeaderView::~PullHeaderView() {}
+
+StackNode &PullHeaderView::GetLocalRootArkUINode() { return stackNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy

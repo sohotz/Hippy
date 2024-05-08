@@ -21,6 +21,7 @@
  */
 
 #include "renderer/native_render_impl.h"
+#include "oh_napi/oh_napi_task_runner.h"
 
 namespace hippy {
 inline namespace render {
@@ -35,7 +36,117 @@ void NativeRenderImpl::RegisterNativeXComponentHandle(OH_NativeXComponent *nativ
   if (!view_manager) {
     return;
   }
+  
   view_manager->AttachToNativeXComponent(nativeXComponent);
+}
+
+void NativeRenderImpl::CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);
+  if (!view_manager || !virtual_view_manager) {
+    return;
+  }
+
+  for (uint32_t i = 0; i < mutations.size(); i++) {
+    auto &m = mutations[i];
+
+    auto virtual_node = virtual_view_manager->CreateVirtualNode(root_id, m->tag_, m->parent_tag_, m->index_, m->props_);
+    virtual_node->view_name_ = m->view_name_;
+    virtual_view_manager->AddVirtualNode(m->tag_, virtual_node);
+
+    auto tm = std::static_pointer_cast<HRMutation>(m);
+    view_manager->AddMutations(tm);
+  }
+}
+
+void NativeRenderImpl::UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);
+  if (!view_manager || !virtual_view_manager) {
+    return;
+  }
+
+  for (uint32_t i = 0; i < mutations.size(); i++) {
+    auto &m = mutations[i];
+
+    auto virtual_node = virtual_view_manager->GetVirtualNode(m->tag_);
+    if (virtual_node && virtual_node->props_.size() > 0) {
+      // TODO(hot):
+    }
+
+    auto tm = std::static_pointer_cast<HRMutation>(m);
+    view_manager->AddMutations(tm);
+  }
+}
+
+void NativeRenderImpl::MoveNode(uint32_t root_id, const std::shared_ptr<HRMoveMutation> &mutation) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+
+  auto tm = std::static_pointer_cast<HRMutation>(mutation);
+  view_manager->AddMutations(tm);
+}
+
+void NativeRenderImpl::MoveNode2(uint32_t root_id, const std::shared_ptr<HRMove2Mutation> &mutation) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+
+  auto tm = std::static_pointer_cast<HRMutation>(mutation);
+  view_manager->AddMutations(tm);
+}
+
+void NativeRenderImpl::DeleteNode(uint32_t root_id, const std::vector<std::shared_ptr<HRDeleteMutation>> &mutations) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  
+  for (uint32_t i = 0; i < mutations.size(); i++) {
+    auto &m = mutations[i];
+    auto tm = std::static_pointer_cast<HRMutation>(m);
+    view_manager->AddMutations(tm);
+  }
+}
+
+void NativeRenderImpl::UpdateLayout(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateLayoutMutation>> &mutations) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+
+  for (uint32_t i = 0; i < mutations.size(); i++) {
+    auto &m = mutations[i];
+    auto tm = std::static_pointer_cast<HRMutation>(m);
+    view_manager->AddMutations(tm);
+  }
+}
+
+void NativeRenderImpl::UpdateEventListener(uint32_t root_id,
+                         const std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> &mutations) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+
+  for (uint32_t i = 0; i < mutations.size(); i++) {
+    auto &m = mutations[i];
+    auto tm = std::static_pointer_cast<HRMutation>(m);
+    view_manager->AddMutations(tm);
+  }
+}
+
+void NativeRenderImpl::EndBatch(uint32_t root_id) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+
+  view_manager->ApplyMutations();
+  view_manager->NotifyEndBatchCallbacks();
 }
 
 } // namespace native

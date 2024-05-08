@@ -20,9 +20,58 @@
  *
  */
 
+#include "renderer/arkui/stack_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+StackNode::StackNode() 
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_STACK)),
+      stackNodeDelegate_(nullptr) {
+  MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0));
+}
+
+StackNode::~StackNode() { NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK); }
+
+void StackNode::InsertChild(ArkUINode &child, int32_t index) {
+  MaybeThrow(
+    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
+}
+
+void StackNode::RemoveChild(ArkUINode &child) {
+  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
+}
+
+void StackNode::SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate) { stackNodeDelegate_ = stackNodeDelegate; }
+
+void StackNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  if (event->kind == ArkUI_NodeEventType::NODE_ON_CLICK && event->componentEvent.data[3].i32 != 2) {
+    OnClick();
+  }
+}
+
+void StackNode::OnClick() {
+  if (stackNodeDelegate_ != nullptr) {
+    stackNodeDelegate_->OnClick();
+  }
+}
+
+StackNode &StackNode::SetMargin(float left, float top, float right, float bottom) {
+  ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MARGIN, &item));
+  return *this;
+}
+
+StackNode &StackNode::SetAlign(int32_t align) {
+  ArkUI_NumberValue value[] = {{.i32 = align}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_STACK_ALIGN_CONTENT, &item));
+  return *this;
+}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

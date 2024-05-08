@@ -30,6 +30,40 @@ HRVirtualViewManager::HRVirtualViewManager() {
   
 }
 
+std::shared_ptr<HRVirtualView> HRVirtualViewManager::CreateVirtualNode(uint32_t root_id, uint32_t id, uint32_t pid, int32_t index, HippyValueObjectType &props) {
+  auto node = std::make_shared<HRVirtualView>();
+  node->root_id_ = root_id;
+  node->id_ = id;
+  node->pid_ = pid;
+  node->index_ = index;
+  node->props_ = props;
+  return node;
+}
+
+void HRVirtualViewManager::AddVirtualNode(uint32_t id, std::shared_ptr<HRVirtualView> &view) {
+  virtual_views_[id] = view;
+}
+
+void HRVirtualViewManager::RemoveVirtualNode(uint32_t id) {
+  virtual_views_.erase(id);
+}
+
+std::shared_ptr<HRVirtualView> HRVirtualViewManager::GetVirtualNode(uint32_t id) {
+  auto it = virtual_views_.find(id);
+  return it != virtual_views_.end() ? it->second : nullptr;
+}
+
+std::vector<std::shared_ptr<HRVirtualView>> HRVirtualViewManager::GetVirtualChildrenNode(uint32_t id) {
+  std::vector<std::shared_ptr<HRVirtualView>> ret;
+  for (auto it = virtual_views_.begin(); it != virtual_views_.end(); it++) {
+    auto &view = it->second;
+    if (view->pid_ == id) {
+      ret.push_back(it->second);
+    }
+  }
+  return ret;
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

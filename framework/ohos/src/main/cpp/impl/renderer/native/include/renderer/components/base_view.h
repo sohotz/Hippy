@@ -23,26 +23,52 @@
 #pragma once
 
 #include <string>
+#include <sys/types.h>
 #include "renderer/arkui/arkui_node.h"
 #include "renderer/native_render_context.h"
+#include "footstone/hippy_value.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class BaseView {
+using HippyValue = footstone::HippyValue;
+using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
+
+class BaseView : public std::enable_shared_from_this<BaseView> {
 public:
   BaseView(std::shared_ptr<NativeRenderContext> &ctx);
   virtual ~BaseView() = default;
   
-  void SetTag(int tag) { tag_ = tag; }
+  std::shared_ptr<NativeRenderContext> &GetCtx() { return ctx_; }
+  uint32_t GetTag() { return tag_; }
+  std::string &GetViewType() { return view_type_; }
+  std::vector<std::shared_ptr<BaseView>> &GetChildren() { return children_; }
+  std::weak_ptr<BaseView> &GetParent() { return parent_; }
+  
+  void SetTag(uint32_t tag) { tag_ = tag; }
   void SetViewType(std::string &type) { view_type_ = type; }
+  void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
 
-//   virtual ArkUINode &GetLocalRootArkUINode() = 0;
+  virtual ArkUINode &GetLocalRootArkUINode() = 0;
+  
+  bool SetProp(const std::string &propKey, HippyValue &propValue);
+  void AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index);
+  void RemoveSubView(std::shared_ptr<BaseView> &subView);
+  void RemoveFromParentView();
+  bool IsImageSpan();
+  void SetRenderViewFrame(const HRRect &frame);
+  void UpdateEventListener(HippyValueObjectType &newEvents);
+  bool CheckRegisteredEvent(std::string &eventName);
+  
+protected:
+  virtual void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {}
+  virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView) {}
+  virtual void UpdateRenderViewFrame(const HRRect &frame);
 
 private:
   std::shared_ptr<NativeRenderContext> ctx_;
-  int tag_;
+  uint32_t tag_;
   std::string view_type_;
   std::vector<std::shared_ptr<BaseView>> children_;
   std::weak_ptr<BaseView> parent_;

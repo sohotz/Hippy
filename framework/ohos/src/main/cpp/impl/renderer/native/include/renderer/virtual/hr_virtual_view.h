@@ -22,9 +22,29 @@
 
 #pragma once
 
+#include <sys/types.h>
+#include <vector>
+#include "dom/root_node.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
+
+class HRVirtualView {
+public:
+  uint32_t root_id_ = 0;
+  uint32_t id_ = 0;
+  uint32_t pid_ = 0;
+  int32_t index_ = -1;
+  bool dirty_ = false;
+  std::vector<std::shared_ptr<HRVirtualView>> children_;
+  std::weak_ptr<HRVirtualView> parent_;
+  HippyValueObjectType props_;
+  std::string view_name_;
+};
+
+} // namespace native
 } // namespace render
 } // namespace hippy

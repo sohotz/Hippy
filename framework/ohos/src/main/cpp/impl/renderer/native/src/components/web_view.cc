@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/web_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+WebView::WebView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+WebView::~WebView() {}
+
+WebNode &WebView::GetLocalRootArkUINode() { return webNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy

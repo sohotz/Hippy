@@ -22,7 +22,6 @@
 
 #include "renderer/virtual/hr_virtual_view.h"
 
-
 namespace hippy {
 inline namespace render {
 inline namespace native {} // namespace native

@@ -22,9 +22,24 @@
 
 #pragma once
 
+#include "renderer/components/base_view.h"
+#include "renderer/arkui/image_node.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+class ImageView : public BaseView {
+public:
+  ImageView(std::shared_ptr<NativeRenderContext> &ctx);
+  ~ImageView();
+
+  ImageNode &GetLocalRootArkUINode() override;
+  
+private:
+  ImageNode imageNode_;
+};
+
+} // namespace native
 } // namespace render
 } // namespace hippy

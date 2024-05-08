@@ -26,7 +26,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-RootView::RootView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+RootView::RootView(std::shared_ptr<NativeRenderContext> &ctx) : DivView(ctx) {
   
 }
 

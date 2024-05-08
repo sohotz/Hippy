@@ -22,9 +22,11 @@
 
 #pragma once
 
-#include "renderer/native_render_impl.h"
+#include <js_native_api.h>
+#include <js_native_api_types.h>
 #include <memory>
-#include <sys/types.h>
+#include "renderer/native_render_impl.h"
+#include "renderer/uimanager/hr_mutation.h"
 
 namespace hippy {
 inline namespace render {
@@ -36,10 +38,23 @@ public:
   ~NativeRenderProvider() = default;
   
   uint32_t GetInstanceId() { return instance_id_; }
+  
+  void SetTsEnv(napi_env ts_env) { ts_env_ = ts_env; }
 
   void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id);
 
+  void CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations);
+  void UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations);
+  void MoveNode(uint32_t root_id, const std::shared_ptr<HRMoveMutation> &mutation);
+  void MoveNode2(uint32_t root_id, const std::shared_ptr<HRMove2Mutation> &mutation);
+  void DeleteNode(uint32_t root_id, const std::vector<std::shared_ptr<HRDeleteMutation>> &mutations);
+  void UpdateLayout(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateLayoutMutation>> &mutations);
+  void UpdateEventListener(uint32_t root_id,
+                           const std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> &mutations);
+  void EndBatch(uint32_t root_id);
+
 private:
+  napi_env ts_env_ = 0;
   uint32_t instance_id_;
   std::shared_ptr<NativeRenderImpl> render_impl_;
 };

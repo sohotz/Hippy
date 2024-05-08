@@ -20,9 +20,20 @@
  *
  */
 
+#include "renderer/components/rich_text_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+RichTextView::RichTextView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+RichTextView::~RichTextView() {}
+
+TextNode &RichTextView::GetLocalRootArkUINode() {
+  return textNode_;
+}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

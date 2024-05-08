@@ -20,9 +20,20 @@
  *
  */
 
+#include "renderer/components/image_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+ImageView::ImageView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+ImageView::~ImageView() {}
+
+ImageNode &ImageView::GetLocalRootArkUINode() {
+  return imageNode_;
+}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

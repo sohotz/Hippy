@@ -20,9 +20,36 @@
  *
  */
 
+#include "renderer/components/div_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+DivView::DivView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  stackNode_.SetStackNodeDelegate(this);
+}
+
+DivView::~DivView() {}
+
+StackNode &DivView::GetLocalRootArkUINode() {
+  return stackNode_;
+}
+
+void DivView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void DivView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+}
+
+void DivView::OnClick() {
+  // TODO(hot):
+}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

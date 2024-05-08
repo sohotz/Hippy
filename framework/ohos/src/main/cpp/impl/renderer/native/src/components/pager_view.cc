@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/pager_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+PagerView::~PagerView() {}
+
+StackNode &PagerView::GetLocalRootArkUINode() { return stackNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy

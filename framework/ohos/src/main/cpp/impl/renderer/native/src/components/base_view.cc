@@ -26,8 +26,79 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(-1) {
+BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(0) {
   
+}
+
+bool BaseView::SetProp(const std::string &propKey, HippyValue &propValue) {
+
+  return false;
+}
+
+void BaseView::AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index) {
+  if (index < 0 || index > (int32_t)children_.size()) {
+    index = (int32_t)children_.size();
+  }
+  OnChildInserted(subView, index);
+  auto it = children_.begin() + index;
+  subView->SetParent(shared_from_this());
+  children_.insert(it, std::move(subView));
+}
+
+void BaseView::RemoveSubView(std::shared_ptr<BaseView> &subView) {
+  auto it = std::find(children_.begin(), children_.end(), subView);
+  if (it != children_.end()) {
+    auto view = std::move(*it);
+    children_.erase(it);
+    OnChildRemoved(view);
+  }
+}
+
+void BaseView::RemoveFromParentView() {
+  auto parentView = parent_.lock();
+  if (parentView) {
+    auto thisView = shared_from_this();
+    parentView->RemoveSubView(thisView);
+    SetParent(nullptr);
+  }
+}
+
+bool BaseView::IsImageSpan() {
+  auto parentView = parent_.lock();
+  if (parentView && parentView->GetViewType() == "Text" && view_type_ == "Image") {
+    return true;
+  }
+  return false;
+}
+
+void BaseView::SetRenderViewFrame(const HRRect &frame) {
+  UpdateRenderViewFrame(frame);
+}
+
+void BaseView::UpdateRenderViewFrame(const HRRect &frame) {
+  if (IsImageSpan()) {
+    if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
+      GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));
+      return;
+    }
+  }
+
+  GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));
+  GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
+}
+
+void BaseView::UpdateEventListener(HippyValueObjectType &newEvents) {
+//     this.events = newEvents
+}
+
+bool BaseView::CheckRegisteredEvent(std::string &eventName) {
+//     if (this.events && this.events.has(eventName)) {
+//       let value = this.events.get(eventName)
+//       if (typeof value == 'boolean') {
+//         return value
+//       }
+//     }
+  return false;
 }
 
 } // namespace native

@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/modal_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+ModalView::ModalView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+ModalView::~ModalView() {}
+
+StackNode &ModalView::GetLocalRootArkUINode() { return stackNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy

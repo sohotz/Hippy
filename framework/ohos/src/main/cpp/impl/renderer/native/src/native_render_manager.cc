@@ -31,9 +31,10 @@
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_measure_text.h"
 
+#define USE_ARK_CAPI 0
 #define USE_C_MEASURE 1
 
-constexpr char kId[] = "id";
+#if !USE_ARK_CAPI
 constexpr char kPid[] = "pId";
 constexpr char kIndex[] = "index";
 constexpr char kName[] = "name";
@@ -41,8 +42,11 @@ constexpr char kWidth[] = "width";
 constexpr char kHeight[] = "height";
 constexpr char kLeft[] = "left";
 constexpr char kTop[] = "top";
-constexpr char kProps[] = "props";
 constexpr char kDeleteProps[] = "deleteProps";
+#endif
+
+constexpr char kId[] = "id";
+constexpr char kProps[] = "props";
 constexpr char kFontStyle[] = "fontStyle";
 constexpr char kLetterSpacing[] = "letterSpacing";
 constexpr char kColor[] = "kColor";
@@ -178,6 +182,9 @@ void NativeRenderManager::SetRenderDelegate(napi_env ts_env, napi_ref ts_render_
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
   CallRenderDelegateSetIdMethod(ts_env_, ts_render_provider_ref_, "setInstanceId", id_);
+  
+  render_provider_->SetTsEnv(ts_env);
+  
   NativeRenderManager::GetStyleFilter();
 }
 
@@ -191,6 +198,65 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   if (!root) {
     return;
   }
+    
+#if USE_ARK_CAPI
+  uint32_t root_id = root->GetId();
+  auto len = nodes.size();
+  std::vector<std::shared_ptr<HRCreateMutation>> mutations;
+  mutations.resize(len);
+  for (uint32_t i = 0; i < len; i++) {
+    const auto& render_info = nodes[i]->GetRenderInfo();
+    auto m = std::make_shared<HRCreateMutation>();
+    m->tag_ = render_info.id;
+    m->parent_tag_ = render_info.pid;
+    m->index_ = render_info.index;
+    m->view_name_ = nodes[i]->GetViewName();
+
+    if (IsMeasureNode(nodes[i]->GetViewName())) {
+      auto weak_node = nodes[i]->weak_from_this();
+      MeasureFunction measure_function = [WEAK_THIS, root_node, weak_node](float width, LayoutMeasureMode width_measure_mode,
+                                                                           float height, LayoutMeasureMode height_measure_mode,
+                                                                           void *layoutContext) -> LayoutSize {
+        DEFINE_SELF(NativeRenderManager)
+        if (!self) {
+          return LayoutSize{0, 0};
+        }
+        int64_t result;
+        self->DoMeasureText(root_node, weak_node, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
+                            self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
+        LayoutSize layout_result;
+        layout_result.width = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32))));
+        layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
+        return layout_result;
+      };
+      nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
+    }
+
+    footstone::value::HippyValue::HippyValueObjectType props;
+    // 样式属性
+    auto style = nodes[i]->GetStyleMap();
+    auto iter = style->begin();
+    auto style_filter = NativeRenderManager::GetStyleFilter();
+    while (iter != style->end()) {
+      if (style_filter->Enable(iter->first)) {
+        props[iter->first] = *(iter->second);
+      }
+      iter++;
+    }
+    // 用户自定义属性
+    auto dom_ext = *nodes[i]->GetExtStyle();
+    iter = dom_ext.begin();
+    while (iter != dom_ext.end()) {
+      props[iter->first] = *(iter->second);
+      iter++;
+    }
+  
+    m->props_ = props;
+    mutations[i] = m;
+  }
+  
+  render_provider_->CreateNode(root_id, mutations);
+#else
 
 #if USE_C_MEASURE
 #else
@@ -276,6 +342,7 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
   
   CallNativeMethod("createNode", root->GetId(), buffer_pair);
+#endif
 }
 
 void NativeRenderManager::UpdateRenderNode(std::weak_ptr<RootNode> root_node,
@@ -292,6 +359,47 @@ void NativeRenderManager::UpdateRenderNode(std::weak_ptr<RootNode> root_node,
       MarkTextDirty(root_node, n->GetId());
     }
   }
+
+#if USE_ARK_CAPI
+  uint32_t root_id = root->GetId();
+  auto len = nodes.size();
+  std::vector<std::shared_ptr<HRUpdateMutation>> mutations;
+  mutations.resize(len);
+  for (uint32_t i = 0; i < len; i++) {
+    const auto &render_info = nodes[i]->GetRenderInfo();
+    auto m = std::make_shared<HRUpdateMutation>();
+    m->tag_ = render_info.id;
+    m->parent_tag_ = render_info.pid;
+    m->index_ = render_info.index;
+    m->view_name_ = nodes[i]->GetViewName();
+
+    footstone::value::HippyValue::HippyValueObjectType diff_props;
+    footstone::value::HippyValue::HippyValueArrayType del_props;
+    auto diff = nodes[i]->GetDiffStyle();
+    if (diff) {
+      auto iter = diff->begin();
+      while (iter != diff->end()) {
+        FOOTSTONE_DCHECK(iter->second != nullptr);
+        if (iter->second) {
+          diff_props[iter->first] = *(iter->second);
+        }
+        iter++;
+      }
+    }
+    auto del = nodes[i]->GetDeleteProps();
+    if (del) {
+      auto iter = del->begin();
+      while (iter != del->end()) {
+        del_props.emplace_back(footstone::value::HippyValue(*iter));
+        iter++;
+      }
+    }
+    m->props_ = diff_props;
+    m->delete_props_ = del_props;
+    mutations[i] = m;
+  }
+  render_provider_->UpdateNode(root_id, mutations);
+#else
 
   serializer_->Release();
   serializer_->WriteHeader();
@@ -336,6 +444,7 @@ void NativeRenderManager::UpdateRenderNode(std::weak_ptr<RootNode> root_node,
   std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
 
   CallNativeMethod("updateNode", root->GetId(), buffer_pair);
+#endif
 }
 
 void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
@@ -345,6 +454,19 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
     return;
   }
 
+#if USE_ARK_CAPI
+  uint32_t root_id = root->GetId();
+  auto len = nodes.size();
+  auto m = std::make_shared<HRMoveMutation>();
+  std::vector<HRMoveNodeInfo> node_infos;
+  for (uint32_t i = 0; i < len; i++) {
+    const auto &render_info = nodes[i]->GetRenderInfo();
+    m->parent_tag_ = render_info.pid;
+    node_infos.push_back(HRMoveNodeInfo(render_info.id, render_info.index));
+  }
+  m->node_infos_ = node_infos;
+  render_provider_->MoveNode(root_id, m);
+#else
   serializer_->Release();
   serializer_->WriteHeader();
 
@@ -365,6 +487,7 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
   std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
 
   CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode", root->GetId(), pid, buffer_pair);
+#endif
 }
 
 void NativeRenderManager::DeleteRenderNode(std::weak_ptr<RootNode> root_node,
@@ -374,6 +497,19 @@ void NativeRenderManager::DeleteRenderNode(std::weak_ptr<RootNode> root_node,
     return;
   }
 
+#if USE_ARK_CAPI
+  uint32_t root_id = root->GetId();
+  auto len = nodes.size();
+  std::vector<std::shared_ptr<HRDeleteMutation>> mutations;
+  mutations.resize(len);
+  for (uint32_t i = 0; i < len; i++) {
+    const auto &render_info = nodes[i]->GetRenderInfo();
+    auto m = std::make_shared<HRDeleteMutation>();
+    m->tag_ = render_info.id;
+    mutations[i] = m;
+  }
+  render_provider_->DeleteNode(root_id, mutations);
+#else
   std::vector<uint32_t> ids;
   ids.resize(nodes.size());
   for (size_t i = 0; i < nodes.size(); i++) {
@@ -381,6 +517,7 @@ void NativeRenderManager::DeleteRenderNode(std::weak_ptr<RootNode> root_node,
   }
 
   CallRenderDelegateDeleteNodeMethod(ts_env_, ts_render_provider_ref_, "deleteNode", root->GetId(), ids);
+#endif
 }
 
 void NativeRenderManager::UpdateLayout(std::weak_ptr<RootNode> root_node,
@@ -390,6 +527,29 @@ void NativeRenderManager::UpdateLayout(std::weak_ptr<RootNode> root_node,
     return;
   }
 
+#if USE_ARK_CAPI
+  uint32_t root_id = root->GetId();
+  auto len = nodes.size();
+  std::vector<std::shared_ptr<HRUpdateLayoutMutation>> mutations;
+  mutations.resize(len);
+  for (uint32_t i = 0; i < len; i++) {
+    const auto &result = nodes[i]->GetRenderLayoutResult();
+    auto m = std::make_shared<HRUpdateLayoutMutation>();
+    m->tag_ = nodes[i]->GetId();
+    m->left_ = result.left;
+    m->top_ = result.top;
+    m->width_ = result.width;
+    m->height_ = result.height;
+    if (IsMeasureNode(nodes[i]->GetViewName())) {
+      m->padding_left_ = result.paddingLeft;
+      m->padding_top_ = result.paddingTop;
+      m->padding_right_ = result.paddingRight;
+      m->padding_bottom_ = result.paddingBottom;
+    }
+    mutations[i] = m;
+  }
+  render_provider_->UpdateLayout(root_id, mutations);
+#else
   serializer_->Release();
   serializer_->WriteHeader();
 
@@ -416,6 +576,7 @@ void NativeRenderManager::UpdateLayout(std::weak_ptr<RootNode> root_node,
   std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
 
   CallNativeMethod("updateLayout", root->GetId(), buffer_pair);
+#endif
 }
 
 void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
@@ -428,13 +589,32 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
     return;
   }
 
+#if USE_ARK_CAPI
+  uint32_t root_id = root->GetId();
+  auto m = std::make_shared<HRMove2Mutation>();
+  std::vector<uint32_t> tags;
+  for (uint32_t i = 0; i < moved_ids.size(); i++) {
+    tags.push_back((uint32_t)moved_ids[i]);
+  }
+  m->tags_ = tags;
+  m->to_parent_tag_ = (uint32_t)to_pid;
+  m->from_parent_tag_ = (uint32_t)from_pid;
+  m->index_ = index;
+  render_provider_->MoveNode2(root_id, m);
+#else
   CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode2", root->GetId(), moved_ids, to_pid, from_pid, index);
+#endif
 }
 
 void NativeRenderManager::EndBatch(std::weak_ptr<RootNode> root_node) {
   auto root = root_node.lock();
   if (root) {
-    CallNativeMethod("endBatch", root->GetId());
+#if USE_ARK_CAPI
+  uint32_t root_id = root->GetId();
+  render_provider_->EndBatch(root_id);
+#else
+  CallNativeMethod("endBatch", root->GetId());
+#endif
   }
 }
 

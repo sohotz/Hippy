@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/waterfall_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+WaterfallView::WaterfallView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+WaterfallView::~WaterfallView() {}
+
+StackNode &WaterfallView::GetLocalRootArkUINode() { return stackNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy

@@ -20,9 +20,22 @@
  *
  */
 
+#include "renderer/arkui/web_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+WebNode::WebNode()
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_STACK)) { // TODO(hot):
+
+}
+
+WebNode::~WebNode() {
+
+}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

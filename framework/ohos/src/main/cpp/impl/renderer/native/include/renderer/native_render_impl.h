@@ -25,6 +25,7 @@
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <memory>
 #include "renderer/uimanager/hr_manager.h"
+#include "renderer/uimanager/hr_mutation.h"
 
 namespace hippy {
 inline namespace render {
@@ -38,6 +39,15 @@ public:
   uint32_t GetInstanceId() { return instance_id_; }
 
   void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id);
+
+  void CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations);
+  void UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations);
+  void MoveNode(uint32_t root_id, const std::shared_ptr<HRMoveMutation> &mutation);
+  void MoveNode2(uint32_t root_id, const std::shared_ptr<HRMove2Mutation> &mutation);
+  void DeleteNode(uint32_t root_id, const std::vector<std::shared_ptr<HRDeleteMutation>> &mutations);
+  void UpdateLayout(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateLayoutMutation>> &mutations);
+  void UpdateEventListener(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> &mutations);
+  void EndBatch(uint32_t root_id);
 
 private:
   uint32_t instance_id_;

@@ -22,9 +22,35 @@
 
 #pragma once
 
+#include "renderer/arkui/arkui_node.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+class StackNodeDelegate {
+public:
+  virtual ~StackNodeDelegate() = default;
+  virtual void OnClick(){}
+};
+
+class StackNode : public ArkUINode {
+protected:
+  StackNodeDelegate *stackNodeDelegate_;
+
+public:
+  StackNode();
+  ~StackNode() override;
+
+  void InsertChild(ArkUINode &child, int32_t index);
+  void RemoveChild(ArkUINode &child);
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void OnClick();
+  void SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate);
+  StackNode &SetMargin(float left, float top, float right, float bottom);
+  StackNode &SetAlign(int32_t align);
+};
+
+} // namespace native
 } // namespace render
 } // namespace hippy

@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/refresh_wrapper_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+RefreshWrapperView::RefreshWrapperView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+RefreshWrapperView::~RefreshWrapperView() {}
+
+StackNode &RefreshWrapperView::GetLocalRootArkUINode() { return stackNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy

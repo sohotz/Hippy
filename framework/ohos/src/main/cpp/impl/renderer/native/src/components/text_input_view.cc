@@ -20,9 +20,18 @@
  *
  */
 
+#include "renderer/components/text_input_view.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+TextInputView::TextInputView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+
+TextInputView::~TextInputView() {}
+
+StackNode &TextInputView::GetLocalRootArkUINode() { return stackNode_; }
+
+} // namespace native
 } // namespace render
 } // namespace hippy
