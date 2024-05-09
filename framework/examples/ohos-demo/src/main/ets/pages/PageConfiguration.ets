@@ -18,10 +18,16 @@
  * limitations under the License.
  */
 import { router } from '@kit.ArkUI'
-import { HippyEngine } from 'hippy'
+import {
+  createHippyEngine,
+  EngineInitParams,
+  EngineInitStatus, HippyEngine, ModuleLoadParams, ModuleLoadStatus } from 'hippy'
 import { DriverSetting } from './DriverSetting'
 import { RendererSetting } from './RendererSetting'
 import { image } from '@kit.ImageKit'
+import { HippyValue } from 'hippy/src/main/ets/support/common/HippyTypes'
+import { ExampleAPIProvider } from '../hippyExtend/ExampleAPIProvider'
+import { HippyLibrary } from 'hippy/src/main/ets/hippy_library/HippyLibrary'
 
 export enum DriverMode {
   JS_REACT,
@@ -38,7 +44,7 @@ export enum RenderMode {
 
 const DEFAULT_DEBUG_SERVER_HOST:string = 'localhost:38989'
 
-export class InitParams {
+export class HippyInfo {
   driver:DriverMode = DriverMode.JS_REACT
   render:RenderMode = RenderMode.NATIVE
   isDebugMode:boolean = false
@@ -47,13 +53,17 @@ export class InitParams {
   hippyEngine:HippyEngine | null = null
   snapShot:image.PixelMap | null = null
 
-  index:number = -1 //only using for router.params
+  createTime:number = 0
 }
 
 @Entry
 @Component
 struct PageConfiguration {
-  @StorageLink('pageManagementItems') pageitems:InitParams[]  = [] //AppStorage.get('pageManagementItems') as InitParams[]
+  @StorageLink('pageManagementItems') pageitems:HippyInfo[]  = [] //AppStorage.get('pageManagementItems') as HippyInfo[]
+  @StorageLink('showIndex') showIndex:number = -1
+
+  @StorageLink('libHippy') private libHippy: HippyLibrary | null = null
+  @StorageLink('abilityContext') private abilityContext: Context | null = null
 
   @State driver:Resource = $r('app.string.driver_js_react')
   private driverSettingDlg:CustomDialogController = {} as CustomDialogController
@@ -82,6 +92,60 @@ struct PageConfiguration {
         this.driver =  $r('app.string.driver_js_vl')
         break;
     }
+  }
+
+  initEngine(info:HippyInfo):HippyEngine {
+    let params = new EngineInitParams(this.libHippy!, this.abilityContext!)
+    params.debugServerHost = info.debugServerHost as string
+    params.debugMode = info.isDebugMode as boolean
+    //params.enableLog = true
+
+    params.providers = new Array(new ExampleAPIProvider())
+
+    params.coreJSAssetsPath = "react/vendor.ohos.js"
+    if (info.driver === DriverMode.JS_VUE_2) {
+      params.coreJSAssetsPath = "vue2/vendor.ohos.js"
+    } else if (info.driver === DriverMode.JS_VUE_3) {
+      params.coreJSAssetsPath = "vue3/vendor.ohos.js"
+    }
+
+    let hippyEngine = createHippyEngine(params)
+    //this.itemInfo.hippyEngine = this.hippyEngine
+
+    hippyEngine.initEngine((statusCode: EngineInitStatus, msg: string) => {
+      if (statusCode == EngineInitStatus.STATUS_OK) {
+        let jsAssetPath = 'react/index.ohos.js'
+        if (info.driver === DriverMode.JS_VUE_2) {
+          jsAssetPath = "vue2/index.ohos.js"
+        } else if (info.driver === DriverMode.JS_VUE_3) {
+          jsAssetPath = "vue3/index.ohos.js"
+        }
+
+        let loadParams = new ModuleLoadParams(
+          jsAssetPath,
+          '',
+          '',
+          '',
+          null,
+          null,
+          null,
+        )
+        loadParams.componentName = "Demo"
+        loadParams.codeCacheTag = "Demo"
+        loadParams.jsParams = new Map<string, HippyValue>()
+        loadParams.jsParams.set(
+          "msgFromNative",
+          "Hi js developer, I come from ohos native code!"
+        )
+        hippyEngine?.loadModule(
+          loadParams,
+          (statusCode: ModuleLoadStatus, msg: string) => {
+
+          })
+      }
+    })
+
+    return hippyEngine
   }
 
   build() {
@@ -289,17 +353,23 @@ struct PageConfiguration {
             .height(44)
             .margin({top:34})
             .onClick(()=>{
-              let params = new InitParams()
+              let params = new HippyInfo()
               params.driver = this.driverMode
               params.render = this.renderMode
               params.isDebugMode = this.debugRadio
               params.isSnapShotMode = this.snapShotRadio
               params.debugServerHost = this.debugServerHost
 
-              router.replaceUrl({
-                url: 'pages/ExampleHippyPage',
-                params:params
-              })
+              params.hippyEngine = this.initEngine(params)
+              params.createTime = (new Date()).getTime()
+              this.showIndex = params.createTime
+              this.pageitems.push(params)
+              router.back()
+
+              // router.replaceUrl({
+              //   url: 'pages/ExampleHippyPage',
+              //   params:params
+              // })
             })
         }
         .width('100%')

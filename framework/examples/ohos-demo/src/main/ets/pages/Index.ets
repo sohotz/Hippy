@@ -22,15 +22,19 @@ import { router } from '@kit.ArkUI'
 @Entry
 @Component
 struct Index {
-  @State page_management_icon:Resource = $r('app.media.page_management_2x')
-  @State page_setting_icon:Resource = $r('app.media.setting_2x')
+  @State page_management_icon: Resource = $r('app.media.page_management_2x')
+  @State page_setting_icon: Resource = $r('app.media.setting_2x')
+
+  onBackPress(): boolean | void {
+    router.clear() //avoid back to PageManagement
+  }
 
   build() {
     Column() {
       Text("DEMO")
         .height(54)
         .fontColor(Color.Black)
-        .margin({top:20})
+        .margin({ top: 20 })
         .fontWeight(500)
         .fontSize(17)
 
@@ -41,27 +45,26 @@ struct Index {
         Image($r('app.media.hippy_2x'))
           .width(135)
           .height(29)
-          .margin({left:12})
+          .margin({ left: 12 })
       }
       .height(50)
-      .margin({top:164})
+      .margin({ top: 164 })
 
       Text("This is Hippy DEMO")
-        .margin({top:10})
+        .margin({ top: 10 })
         .fontColor('#1E304A')
         .fontWeight(500)
         .fontSize(17)
 
       Text("Ver：3.0.0")
-        .margin({top:10})
+        .margin({ top: 10 })
         .fontColor('#A1ACBD')
         .fontWeight(400)
         .fontSize(14)
 
       Text($r('app.string.hippy_desc'))
-        .width(262)
-        //.margin({left:72, top:74})
-        .margin({top:74})
+        .width(262)//.margin({left:72, top:74})
+        .margin({ top: 74 })
         .fontColor('#A1ACBD')
         .fontWeight(400)
         .fontSize(14)
@@ -80,36 +83,20 @@ struct Index {
 
       Row() {
         Column() {
-         // RelativeContainer() {
-            Image(this.page_management_icon)
-              .width(19)
-              .height(21)
-              .margin({ top: 8 })
-              // .alignRules({
-              //   top: { anchor: "__container__", align: VerticalAlign.Top },
-              //   middle: { anchor: "__container__", align: HorizontalAlign.Center }
-              // })
-              .id('page_management_icon')
+          Image(this.page_management_icon)
+            .width(19)
+            .height(21)
+            .margin({ top: 8 })
 
-              Text('Page Manage')
-                .fontColor('#4A5970')
-                .fontWeight(400)
-                .fontSize(11)
-                .margin({ top: 2 })
-                // .alignRules({
-                //   top: { anchor: "page_management_icon", align: VerticalAlign.Bottom },
-                //   bottom:{anchor:"__container__", align:VerticalAlign.Bottom},
-                //   middle: { anchor: "__container__", align: HorizontalAlign.Center },
-                //   bias:{vertical:0.656}
-                // })
-                // .height('13fp')
-                .id("page_management_text")
-          //}
-          //.height('100%')
+          Text('Page Manage')
+            .fontColor('#4A5970')
+            .fontWeight(400)
+            .fontSize(11)
+            .margin({ top: 2 })
         }
         .height(52)
         .width('50%')
-        .onTouch((event?: TouchEvent)=>{
+        .onTouch((event?: TouchEvent) => {
           if (event) {
             if (event.type === TouchType.Down) {
               this.page_management_icon = $r('app.media.page_management_pressed_2x')
@@ -118,28 +105,28 @@ struct Index {
             }
           }
         })
-        .onClick(()=>{
+        .onClick(() => {
           router.pushUrl({
             url: 'pages/PageManagement',
             params: {}
-          })
+          }, router.RouterMode.Single)
         })
 
         Column() {
           Image(this.page_setting_icon)
             .width(19)
             .height(21)
-            .margin({top:8})
+            .margin({ top: 8 })
 
           Text('Setting')
-            .margin({top:2})
+            .margin({ top: 2 })
             .fontColor('#4A5970')
             .fontWeight(400)
             .fontSize(11)
         }
         .height(52)
         .width('50%')
-        .onTouch((event?: TouchEvent)=>{
+        .onTouch((event?: TouchEvent) => {
           if (event) {
             if (event.type === TouchType.Down) {
               this.page_setting_icon = $r('app.media.setting_pressed_2x')
@@ -148,7 +135,7 @@ struct Index {
             }
           }
         })
-        .onClick(()=>{
+        .onClick(() => {
           router.pushUrl({
             url: 'pages/PageSetting',
             params: {}

@@ -3,7 +3,6 @@
     "pages/Index",
     "pages/PageManagement",
     "pages/PageSetting",
-    "pages/PageConfiguration",
-    "pages/ExampleHippyPage"
+    "pages/PageConfiguration"
   ]
 }
