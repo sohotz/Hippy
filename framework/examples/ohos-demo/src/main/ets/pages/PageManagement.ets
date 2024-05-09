@@ -17,9 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { router } from '@kit.ArkUI'
-import storage from '@ohos.data.storage'
-import { DriverMode, InitParams } from './PageConfiguration'
+import { componentSnapshot, router } from '@kit.ArkUI'
+import {  HippyEngine, HippyException, HippyRoot } from 'hippy'
+import { HippyLibrary } from 'hippy/src/main/ets/hippy_library/HippyLibrary'
+import HippyRenderBaseView
+  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
+import { ExampleCustomComponent,
+  ExampleCustomComponentView } from '../hippyExtend/ExampleCustomComponentView'
+import { DriverMode, HippyInfo } from './PageConfiguration'
+import { image } from '@kit.ImageKit'
 
 //dimens.xml
 const page_index_item_margin:number = 16
@@ -32,9 +38,10 @@ const page_item_attribute_prompt_height:number = 23
 @Entry
 @Component
 struct PageManagement {
-  @StorageLink('pageManagementItems') pageitems:InitParams[] = [] //AppStorage.get('pageManagementItems') as InitParams[]
+  @StorageLink('pageManagementItems') pageitems:HippyInfo[] = [] //AppStorage.get('pageManagementItems') as InitParams[]
+  @StorageLink('showIndex') showIndex:number = -1
 
-  getDriverDisplayTips(param:InitParams):string {
+  getDriverDisplayTips(param:HippyInfo):string {
     let tips = ''
     switch (param.driver) {
       case DriverMode.JS_REACT:
@@ -58,6 +65,14 @@ struct PageManagement {
     return tips
   }
 
+  onBackPress(): boolean | void {
+    if (this.showIndex == -1) {
+      router.pushUrl({url:'/'}, router.RouterMode.Single)
+    }
+
+    return true
+  }
+
   build() {
     Column() {
       Row() {
@@ -71,12 +86,32 @@ struct PageManagement {
           .width(55)
           .height(54)
           .onClick(() => {
-            router.back()
+            if (this.showIndex == -1) {
+              router.pushUrl({url:'/'}, router.RouterMode.Single)
+              //router.back()
+            } else {
+              componentSnapshot.get('HippyFrame',(error: Error, pixmap: image.PixelMap) => {
+                if (error) {
+                  this.showIndex = -1
+                  return
+                }
+
+                for (let i = 0; i < this.pageitems.length; i++) {
+                  let item  = this.pageitems[i]
+                  if (item.createTime === this.showIndex) {
+                    item.snapShot = pixmap
+                    break
+                  }
+                }
+
+                this.showIndex = -1
+              })
+            }
           })
           .id('btn_back')
           .justifyContent(FlexAlign.Center)
 
-          Text("Page Management")
+          Text(this.showIndex === -1 ? "Page Management" : "Demo")
             .fontColor(Color.Black)
             .fontWeight(500)
             .fontSize(17)
@@ -89,118 +124,163 @@ struct PageManagement {
       .backgroundColor(Color.White)
       .width('100%')
 
-      //getPageIndexItemWidth ===> margin | grid | margin | grid margin
-      Grid() {
-        //generateBitmapFromView <====> .ets
-        ForEach(this.pageitems, (item:InitParams, index:number)=>{
+        //getPageIndexItemWidth ===> margin | grid | margin | grid margin
+        Grid() {
+          //generateBitmapFromView <====> .ets
+          ForEach(this.pageitems, (item: HippyInfo, index: number) => {
+            GridItem() { //TODO: no android:elevation="3dp"
+              Column() {
+                Row() {
+                  //this.showIndex === -1 just force render the snapshot
+                  Image(this.showIndex === -1 ? item.snapShot:$r('app.media.add_page_2x'))// .width(page_item_add_image_width)
+                    // .height(page_item_add_image_height)
+                    .objectFit(ImageFit.Contain)
+                }
+                .width('100%')
+                .height('calc(100% - 23vp)') //page_item_attribute_prompt_height
+                .backgroundColor(Color.White)
+                .justifyContent(FlexAlign.Center)
+                .onClick(() => {
+                  this.showIndex = item.createTime
+                })
+
+                Row() {
+                  Row() {
+                    Image($r('app.media.delete_page_2x'))
+                      .width(24)
+                      .height(24)
+                    //.margin({ top: 2, right: 3 }) //container's width 30,height 28 calc margin
+                  }
+                  .width(30)
+                  .height(28)
+                  .onClick(() => {
+                    this.pageitems?.splice(index, 1)
+                  })
+                }
+                .width('100%')
+                .position({ x: 0, y: 0 })
+                .justifyContent(FlexAlign.End)
+
+                Row() {
+                  Image($r('app.media.page_item_tips_4x'))
+                    .width(12)
+                    .height(12)
+
+                  Text(this.getDriverDisplayTips(item))
+                    .margin({ left: 4 })
+                    .fontColor('#4A5970')
+                    .fontWeight(400)
+                    .fontSize(12)
+                }
+                .height(17)
+                .margin({ top: 6 })
+              }
+            }
+            .width('100%')
+            .aspectRatio(page_item_default_width / page_item_default_height)
+          }, (item: HippyInfo, index: number) => {
+            let time = (new Date()).getTime() //force render when itemlist changing
+            return `PageManagementItem_${index}_${time}`
+          })
+
+          //add page item
           GridItem() { //TODO: no android:elevation="3dp"
             Column() {
               Row() {
-                Image(item.snapShot)
-                  // .width(page_item_add_image_width)
-                  // .height(page_item_add_image_height)
-                  .objectFit(ImageFit.Contain)
+                Image($r('app.media.add_page_2x'))
+                  .width(page_item_add_image_width)
+                  .height(page_item_add_image_height)
+                  .onClick(() => {
+                    router.pushUrl({
+                      url: 'pages/PageConfiguration',
+                      params: {}
+                    })
+                  })
               }
               .width('100%')
-              .height('calc(100% - 23vp)')  //page_item_attribute_prompt_height
+              .height('calc(100% - 23vp)') //page_item_attribute_prompt_height
               .backgroundColor(Color.White)
               .justifyContent(FlexAlign.Center)
-              .onClick(()=>{
-                let params = new InitParams()
-                params.index = index
 
-                router.pushUrl({
-                  url: 'pages/ExampleHippyPage',
-                  params: params
-                })
-              })
+              //.shadow(ShadowStyle.OUTER_DEFAULT_SM)
 
               Row() {
-                Row() {
-                  Image($r('app.media.delete_page_2x'))
-                    .width(24)
-                    .height(24)
-                    //.margin({ top: 2, right: 3 }) //container's width 30,height 28 calc margin
-                }
-                .width(30)
-                .height(28)
-                .onClick(()=>{
-                  this.pageitems?.splice(index, 1)
-                })
-              }
-              .width('100%')
-              .position({x:0, y:0})
-              .justifyContent(FlexAlign.End)
-
-              Row() {
-                Image($r('app.media.page_item_tips_4x'))
+                Image($r('app.media.page_item_add_4x'))
                   .width(12)
                   .height(12)
 
-                Text(this.getDriverDisplayTips(item))
-                  .margin({left:4})
+                Text($r('app.string.page_add_item_tips_text'))
+                  .margin({ left: 4 })
                   .fontColor('#4A5970')
                   .fontWeight(400)
                   .fontSize(12)
               }
               .height(17)
-              .margin({top:6})
+              .margin({ top: 6 })
             }
           }
           .width('100%')
-          .aspectRatio(page_item_default_width/page_item_default_height)
-        }, (item:InitParams, index:number)=>{
-          let time = (new Date()).getTime() //force render when itemlist changing
-          return `PageManagementItem_${index}_${time}`
-        })
-
-        //add page item
-        GridItem() { //TODO: no android:elevation="3dp"
-          Column() {
-            Row() {
-              Image($r('app.media.add_page_2x'))
-                .width(page_item_add_image_width)
-                .height(page_item_add_image_height)
-                .onClick(()=>{
-                  router.pushUrl({
-                    url: 'pages/PageConfiguration',
-                    params: {}
-                  })
-                })
-            }
-            .width('100%')
-            .height('calc(100% - 23vp)')  //page_item_attribute_prompt_height
-            .backgroundColor(Color.White)
-            .justifyContent(FlexAlign.Center)
-            //.shadow(ShadowStyle.OUTER_DEFAULT_SM)
-
-            Row() {
-              Image($r('app.media.page_item_add_4x'))
-                .width(12)
-                .height(12)
-
-              Text($r('app.string.page_add_item_tips_text'))
-                .margin({left:4})
-                .fontColor('#4A5970')
-                .fontWeight(400)
-                .fontSize(12)
-            }
-            .height(17)
-            .margin({top:6})
-          }
+          .aspectRatio(page_item_default_width / page_item_default_height)
         }
-        .width('100%')
-        .aspectRatio(page_item_default_width/page_item_default_height)
+        .columnsTemplate('1fr 1fr')
+        .columnsGap(page_index_item_margin)
+        .rowsGap(page_index_item_margin)
+        //TODO:marginTop is not same as android
+        .margin({
+          left: page_index_item_margin,
+          right: page_index_item_margin,
+          top: page_index_item_margin
+        })
+      .visibility(this.showIndex == -1 ? Visibility.Visible:Visibility.None)
+
+      Column() {
+        ForEach(this.pageitems, (item: HippyInfo, index:number) => {
+          HippyFrame({ itemInfo: item, hippyEngine: item.hippyEngine })
+            .visibility(item.createTime === this.showIndex ? Visibility.Visible:Visibility.None)
+        }, (item: HippyInfo, index: number) => {
+          return `HippyFrame_${item.createTime}`
+        })
       }
-      .columnsTemplate('1fr 1fr')
-      .columnsGap(page_index_item_margin)
-      .rowsGap(page_index_item_margin)
-      //TODO:marginTop is not same as android
-      .margin({left:page_index_item_margin, right:page_index_item_margin, top:page_index_item_margin})
+      .height('calc(100% - 54vp)')
+      .id('HippyFrame')
     }
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.home_background'))
-    //.expandSafeArea()
+    .expandSafeArea([SafeAreaType.KEYBOARD])
+  }
+}
+
+@Component
+struct HippyFrame {
+  @StorageLink('pageManagementItems') pageitems:HippyInfo[]  = [] //AppStorage.get('pageManagementItems') as InitParams[]
+  itemInfo:HippyInfo | null = null
+
+  @StorageLink('libHippy') private libHippy: HippyLibrary | null = null
+  @StorageLink('abilityContext') private abilityContext: Context | null = null
+  @State exception: string = ""
+  hippyEngine: HippyEngine | null = null
+
+  @Builder
+  buildCustomRenderView($$: HippyRenderBaseView) {
+    if ($$ instanceof ExampleCustomComponentView) {
+      ExampleCustomComponent({ renderView: $$ as ExampleCustomComponentView, children: $$.children })
+    }
+  }
+
+  build() {
+    Column() {
+      HippyRoot({
+        hippyEngine: this.hippyEngine,
+        pagerName: 'demo',
+        pagerData: {},
+        buildCustomRenderView: this.buildCustomRenderView,
+        onRenderException: (exception: HippyException) => {
+          this.exception = `${exception.message}\n${exception.stack}`
+        },
+      })
+        .layoutWeight(1)
+    }.width('100%')
+    .height('100%')
   }
 }
