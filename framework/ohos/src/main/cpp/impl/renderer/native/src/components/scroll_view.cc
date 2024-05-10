@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/scroll_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -30,11 +31,39 @@ ScrollView::ScrollView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx
 
 ScrollView::~ScrollView() {}
 
-StackNode &ScrollView::GetLocalRootArkUINode() { return stackNode_; }
+ScrollNode &ScrollView::GetLocalRootArkUINode() { return scrollNode_; }
 
 bool ScrollView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "showScrollIndicator") {
+    return true;
+  } else if (propKey == "pagingEnabled") {
+    return true;
+  } else if (propKey == "flingEnabled") {
+    return true;
+  } else if (propKey == "contentOffset4Reuse") {
+    return true;
+  } else if (propKey == "scrollEnabled") {
+    return true;
+  } else if (propKey == "horizontal") {
+    return true;
+  } else if (propKey == "initialContentOffset") {
+    return true;
+  } else if (propKey == "scrollEventThrottle") {
+    return true;
+  } else if (propKey == "scrollMinOffset") {
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void ScrollView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  scrollNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void ScrollView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  scrollNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

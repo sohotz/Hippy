@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/pager_item_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -33,8 +34,17 @@ PagerItemView::~PagerItemView() {}
 StackNode &PagerItemView::GetLocalRootArkUINode() { return stackNode_; }
 
 bool PagerItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
   return BaseView::SetProp(propKey, propValue);
+}
+
+void PagerItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void PagerItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

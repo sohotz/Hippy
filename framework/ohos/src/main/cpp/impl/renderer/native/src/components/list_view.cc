@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/list_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -28,7 +29,13 @@ inline namespace native {
 
 ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   stackNode_.AddChild(listNode_);
-  
+}
+
+ListView::~ListView() {
+  ctx_->GetNativeRender().lock()->RemoveEndBatchCallback(ctx_->GetRootId(), end_batch_callback_id_);
+}
+
+void ListView::Init() {
   auto weak_view = weak_from_this();
   end_batch_callback_id_ = ctx_->GetNativeRender().lock()->AddEndBatchCallback(ctx_->GetRootId(), [weak_view]() {
     auto view = weak_view.lock();
@@ -39,21 +46,58 @@ ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   });
 }
 
-ListView::~ListView() {
-  ctx_->GetNativeRender().lock()->RemoveEndBatchCallback(ctx_->GetRootId(), end_batch_callback_id_);
-}
-
 StackNode &ListView::GetLocalRootArkUINode() { return stackNode_; }
 
 bool ListView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "nestedScrollTopPriority") {
+    return true;
+  } else if (propKey == "horizontal") {
+    auto value = HRValueUtils::GetBool(propValue, false);
+    if (value) {
+      
+    }
+    return true;
+  } else if (propKey == "scrollEnabled") {
+    return true;
+  } else if (propKey == "initialContentOffset") {
+    return true;
+  } else if (propKey == "itemViewCacheSize") {
+    return true;
+  } else if (propKey == "scrollEventThrottle") {
+    return true;
+  } else if (propKey == "preloadItemNumber") {
+    return true;
+  } else if (propKey == "exposureEventEnabled") {
+    return true;
+  } else if (propKey == "rowShouldSticky") {
+    return true;
+  } else if (propKey == "bounces") {
+    return true;
+  } else if (propKey == "scrollbegindrag") {
+    return true;
+  } else if (propKey == "scrollenddrag") {
+    return true;
+  } else if (propKey == "momentumscrollbegin") {
+    return true;
+  } else if (propKey == "momentumscrollend") {
+    return true;
+  } else if (propKey == "scroll") {
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void ListView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+}
+
+void ListView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
 }
 
 void ListView::HandleOnChildrenUpdated() {
   for (uint32_t i = 0; i < children_.size(); i++) {
-//     ListItemNode itemNode;
-//     listItemNodes_.emplace_back(itemNode);
+    listNode_.AddChild(children_[i]->GetLocalRootArkUINode());
   }
 }
 

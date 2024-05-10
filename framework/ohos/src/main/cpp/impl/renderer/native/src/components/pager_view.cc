@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/pager_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -30,11 +31,31 @@ PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) 
 
 PagerView::~PagerView() {}
 
-StackNode &PagerView::GetLocalRootArkUINode() { return stackNode_; }
+SwiperNode &PagerView::GetLocalRootArkUINode() { return swiperNode_; }
 
 bool PagerView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "initialPage") {
+    return true;
+  } else if (propKey == "scrollEnabled") {
+    return true;
+  } else if (propKey == "direction") {
+    return true;
+  } else if (propKey == "vertical") {
+    return true;
+  } else if (propKey == "pageMargin") {
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void PagerView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  swiperNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void PagerView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  swiperNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

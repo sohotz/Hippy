@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/refresh_wrapper_item_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -33,8 +34,17 @@ RefreshWrapperItemView::~RefreshWrapperItemView() {}
 StackNode &RefreshWrapperItemView::GetLocalRootArkUINode() { return stackNode_; }
 
 bool RefreshWrapperItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
   return BaseView::SetProp(propKey, propValue);
+}
+
+void RefreshWrapperItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void RefreshWrapperItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

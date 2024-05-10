@@ -36,12 +36,24 @@ ImageNode &ImageView::GetLocalRootArkUINode() {
 }
 
 bool ImageView::SetProp(const std::string &propKey, HippyValue &propValue) {
-  if (propKey == "src") {
+  if (propKey == "verticalAlign") {
+    return true;
+  } else if (propKey == "src") {
     auto value = HRValueUtils::GetString(propValue);
     if (value != src_) {
       GetLocalRootArkUINode().SetSources(value);
       src_ = value;
     }
+    return true;
+  } else if (propKey == "resizeMode") {
+    return true;
+  } else if (propKey == "defaultSource") {
+    return true;
+  } else if (propKey == "tintColor") {
+    return true;
+  } else if (propKey == "tintColorBlendMode") {
+    return true;
+  } else if (propKey == "capInsets") {
     return true;
   }
   

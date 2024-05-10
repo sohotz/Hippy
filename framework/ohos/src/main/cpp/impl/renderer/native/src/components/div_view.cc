@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/div_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -37,7 +38,6 @@ StackNode &DivView::GetLocalRootArkUINode() {
 }
 
 bool DivView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
   return BaseView::SetProp(propKey, propValue);
 }
 

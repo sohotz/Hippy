@@ -53,7 +53,9 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, std::sha
   } else if (view_name == "Modal") {
     return std::make_shared<ModalView>(ctx);
   } else if (view_name == "ListView") {
-    return std::make_shared<ListView>(ctx);
+    auto view = std::make_shared<ListView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "ListViewItem") {
     return std::make_shared<ListItemView>(ctx);
   } else if (view_name == "ScrollView") {

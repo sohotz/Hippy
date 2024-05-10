@@ -35,6 +35,7 @@ public:
   ~ListNode();
 
   void AddChild(ArkUINode &child);
+  void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
 };
 

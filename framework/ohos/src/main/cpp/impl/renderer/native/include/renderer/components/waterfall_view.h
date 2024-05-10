@@ -24,6 +24,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/stack_node.h"
+#include "renderer/arkui/column_node.h"
 
 namespace hippy {
 inline namespace render {
@@ -34,11 +35,14 @@ public:
   WaterfallView(std::shared_ptr<NativeRenderContext> &ctx);
   ~WaterfallView();
 
-  StackNode &GetLocalRootArkUINode() override;
+  ColumnNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, HippyValue &propValue) override;
   
+  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
+  
 private:
-  StackNode stackNode_;
+  ColumnNode colNode_;
 };
 
 } // namespace native

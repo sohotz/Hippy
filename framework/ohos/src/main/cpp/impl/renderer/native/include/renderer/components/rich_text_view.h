@@ -41,7 +41,19 @@ private:
   TextNode textNode_;
   
   std::string text_;
-  
+  uint32_t color_ = 0;
+  std::string fontFamily_;
+  float fontSize_ = 0;
+  int32_t fontStyle_ = 0;
+  int32_t fontWeight_ = 0;
+  float letterSpacing_ = 0;
+  float lineHeight_ = 0;
+  int32_t numberOfLines_ = 1;
+  int32_t textAlign_ = 0;
+
+  bool firstSetColor_ = true;
+  bool firstSetLetterSpacing_ = true;
+  bool firstSetTextAlign_ = true;
 };
 
 } // namespace native

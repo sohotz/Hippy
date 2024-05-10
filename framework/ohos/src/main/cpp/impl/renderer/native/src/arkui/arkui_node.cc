@@ -24,7 +24,7 @@
 #include <algorithm>
 #include "renderer/arkui/arkui_node_registry.h"
 #include "renderer/arkui/native_node_api.h"
-#include "renderer/utils/hr_convert_util.h"
+#include "renderer/utils/hr_convert_utils.h"
 
 namespace hippy {
 inline namespace render {

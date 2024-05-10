@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/list_item_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -30,11 +31,40 @@ ListItemView::ListItemView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView
 
 ListItemView::~ListItemView() {}
 
-StackNode &ListItemView::GetLocalRootArkUINode() { return stackNode_; }
+ListItemNode &ListItemView::GetLocalRootArkUINode() { return itemNode_; }
 
 bool ListItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "type" || propKey == "itemViewType") {
+    if (propValue.IsString()) {
+      
+    } else if (propValue.IsNumber()) {
+      
+    } else {
+      
+    }
+    return true;
+  } else if (propKey == "sticky") {
+    auto value = HRValueUtils::GetBool(propValue, false);
+    if (value) {
+    }
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void ListItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  itemNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void ListItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  itemNode_.RemoveChild(childView->GetLocalRootArkUINode());
+}
+
+void ListItemView::UpdateRenderViewFrame(const HRRect &frame) {
+  HRRect newFrame = frame;//(0, 0, frame.width, frame.height); // TODO(hot):
+  BaseView::UpdateRenderViewFrame(newFrame);
 }
 
 } // namespace native

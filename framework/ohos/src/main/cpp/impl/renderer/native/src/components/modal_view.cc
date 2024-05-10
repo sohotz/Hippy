@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/modal_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {

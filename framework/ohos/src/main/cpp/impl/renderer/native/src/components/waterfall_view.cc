@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/waterfall_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -30,11 +31,35 @@ WaterfallView::WaterfallView(std::shared_ptr<NativeRenderContext> &ctx) : BaseVi
 
 WaterfallView::~WaterfallView() {}
 
-StackNode &WaterfallView::GetLocalRootArkUINode() { return stackNode_; }
+ColumnNode &WaterfallView::GetLocalRootArkUINode() { return colNode_; }
 
 bool WaterfallView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "bounces") {
+    return true;
+  } else if (propKey == "contentInset") {
+    return true;
+  } else if (propKey == "scrollEventThrottle") {
+    return true;
+  } else if (propKey == "preloadItemNumber") {
+    return true;
+  } else if (propKey == "interItemSpacing") {
+    return true;
+  } else if (propKey == "columnSpacing") {
+    return true;
+  } else if (propKey == "numberOfColumns") {
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void WaterfallView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  colNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void WaterfallView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  colNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/refresh_wrapper_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -30,11 +31,27 @@ RefreshWrapperView::RefreshWrapperView(std::shared_ptr<NativeRenderContext> &ctx
 
 RefreshWrapperView::~RefreshWrapperView() {}
 
-StackNode &RefreshWrapperView::GetLocalRootArkUINode() { return stackNode_; }
+ListNode &RefreshWrapperView::GetLocalRootArkUINode() { return listNode_; }
 
 bool RefreshWrapperView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "bounceTime") {
+    return true;
+  } else if (propKey == "onScrollEnable") {
+    return true;
+  } else if (propKey == "scrollEventThrottle") {
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void RefreshWrapperView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  listNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void RefreshWrapperView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  listNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

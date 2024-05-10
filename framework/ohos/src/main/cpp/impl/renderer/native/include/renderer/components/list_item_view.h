@@ -24,6 +24,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/stack_node.h"
+#include "renderer/arkui/list_item_node.h"
 
 namespace hippy {
 inline namespace render {
@@ -34,11 +35,15 @@ public:
   ListItemView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ListItemView();
 
-  StackNode &GetLocalRootArkUINode() override;
+  ListItemNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, HippyValue &propValue) override;
   
+  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
+  void UpdateRenderViewFrame(const HRRect &frame) override;
+
 private:
-  StackNode stackNode_;
+  ListItemNode itemNode_;
 };
 
 } // namespace native

@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/waterfall_item_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -33,8 +34,20 @@ WaterfallItemView::~WaterfallItemView() {}
 StackNode &WaterfallItemView::GetLocalRootArkUINode() { return stackNode_; }
 
 bool WaterfallItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "type") {
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void WaterfallItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInserted(childView, index);
+  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void WaterfallItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
+  BaseView::OnChildRemoved(childView);
+  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

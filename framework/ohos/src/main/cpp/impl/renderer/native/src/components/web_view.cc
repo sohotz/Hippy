@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/web_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -33,7 +34,11 @@ WebView::~WebView() {}
 WebNode &WebView::GetLocalRootArkUINode() { return webNode_; }
 
 bool WebView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "url") {
+    return true;
+  } else if (propKey == "source") {
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
 }
 

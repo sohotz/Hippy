@@ -240,7 +240,8 @@ void HRViewManager::RemoveEndBatchCallback(uint64_t cbId) {
 
 void HRViewManager::NotifyEndBatchCallbacks() {
   for (const auto &callback : end_batch_callback_map_) {
-    callback.second();
+    auto &cb = callback.second;
+    cb();
   }
 }
 

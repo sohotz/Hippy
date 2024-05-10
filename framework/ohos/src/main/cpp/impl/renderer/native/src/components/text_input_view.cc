@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/text_input_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -33,7 +34,57 @@ TextInputView::~TextInputView() {}
 StackNode &TextInputView::GetLocalRootArkUINode() { return stackNode_; }
 
 bool TextInputView::SetProp(const std::string &propKey, HippyValue &propValue) {
-
+  if (propKey == "caret-color") {
+    return true;
+  } else if (propKey == "color") {
+    return true;
+  } else if (propKey == "defaultValue") {
+    return true;
+  } else if (propKey == "fontFamily") {
+    return true;
+  } else if (propKey == "fontSize") {
+    return true;
+  } else if (propKey == "fontStyle") {
+    return true;
+  } else if (propKey == "fontWeight") {
+    return true;
+  } else if (propKey == "maxLength") {
+    return true;
+  } else if (propKey == "multiline") {
+    return true;
+  } else if (propKey == "textAlign") {
+    return true;
+  } else if (propKey == "textAlignVertical") {
+    return true;
+  } else if (propKey == "placeholder") {
+    return true;
+  } else if (propKey == "placeholderTextColor") {
+    return true;
+  } else if (propKey == "numberOfLines") {
+    return true;
+  } else if (propKey == "keyboardType") {
+    return true;
+  } else if (propKey == "returnKeyType") {
+    return true;
+  } else if (propKey == "value") {
+    return true;
+  } else if (propKey == "changetext") {
+    return true;
+  } else if (propKey == "selectionchange") {
+    return true;
+  } else if (propKey == "endediting") {
+    return true;
+  } else if (propKey == "focus") {
+    return true;
+  } else if (propKey == "blur") {
+    return true;
+  } else if (propKey == "keyboardwillshow") {
+    return true;
+  } else if (propKey == "keyboardwillhide") {
+    return true;
+  } else if (propKey == "contentSizeChange") {
+    return true;
+  }
   return BaseView::SetProp(propKey, propValue);
 }
 

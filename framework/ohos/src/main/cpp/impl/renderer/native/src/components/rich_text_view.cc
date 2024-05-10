@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/rich_text_view.h"
+#include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -42,6 +43,101 @@ bool RichTextView::SetProp(const std::string &propKey, HippyValue &propValue) {
       GetLocalRootArkUINode().SetTextContent(value);
       text_ = value;
     }
+    return true;
+  } else if (propKey == "color") {
+    uint32_t value = HRValueUtils::GetUint32(propValue);
+    if (firstSetColor_ || value != color_) {
+      GetLocalRootArkUINode().SetFontColor(value);
+      color_ = value;
+      firstSetColor_ = false;
+    }
+    return true;
+  } else if (propKey == "enableScale") {
+    return true;
+  } else if (propKey == "fontFamily") {
+    
+    return true;
+  } else if (propKey == "fontSize") {
+    float value = HRValueUtils::GetFloat(propValue);
+    if (value != fontSize_) {
+      GetLocalRootArkUINode().SetFontSize(value);
+      fontSize_ = value;
+    }
+    return true;
+  } else if (propKey == "fontStyle") {
+    std::string value = HRValueUtils::GetString(propValue);
+    int32_t style = HRTextConvertUtil::FontStyleToArk(value);
+    if (style != fontStyle_) {
+      GetLocalRootArkUINode().SetFontStyle(style);
+      fontStyle_ = style;
+    }
+    return true;
+  } else if (propKey == "fontWeight") {
+    std::string value = HRValueUtils::GetString(propValue);
+    int32_t weight = HRTextConvertUtil::FontWeightToArk(value);
+    if (weight != fontWeight_) {
+      GetLocalRootArkUINode().SetFontWeight(weight);
+      fontWeight_ = weight;
+    }
+    return true;
+  } else if (propKey == "letterSpacing") {
+    float value = HRValueUtils::GetFloat(propValue);
+    if (firstSetLetterSpacing_ || value != letterSpacing_) {
+      GetLocalRootArkUINode().SetTextLetterSpacing(value);
+      letterSpacing_ = value;
+      firstSetLetterSpacing_ = false;
+    }
+    return true;
+  } else if (propKey == "lineHeight") {
+    float value = HRValueUtils::GetFloat(propValue);
+    if (value != lineHeight_) {
+      GetLocalRootArkUINode().SetTextLineHeight(value);
+      lineHeight_ = value;
+    }
+    return true;
+  } else if (propKey == "lineSpacingExtra") {
+    return true;
+  } else if (propKey == "lineSpacingMultiplier") {
+    return true;
+  } else if (propKey == "numberOfLines") {
+    int32_t value = HRValueUtils::GetInt32(propValue, 1);
+    if (value != numberOfLines_) {
+      GetLocalRootArkUINode().SetTextMaxLines(value);
+      numberOfLines_ = value;
+    }
+    return true;
+  } else if (propKey == "textAlign") {
+    std::string value = HRValueUtils::GetString(propValue);
+    int32_t align = HRTextConvertUtil::TextAlignToArk(value);
+    if (firstSetTextAlign_ || align != textAlign_) {
+      GetLocalRootArkUINode().SetTextAlign(align);
+      textAlign_ = align;
+      firstSetTextAlign_ = false;
+    }
+    return true;
+  } else if (propKey == "textDecorationLine") {
+    
+    return true;
+  } else if (propKey == "textDecorationColor") {
+    
+    return true;
+  } else if (propKey == "textDecorationStyle") {
+    
+    return true;
+  } else if (propKey == "textShadowColor") {
+    
+    return true;
+  } else if (propKey == "textShadowOffset") {
+    
+    return true;
+  } else if (propKey == "textShadowRadius") {
+    
+    return true;
+  } else if (propKey == "ellipsizeMode") {
+    
+    return true;
+  } else if (propKey == "breakStrategy") {
+    
     return true;
   }
   return BaseView::SetProp(propKey, propValue);
