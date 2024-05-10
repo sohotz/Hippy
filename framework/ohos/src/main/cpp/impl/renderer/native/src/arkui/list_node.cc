@@ -20,9 +20,27 @@
  *
  */
 
+#include "renderer/arkui/list_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+ListNode::ListNode()
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_LIST)) {
+}
+
+ListNode::~ListNode() {}
+
+void ListNode::AddChild(ArkUINode &child) {
+  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
+}
+
+void ListNode::RemoveChild(ArkUINode &child) {
+  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
+}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

@@ -35,6 +35,8 @@ public:
   ~WaterfallView();
 
   StackNode &GetLocalRootArkUINode() override;
+  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
+  
 private:
   StackNode stackNode_;
 };

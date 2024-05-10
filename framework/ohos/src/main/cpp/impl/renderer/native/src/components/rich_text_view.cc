@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/rich_text_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -32,6 +33,18 @@ RichTextView::~RichTextView() {}
 
 TextNode &RichTextView::GetLocalRootArkUINode() {
   return textNode_;
+}
+
+bool RichTextView::SetProp(const std::string &propKey, HippyValue &propValue) {
+  if (propKey == "text") {
+    std::string value = HRValueUtils::GetString(propValue);
+    if (value != text_) {
+      GetLocalRootArkUINode().SetTextContent(value);
+      text_ = value;
+    }
+    return true;
+  }
+  return BaseView::SetProp(propKey, propValue);
 }
 
 } // namespace native

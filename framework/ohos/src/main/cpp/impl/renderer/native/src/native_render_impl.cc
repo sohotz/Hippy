@@ -27,8 +27,11 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-NativeRenderImpl::NativeRenderImpl(uint32_t instance_id) : instance_id_(instance_id) {
-  hr_manager_ = std::make_shared<HRManager>(instance_id);
+NativeRenderImpl::NativeRenderImpl(uint32_t instance_id) : instance_id_(instance_id) {}
+
+void NativeRenderImpl::InitRenderManager() {
+  auto native_render = std::static_pointer_cast<NativeRender>(shared_from_this());
+  hr_manager_ = std::make_shared<HRManager>(instance_id_, native_render);
 }
 
 void NativeRenderImpl::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id) {
@@ -147,6 +150,22 @@ void NativeRenderImpl::EndBatch(uint32_t root_id) {
 
   view_manager->ApplyMutations();
   view_manager->NotifyEndBatchCallbacks();
+}
+
+uint64_t NativeRenderImpl::AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return 0;
+  }
+  return view_manager->AddEndBatchCallback(cb);
+}
+
+void NativeRenderImpl::RemoveEndBatchCallback(uint32_t root_id, uint64_t cbId) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  view_manager->RemoveEndBatchCallback(cbId);
 }
 
 } // namespace native

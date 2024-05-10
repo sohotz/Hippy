@@ -35,9 +35,12 @@ public:
   ~ImageView();
 
   ImageNode &GetLocalRootArkUINode() override;
+  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
   
 private:
   ImageNode imageNode_;
+  
+  std::string src_;
 };
 
 } // namespace native

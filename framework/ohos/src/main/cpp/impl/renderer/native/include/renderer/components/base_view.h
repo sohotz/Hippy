@@ -51,8 +51,9 @@ public:
   void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
 
   virtual ArkUINode &GetLocalRootArkUINode() = 0;
+  virtual bool SetProp(const std::string &propKey, HippyValue &propValue);
+  virtual void OnSetPropsEnd();
   
-  bool SetProp(const std::string &propKey, HippyValue &propValue);
   void AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index);
   void RemoveSubView(std::shared_ptr<BaseView> &subView);
   void RemoveFromParentView();
@@ -66,12 +67,43 @@ protected:
   virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView) {}
   virtual void UpdateRenderViewFrame(const HRRect &frame);
 
-private:
+protected:
+  bool SetBackgroundImageProp(const std::string &propKey, HippyValue &propValue);
+  bool SetBorderProp(const std::string &propKey, HippyValue &propValue);
+  bool SetShadowProp(const std::string &propKey, HippyValue &propValue);
+  bool SetEventProp(const std::string &propKey, HippyValue &propValue);
+
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t tag_;
   std::string view_type_;
   std::vector<std::shared_ptr<BaseView>> children_;
   std::weak_ptr<BaseView> parent_;
+  
+  uint32_t backgroundColor_ = 0;
+//   bool visibility = true;
+
+  float borderTopLeftRadius_ = 0;
+  float borderTopRightRadius_ = 0;
+  float borderBottomRightRadius_ = 0;
+  float borderBottomLeftRadius_ = 0;
+  float borderTopWidth_ = 0;
+  float borderRightWidth_ = 0;
+  float borderBottomWidth_ = 0;
+  float borderLeftWidth_ = 0;
+  std::string borderTopStyle_;
+  std::string borderRightStyle_;
+  std::string borderBottomStyle_;
+  std::string borderLeftStyle_;
+  uint32_t borderTopColor_ = 0;
+  uint32_t borderRightColor_ = 0;
+  uint32_t borderBottomColor_ = 0;
+  uint32_t borderLeftColor_ = 0;
+  
+  bool firstSetBackgroundColor_ = true;
+  bool toSetBorderRadius_ = false;
+  bool toSetBorderWidth_ = false;
+  bool toSetBorderStyle_ = false;
+  bool toSetBorderColor_ = false;
 };
 
 }  // namespace native

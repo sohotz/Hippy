@@ -21,6 +21,9 @@
  */
 
 #include "renderer/components/base_view.h"
+#include "renderer/utils/hr_value_utils.h"
+#include <sys/procfs.h>
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -31,8 +34,258 @@ BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(
 }
 
 bool BaseView::SetProp(const std::string &propKey, HippyValue &propValue) {
+  if (propKey == "width") {
+    return true;
+  } else if (propKey == "height") {
+    return true;
+  } else if (propKey == "padding") {
+    return true;
+  } else if (propKey == "paddingVertical") {
+    return true;
+  } else if (propKey == "paddingHorizontal") {
+    return true;
+  } else if (propKey == "paddingTop") {
+    return true;
+  } else if (propKey == "paddingBottom") {
+    return true;
+  } else if (propKey == "paddingLeft") {
+    return true;
+  } else if (propKey == "paddingRight") {
+    return true;
+  } else if (propKey == "visibility") {
+    return true;
+  } else if (propKey == "backgroundColor") {
+    uint32_t value = HRValueUtils::GetUint32(propValue);
+    if (firstSetBackgroundColor_ || value != backgroundColor_) {
+      GetLocalRootArkUINode().SetBackgroundColor(value);
+      backgroundColor_ = value;
+      firstSetBackgroundColor_ = false;
+    }
+    return true;
+  } else if (propKey == "opacity") {
+    return true;
+  } else if (propKey == "transform") {
+    return true;
+  } else if (propKey == "overflow") {
+    return true;
+  } else if (propKey == "zIndex") {
+    return true;
+  } else if (propKey == "accessibilityLabel") {
+    return true;
+  } else if (propKey == "focusable") {
+    return true;
+  } else if (propKey == "requestFocus") {
+    return true;
+  } else if (propKey == "linearGradient") {
+    return true;
+  } else {
+    bool handled = SetBackgroundImageProp(propKey, propValue);
+    if (!handled) {
+      handled = SetBorderProp(propKey, propValue);
+    }
+    if (!handled) {
+      handled = SetShadowProp(propKey, propValue);
+    }
+    if (!handled) {
+      handled = SetEventProp(propKey, propValue);
+    }
+    return handled;
+  }
+}
 
+bool BaseView::SetBackgroundImageProp(const std::string &propKey, HippyValue &propValue) {
+  if (propKey == "backgroundImage") {
+    return true;
+  } else if (propKey == "backgroundPositionX") {
+    return true;
+  } else if (propKey == "backgroundPositionY") {
+    return true;
+  } else if (propKey == "backgroundSize") {
+    return true;
+  }
   return false;
+}
+
+bool BaseView::SetBorderProp(const std::string &propKey, HippyValue &propValue) {
+  if (propKey == "borderRadius") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderTopLeftRadius_ = value;
+    borderTopRightRadius_ = value;
+    borderBottomRightRadius_ = value;
+    borderBottomLeftRadius_ = value;
+    toSetBorderRadius_ = true;
+    return true;
+  } else if (propKey == "borderTopLeftRadius") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderTopLeftRadius_ = value;
+    toSetBorderRadius_ = true;
+    return true;
+  } else if (propKey == "borderTopRightRadius") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderTopRightRadius_ = value;
+    toSetBorderRadius_ = true;
+    return true;
+  } else if (propKey == "borderBottomRightRadius") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderBottomRightRadius_ = value;
+    toSetBorderRadius_ = true;
+    return true;
+  } else if (propKey == "borderBottomLeftRadius") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderBottomLeftRadius_ = value;
+    toSetBorderRadius_ = true;
+    return true;
+  } else if (propKey == "borderWidth") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderTopWidth_ = value;
+    borderRightWidth_ = value;
+    borderBottomWidth_ = value;
+    borderLeftWidth_ = value;
+    toSetBorderWidth_ = true;
+    return true;
+  } else if (propKey == "borderTopWidth") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderTopWidth_ = value;
+    toSetBorderWidth_ = true;
+    return true;
+  } else if (propKey == "borderRightWidth") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderRightWidth_ = value;
+    toSetBorderWidth_ = true;
+    return true;
+  } else if (propKey == "borderBottomWidth") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderBottomWidth_ = value;
+    toSetBorderWidth_ = true;
+    return true;
+  } else if (propKey == "borderLeftWidth") {
+    float value = HRValueUtils::GetFloat(propValue);
+    borderLeftWidth_ = value;
+    toSetBorderWidth_ = true;
+    return true;
+  } else if (propKey == "borderStyle") {
+    std::string value = HRValueUtils::GetString(propValue);
+    borderTopStyle_ = value;
+    borderRightStyle_ = value;
+    borderBottomStyle_ = value;
+    borderLeftStyle_ = value;
+    toSetBorderStyle_ = true;
+    return true;
+  } else if (propKey == "borderTopStyle") {
+    std::string value = HRValueUtils::GetString(propValue);
+    borderTopStyle_ = value;
+    toSetBorderStyle_ = true;
+    return true;
+  } else if (propKey == "borderRightStyle") {
+    std::string value = HRValueUtils::GetString(propValue);
+    borderRightStyle_ = value;
+    toSetBorderStyle_ = true;
+    return true;
+  } else if (propKey == "borderBottomStyle") {
+    std::string value = HRValueUtils::GetString(propValue);
+    borderBottomStyle_ = value;
+    toSetBorderStyle_ = true;
+    return true;
+  } else if (propKey == "borderLeftStyle") {
+    std::string value = HRValueUtils::GetString(propValue);
+    borderLeftStyle_ = value;
+    toSetBorderStyle_ = true;
+    return true;
+  } else if (propKey == "borderColor") {
+    uint32_t value = HRValueUtils::GetUint32(propValue);
+    borderTopColor_ = value;
+    borderRightColor_ = value;
+    borderBottomColor_ = value;
+    borderLeftColor_ = value;
+    toSetBorderColor_ = true;
+    return true;
+  } else if (propKey == "borderTopColor") {
+    uint32_t value = HRValueUtils::GetUint32(propValue);
+    borderTopColor_ = value;
+    toSetBorderColor_ = true;
+    return true;
+  } else if (propKey == "borderRightColor") {
+    uint32_t value = HRValueUtils::GetUint32(propValue);
+    borderRightColor_ = value;
+    toSetBorderColor_ = true;
+    return true;
+  } else if (propKey == "borderBottomColor") {
+    uint32_t value = HRValueUtils::GetUint32(propValue);
+    borderBottomColor_ = value;
+    toSetBorderColor_ = true;
+    return true;
+  } else if (propKey == "borderLeftColor") {
+    uint32_t value = HRValueUtils::GetUint32(propValue);
+    borderLeftColor_ = value;
+    toSetBorderColor_ = true;
+    return true;
+  }
+  return false;
+}
+
+bool BaseView::SetShadowProp(const std::string &propKey, HippyValue &propValue) {
+  if (propKey == "shadowOffset") {
+    return true;
+  } else if (propKey == "shadowOffsetX") {
+    return true;
+  } else if (propKey == "shadowOffsetY") {
+    return true;
+  } else if (propKey == "shadowOpacity") {
+    return true;
+  } else if (propKey == "shadowRadius") {
+    return true;
+  } else if (propKey == "shadowColor") {
+    return true;
+  }
+  return false;
+}
+
+bool BaseView::SetEventProp(const std::string &propKey, HippyValue &propValue) {
+  if (propKey == "click") {
+    return true;
+  } else if (propKey == "longclick") {
+    return true;
+  } else if (propKey == "pressin") {
+    return true;
+  } else if (propKey == "pressout") {
+    return true;
+  } else if (propKey == "touchstart") {
+    return true;
+  } else if (propKey == "touchmove") {
+    return true;
+  } else if (propKey == "touchend") {
+    return true;
+  } else if (propKey == "touchcancel") {
+    return true;
+  } else if (propKey == "onInterceptTouchEvent") {
+    return true;
+  } else if (propKey == "onInterceptPullUpEvent") {
+    return true;
+  } else if (propKey == "attachedtowindow") {
+    return true;
+  } else if (propKey == "detachedfromwindow") {
+    return true;
+  }
+  return false;
+}
+
+void BaseView::OnSetPropsEnd() {
+  if (toSetBorderRadius_) {
+    toSetBorderRadius_ = false;
+    GetLocalRootArkUINode().SetBorderRadius(borderTopLeftRadius_, borderTopRightRadius_, borderBottomLeftRadius_, borderBottomRightRadius_);
+  }
+  if (toSetBorderWidth_) {
+    toSetBorderWidth_ = false;
+    GetLocalRootArkUINode().SetBorderWidth(borderTopWidth_, borderRightWidth_, borderBottomWidth_, borderLeftWidth_);
+  }
+  if (toSetBorderStyle_) {
+    toSetBorderStyle_ = false;
+    GetLocalRootArkUINode().SetBorderStyle(borderTopStyle_, borderRightStyle_, borderBottomStyle_, borderLeftStyle_);
+  }
+  if (toSetBorderColor_) {
+    toSetBorderColor_ = false;
+    GetLocalRootArkUINode().SetBorderColor(borderTopColor_, borderRightColor_, borderBottomColor_, borderLeftColor_);
+  }
 }
 
 void BaseView::AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index) {
@@ -42,7 +295,7 @@ void BaseView::AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t inde
   OnChildInserted(subView, index);
   auto it = children_.begin() + index;
   subView->SetParent(shared_from_this());
-  children_.insert(it, std::move(subView));
+  children_.insert(it, subView);
 }
 
 void BaseView::RemoveSubView(std::shared_ptr<BaseView> &subView) {

@@ -22,8 +22,11 @@
 
 #pragma once
 
+#include <vector>
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/stack_node.h"
+#include "renderer/arkui/list_node.h"
+#include "renderer/arkui/list_item_node.h"
 
 namespace hippy {
 inline namespace render {
@@ -35,8 +38,15 @@ public:
   ~ListView();
 
   StackNode &GetLocalRootArkUINode() override;
+  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
+  
 private:
+  void HandleOnChildrenUpdated();
+  
   StackNode stackNode_;
+  ListNode listNode_;
+  std::vector<ListItemNode> listItemNodes_;
+  uint64_t end_batch_callback_id_ = 0;
 };
 
 } // namespace native

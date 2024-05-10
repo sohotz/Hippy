@@ -22,9 +22,19 @@
 
 #pragma once
 
+#include "renderer/arkui/arkui_node.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+class SwiperNode : public ArkUINode {
+protected:
+public:
+  SwiperNode();
+  ~SwiperNode();
+};
+
+} // namespace native
 } // namespace render
 } // namespace hippy

@@ -29,9 +29,10 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id): nativeXComponent_(nullptr) {
+HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render)
+  : nativeXComponent_(nullptr) {
   root_id_ = root_id;
-  ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id);
+  ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id, native_render);
   root_view_ = std::make_shared<RootView>(ctx_);
   root_view_->SetTag(root_id);
   std::string root_view_type = "RootView";
@@ -184,7 +185,7 @@ void HRViewManager::Move2RenderView(std::vector<uint32_t> tags, uint32_t newPare
 }
 
 void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, HippyValueObjectType &props) {
-  if (view) {
+  if (view && props.size() > 0) {
     for (auto it = props.begin(); it != props.end(); it++) {
       // value maybe empty string / false / 0
       auto &key = it->first;
@@ -192,6 +193,7 @@ void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, HippyValueObjec
         view->SetProp(key, it->second);
       }
     }
+    view->OnSetPropsEnd();
   }
 }
 
@@ -226,8 +228,20 @@ void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame) {
   }
 }
 
+uint64_t HRViewManager::AddEndBatchCallback(const EndBatchCallback &cb) {
+  ++end_batch_callback_id_count_;
+  end_batch_callback_map_[end_batch_callback_id_count_] = std::move(cb);
+  return end_batch_callback_id_count_;
+}
+
+void HRViewManager::RemoveEndBatchCallback(uint64_t cbId) {
+  end_batch_callback_map_.erase(cbId);
+}
+
 void HRViewManager::NotifyEndBatchCallbacks() {
-  
+  for (const auto &callback : end_batch_callback_map_) {
+    callback.second();
+  }
 }
 
 } // namespace native

@@ -20,9 +20,19 @@
  *
  */
 
+#include "renderer/arkui/span_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+SpanNode::SpanNode()
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_SPAN)) {
+}
+
+SpanNode::~SpanNode() {}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

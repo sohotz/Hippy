@@ -26,11 +26,36 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  stackNode_.AddChild(listNode_);
+  
+  auto weak_view = weak_from_this();
+  end_batch_callback_id_ = ctx_->GetNativeRender().lock()->AddEndBatchCallback(ctx_->GetRootId(), [weak_view]() {
+    auto view = weak_view.lock();
+    if (view) {
+      auto listView = std::static_pointer_cast<ListView>(view);
+      listView->HandleOnChildrenUpdated();
+    }
+  });
+}
 
-ListView::~ListView() {}
+ListView::~ListView() {
+  ctx_->GetNativeRender().lock()->RemoveEndBatchCallback(ctx_->GetRootId(), end_batch_callback_id_);
+}
 
 StackNode &ListView::GetLocalRootArkUINode() { return stackNode_; }
+
+bool ListView::SetProp(const std::string &propKey, HippyValue &propValue) {
+
+  return BaseView::SetProp(propKey, propValue);
+}
+
+void ListView::HandleOnChildrenUpdated() {
+  for (uint32_t i = 0; i < children_.size(); i++) {
+//     ListItemNode itemNode;
+//     listItemNodes_.emplace_back(itemNode);
+  }
+}
 
 } // namespace native
 } // namespace render

@@ -35,6 +35,7 @@ public:
   ~DivView();
 
   StackNode &GetLocalRootArkUINode() override;
+  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
 
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;

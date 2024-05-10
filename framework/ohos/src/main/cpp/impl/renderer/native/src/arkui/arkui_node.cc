@@ -124,7 +124,7 @@ ArkUINode &ArkUINode::SetBorderRadius(float topLeft, float topRight, float botto
   return *this;
 }
 
-ArkUINode &ArkUINode::SetBorderStyle(HRBorderStyle top, HRBorderStyle right, HRBorderStyle bottom, HRBorderStyle left) {
+ArkUINode &ArkUINode::SetBorderStyle(std::string &top, std::string &right, std::string &bottom, std::string &left) {
   ArkUI_NumberValue borderStyleValue[] = {
     {.i32 = static_cast<int32_t>(HRConvertUtil::BorderStyleToArk(top))},
     {.i32 = static_cast<int32_t>(HRConvertUtil::BorderStyleToArk(right))},

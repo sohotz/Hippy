@@ -20,18 +20,20 @@
  *
  */
 
-#include "renderer/arkui/scroll_node.h"
-#include "renderer/arkui/native_node_api.h"
+#pragma once
+
+#include "renderer/arkui/arkui_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ScrollNode::ScrollNode()
-    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_SCROLL)) {
-}
-
-ScrollNode::~ScrollNode() {}
+class RowNode : public ArkUINode {
+protected:
+public:
+  RowNode();
+  ~RowNode();
+};
 
 } // namespace native
 } // namespace render

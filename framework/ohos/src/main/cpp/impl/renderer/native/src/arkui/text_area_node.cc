@@ -20,9 +20,19 @@
  *
  */
 
+#include "renderer/arkui/text_area_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+TextAreaNode::TextAreaNode()
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_TEXT_AREA)) {
+}
+
+TextAreaNode::~TextAreaNode() {}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

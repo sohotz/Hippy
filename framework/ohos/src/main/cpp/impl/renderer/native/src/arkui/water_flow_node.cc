@@ -20,9 +20,19 @@
  *
  */
 
+#include "renderer/arkui/water_flow_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+WaterFlowNode::WaterFlowNode()
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_WATER_FLOW)) {
+}
+
+WaterFlowNode::~WaterFlowNode() {}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

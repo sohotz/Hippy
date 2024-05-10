@@ -66,11 +66,15 @@ set(SOURCE_SET
   src/virtual/hr_virtual_view.cc
   src/arkui/arkui_node.cc
   src/arkui/arkui_node_registry.cc
+  src/arkui/column_node.cc
   src/arkui/image_node.cc
+  src/arkui/image_span_node.cc
+  src/arkui/list_item_node.cc
   src/arkui/list_node.cc
   src/arkui/native_dialog_api.cc
   src/arkui/native_node_api.cc
   src/arkui/refresh_node.cc
+  src/arkui/row_node.cc
   src/arkui/scroll_node.cc
   src/arkui/span_node.cc
   src/arkui/stack_node.cc

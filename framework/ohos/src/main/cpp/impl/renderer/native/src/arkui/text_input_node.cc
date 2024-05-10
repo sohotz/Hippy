@@ -20,9 +20,19 @@
  *
  */
 
+#include "renderer/arkui/text_input_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+TextInputNode::TextInputNode()
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_TEXT_INPUT)) {
+}
+
+TextInputNode::~TextInputNode() {}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

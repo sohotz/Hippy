@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/image_view.h"
+#include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -32,6 +33,19 @@ ImageView::~ImageView() {}
 
 ImageNode &ImageView::GetLocalRootArkUINode() {
   return imageNode_;
+}
+
+bool ImageView::SetProp(const std::string &propKey, HippyValue &propValue) {
+  if (propKey == "src") {
+    auto value = HRValueUtils::GetString(propValue);
+    if (value != src_) {
+      GetLocalRootArkUINode().SetSources(value);
+      src_ = value;
+    }
+    return true;
+  }
+  
+  return BaseView::SetProp(propKey, propValue);
 }
 
 } // namespace native

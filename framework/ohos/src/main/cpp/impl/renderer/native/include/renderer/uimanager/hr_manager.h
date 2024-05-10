@@ -33,7 +33,7 @@ inline namespace native {
 
 class HRManager {
 public:
-  HRManager(uint32_t instance_id);
+  HRManager(uint32_t instance_id, std::shared_ptr<NativeRender> &native_render);
   ~HRManager() = default;
   
 //   void InitViewManager(uint32_t root_id);
@@ -45,6 +45,7 @@ private:
   void AddVirtualNodeManager(uint32_t root_id, std::shared_ptr<HRVirtualViewManager> &virtual_view_manager);
 
   uint32_t instance_id_;
+  std::weak_ptr<NativeRender> native_render_;
   std::map<uint32_t, std::shared_ptr<HRViewManager>> view_manager_map_;
   std::map<uint32_t, std::shared_ptr<HRVirtualViewManager>> virtual_view_manager_map_;
 };

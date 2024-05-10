@@ -35,6 +35,7 @@ public:
   ~WebView();
 
   WebNode &GetLocalRootArkUINode() override;
+  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
   
 private:
   WebNode webNode_;

@@ -35,6 +35,8 @@ public:
   ~PagerView();
 
   StackNode &GetLocalRootArkUINode() override;
+  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
+  
 private:
   StackNode stackNode_;
 };

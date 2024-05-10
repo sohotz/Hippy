@@ -20,9 +20,19 @@
  *
  */
 
+#include "renderer/arkui/swiper_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+SwiperNode::SwiperNode()
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_SWIPER)) {
+}
+
+SwiperNode::~SwiperNode() {}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

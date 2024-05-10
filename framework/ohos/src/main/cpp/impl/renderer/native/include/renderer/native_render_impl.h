@@ -24,6 +24,7 @@
 
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <memory>
+#include "renderer/native_render.h"
 #include "renderer/uimanager/hr_manager.h"
 #include "renderer/uimanager/hr_mutation.h"
 
@@ -31,13 +32,15 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class NativeRenderImpl {
+class NativeRenderImpl : public NativeRender {
 public:
   NativeRenderImpl(uint32_t instance_id);
   ~NativeRenderImpl() = default;
 
+  void InitRenderManager();
+  
   uint32_t GetInstanceId() { return instance_id_; }
-
+  
   void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id);
 
   void CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations);
@@ -48,6 +51,9 @@ public:
   void UpdateLayout(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateLayoutMutation>> &mutations);
   void UpdateEventListener(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> &mutations);
   void EndBatch(uint32_t root_id);
+
+  uint64_t AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) override;
+  void RemoveEndBatchCallback(uint32_t root_id, uint64_t cbId) override;
 
 private:
   uint32_t instance_id_;

@@ -32,6 +32,11 @@ RefreshWrapperView::~RefreshWrapperView() {}
 
 StackNode &RefreshWrapperView::GetLocalRootArkUINode() { return stackNode_; }
 
+bool RefreshWrapperView::SetProp(const std::string &propKey, HippyValue &propValue) {
+
+  return BaseView::SetProp(propKey, propValue);
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

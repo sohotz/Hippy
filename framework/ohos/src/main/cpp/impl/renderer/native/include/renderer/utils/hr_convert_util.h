@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <string>
 #include <arkui/native_type.h>
 #include "renderer/utils/hr_types.h"
 
@@ -31,19 +32,18 @@ inline namespace native {
 
 class HRConvertUtil {
 public:
-  inline static ArkUI_BorderStyle BorderStyleToArk(HRBorderStyle style) {
-    switch (style) {
-      case HRBorderStyle::Solid:
-        return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_SOLID;
-      case HRBorderStyle::Dotted:
-        return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_DOTTED;
-      case HRBorderStyle::Dashed:
-        return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_DASHED;
-      default:
-        return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_SOLID;
+  inline static ArkUI_BorderStyle BorderStyleToArk(std::string &str) {
+    if (str == "solid") {
+      return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_SOLID;
+    } else if (str == "dotted") {
+      return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_DOTTED;
+    } else if (str == "dashed") {
+      return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_DASHED;
     }
+    return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_SOLID;
   }
   
+
 };
 
 } // namespace native

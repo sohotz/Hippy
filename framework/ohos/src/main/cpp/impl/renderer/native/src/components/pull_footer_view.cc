@@ -32,6 +32,11 @@ PullFooterView::~PullFooterView() {}
 
 StackNode &PullFooterView::GetLocalRootArkUINode() { return stackNode_; }
 
+bool PullFooterView::SetProp(const std::string &propKey, HippyValue &propValue) {
+
+  return BaseView::SetProp(propKey, propValue);
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

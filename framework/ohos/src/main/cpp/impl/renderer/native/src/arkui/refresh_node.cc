@@ -20,9 +20,19 @@
  *
  */
 
+#include "renderer/arkui/refresh_node.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
-inline namespace native {} // namespace native
+inline namespace native {
+
+RefreshNode::RefreshNode()
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_REFRESH)) {
+}
+
+RefreshNode::~RefreshNode() {}
+
+} // namespace native
 } // namespace render
 } // namespace hippy

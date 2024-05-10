@@ -31,6 +31,7 @@ inline namespace native {
 
 NativeRenderProvider::NativeRenderProvider(uint32_t instance_id) : instance_id_(instance_id) {
   render_impl_ = std::make_shared<NativeRenderImpl>(instance_id);
+  render_impl_->InitRenderManager();
 }
 
 void NativeRenderProvider::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id) {

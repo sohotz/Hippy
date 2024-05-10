@@ -36,7 +36,7 @@ using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
 class HRViewManager {
 public:
-  HRViewManager(uint32_t instance_id, uint32_t root_id);
+  HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render);
   ~HRViewManager() = default;
   
   void AttachToNativeXComponent(OH_NativeXComponent* nativeXComponent);
@@ -62,6 +62,8 @@ public:
   bool CheckRegisteredEvent(uint32_t tag, std::string &eventName);
   void SetRenderViewFrame(uint32_t tag, const HRRect &frame);
 
+  uint64_t AddEndBatchCallback(const EndBatchCallback &cb);
+  void RemoveEndBatchCallback(uint64_t cbId);
   void NotifyEndBatchCallbacks();
 
 private:
@@ -74,7 +76,8 @@ private:
   std::shared_ptr<RootView> root_view_;
   std::map<uint32_t, std::shared_ptr<BaseView>> view_registry_;
   std::vector<std::shared_ptr<HRMutation>> mutations_;
-  std::vector<std::function<void()>> end_batch_callbacks_;
+  uint64_t end_batch_callback_id_count_ = 0;
+  std::map<uint64_t, EndBatchCallback> end_batch_callback_map_;
 };
 
 } // namespace native

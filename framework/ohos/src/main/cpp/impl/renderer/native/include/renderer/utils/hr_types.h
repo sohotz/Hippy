@@ -23,6 +23,7 @@
 #pragma once
 
 #include <memory>
+#include <functional>
 
 namespace hippy {
 inline namespace render {
@@ -61,6 +62,8 @@ enum class HRImageResizeMode {
 };
 
 enum class HRBorderStyle : uint8_t { Solid, Dotted, Dashed };
+
+using EndBatchCallback = std::function<void()>;
 
 } // namespace native
 } // namespace render

@@ -20,18 +20,16 @@
  *
  */
 
-#include "renderer/arkui/scroll_node.h"
+#include "renderer/arkui/column_node.h"
 #include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ScrollNode::ScrollNode()
-    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_SCROLL)) {
-}
+ColumnNode::ColumnNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_COLUMN)) {}
 
-ScrollNode::~ScrollNode() {}
+ColumnNode::~ColumnNode() {}
 
 } // namespace native
 } // namespace render

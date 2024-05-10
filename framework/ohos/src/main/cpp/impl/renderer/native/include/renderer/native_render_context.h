@@ -23,6 +23,7 @@
 #pragma once
 
 #include <memory>
+#include "renderer/native_render.h"
 
 namespace hippy {
 inline namespace render {
@@ -30,14 +31,17 @@ inline namespace native {
 
 class NativeRenderContext {
 public:
-  NativeRenderContext(uint32_t instance_id, uint32_t root_id) : instance_id_(instance_id), root_id_(root_id) {}
+  NativeRenderContext(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render)
+    : instance_id_(instance_id), root_id_(root_id), native_render_(native_render) {}
   
   uint32_t GetInstanceId() { return instance_id_;}
   uint32_t GetRootId() { return root_id_; }
+  std::weak_ptr<NativeRender> GetNativeRender() { return native_render_; }
   
 private:
   uint32_t instance_id_;
   uint32_t root_id_;
+  std::weak_ptr<NativeRender> native_render_;
 };
 
 } // namespace native

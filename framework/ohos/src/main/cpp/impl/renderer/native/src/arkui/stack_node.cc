@@ -35,6 +35,10 @@ StackNode::StackNode()
 
 StackNode::~StackNode() { NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK); }
 
+void StackNode::AddChild(ArkUINode &child) {
+  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
+}
+
 void StackNode::InsertChild(ArkUINode &child, int32_t index) {
   MaybeThrow(
     NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));

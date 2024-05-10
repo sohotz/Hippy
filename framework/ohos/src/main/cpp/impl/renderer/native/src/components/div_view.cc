@@ -36,6 +36,11 @@ StackNode &DivView::GetLocalRootArkUINode() {
   return stackNode_;
 }
 
+bool DivView::SetProp(const std::string &propKey, HippyValue &propValue) {
+
+  return BaseView::SetProp(propKey, propValue);
+}
+
 void DivView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
   stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
