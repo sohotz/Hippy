@@ -175,11 +175,11 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
   }
 
   onSize(rootId: number, width: number, height: number) {
-    this.libHippy?.NativeRenderImpl_UpdateRootSize(this.instanceId, rootId, width, height)
+    this.libHippy?.NativeRenderProvider_UpdateRootSize(this.instanceId, rootId, width, height)
   }
 
   onSize2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean) {
-    this.libHippy?.NativeRenderImpl_UpdateNodeSize(this.instanceId, rootId, nodeId, width, height, isSync)
+    this.libHippy?.NativeRenderProvider_UpdateNodeSize(this.instanceId, rootId, nodeId, width, height, isSync)
   }
 
   dispatchEvent(rootId: number, nodeId: number, eventName: string, params: HippyAny, useCapture: boolean, useBubble: boolean, eventType: HREventType) {
@@ -204,7 +204,7 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
         this.renderImpl.handleRenderException(e)
       }
     }
-    this.libHippy?.NativeRenderImpl_OnReceivedEvent(this.instanceId, rootId, nodeId, lowerCaseEventName, buffer, useCapture, useBubble)
+    this.libHippy?.NativeRenderProvider_OnReceivedEvent(this.instanceId, rootId, nodeId, lowerCaseEventName, buffer, useCapture, useBubble)
   }
 
   doCallBack(result: number, callbackId: number, functionName: string, rootId: number, nodeId: number, params: HippyAny) {
@@ -216,6 +216,6 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
         this.renderImpl.handleRenderException(e)
       }
     }
-    this.libHippy?.NativeRenderImpl_DoCallBack(this.instanceId, result, functionName, rootId, nodeId, callbackId, buffer)
+    this.libHippy?.NativeRenderProvider_DoCallBack(this.instanceId, result, functionName, rootId, nodeId, callbackId, buffer)
   }
 }

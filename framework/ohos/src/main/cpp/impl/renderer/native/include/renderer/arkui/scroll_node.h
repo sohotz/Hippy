@@ -28,6 +28,15 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class ScrollNodeDelegate {
+public:
+  virtual ~ScrollNodeDelegate() = default;
+  virtual void OnScroll(){}
+  virtual void OnScrollStart(){}
+  virtual void OnScrollStop(){}
+  virtual float OnScrollFrameBegin(float offset, int32_t scrollState) { return offset; }
+};
+
 class ScrollNode : public ArkUINode {
 protected:
 public:

@@ -477,7 +477,7 @@ export class NativeRenderImpl implements NativeRender {
         return ret;
       }
       this.measureAddEndPropsToStream(stream, vNode.props);
-      /* 创建字符串序列，在native_render_impl_napi.cc的DoMeasureText中解析处理:
+      /* 创建字符串序列，在native_render_provider_napi.cc的DoMeasureText中解析处理:
 measure_add_start <prop数量>            携带只有text有的属性，如textAlign,numberOfLines,breakStrategy,ellipsizeMode
 key1               value1
 .....
@@ -491,7 +491,7 @@ measure_add_end   <prop数量>            携带边框类型的属性，和Text�
 key1               value1
 ...
        * */
-      let wh = libHippy.NativeRenderImpl_DoMeasureText(instanceId, stream, width, widthMode, height, heightMode);
+      let wh = libHippy.NativeRenderProvider_DoMeasureText(instanceId, stream, width, widthMode, height, heightMode);
       let w = wh[0];
       let h = wh[1];
       w=Math.ceil(w)

@@ -18,8 +18,7 @@
  * limitations under the License.
  */
 
-#include <ace/xcomponent/native_interface_xcomponent.h>
-#include "renderer/native_render_impl_napi.h"
+#include "renderer/native_render_provider_napi.h"
 #include "renderer/native_render_manager.h"
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_napi_object.h"
@@ -450,63 +449,11 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
   return arkTs.CreateArray(pack);
 }
 
-REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_UpdateRootSize", UpdateRootSize)
-REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_UpdateNodeSize", UpdateNodeSize)
-REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_OnReceivedEvent", OnReceivedEvent)
-REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_DoCallBack", DoCallBack)
-REGISTER_OH_NAPI("NativeRenderImpl", "NativeRenderImpl_DoMeasureText", DoMeasureText)
-
-static void RegisterNativeXComponent(napi_env env, napi_value exports) {
-  if ((env == nullptr) || (exports == nullptr)) {
-    FOOTSTONE_LOG(ERROR) << "RegisterNativeXComponent: env or exports is null";
-    return;
-  }
-
-  napi_value exportInstance = nullptr;
-  if (napi_get_named_property(env, exports, OH_NATIVE_XCOMPONENT_OBJ, &exportInstance) != napi_ok) {
-    FOOTSTONE_LOG(ERROR) << "RegisterNativeXComponent: napi_get_named_property fail";
-    return;
-  }
-
-  OH_NativeXComponent *nativeXComponent = nullptr;
-  if (napi_unwrap(env, exportInstance, reinterpret_cast<void **>(&nativeXComponent)) != napi_ok) {
-    FOOTSTONE_LOG(ERROR) << "RegisterNativeXComponent: napi_get_named_property fail";
-    return;
-  }
-
-  char idStr[OH_XCOMPONENT_ID_LEN_MAX + 1] = {'\0'};
-  uint64_t idSize = OH_XCOMPONENT_ID_LEN_MAX + 1;
-  if (OH_NativeXComponent_GetXComponentId(nativeXComponent, idStr, &idSize) != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
-    FOOTSTONE_LOG(ERROR) << "RegisterNativeXComponent: OH_NativeXComponent_GetXComponentId fail";
-    return;
-  }
-
-  std::string xcomponentStr(idStr);
-  std::stringstream ss(xcomponentStr);
-  std::string instanceId;
-  std::getline(ss, instanceId, '_');
-  std::string rootId;
-  std::getline(ss, rootId, '_');
-  uint32_t render_manager_id = static_cast<uint32_t>(std::stoul(instanceId, nullptr));
-  uint32_t root_id = static_cast<uint32_t>(std::stoul(rootId, nullptr));
-
-  auto &map = NativeRenderManager::PersistentMap();
-  std::shared_ptr<NativeRenderManager> render_manager;
-  bool ret = map.Find(render_manager_id, render_manager);
-  if (!ret) {
-    FOOTSTONE_DLOG(WARNING) << "RegisterNativeXComponent: render_manager_id invalid";
-    return;
-  }
-
-  render_manager->RegisterNativeXComponentHandle(nativeXComponent, root_id);
-}
-
-napi_value OhNapi_OnLoad(napi_env env, napi_value exports) {
-  hippy::RegisterNativeXComponent(env, exports);
-  return exports;
-}
-
-REGISTER_OH_NAPI_ONLOAD(hippy::OhNapi_OnLoad)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_UpdateRootSize", UpdateRootSize)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_UpdateNodeSize", UpdateNodeSize)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_OnReceivedEvent", OnReceivedEvent)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DoCallBack", DoCallBack)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DoMeasureText", DoMeasureText)
 
 }
 }

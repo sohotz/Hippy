@@ -66,12 +66,26 @@ protected:
   virtual void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {}
   virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView) {}
   virtual void UpdateRenderViewFrame(const HRRect &frame);
+  virtual bool HandleGestureBySelf() { return false; }
 
 protected:
   bool SetBackgroundImageProp(const std::string &propKey, HippyValue &propValue);
   bool SetBorderProp(const std::string &propKey, HippyValue &propValue);
   bool SetShadowProp(const std::string &propKey, HippyValue &propValue);
   bool SetEventProp(const std::string &propKey, HippyValue &propValue);
+  
+  void SetClickable(bool flag);
+  void SetLongClickable(bool flag);
+  void SetPressIn(bool flag);
+  void SetPressOut(bool flag);
+  void SetTouchDownHandle(bool flag);
+  void SetTouchMoveHandle(bool flag);
+  void SetTouchEndHandle(bool flag);
+  void SetTouchCancelHandle(bool flag);
+  void SetInterceptTouch(bool flag);
+  void SetInterceptPullUp(bool flag);
+  void SetAttachedToWindowHandle(bool flag);
+  void SetDetachedFromWindowHandle(bool flag);
 
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t tag_;
@@ -104,6 +118,17 @@ protected:
   bool toSetBorderWidth_ = false;
   bool toSetBorderStyle_ = false;
   bool toSetBorderColor_ = false;
+  
+  std::function<void()> eventClick_;
+  std::function<void()> eventLongPress_;
+  std::function<void()> eventPressIn_;
+  std::function<void()> eventPressOut_;
+  std::function<void()> eventTouchDown_;
+  std::function<void()> eventTouchUp_;
+  std::function<void()> eventTouchMove_;
+  std::function<void()> eventTouchCancel_;
+  std::function<void()> eventAttachedToWindow_;
+  std::function<void()> eventDetachedFromWindow_;
 };
 
 }  // namespace native

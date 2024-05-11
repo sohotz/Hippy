@@ -240,33 +240,87 @@ bool BaseView::SetShadowProp(const std::string &propKey, HippyValue &propValue) 
   return false;
 }
 
-bool BaseView::SetEventProp(const std::string &propKey, HippyValue &propValue) {
-  if (propKey == "click") {
-    return true;
-  } else if (propKey == "longclick") {
-    return true;
-  } else if (propKey == "pressin") {
-    return true;
-  } else if (propKey == "pressout") {
-    return true;
-  } else if (propKey == "touchstart") {
-    return true;
-  } else if (propKey == "touchmove") {
-    return true;
-  } else if (propKey == "touchend") {
-    return true;
-  } else if (propKey == "touchcancel") {
-    return true;
-  } else if (propKey == "onInterceptTouchEvent") {
-    return true;
-  } else if (propKey == "onInterceptPullUpEvent") {
-    return true;
-  } else if (propKey == "attachedtowindow") {
-    return true;
-  } else if (propKey == "detachedfromwindow") {
-    return true;
+#define SET_EVENT_PROP_CASE(keyName, method) \
+  if (propKey == keyName) { \
+    bool value = false; \
+    bool isBool = propValue.ToBoolean(value); \
+    if (isBool) { \
+      method(value); \
+    } \
+    return true; \
   }
+
+bool BaseView::SetEventProp(const std::string &propKey, HippyValue &propValue) {
+  SET_EVENT_PROP_CASE("click", SetClickable)
+  SET_EVENT_PROP_CASE("longclick", SetLongClickable)
+  SET_EVENT_PROP_CASE("pressin", SetPressIn)
+  SET_EVENT_PROP_CASE("pressout", SetPressOut)
+  SET_EVENT_PROP_CASE("touchstart", SetTouchDownHandle)
+  SET_EVENT_PROP_CASE("touchmove", SetTouchMoveHandle)
+  SET_EVENT_PROP_CASE("touchend", SetTouchEndHandle)
+  SET_EVENT_PROP_CASE("touchcancel", SetTouchCancelHandle)
+  SET_EVENT_PROP_CASE("onInterceptTouchEvent", SetInterceptTouch)
+  SET_EVENT_PROP_CASE("onInterceptPullUpEvent", SetInterceptPullUp)
+  SET_EVENT_PROP_CASE("attachedtowindow", SetAttachedToWindowHandle)
+  SET_EVENT_PROP_CASE("detachedfromwindow", SetDetachedFromWindowHandle)
   return false;
+}
+
+#undef SET_EVENT_PROP_CASE
+
+void BaseView::SetClickable(bool flag) {
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    
+  } else {
+    
+  }
+}
+
+void BaseView::SetLongClickable(bool flag) {
+  
+}
+
+void BaseView::SetPressIn(bool flag) {
+  
+}
+
+void BaseView::SetPressOut(bool flag) {
+  
+}
+
+void BaseView::SetTouchDownHandle(bool flag) {
+  
+}
+
+void BaseView::SetTouchMoveHandle(bool flag) {
+  
+}
+
+void BaseView::SetTouchEndHandle(bool flag) {
+  
+}
+
+void BaseView::SetTouchCancelHandle(bool flag) {
+  
+}
+
+void BaseView::SetInterceptTouch(bool flag) {
+  
+}
+
+void BaseView::SetInterceptPullUp(bool flag) {
+  
+}
+
+void BaseView::SetAttachedToWindowHandle(bool flag) {
+  
+}
+
+void BaseView::SetDetachedFromWindowHandle(bool flag) {
+  
 }
 
 void BaseView::OnSetPropsEnd() {

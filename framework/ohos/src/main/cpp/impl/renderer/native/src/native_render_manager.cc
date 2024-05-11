@@ -21,7 +21,7 @@
  */
 
 #include "renderer/native_render_manager.h"
-#include "renderer/native_render_impl_napi.h"
+#include "renderer/native_render_provider_napi.h"
 #include <cstdint>
 #include <iostream>
 #include <utility>

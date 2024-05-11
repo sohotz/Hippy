@@ -77,11 +77,11 @@ export interface HippyLibrary {
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
   NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
 
-  NativeRenderImpl_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number): void;
-  NativeRenderImpl_UpdateNodeSize(instanceId: number, rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void;
-  NativeRenderImpl_OnReceivedEvent(instanceId: number, rootId: number, nodeId: number, eventName: string, buffer: ArrayBuffer | null, useCapture: boolean, useBubble: boolean): void;
-  NativeRenderImpl_DoCallBack(instanceId: number, result: number, functionName: string, rootId: number, nodeId: number, callbackId: number, buffer: ArrayBuffer | null): void;
-  NativeRenderImpl_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
+  NativeRenderProvider_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number): void;
+  NativeRenderProvider_UpdateNodeSize(instanceId: number, rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void;
+  NativeRenderProvider_OnReceivedEvent(instanceId: number, rootId: number, nodeId: number, eventName: string, buffer: ArrayBuffer | null, useCapture: boolean, useBubble: boolean): void;
+  NativeRenderProvider_DoCallBack(instanceId: number, result: number, functionName: string, rootId: number, nodeId: number, callbackId: number, buffer: ArrayBuffer | null): void;
+  NativeRenderProvider_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
 
   VfsManager_CreateVfs(vfsDelegate: VfsManager): number;
   VfsManager_DestroyVfs(instanceId: number): void;

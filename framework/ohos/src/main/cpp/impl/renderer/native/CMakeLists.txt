@@ -55,7 +55,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE oh_napi)
 # region source set
 set(SOURCE_SET
   src/native_render_manager.cc
-  src/native_render_impl_napi.cc
   src/native_render_provider.cc
   src/native_render_impl.cc
   src/native_render_context.cc
@@ -105,5 +104,9 @@ set(SOURCE_SET
   src/components/waterfall_view.cc
   src/components/web_view.cc
   )
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_SET})
+set(PUBLIC_SOURCE_SET
+  src/native_render_provider_capi.cc
+  src/native_render_provider_napi.cc
+  )
+target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_SET} PUBLIC ${PUBLIC_SOURCE_SET})
 # endregion
