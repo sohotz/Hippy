@@ -29,14 +29,18 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ImageView : public BaseView {
+class ImageView : public BaseView, public ImageNodeDelegate {
 public:
   ImageView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ImageView();
 
   ImageNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, HippyValue &propValue) override;
-  
+
+  void OnClick() override;
+  void OnComplete(float width, float height) override;
+  void OnError(int32_t errorCode) override;
+
 private:
   ImageNode imageNode_;
   

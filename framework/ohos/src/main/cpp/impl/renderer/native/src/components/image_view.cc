@@ -60,6 +60,20 @@ bool ImageView::SetProp(const std::string &propKey, HippyValue &propValue) {
   return BaseView::SetProp(propKey, propValue);
 }
 
+void ImageView::OnClick() {
+  if (eventClick_) {
+    eventClick_();
+  }
+}
+
+void ImageView::OnComplete(float width, float height) {
+  
+}
+
+void ImageView::OnError(int32_t errorCode) {
+  
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

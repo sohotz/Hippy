@@ -32,8 +32,9 @@ inline namespace native {
 class ImageNodeDelegate {
 public:
   virtual ~ImageNodeDelegate() = default;
-  virtual void OnComplete(float width, float height){}
-  virtual void OnError(int32_t errorCode){}
+  virtual void OnClick() {}
+  virtual void OnComplete(float width, float height) {}
+  virtual void OnError(int32_t errorCode) {}
 };
 
 class ImageNode : public ArkUINode {

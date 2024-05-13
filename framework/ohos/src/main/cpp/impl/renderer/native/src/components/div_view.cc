@@ -52,7 +52,9 @@ void DivView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
 }
 
 void DivView::OnClick() {
-  // TODO(hot):
+  if (eventClick_) {
+    eventClick_();
+  }
 }
 
 } // namespace native

@@ -51,13 +51,11 @@ void StackNode::RemoveChild(ArkUINode &child) {
 void StackNode::SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate) { stackNodeDelegate_ = stackNodeDelegate; }
 
 void StackNode::OnNodeEvent(ArkUI_NodeEvent *event) {
-  if (event->kind == ArkUI_NodeEventType::NODE_ON_CLICK && event->componentEvent.data[3].i32 != 2) {
-    OnClick();
+  if (stackNodeDelegate_ == nullptr) {
+    return;
   }
-}
-
-void StackNode::OnClick() {
-  if (stackNodeDelegate_ != nullptr) {
+  
+  if (event->kind == ArkUI_NodeEventType::NODE_ON_CLICK) {
     stackNodeDelegate_->OnClick();
   }
 }

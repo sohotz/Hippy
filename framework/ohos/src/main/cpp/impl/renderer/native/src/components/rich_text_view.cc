@@ -28,7 +28,9 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-RichTextView::RichTextView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+RichTextView::RichTextView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  textNode_.SetTextNodeDelegate(this);
+}
 
 RichTextView::~RichTextView() {}
 
@@ -141,6 +143,12 @@ bool RichTextView::SetProp(const std::string &propKey, HippyValue &propValue) {
     return true;
   }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void RichTextView::OnClick() {
+  if (eventClick_) {
+    eventClick_();
+  }
 }
 
 } // namespace native

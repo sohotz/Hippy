@@ -27,7 +27,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-static constexpr ArkUI_NodeEventType IMAGE_NODE_EVENT_TYPES[] = {NODE_IMAGE_ON_COMPLETE, NODE_IMAGE_ON_ERROR};
+static constexpr ArkUI_NodeEventType IMAGE_NODE_EVENT_TYPES[] = {NODE_ON_CLICK, NODE_IMAGE_ON_COMPLETE, NODE_IMAGE_ON_ERROR};
 
 using namespace std::literals;
 constexpr std::string_view ASSET_PREFIX = "asset://";
@@ -49,16 +49,18 @@ ImageNode::~ImageNode() {
 void ImageNode::SetNodeDelegate(ImageNodeDelegate *imageNodeDelegate) { imageNodeDelegate_ = imageNodeDelegate; }
 
 void ImageNode::OnNodeEvent(ArkUI_NodeEvent *event) {
-  if (event->kind == ArkUI_NodeEventType::NODE_IMAGE_ON_COMPLETE) {
-    if (imageNodeDelegate_ != nullptr && event->componentEvent.data[0].i32 == 1) {
+  if (imageNodeDelegate_ == nullptr) {
+    return;
+  }
+  
+  if (event->kind == ArkUI_NodeEventType::NODE_ON_CLICK) {
+    imageNodeDelegate_->OnClick();
+  } else if (event->kind == ArkUI_NodeEventType::NODE_IMAGE_ON_COMPLETE) {
+    if (event->componentEvent.data[0].i32 == 1) {
       imageNodeDelegate_->OnComplete(event->componentEvent.data[1].f32, event->componentEvent.data[2].f32);
     }
-  }
-
-  if (event->kind == ArkUI_NodeEventType::NODE_IMAGE_ON_ERROR) {
-    if (imageNodeDelegate_ != nullptr) {
-      imageNodeDelegate_->OnError(event->componentEvent.data[0].i32);
-    }
+  } else if (event->kind == ArkUI_NodeEventType::NODE_IMAGE_ON_ERROR) {
+    imageNodeDelegate_->OnError(event->componentEvent.data[0].i32);
   }
 }
 

@@ -129,6 +129,8 @@ protected:
   std::function<void()> eventTouchCancel_;
   std::function<void()> eventAttachedToWindow_;
   std::function<void()> eventDetachedFromWindow_;
+  
+  HippyValueObjectType events_;
 };
 
 }  // namespace native

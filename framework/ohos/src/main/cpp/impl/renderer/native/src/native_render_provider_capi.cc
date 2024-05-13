@@ -46,7 +46,7 @@ inline namespace framework {
 inline namespace renderer {
 inline namespace native {
 
-void UpdateRootSize(uint32_t render_manager_id, uint32_t root_id, float width, float height) {
+void NativeRenderProvider_UpdateRootSize(uint32_t render_manager_id, uint32_t root_id, float width, float height) {
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -79,7 +79,7 @@ void UpdateRootSize(uint32_t render_manager_id, uint32_t root_id, float width, f
   dom_manager->PostTask(Scene(std::move(ops)));
 }
 
-void UpdateNodeSize(uint32_t render_manager_id, uint32_t root_id, uint32_t node_id, double width, double height) {
+void NativeRenderProvider_UpdateNodeSize(uint32_t render_manager_id, uint32_t root_id, uint32_t node_id, float width, float height) {
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -121,8 +121,8 @@ void UpdateNodeSize(uint32_t render_manager_id, uint32_t root_id, uint32_t node_
   dom_manager->PostTask(Scene(std::move(ops)));
 }
 
-void OnReceivedEvent(uint32_t render_manager_id, uint32_t root_id, uint32_t node_id,
-            std::string &event_name, std::shared_ptr<HippyValue> &params, bool capture, bool bubble) {
+void NativeRenderProvider_OnReceivedEvent(uint32_t render_manager_id, uint32_t root_id, uint32_t node_id,
+            const std::string &event_name, const std::shared_ptr<HippyValue> &params, bool capture, bool bubble) {
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -142,7 +142,7 @@ void OnReceivedEvent(uint32_t render_manager_id, uint32_t root_id, uint32_t node
   render_manager->ReceivedEvent(root_node, node_id, event_name, params, capture, bubble);
 }
 
-void DoCallBack(uint32_t render_manager_id, int32_t result, std::string &func_name,
+void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result, std::string &func_name,
             uint32_t root_id, uint32_t node_id, uint32_t cb_id, std::shared_ptr<HippyValue> &params) {
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
@@ -158,7 +158,8 @@ void DoCallBack(uint32_t render_manager_id, int32_t result, std::string &func_na
     return;
   }
   
-  std::vector<std::function<void()>> ops = {[root_id, node_id, cb_id, func_name, dom_manager, params] {
+  std::shared_ptr<HippyValue> the_params = params ? params : std::make_shared<HippyValue>();
+  std::vector<std::function<void()>> ops = {[root_id, node_id, cb_id, func_name, dom_manager, params = the_params] {
     auto &root_map = RootNode::PersistentMap();
     std::shared_ptr<RootNode> root_node;
     bool ret = root_map.Find(root_id, root_node);

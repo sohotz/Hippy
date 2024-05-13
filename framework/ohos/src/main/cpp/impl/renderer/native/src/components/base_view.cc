@@ -21,9 +21,10 @@
  */
 
 #include "renderer/components/base_view.h"
+#include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_value_utils.h"
-#include <sys/procfs.h>
 #include "renderer/utils/hr_value_utils.h"
+#include "renderer/uimanager/hr_gesture_dispatcher.h"
 
 namespace hippy {
 inline namespace render {
@@ -273,9 +274,15 @@ void BaseView::SetClickable(bool flag) {
     return;
   }
   if (flag) {
-    
+    auto weak_view = weak_from_this();
+    eventClick_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        HRGestureDispatcher::HandleClickEvent(view->ctx_, view->tag_, HRNodeProps::ON_CLICK);
+      }
+    };
   } else {
-    
+    eventClick_ = nullptr;
   }
 }
 
@@ -395,16 +402,18 @@ void BaseView::UpdateRenderViewFrame(const HRRect &frame) {
 }
 
 void BaseView::UpdateEventListener(HippyValueObjectType &newEvents) {
-//     this.events = newEvents
+  events_ = newEvents;
 }
 
 bool BaseView::CheckRegisteredEvent(std::string &eventName) {
-//     if (this.events && this.events.has(eventName)) {
-//       let value = this.events.get(eventName)
-//       if (typeof value == 'boolean') {
-//         return value
-//       }
-//     }
+  if (events_.size() > 0 && events_.find(eventName) != events_.end()) {
+    auto value = events_[eventName];
+    bool boolValue = false;
+    bool isBool = value.ToBoolean(boolValue);
+    if (isBool) {
+      return boolValue;
+    }
+  }
   return false;
 }
 

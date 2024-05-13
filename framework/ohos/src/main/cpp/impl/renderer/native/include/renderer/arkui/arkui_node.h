@@ -33,6 +33,9 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+// ArkUI_NativeModule API ref:
+// https://gitee.com/openharmony/docs/blob/master/zh-cn/application-dev/reference/apis-arkui/_ark_u_i___native_module.md#arkui_nodeattributetype
+
 enum class ArkUIHitTestMode : int32_t {
   DEFAULT,
   BLOCK,

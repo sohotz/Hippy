@@ -126,10 +126,10 @@ ArkUINode &ArkUINode::SetBorderRadius(float topLeft, float topRight, float botto
 
 ArkUINode &ArkUINode::SetBorderStyle(std::string &top, std::string &right, std::string &bottom, std::string &left) {
   ArkUI_NumberValue borderStyleValue[] = {
-    {.i32 = static_cast<int32_t>(HRConvertUtil::BorderStyleToArk(top))},
-    {.i32 = static_cast<int32_t>(HRConvertUtil::BorderStyleToArk(right))},
-    {.i32 = static_cast<int32_t>(HRConvertUtil::BorderStyleToArk(bottom))},
-    {.i32 = static_cast<int32_t>(HRConvertUtil::BorderStyleToArk(left))}
+    {.i32 = static_cast<int32_t>(HRConvertUtils::BorderStyleToArk(top))},
+    {.i32 = static_cast<int32_t>(HRConvertUtils::BorderStyleToArk(right))},
+    {.i32 = static_cast<int32_t>(HRConvertUtils::BorderStyleToArk(bottom))},
+    {.i32 = static_cast<int32_t>(HRConvertUtils::BorderStyleToArk(left))}
   };
   ArkUI_AttributeItem borderStyleItem = {borderStyleValue, sizeof(borderStyleValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BORDER_STYLE, &borderStyleItem));

@@ -28,6 +28,12 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class TextNodeDelegate {
+public:
+  virtual ~TextNodeDelegate() = default;
+  virtual void OnClick() {}
+};
+
 class TextNode : public ArkUINode {
 private:
   enum { FLAG_PADDING = 0, FLAG_MINFONTSIZE, FLAG_MAXFONTSIZE, FLAG_COPYOPTION, FLAG_ENABLE, FLAG_MAX };
@@ -42,11 +48,17 @@ private:
   float bottom_ = 0.0;
   float left_ = 0.0;
 
+protected:
+  TextNodeDelegate *textNodeDelegate_;
+  
 public:
   TextNode();
+  ~TextNode() override;
 
   void InsertChild(ArkUINode &child, std::size_t index);
   void RemoveChild(ArkUINode &child);
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void SetTextNodeDelegate(TextNodeDelegate *textNodeDelegate);
 
   TextNode &SetTextContent(const std::string &text);
   TextNode &SetFontColor(uint32_t fontColor);

@@ -56,11 +56,14 @@ target_link_libraries(${PROJECT_NAME} PRIVATE oh_napi)
 set(SOURCE_SET
   src/native_render_manager.cc
   src/native_render_provider.cc
+  src/native_render_provider_manager.cc
   src/native_render_impl.cc
   src/native_render_context.cc
   src/uimanager/hr_mutation.cc
   src/uimanager/hr_manager.cc
   src/uimanager/hr_view_manager.cc
+  src/uimanager/hr_gesture_dispatcher.cc
+  src/utils/hr_event_utils.cc
   src/virtual/hr_virtual_view_manager.cc
   src/virtual/hr_virtual_view.cc
   src/arkui/arkui_node.cc

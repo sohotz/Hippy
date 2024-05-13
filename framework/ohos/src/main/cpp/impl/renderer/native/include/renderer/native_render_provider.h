@@ -27,6 +27,7 @@
 #include <memory>
 #include "renderer/native_render_impl.h"
 #include "renderer/uimanager/hr_mutation.h"
+#include "renderer/utils/hr_event_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -38,6 +39,8 @@ public:
   ~NativeRenderProvider() = default;
   
   uint32_t GetInstanceId() { return instance_id_; }
+  
+  std::shared_ptr<NativeRenderImpl> &GetNativeRenderImpl() { return render_impl_; }
   
   void SetTsEnv(napi_env ts_env) { ts_env_ = ts_env; }
 
@@ -52,8 +55,19 @@ public:
   void UpdateEventListener(uint32_t root_id,
                            const std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> &mutations);
   void EndBatch(uint32_t root_id);
+  
+  void CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, std::string &func_name, const std::vector<HippyValue> params);
 
+  void OnSize(uint32_t root_id, float width, float height);
+  void OnSize2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync);
+  void DispatchEvent(uint32_t root_id, uint32_t node_id, const std::string &event_name,
+      const std::shared_ptr<HippyValue> &params, bool capture, bool bubble, HREventType event_type);
+  void DoCallBack(int32_t result, uint32_t cb_id, std::string &func_name,
+      uint32_t root_id, uint32_t node_id, std::shared_ptr<HippyValue> &params);
+  
 private:
+  constexpr static const char * EVENT_PREFIX = "on";
+  
   napi_env ts_env_ = 0;
   uint32_t instance_id_;
   std::shared_ptr<NativeRenderImpl> render_impl_;

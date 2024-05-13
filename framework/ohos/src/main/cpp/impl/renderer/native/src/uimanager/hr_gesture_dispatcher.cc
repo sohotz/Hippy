@@ -20,43 +20,24 @@
  *
  */
 
-#pragma once
-
-#include "renderer/components/base_view.h"
-#include "renderer/arkui/text_node.h"
+#include "renderer/uimanager/hr_gesture_dispatcher.h"
+#include "footstone/hippy_value.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RichTextView : public BaseView, public TextNodeDelegate {
-public:
-  RichTextView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~RichTextView();
+using HippyValue = footstone::HippyValue;
+using HippyValueObjectType = footstone::HippyValue::HippyValueObjectType;
 
-  TextNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
-  
-  void OnClick() override;
-  
-private:
-  TextNode textNode_;
-  
-  std::string text_;
-  uint32_t color_ = 0;
-  std::string fontFamily_;
-  float fontSize_ = 0;
-  int32_t fontStyle_ = 0;
-  int32_t fontWeight_ = 0;
-  float letterSpacing_ = 0;
-  float lineHeight_ = 0;
-  int32_t numberOfLines_ = 1;
-  int32_t textAlign_ = 0;
-
-  bool firstSetColor_ = true;
-  bool firstSetLetterSpacing_ = true;
-  bool firstSetTextAlign_ = true;
-};
+void HRGestureDispatcher::HandleTouchEvent(std::shared_ptr<NativeRenderContext> &ctx, uint32_t node_id, float window_x,
+    float window_y, std::string &event_name) {
+  HippyValueObjectType param;
+  param[HRGestureDispatcher::KEY_PAGE_X] = HippyValue(window_x);
+  param[HRGestureDispatcher::KEY_PAGE_Y] = HippyValue(window_y);
+  auto params = std::make_shared<HippyValue>(std::move(param));
+  HREventUtils::SendGestureEvent(ctx, node_id, event_name, params);
+}
 
 } // namespace native
 } // namespace render

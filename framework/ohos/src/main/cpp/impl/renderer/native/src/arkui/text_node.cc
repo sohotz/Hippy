@@ -28,7 +28,12 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_TEXT)) {}
+TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_TEXT)),
+  textNodeDelegate_(nullptr) {
+  MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0));
+}
+
+TextNode::~TextNode() { NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK); }
 
 void TextNode::InsertChild(ArkUINode &child, std::size_t index) {
   MaybeThrow(
@@ -37,6 +42,18 @@ void TextNode::InsertChild(ArkUINode &child, std::size_t index) {
 
 void TextNode::RemoveChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
+}
+
+void TextNode::SetTextNodeDelegate(TextNodeDelegate *textNodeDelegate) { textNodeDelegate_ = textNodeDelegate; }
+
+void TextNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  if (textNodeDelegate_ == nullptr) {
+    return;
+  }
+  
+  if (event->kind == ArkUI_NodeEventType::NODE_ON_CLICK) {
+    textNodeDelegate_->OnClick();
+  }
 }
 
 TextNode &TextNode::SetTextContent(const std::string &text) {

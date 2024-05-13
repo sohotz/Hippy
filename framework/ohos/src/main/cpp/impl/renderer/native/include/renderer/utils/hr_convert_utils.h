@@ -30,7 +30,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class HRConvertUtil {
+class HRConvertUtils {
 public:
   inline static ArkUI_BorderStyle BorderStyleToArk(std::string &str) {
     if (str == "solid") {

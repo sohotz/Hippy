@@ -22,6 +22,7 @@
 
 #include "renderer/native_render_manager.h"
 #include "renderer/native_render_provider_napi.h"
+#include "renderer/native_render_provider_manager.h"
 #include <cstdint>
 #include <iostream>
 #include <utility>
@@ -35,6 +36,7 @@
 #define USE_C_MEASURE 1
 
 #if !USE_ARK_CAPI
+constexpr char kId[] = "id";
 constexpr char kPid[] = "pId";
 constexpr char kIndex[] = "index";
 constexpr char kName[] = "name";
@@ -42,11 +44,10 @@ constexpr char kWidth[] = "width";
 constexpr char kHeight[] = "height";
 constexpr char kLeft[] = "left";
 constexpr char kTop[] = "top";
+constexpr char kProps[] = "props";
 constexpr char kDeleteProps[] = "deleteProps";
 #endif
 
-constexpr char kId[] = "id";
-constexpr char kProps[] = "props";
 constexpr char kFontStyle[] = "fontStyle";
 constexpr char kLetterSpacing[] = "letterSpacing";
 constexpr char kColor[] = "kColor";
@@ -168,6 +169,7 @@ NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"
   id_ = unique_native_render_manager_id_.fetch_add(1);
   
   render_provider_ = std::make_shared<NativeRenderProvider>(id_);
+  NativeRenderProviderManager::AddRenderProvider(id_, render_provider_);
 }
 
 NativeRenderManager::~NativeRenderManager() {
@@ -175,6 +177,7 @@ NativeRenderManager::~NativeRenderManager() {
   arkTs.DeleteReference(ts_render_provider_ref_);
   ts_render_provider_ref_ = 0;
   ts_env_ = 0;
+  NativeRenderProviderManager::RemoveRenderProvider(id_);
 }
 
 void NativeRenderManager::SetRenderDelegate(napi_env ts_env, napi_ref ts_render_provider_ref) {
@@ -198,7 +201,7 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   if (!root) {
     return;
   }
-    
+
 #if USE_ARK_CAPI
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
@@ -831,6 +834,36 @@ void NativeRenderManager::HandleListenerOps(std::weak_ptr<RootNode> root_node,
     return;
   }
 
+#if USE_ARK_CAPI
+  uint32_t root_id = root->GetId();
+  std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> mutations;
+  for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
+    auto m = std::make_shared<HRUpdateEventListenerMutation>();
+    footstone::value::HippyValue::HippyValueObjectType events;
+    
+    const std::vector<ListenerOp> &listener_ops = iter->second;
+    const auto len = listener_ops.size();
+    std::vector<ListenerOp>::size_type index = 0;
+    for (; index < len; index++) {
+      const ListenerOp &listener_op = listener_ops[index];
+      std::shared_ptr<DomNode> dom_node = listener_op.dom_node.lock();
+      if (dom_node == nullptr) {
+        break;
+      }
+      events[listener_op.name] = footstone::value::HippyValue(listener_op.add);
+    }
+    if (index == len) {
+      m->tag_ = iter->first;
+      m->props_ = events;
+      mutations.push_back(m);
+    }
+  }
+  ops.clear();
+  if (mutations.empty()) {
+    return;
+  }
+  render_provider_->UpdateEventListener(root_id, mutations);
+#else
   footstone::value::HippyValue::HippyValueArrayType event_listener_ops;
   for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
     footstone::value::HippyValue::HippyValueObjectType op;
@@ -858,12 +891,13 @@ void NativeRenderManager::HandleListenerOps(std::weak_ptr<RootNode> root_node,
   if (event_listener_ops.empty()) {
     return;
   }
-
+  
   serializer_->Release();
   serializer_->WriteHeader();
   serializer_->WriteValue(HippyValue(event_listener_ops));
   std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
   CallNativeMethod(method_name, root->GetId(), buffer_pair);
+#endif
 }
 
 void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, uint32_t node_id) {

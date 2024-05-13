@@ -152,6 +152,14 @@ void NativeRenderImpl::EndBatch(uint32_t root_id) {
   view_manager->NotifyEndBatchCallbacks();
 }
 
+bool NativeRenderImpl::CheckRegisteredEvent(uint32_t root_id, uint32_t node_id, std::string &event_name) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return false;
+  }
+  return view_manager->CheckRegisteredEvent(node_id, event_name);
+}
+
 uint64_t NativeRenderImpl::AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {

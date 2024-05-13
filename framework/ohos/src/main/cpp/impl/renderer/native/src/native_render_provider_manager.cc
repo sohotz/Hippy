@@ -20,43 +20,25 @@
  *
  */
 
-#pragma once
-
-#include "renderer/components/base_view.h"
-#include "renderer/arkui/text_node.h"
+#include "renderer/native_render_provider_manager.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RichTextView : public BaseView, public TextNodeDelegate {
-public:
-  RichTextView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~RichTextView();
+std::map<uint32_t, std::shared_ptr<NativeRenderProvider>> NativeRenderProviderManager::provider_map_;
 
-  TextNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
-  
-  void OnClick() override;
-  
-private:
-  TextNode textNode_;
-  
-  std::string text_;
-  uint32_t color_ = 0;
-  std::string fontFamily_;
-  float fontSize_ = 0;
-  int32_t fontStyle_ = 0;
-  int32_t fontWeight_ = 0;
-  float letterSpacing_ = 0;
-  float lineHeight_ = 0;
-  int32_t numberOfLines_ = 1;
-  int32_t textAlign_ = 0;
+void NativeRenderProviderManager::AddRenderProvider(uint32_t instance_id, std::shared_ptr<NativeRenderProvider> &provider) {
+  provider_map_[instance_id] = provider;
+}
 
-  bool firstSetColor_ = true;
-  bool firstSetLetterSpacing_ = true;
-  bool firstSetTextAlign_ = true;
-};
+void NativeRenderProviderManager::RemoveRenderProvider(uint32_t instance_id) {
+  provider_map_.erase(instance_id);
+}
+
+std::shared_ptr<NativeRenderProvider> &NativeRenderProviderManager::GetRenderProvider(uint32_t instance_id) {
+  return provider_map_[instance_id];
+}
 
 } // namespace native
 } // namespace render

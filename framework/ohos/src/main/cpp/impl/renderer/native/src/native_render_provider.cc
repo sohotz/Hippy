@@ -24,6 +24,7 @@
 #include "footstone/logging.h"
 #include "footstone/macros.h"
 #include "oh_napi/oh_napi_task_runner.h"
+#include "renderer/native_render_provider_capi.h"
 
 namespace hippy {
 inline namespace render {
@@ -97,6 +98,43 @@ void NativeRenderProvider::EndBatch(uint32_t root_id) {
   taskRunner->RunAsyncTask([render_impl = render_impl_, root_id = root_id]() {
     render_impl->EndBatch(root_id);
   });
+}
+
+void NativeRenderProvider::CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, std::string &func_name, const std::vector<HippyValue> params) {
+  
+}
+
+void NativeRenderProvider::OnSize(uint32_t root_id, float width, float height) {
+  NativeRenderProvider_UpdateRootSize(instance_id_, root_id, width, height);
+}
+
+void NativeRenderProvider::OnSize2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync) {
+  NativeRenderProvider_UpdateNodeSize(instance_id_, root_id, node_id, width, height);
+}
+
+void NativeRenderProvider::DispatchEvent(uint32_t root_id, uint32_t node_id, const std::string &event_name,
+    const std::shared_ptr<HippyValue> &params, bool capture, bool bubble, HREventType event_type) {
+  // Because the native(C++) DOM use lowercase names, convert to lowercase here
+  std::string lower_name = event_name;
+  std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+  // Compatible with events prefixed with on in old version
+  std::string prefix(NativeRenderProvider::EVENT_PREFIX);
+  if (lower_name.compare(0, prefix.length(), prefix) == 0) {
+    lower_name = lower_name.substr(prefix.length());
+  }
+  if (event_type != HREventType::GESTURE && !render_impl_->CheckRegisteredEvent(root_id, node_id, lower_name)) {
+    return;
+  }
+  
+  FOOTSTONE_DLOG(INFO) << "NativeRenderProvider dispatchEvent: id " << node_id << ", eventName " << event_name
+    << ", eventType " << static_cast<int32_t>(event_type) << ", params " << params;
+  
+  NativeRenderProvider_OnReceivedEvent(instance_id_, root_id, node_id, event_name, params, capture, bubble);
+}
+
+void NativeRenderProvider::DoCallBack(int32_t result, uint32_t cb_id, std::string &func_name,
+                                      uint32_t root_id, uint32_t node_id, std::shared_ptr<HippyValue> &params) {
+  NativeRenderProvider_DoCallBack(instance_id_, result, func_name, root_id, node_id, cb_id, params);
 }
 
 } // namespace native
