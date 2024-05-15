@@ -205,7 +205,8 @@ void DomNode::DoLayout() {
 }
 
 void DomNode::DoLayout(std::vector<std::shared_ptr<DomNode>>& changed_nodes) {
-  layout_node_->CalculateLayout(0, 0);
+//   layout_node_->CalculateLayout(0, 0);  
+  layout_node_->CalculateLayout(NAN, NAN);
   TransferLayoutOutputsRecursive(changed_nodes);
 }
 

@@ -78,7 +78,8 @@ inline namespace render {
 inline namespace native {
 
 static bool IsMeasureNode(const std::string &name) {
-  return name == "Text" || name == "TextInput";
+//   return name == "Text" || name == "TextInput";
+  return name == "Text" || name == "TextInput" || name == "Image";
 }
 
 std::atomic<uint32_t> NativeRenderManager::unique_native_render_manager_id_{1};
@@ -283,7 +284,23 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
     if (IsMeasureNode(nodes[i]->GetViewName())) {
 #if USE_C_MEASURE
       auto weak_node = nodes[i]->weak_from_this();
-      MeasureFunction measure_function = [WEAK_THIS, root_node, weak_node](float width, LayoutMeasureMode width_measure_mode,
+      MeasureFunction measure_function;
+      if (nodes[i]->GetViewName() == "Image") {
+        measure_function = [WEAK_THIS, root_node, weak_node](float width, LayoutMeasureMode width_measure_mode,
+                                                                           float height, LayoutMeasureMode height_measure_mode,
+                                                                           void *layoutContext) -> LayoutSize {
+        DEFINE_SELF(NativeRenderManager)
+        if (!self) {
+          return LayoutSize{0, 0};
+        }
+        LayoutSize layout_result;
+        layout_result.width = self->PxToDp(static_cast<float>((int32_t)(10)));
+        layout_result.height = self->PxToDp(static_cast<float>((int32_t)(10)));
+          FOOTSTONE_LOG(INFO) << "xxx image layout";
+        return layout_result;
+      };
+      } else {
+        measure_function = [WEAK_THIS, root_node, weak_node](float width, LayoutMeasureMode width_measure_mode,
                                                                            float height, LayoutMeasureMode height_measure_mode,
                                                                            void *layoutContext) -> LayoutSize {
         DEFINE_SELF(NativeRenderManager)
@@ -298,6 +315,8 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
         layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
         return layout_result;
       };
+      }
+
 #else
       int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
       MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,

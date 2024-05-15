@@ -32,6 +32,7 @@ import { HashMap } from '@kit.ArkTS';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HippyResourceLoader } from '../../../hippy_framework/adapter/http/HippyResourceLoader';
 import { UrlUtils } from '../../../support/utils/UrlUtils';
+import { HRRect } from '../../utils/HRTypes';
 
 interface ImageLoadEvent {
   width: number
@@ -426,6 +427,10 @@ export class HRImageView extends HippyRenderBaseView {
       return bundlePath.substring(0, bundlePath.lastIndexOf("/") + 1) + relativePath
     }
     return uri
+  }
+
+  updateRenderViewFrame(frame: HRRect): void {
+    super.updateRenderViewFrame(frame)
   }
 }
 

@@ -179,7 +179,7 @@ void DomManager::SetRootSize(const std::weak_ptr<RootNode>& weak_root_node, floa
   if (!root_node) {
     return;
   }
-  root_node->SetRootSize(width, height);
+//   root_node->SetRootSize(width, height);
 }
 
 void DomManager::DoLayout(const std::weak_ptr<RootNode>& weak_root_node) {
