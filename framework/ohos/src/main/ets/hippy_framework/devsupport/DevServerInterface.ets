@@ -37,5 +37,5 @@ export interface DevServerInterface {
 
   handleException(throwable: HippyJsException): void
 
-  getDevButton(rootId: number): View|null
+  getDevButton(rootId: number): Object | null
 }

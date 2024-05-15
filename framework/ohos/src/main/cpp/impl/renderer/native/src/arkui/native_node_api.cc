@@ -29,7 +29,8 @@ inline namespace native {
 ArkUI_NativeNodeAPI_1 *NativeNodeApi::GetInstance() {
   static ArkUI_NativeNodeAPI_1 *api_ = nullptr;
   if (api_ == nullptr) {
-    api_ = reinterpret_cast<ArkUI_NativeNodeAPI_1 *>(OH_ArkUI_GetNativeAPI(ARKUI_NATIVE_NODE, 1));
+    api_ = reinterpret_cast<ArkUI_NativeNodeAPI_1 *>(
+      OH_ArkUI_QueryModuleInterfaceByName(ARKUI_NATIVE_NODE, "ArkUI_NativeNodeAPI_1"));
   }
   return api_;
 }

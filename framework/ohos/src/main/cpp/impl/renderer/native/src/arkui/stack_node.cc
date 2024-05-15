@@ -30,7 +30,7 @@ inline namespace native {
 StackNode::StackNode() 
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_STACK)),
       stackNodeDelegate_(nullptr) {
-  MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0));
+  MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));
 }
 
 StackNode::~StackNode() { NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK); }
@@ -55,7 +55,7 @@ void StackNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     return;
   }
   
-  if (event->kind == ArkUI_NodeEventType::NODE_ON_CLICK) {
+  if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_ON_CLICK) {
     stackNodeDelegate_->OnClick();
   }
 }

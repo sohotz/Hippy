@@ -80,20 +80,22 @@ ArkUINodeRegistry::ArkUINodeRegistry() {
 
 void ArkUINodeRegistry::ReceiveEvent(ArkUI_NodeEvent *event) {
   try {
-    if (event->kind == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
-      auto it = touchHandlersByNodeHandle_.find(event->node);
+    ArkUI_NodeHandle nodeHanle = OH_ArkUI_NodeEvent_GetNodeHandle(event);
+    if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
+      auto it = touchHandlersByNodeHandle_.find(nodeHanle);
       if (it == touchHandlersByNodeHandle_.end()) {
-        FOOTSTONE_LOG(WARNING) << "Touch event for node with handle " << event->node << " not found";
+        FOOTSTONE_LOG(WARNING) << "Touch event for node with handle " << nodeHanle << " not found";
         return;
       }
 
-      it->second->OnTouchEvent(event->touchEvent);
+      ArkUI_UIInputEvent *input_event = OH_ArkUI_NodeEvent_GetInputEvent(event);
+      it->second->OnTouchEvent(input_event);
       return;
     }
 
-    auto it = nodesByHandle_.find(event->node);
+    auto it = nodesByHandle_.find(nodeHanle);
     if (it == nodesByHandle_.end()) {
-      FOOTSTONE_LOG(WARNING) << "Node with handle " << event->node << " not found";
+      FOOTSTONE_LOG(WARNING) << "Node with handle " << nodeHanle << " not found";
       return;
     }
 

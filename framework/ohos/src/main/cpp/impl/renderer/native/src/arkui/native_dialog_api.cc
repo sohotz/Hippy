@@ -29,7 +29,8 @@ inline namespace native {
 ArkUI_NativeDialogAPI_1 *NativeDialogApi::GetInstance() {
   static ArkUI_NativeDialogAPI_1 *api_ = nullptr;
   if (api_ == nullptr) {
-    api_ = reinterpret_cast<ArkUI_NativeDialogAPI_1 *>(OH_ArkUI_GetNativeAPI(ARKUI_NATIVE_DIALOG, 1));
+    api_ = reinterpret_cast<ArkUI_NativeDialogAPI_1 *>(
+      OH_ArkUI_QueryModuleInterfaceByName(ARKUI_NATIVE_DIALOG, "ArkUI_NativeDialogAPI_1"));
   }
   return api_;
 }

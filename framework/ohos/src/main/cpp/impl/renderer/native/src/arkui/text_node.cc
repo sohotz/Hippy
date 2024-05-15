@@ -30,7 +30,7 @@ inline namespace native {
 
 TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_TEXT)),
   textNodeDelegate_(nullptr) {
-  MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0));
+  MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));
 }
 
 TextNode::~TextNode() { NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK); }
@@ -51,7 +51,7 @@ void TextNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     return;
   }
   
-  if (event->kind == ArkUI_NodeEventType::NODE_ON_CLICK) {
+  if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_ON_CLICK) {
     textNodeDelegate_->OnClick();
   }
 }

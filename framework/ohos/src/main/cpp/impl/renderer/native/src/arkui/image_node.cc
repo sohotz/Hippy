@@ -36,7 +36,7 @@ ImageNode::ImageNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_IMAGE)),
       imageNodeDelegate_(nullptr) {
   for (auto eventType : IMAGE_NODE_EVENT_TYPES) {
-    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, eventType));
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, eventType, nullptr));
   }
 }
 
@@ -53,14 +53,14 @@ void ImageNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     return;
   }
   
-  if (event->kind == ArkUI_NodeEventType::NODE_ON_CLICK) {
+  if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_ON_CLICK) {
     imageNodeDelegate_->OnClick();
-  } else if (event->kind == ArkUI_NodeEventType::NODE_IMAGE_ON_COMPLETE) {
-    if (event->componentEvent.data[0].i32 == 1) {
-      imageNodeDelegate_->OnComplete(event->componentEvent.data[1].f32, event->componentEvent.data[2].f32);
+  } else if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_IMAGE_ON_COMPLETE) {
+    if (OH_ArkUI_NodeEvent_GetNodeComponentEvent(event)->data[0].i32 == 1) {
+      imageNodeDelegate_->OnComplete(OH_ArkUI_NodeEvent_GetNodeComponentEvent(event)->data[1].f32, OH_ArkUI_NodeEvent_GetNodeComponentEvent(event)->data[2].f32);
     }
-  } else if (event->kind == ArkUI_NodeEventType::NODE_IMAGE_ON_ERROR) {
-    imageNodeDelegate_->OnError(event->componentEvent.data[0].i32);
+  } else if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_IMAGE_ON_ERROR) {
+    imageNodeDelegate_->OnError(OH_ArkUI_NodeEvent_GetNodeComponentEvent(event)->data[0].i32);
   }
 }
 

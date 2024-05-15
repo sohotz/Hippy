@@ -34,7 +34,7 @@ class ArkUINode;
 
 class TouchEventHandler {
 public:
-  virtual void OnTouchEvent(ArkUI_NodeTouchEvent event) = 0;
+  virtual void OnTouchEvent(ArkUI_UIInputEvent *event) = 0;
   virtual ~TouchEventHandler() = default;
 };
 
