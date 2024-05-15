@@ -43,6 +43,7 @@ public:
   
 private:
   ScrollNode scrollNode_;
+  StackNode stackNode_;
 };
 
 } // namespace native

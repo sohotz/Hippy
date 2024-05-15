@@ -44,6 +44,7 @@ public:
 
 private:
   ListItemNode itemNode_;
+  StackNode stackNode_;
 };
 
 } // namespace native

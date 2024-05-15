@@ -27,7 +27,9 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ListItemView::ListItemView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+ListItemView::ListItemView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  itemNode_.AddChild(stackNode_);
+}
 
 ListItemView::~ListItemView() {}
 
@@ -54,17 +56,17 @@ bool ListItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
 
 void ListItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
-  itemNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
 void ListItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
-  itemNode_.RemoveChild(childView->GetLocalRootArkUINode());
+  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 void ListItemView::UpdateRenderViewFrame(const HRRect &frame) {
-  HRRect newFrame = frame;//(0, 0, frame.width, frame.height); // TODO(hot):
-  BaseView::UpdateRenderViewFrame(newFrame);
+  stackNode_.SetPosition(HRPosition(0, 0));
+  stackNode_.SetSize(HRSize(frame.width, frame.height));
 }
 
 } // namespace native

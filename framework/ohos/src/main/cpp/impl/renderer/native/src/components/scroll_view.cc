@@ -27,7 +27,9 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ScrollView::ScrollView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+ScrollView::ScrollView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  scrollNode_.AddChild(stackNode_);
+}
 
 ScrollView::~ScrollView() {}
 
@@ -58,12 +60,12 @@ bool ScrollView::SetProp(const std::string &propKey, HippyValue &propValue) {
 
 void ScrollView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
-  scrollNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
 void ScrollView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
-  scrollNode_.RemoveChild(childView->GetLocalRootArkUINode());
+  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native
