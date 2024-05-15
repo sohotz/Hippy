@@ -91,7 +91,8 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
     }
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
 
-    if (HasProp(propMap, "lineHeight")) {
+    // TODO(hot): temporary fix crash, to review later
+    if (HasProp(propMap, "lineHeight") && propMap["lineHeight"].size() > 0) {
         lineHeight_ = std::stod(propMap["lineHeight"]);
     }
     if (HasProp(propMap, "paddingVertical")) {
