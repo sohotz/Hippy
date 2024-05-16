@@ -104,6 +104,7 @@ function applyRenderViewBaseAttr($$: HippyRenderBaseView) {
   .accessibilityText($$.cssAccessibilityLabel)
   .focusable($$.cssFocusable)
   .border($$.cssBorder)
+  .borderRadius($$.cssBorder?.radius)
   .shadow($$.cssShadow)
   .linearGradient($$.cssLinearGradient)
   .backgroundImage($$.cssBackgroundImage)

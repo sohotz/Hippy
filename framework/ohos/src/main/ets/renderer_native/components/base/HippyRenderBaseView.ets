@@ -418,22 +418,34 @@ export default abstract class HippyRenderBaseView {
 
   private checkAndBuildCssBorderWidth() {
     this.checkAndBuildCssBorder();
-    (this.cssBorder as BorderOptions).width = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+    let cssBorder = this.cssBorder as BorderOptions
+    if (!cssBorder.width) {
+      cssBorder.width = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+    }
   }
 
   private checkAndBuildCssBorderColor() {
     this.checkAndBuildCssBorder();
-    (this.cssBorder as BorderOptions).color = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+    let cssBorder = this.cssBorder as BorderOptions
+    if (!cssBorder.color) {
+      cssBorder.color = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+    }
   }
 
   private checkAndBuildCssBorderRadius() {
     this.checkAndBuildCssBorder();
-    (this.cssBorder as BorderOptions).radius = {topLeft: undefined, topRight: undefined, bottomLeft:undefined, bottomRight: undefined}
+    let cssBorder = this.cssBorder as BorderOptions
+    if (!cssBorder.radius) {
+      cssBorder.radius = {topLeft: undefined, topRight: undefined, bottomLeft:undefined, bottomRight: undefined}
+    }
   }
 
   private checkAndBuildCssBorderStyle() {
     this.checkAndBuildCssBorder();
-    (this.cssBorder as BorderOptions).style = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+    let cssBorder = this.cssBorder as BorderOptions
+    if (!cssBorder.style) {
+      cssBorder.style = {top: undefined, right: undefined, bottom: undefined, left: undefined}
+    }
   }
 
   private setShadowProp(propKey: string, propValue: HippyAny): boolean {
