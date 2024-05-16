@@ -27,7 +27,9 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ImageView::ImageView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+ImageView::ImageView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  imageNode_.SetNodeDelegate(this);
+}
 
 ImageView::~ImageView() {}
 

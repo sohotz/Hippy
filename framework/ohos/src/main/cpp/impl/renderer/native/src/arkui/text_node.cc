@@ -89,9 +89,10 @@ TextNode &TextNode::SetFontStyle(int32_t fontStyle) {
 }
 
 TextNode &TextNode::SetFontWeight(int32_t fontWeight) {
-  ArkUI_NumberValue value[] = {{.i32 = fontWeight}};
-  ArkUI_AttributeItem item = {.value = value, .size = 1};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_WEIGHT, &item));
+  // TODO(hot):
+//   ArkUI_NumberValue value[] = {{.i32 = fontWeight}};
+//   ArkUI_AttributeItem item = {.value = value, .size = 1};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_WEIGHT, &item));
   return *this;
 }
 

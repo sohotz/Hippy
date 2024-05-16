@@ -36,7 +36,7 @@ ImageNode::ImageNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_IMAGE)),
       imageNodeDelegate_(nullptr) {
   for (auto eventType : IMAGE_NODE_EVENT_TYPES) {
-    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, eventType, nullptr));
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
 }
 
