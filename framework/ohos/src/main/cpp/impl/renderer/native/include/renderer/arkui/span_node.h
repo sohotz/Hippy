@@ -29,10 +29,23 @@ inline namespace render {
 inline namespace native {
 
 class SpanNode : public ArkUINode {
-protected:
 public:
   SpanNode();
   ~SpanNode();
+
+  SpanNode &SetSpanContent(const std::string &text);
+  SpanNode &SetFontColor(uint32_t fontColor);
+  SpanNode &SetFontSize(float fontSize);
+  SpanNode &SetFontStyle(int32_t fontStyle);
+  SpanNode &SetFontFamily(const std::string &fontFamily);
+  SpanNode &SetFontWeight(int32_t fontWeight);
+  SpanNode &SetTextDecoration(int32_t decorationStyle, uint32_t decorationColor = 0xFFFF0000);
+  SpanNode &SetTextLetterSpacing(float textLetterSpacing);
+  SpanNode &SetTextShadow(float textShadowRadius, int32_t textShadowType, uint32_t textShadowColor,
+                          float textShadowOffsetX, float textShadowOffsetY);
+  SpanNode &SetTextLineHeight(float textLineHeight);
+  SpanNode &SetTextCase(int32_t textCase);
+  SpanNode &SetBackgroundStyle(uint32_t color);
 };
 
 } // namespace native

@@ -22,17 +22,50 @@
 
 #pragma once
 
-#include "renderer/arkui/arkui_node.h"
+#include "renderer/arkui/text_input_base_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class TextInputNode : public ArkUINode {
+class TextInputNodeDelegate {
+public:
+  virtual ~TextInputNodeDelegate() = default;
+  virtual void OnChange(std::string text){}
+  virtual void OnBlur(){}
+  virtual void OnFocus(){}
+  virtual void OnSubmit(){}
+  virtual void OnPaste(){}
+  virtual void OnTextSelectionChange(int32_t location, int32_t length){}
+};
+
+class TextInputNode : public TextInputBaseNode {
 protected:
+  TextInputNodeDelegate *textInputNodeDelegate_;
+
 public:
   TextInputNode();
   ~TextInputNode();
+  
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void SetTextInputNodeDelegate(TextInputNodeDelegate *textInputNodeDelegate);
+  
+  void SetTextContent(std::string const &textContent) override;
+  void SetTextSelection(int32_t start, int32_t end) override;
+  void SetCaretColor(uint32_t const &color) override;
+  void SetMaxLength(int32_t maxLength) override;
+  void SetPlaceholder(std::string const &placeholder) override;
+  void SetPlaceholderColor(uint32_t const &color) override;
+  std::string GetTextContent() override;
+
+  HRPoint GetTextInputOffset() const;
+  void SetCaretHidden(bool hidden);
+  void SetInputType(ArkUI_TextInputType keyboardType);
+  void SetSelectedBackgroundColor(uint32_t const &color);
+  void SetPasswordIconVisibility(bool isVisible);
+  void SetEnterKeyType(uint32_t returnKeyType);
+  void SetCancelButtonMode(uint32_t mode);
+  void ResetSelectedBackgroundColor();
 };
 
 } // namespace native

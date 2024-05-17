@@ -33,6 +33,93 @@ SpanNode::SpanNode()
 
 SpanNode::~SpanNode() {}
 
+SpanNode &SpanNode::SetSpanContent(const std::string &text) {
+  ArkUI_AttributeItem item = {.string = text.c_str()};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SPAN_CONTENT, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetFontColor(uint32_t color) {
+  ArkUI_NumberValue value[] = {{.u32 = color}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_COLOR, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetFontSize(float fontSize) {
+  ArkUI_NumberValue value[] = {{.f32 = fontSize}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_SIZE, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetFontStyle(int32_t fontStyle) {
+  ArkUI_NumberValue value[] = {{.i32 = fontStyle}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_STYLE, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetFontWeight(int32_t fontWeight) {
+  ArkUI_NumberValue value[] = {{.i32 = fontWeight}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_WEIGHT, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetTextLineHeight(float textLineHeight) {
+  ArkUI_NumberValue value[] = {{.f32 = textLineHeight}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LINE_HEIGHT, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetTextDecoration(int32_t decorationStyle, uint32_t decorationColor /*= 0xFFFF0000*/) {
+  ArkUI_NumberValue value[] = {{.i32 = decorationStyle}, {.u32 = decorationColor}};
+  ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_DECORATION, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetTextCase(int32_t textCase) {
+  ArkUI_NumberValue value[] = {{.i32 = textCase}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_CASE, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetTextLetterSpacing(float textLetterSpacing) {
+  ArkUI_NumberValue value[] = {{.f32 = textLetterSpacing}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LETTER_SPACING, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetFontFamily(const std::string &fontFamily) {
+  ArkUI_AttributeItem item = {.string = fontFamily.c_str()};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_FAMILY, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetTextShadow(float textShadowRadius, int32_t textShadowType, uint32_t textShadowColor,
+                                  float textShadowOffsetX, float textShadowOffsetY) {
+  ArkUI_NumberValue value[] = {{.f32 = textShadowRadius},
+                               {.i32 = textShadowType},
+                               {.u32 = textShadowColor},
+                               {.f32 = textShadowOffsetX},
+                               {.f32 = textShadowOffsetY}};
+  ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_TEXT_SHADOW, &item));
+  return *this;
+}
+
+SpanNode &SpanNode::SetBackgroundStyle(uint32_t color) {
+  ArkUI_NumberValue value[] = {{.u32 = color}, {.f32 = 0}};
+  ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SPAN_TEXT_BACKGROUND_STYLE, &item));
+  return *this;
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

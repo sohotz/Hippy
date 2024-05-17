@@ -36,6 +36,13 @@ public:
   HRPosition(float x, float y) : x(x), y(y) {}
 };
 
+class HRPoint {
+public:
+  float x;
+  float y;
+  HRPoint(float x, float y) : x(x), y(y) {}
+};
+
 class HRSize {
 public:
   float width;

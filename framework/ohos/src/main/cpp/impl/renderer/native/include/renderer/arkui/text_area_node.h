@@ -22,17 +22,44 @@
 
 #pragma once
 
-#include "renderer/arkui/arkui_node.h"
+#include "renderer/arkui/text_input_base_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class TextAreaNode : public ArkUINode {
+class TextAreaNodeDelegate {
+public:
+  virtual ~TextAreaNodeDelegate() = default;
+  virtual void OnChange(std::string text){}
+  virtual void OnBlur(){}
+  virtual void OnFocus(){}
+  virtual void OnPaste(){}
+  virtual void OnTextSelectionChange(int32_t location, int32_t length){}
+};
+
+class TextAreaNode : public TextInputBaseNode {
 protected:
+  TextAreaNodeDelegate *textAreaNodeDelegate_;
+
 public:
   TextAreaNode();
   ~TextAreaNode();
+  
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void SetTextInputNodeDelegate(TextAreaNodeDelegate *textAreaNodeDelegate);
+  
+  void SetTextContent(std::string const &textContent) override;
+  void SetTextSelection(int32_t start, int32_t end) override;
+  void SetCaretColor(uint32_t const &color) override;
+  void SetMaxLength(int32_t maxLength) override;
+  void SetPlaceholder(std::string const &placeholder) override;
+  void SetPlaceholderColor(uint32_t const &color) override;
+  std::string GetTextContent() override;
+  
+  HRPoint GetTextAreaOffset() const;
+  void SetInputType(ArkUI_TextInputType keyboardType);
+  void DefaultSetPadding();
 };
 
 } // namespace native

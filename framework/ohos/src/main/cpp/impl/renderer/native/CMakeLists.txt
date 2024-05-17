@@ -83,6 +83,7 @@ set(SOURCE_SET
   src/arkui/swiper_node.cc
   src/arkui/text_area_node.cc
   src/arkui/text_input_node.cc
+  src/arkui/text_input_base_node.cc
   src/arkui/text_node.cc
   src/arkui/water_flow_node.cc
   src/arkui/web_node.cc
