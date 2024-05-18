@@ -36,6 +36,7 @@ ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : nodeHandle_(nodeHandle) {
 
 ArkUINode::~ArkUINode() {
   if (nodeHandle_ != nullptr) {
+    UnregisterClickEvent();
     ArkUINodeRegistry::GetInstance().UnregisterNode(this);
     NativeNodeApi::GetInstance()->disposeNode(nodeHandle_);
   }
@@ -51,8 +52,6 @@ ArkUINode &ArkUINode::operator=(ArkUINode &&other) noexcept {
 }
 
 ArkUI_NodeHandle ArkUINode::GetArkUINodeHandle() { return nodeHandle_; }
-
-void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {}
 
 void ArkUINode::MarkDirty() {
   NativeNodeApi::GetInstance()->markDirty(GetArkUINodeHandle(), ArkUI_NodeDirtyFlag::NODE_NEED_RENDER);
@@ -141,6 +140,22 @@ ArkUINode &ArkUINode::SetBackgroundColor(uint32_t color) {
   ArkUI_AttributeItem colorItem = {preparedColorValue, sizeof(preparedColorValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BACKGROUND_COLOR, &colorItem));
   return *this;
+}
+
+void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {}
+
+void ArkUINode::RegisterClickEvent() {
+  if (!hasClickEvent_) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));
+    hasClickEvent_ = true;
+  }
+}
+
+void ArkUINode::UnregisterClickEvent() {
+  if (hasClickEvent_) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK);
+    hasClickEvent_ = false;
+  }
 }
 
 } // namespace native

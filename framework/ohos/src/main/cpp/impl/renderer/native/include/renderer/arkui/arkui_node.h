@@ -58,7 +58,7 @@ public:
   virtual ~ArkUINode();
 
   ArkUI_NodeHandle GetArkUINodeHandle();
-  
+
   void MarkDirty();
 
   virtual ArkUINode &SetPosition(const HRPosition &position);
@@ -68,8 +68,11 @@ public:
   virtual ArkUINode &SetBorderRadius(float topLeft, float topRight, float bottomLeft, float bottomRight);
   virtual ArkUINode &SetBorderStyle(std::string &top, std::string &right, std::string &bottom, std::string &left);
   virtual ArkUINode &SetBackgroundColor(uint32_t color);
-
+  
   virtual void OnNodeEvent(ArkUI_NodeEvent *event);
+
+  void RegisterClickEvent();
+  void UnregisterClickEvent();
 
 protected:
   void MaybeThrow(int32_t status) {
@@ -81,6 +84,8 @@ protected:
   }
 
   ArkUI_NodeHandle nodeHandle_;
+  
+  bool hasClickEvent_ = false;
 };
 
 } // namespace native

@@ -274,6 +274,7 @@ void BaseView::SetClickable(bool flag) {
     return;
   }
   if (flag) {
+    GetLocalRootArkUINode().RegisterClickEvent();
     auto weak_view = weak_from_this();
     eventClick_ = [weak_view]() {
       auto view = weak_view.lock();
@@ -282,6 +283,7 @@ void BaseView::SetClickable(bool flag) {
       }
     };
   } else {
+    GetLocalRootArkUINode().UnregisterClickEvent();
     eventClick_ = nullptr;
   }
 }

@@ -30,10 +30,9 @@ inline namespace native {
 
 TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_TEXT)),
   textNodeDelegate_(nullptr) {
-  MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));
 }
 
-TextNode::~TextNode() { NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK); }
+TextNode::~TextNode() {}
 
 void TextNode::InsertChild(ArkUINode &child, std::size_t index) {
   MaybeThrow(

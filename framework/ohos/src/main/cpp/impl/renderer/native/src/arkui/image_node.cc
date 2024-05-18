@@ -27,7 +27,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-static constexpr ArkUI_NodeEventType IMAGE_NODE_EVENT_TYPES[] = {NODE_ON_CLICK, NODE_IMAGE_ON_COMPLETE, NODE_IMAGE_ON_ERROR};
+static constexpr ArkUI_NodeEventType IMAGE_NODE_EVENT_TYPES[] = {NODE_IMAGE_ON_COMPLETE, NODE_IMAGE_ON_ERROR};
 
 using namespace std::literals;
 constexpr std::string_view ASSET_PREFIX = "asset://";
