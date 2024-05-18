@@ -411,8 +411,11 @@ export default abstract class HippyRenderBaseView {
   }
 
   private checkAndBuildCssBorder() {
-    if(!this.cssBorder) {
-      this.cssBorder = {width: undefined, color: undefined, radius: undefined, style: undefined}
+    this.cssBorder = {
+      width: this.cssBorder?.width,
+      color: this.cssBorder?.color,
+      radius: this.cssBorder?.radius,
+      style: this.cssBorder?.style
     }
   }
 
