@@ -32,18 +32,8 @@ inline namespace native {
 
 class HRConvertUtils {
 public:
-  inline static ArkUI_BorderStyle BorderStyleToArk(std::string &str) {
-    if (str == "solid") {
-      return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_SOLID;
-    } else if (str == "dotted") {
-      return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_DOTTED;
-    } else if (str == "dashed") {
-      return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_DASHED;
-    }
-    return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_SOLID;
-  }
+  static ArkUI_BorderStyle BorderStyleToArk(std::string &str);
   
-
 };
 
 } // namespace native

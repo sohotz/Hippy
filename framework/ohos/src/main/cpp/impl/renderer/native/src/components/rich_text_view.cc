@@ -68,7 +68,7 @@ bool RichTextView::SetProp(const std::string &propKey, HippyValue &propValue) {
     return true;
   } else if (propKey == "fontStyle") {
     std::string value = HRValueUtils::GetString(propValue);
-    int32_t style = HRTextConvertUtil::FontStyleToArk(value);
+    int32_t style = HRTextConvertUtils::FontStyleToArk(value);
     if (style != fontStyle_) {
       GetLocalRootArkUINode().SetFontStyle(style);
       fontStyle_ = style;
@@ -76,7 +76,7 @@ bool RichTextView::SetProp(const std::string &propKey, HippyValue &propValue) {
     return true;
   } else if (propKey == "fontWeight") {
     std::string value = HRValueUtils::GetString(propValue);
-    int32_t weight = HRTextConvertUtil::FontWeightToArk(value);
+    int32_t weight = HRTextConvertUtils::FontWeightToArk(value);
     if (weight != fontWeight_) {
       GetLocalRootArkUINode().SetFontWeight(weight);
       fontWeight_ = weight;
@@ -110,7 +110,7 @@ bool RichTextView::SetProp(const std::string &propKey, HippyValue &propValue) {
     return true;
   } else if (propKey == "textAlign") {
     std::string value = HRValueUtils::GetString(propValue);
-    int32_t align = HRTextConvertUtil::TextAlignToArk(value);
+    int32_t align = HRTextConvertUtils::TextAlignToArk(value);
     if (firstSetTextAlign_ || align != textAlign_) {
       GetLocalRootArkUINode().SetTextAlign(align);
       textAlign_ = align;

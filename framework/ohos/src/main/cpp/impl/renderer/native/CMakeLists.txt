@@ -64,6 +64,8 @@ set(SOURCE_SET
   src/uimanager/hr_view_manager.cc
   src/uimanager/hr_gesture_dispatcher.cc
   src/utils/hr_event_utils.cc
+  src/utils/hr_convert_utils.cc
+  src/utils/hr_text_convert_utils.cc
   src/virtual/hr_virtual_view_manager.cc
   src/virtual/hr_virtual_view.cc
   src/arkui/arkui_node.cc

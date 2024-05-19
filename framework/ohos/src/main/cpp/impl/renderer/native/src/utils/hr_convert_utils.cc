@@ -20,24 +20,22 @@
  *
  */
 
-#pragma once
-
-#include <string>
-#include <arkui/native_type.h>
-#include <sys/stat.h>
-#include "renderer/utils/hr_types.h"
+#include "renderer/utils/hr_convert_utils.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class HRTextConvertUtils {
-public:
-  static int32_t FontWeightToArk(std::string &str);
-  static int32_t FontStyleToArk(std::string &str);
-  static int32_t TextAlignToArk(std::string &str);
-  
-};
+ArkUI_BorderStyle HRConvertUtils::BorderStyleToArk(std::string &str) {
+  if (str == "solid") {
+    return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_SOLID;
+  } else if (str == "dotted") {
+    return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_DOTTED;
+  } else if (str == "dashed") {
+    return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_DASHED;
+  }
+  return ArkUI_BorderStyle::ARKUI_BORDER_STYLE_SOLID;
+}
 
 } // namespace native
 } // namespace render
