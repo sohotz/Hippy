@@ -332,6 +332,7 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
         layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
         return layout_result;
       };
+      nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     }
 
     footstone::value::HippyValue::HippyValueObjectType props;
