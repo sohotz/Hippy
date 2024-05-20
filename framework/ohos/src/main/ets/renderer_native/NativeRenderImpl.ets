@@ -47,6 +47,7 @@ import { HRCreateMutation,
 } from './uimanager/HRMutation'
 import { HippyEndBatchCallback } from './uimanager/HRViewManager'
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
+import { HRMeasureResult } from './utils/HRMeasure'
 import { HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
 
@@ -538,4 +539,14 @@ key1               value1
     })
     return new HRSize(Number(textSize.width), Number(textSize.height))
   }
+
+  customMeasure(libHippy:HippyLibrary, instanceId: number, rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return BigInt(0)
+    }
+    let result = viewManager.callCustomMeasure(nodeId, width, widthMode, height, heightMode)
+    return (BigInt(result.width) << BigInt(32)) | BigInt(result.height)
+  }
+
 }

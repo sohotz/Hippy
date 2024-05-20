@@ -48,10 +48,26 @@ static napi_value CreateNativeRenderManager(napi_env env, napi_callback_info inf
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
   auto ts_render_provider_ref = arkTs.CreateReference(args[0]);
-  auto density = arkTs.GetDouble(args[1]);
+
+  std::set<std::string> custom_measure_views;
+  auto ts_array = args[1];
+  if (arkTs.IsArray(ts_array)) {
+    auto length = arkTs.GetArrayLength(ts_array);
+    if (length > 0) {
+      for (uint32_t i = 0; i < length; i ++) {
+        auto ts_view = arkTs.GetArrayElement(ts_array, i);
+        auto view_name = arkTs.GetString(ts_view);
+        if (view_name.length() > 0) {
+          custom_measure_views.insert(view_name);
+        }
+      }
+    }
+  }
+
+  auto density = arkTs.GetDouble(args[2]);
   auto render_manager = std::make_shared<NativeRenderManager>();
 
-  render_manager->SetRenderDelegate(env, ts_render_provider_ref);
+  render_manager->SetRenderDelegate(env, ts_render_provider_ref, custom_measure_views);
   render_manager->InitDensity(density);
   auto render_id = hippy::global_data_holder_key.fetch_add(1);
   auto flag = hippy::global_data_holder.Insert(render_id,

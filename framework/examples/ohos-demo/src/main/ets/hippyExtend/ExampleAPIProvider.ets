@@ -26,7 +26,8 @@ import HippyRenderBaseView
 import {
   HRRenderViewCreator
 } from 'hippy/src/main/ets/renderer_native/components/HippyRenderRegisterMap'
-import { ExampleCustomComponentView } from './ExampleCustomComponentView'
+import { ExampleCustomComponentViewA } from './ExampleCustomComponentViewA'
+import { ExampleCustomComponentViewB } from './ExampleCustomComponentViewB'
 
 export class ExampleAPIProvider implements HippyAPIProvider {
   getCustomNativeModuleCreatorMap(): Map<string, HippyNativeModuleCreator> | null {
@@ -39,7 +40,13 @@ export class ExampleAPIProvider implements HippyAPIProvider {
 
   getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
     let registerMap: Map<string, HRRenderViewCreator> = new Map()
-    registerMap.set("ExampleCustomView", (ctx): HippyRenderBaseView => new ExampleCustomComponentView(ctx))
+    registerMap.set("ExampleCustomViewA", (ctx): HippyRenderBaseView => new ExampleCustomComponentViewA(ctx))
+    registerMap.set("ExampleCustomViewB", (ctx): HippyRenderBaseView => new ExampleCustomComponentViewB(ctx))
     return registerMap
   }
+
+  getCustomMeasureRenderViews(): Array<string> | null {
+    return ["ExampleCustomViewB"]
+  }
+
 }

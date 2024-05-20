@@ -22,9 +22,11 @@ import {
   HippyMap, HippyRenderCallback, HippyValue } from '../../support/common/HippyTypes'
 import { LogUtils } from '../../support/utils/LogUtils'
 import HippyRenderBaseView from '../components/base/HippyRenderBaseView'
+import { HippyCustomComponentView } from '../components/custom/HippyCustomComponentView'
 import { HRRenderViewCreator } from '../components/HippyRenderRegisterMap'
 import { HippyRenderView } from '../HippyRenderView'
 import { NativeRenderContext } from '../NativeRenderContext'
+import { HRMeasureMode, HRMeasureResult } from '../utils/HRMeasure'
 import { HRRect } from '../utils/HRTypes'
 import { HRCreateMutation,
   HRDeleteMutation,
@@ -212,6 +214,14 @@ export class HRViewManager {
     if (renderView) {
       renderView.call(method, params, callback)
     }
+  }
+
+  callCustomMeasure(tag: number, width: number, widthMode: HRMeasureMode, height: number, heightMode: HRMeasureMode): HRMeasureResult {
+    let renderView = this.viewRegistry.get(tag)
+    if (renderView) {
+      return (renderView as HippyCustomComponentView).customMeasure(width, widthMode, height, heightMode)
+    }
+    return new HRMeasureResult(0, 0)
   }
 
   willDestroy(): void {

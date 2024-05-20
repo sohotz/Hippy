@@ -5,7 +5,7 @@
  * Copyright (C) 2022 THL A29 Limited, a Tencent company.
  * All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -17,15 +17,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HRRenderViewCreator } from '../../renderer_native/components/HippyRenderRegisterMap';
-import { HippyJSModuleCreator, HippyNativeModuleCreator } from '../modules/HippyModuleManagerImpl';
 
-export interface HippyAPIProvider {
-  getCustomNativeModuleCreatorMap(): Map<string, HippyNativeModuleCreator> | null
+export enum HRMeasureMode {
+  UNDEFINED,
+  EXACTLY,
+  AT_MOST
+}
 
-  getCustomJavaScriptModuleCreatorMap(): Map<string, HippyJSModuleCreator> | null
+export class HRMeasureResult {
+  width: number = 0
+  height: number = 0
 
-  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null
-
-  getCustomMeasureRenderViews(): Array<string> | null
+  constructor(width: number, height: number) {
+    this.width = width
+    this.height = height
+  }
 }

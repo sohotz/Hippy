@@ -22,10 +22,13 @@ import {  HippyEngine, HippyException, HippyRoot } from 'hippy'
 import { HippyLibrary } from 'hippy/src/main/ets/hippy_library/HippyLibrary'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
-import { ExampleCustomComponent,
-  ExampleCustomComponentView } from '../hippyExtend/ExampleCustomComponentView'
+import { ExampleCustomComponentA,
+  ExampleCustomComponentViewA } from '../hippyExtend/ExampleCustomComponentViewA'
 import { DriverMode, HippyInfo } from './PageConfiguration'
 import { image } from '@kit.ImageKit'
+import {
+  ExampleCustomComponentB,
+  ExampleCustomComponentViewB } from '../hippyExtend/ExampleCustomComponentViewB'
 
 //dimens.xml
 const page_index_item_margin:number = 16
@@ -263,8 +266,10 @@ struct HippyFrame {
 
   @Builder
   buildCustomRenderView($$: HippyRenderBaseView) {
-    if ($$ instanceof ExampleCustomComponentView) {
-      ExampleCustomComponent({ renderView: $$ as ExampleCustomComponentView, children: $$.children })
+    if ($$ instanceof ExampleCustomComponentViewA) {
+      ExampleCustomComponentA({ renderView: $$ as ExampleCustomComponentViewA, children: $$.children })
+    } else if ($$ instanceof ExampleCustomComponentViewB) {
+      ExampleCustomComponentB({ renderView: $$ as ExampleCustomComponentViewB, children: $$.children })
     }
   }
 

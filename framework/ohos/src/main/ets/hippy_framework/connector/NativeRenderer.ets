@@ -27,14 +27,14 @@ export class NativeRenderer {
   private renderProvider: NativeRenderProvider
   public instanceId: number = 0
 
-  constructor(libHippy: HippyLibrary, renderProvider: NativeRenderProvider) {
+  constructor(libHippy: HippyLibrary, renderProvider: NativeRenderProvider, customMeasureRenderViews: Array<string> | null) {
     this.libHippy = libHippy
     this.renderProvider = renderProvider
-    this.instanceId = this.createNativeRenderManager(renderProvider)
+    this.instanceId = this.createNativeRenderManager(renderProvider, customMeasureRenderViews)
   }
 
-  createNativeRenderManager(renderProvider: NativeRenderProvider): number {
-    return this.libHippy?.NativeRenderer_CreateNativeRenderManager(renderProvider, PixelUtil.getDensity())
+  createNativeRenderManager(renderProvider: NativeRenderProvider, customMeasureRenderViews: Array<string> | null): number {
+    return this.libHippy?.NativeRenderer_CreateNativeRenderManager(renderProvider, customMeasureRenderViews, PixelUtil.getDensity())
   }
 
   destroyNativeRenderManager() {

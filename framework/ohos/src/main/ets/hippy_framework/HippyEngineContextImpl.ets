@@ -63,8 +63,10 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     this.providers = this.mEngineInitParams.providers;
     // provider挂载
     let customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null = null
+    let customMeasureRenderViews: Array<string> | null = null
     if (this.providers) {
       customRenderViewCreatorMap = new Map()
+      customMeasureRenderViews = new Array()
       for (let provider of this.providers) {
         let map = provider.getCustomRenderViewCreatorMap()
         if (map) {
@@ -72,11 +74,17 @@ export class HippyEngineContextImpl implements HippyEngineContext {
             customRenderViewCreatorMap?.set(key, value)
           })
         }
+        let array = provider.getCustomMeasureRenderViews()
+        if (array) {
+          array.forEach((value) => {
+            customMeasureRenderViews?.push(value)
+          })
+        }
       }
     }
     // Render注册
     this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, customRenderViewCreatorMap)
-    this.nativeRenderer = new NativeRenderer(this.libHippy, this.nativeRenderProvider)
+    this.nativeRenderer = new NativeRenderer(this.libHippy, this.nativeRenderProvider, customMeasureRenderViews)
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)

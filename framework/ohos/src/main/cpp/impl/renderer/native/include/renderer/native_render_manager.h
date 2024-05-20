@@ -65,7 +65,7 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
 
   inline uint32_t GetId() { return id_; }
   
-  void SetRenderDelegate(napi_env ts_env, napi_ref ts_render_provider_ref);
+  void SetRenderDelegate(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_measure_views);
 
   void InitDensity(double density);
   void CreateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
@@ -120,9 +120,14 @@ private:
   void CallNativeMeasureMethod(const uint32_t root_id, const int32_t id, const float width, const int32_t width_mode, const float height,
                                const int32_t height_mode, int64_t& result);
 
+  void CallNativeCustomMeasureMethod(const uint32_t root_id, const int32_t id, const float width, const int32_t width_mode,
+                                     const float height, const int32_t height_mode, int64_t &result);
+  
   void DoMeasureText(const std::weak_ptr<RootNode> root_node, const std::weak_ptr<hippy::dom::DomNode> dom_node,
                      const float width, const int32_t width_mode,
                      const float height, const int32_t height_mode, int64_t &result);
+  
+  bool IsCustomMeasureNode(const std::string &name);
 
   struct ListenerOp {
     bool add;
@@ -142,6 +147,9 @@ private:
   uint32_t id_;
   napi_env ts_env_ = 0;
   napi_ref ts_render_provider_ref_ = 0;
+  
+  std::set<std::string> custom_measure_views_;
+  
   std::shared_ptr<footstone::value::Serializer> serializer_;
   std::map<uint32_t, std::vector<ListenerOp>> event_listener_ops_;
 
