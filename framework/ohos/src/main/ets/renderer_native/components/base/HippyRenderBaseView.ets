@@ -292,12 +292,17 @@ export default abstract class HippyRenderBaseView {
 
   private convertToLocalPathIfNeeded(uri: string): ResourceStr {
     // hpfile://./assets/defaultSource.jpg
-    if (uri != null && uri.startsWith("hpfile://")) {
-      let relativePath = uri.replace("hpfile://./", "");
-      let bundlePath = this.ctx.getNativeRender().getBundlePath()
-      bundlePath = bundlePath.replace("asset:/", "")
-      uri = bundlePath.substring(0, bundlePath.lastIndexOf("/") + 1) + relativePath
-      return $rawfile(uri)
+    if (uri != null) {
+      if (uri.startsWith("hpfile://")) {
+        let relativePath = uri.replace("hpfile://./", "");
+        let bundlePath = this.ctx.getNativeRender().getBundlePath()
+        bundlePath = bundlePath.replace("asset:/", "")
+        uri = bundlePath.substring(0, bundlePath.lastIndexOf("/") + 1) + relativePath
+        return $rawfile(uri)
+      } else if (uri.startsWith("asset:/")) {
+        uri = uri.replace("asset:/", "")
+        return $rawfile(uri)
+      }
     }
     return uri
   }
