@@ -26,6 +26,7 @@ import HippyRenderBaseView from './components/base/HippyRenderBaseView';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import { FrameworkProxy } from './FrameworkProxy';
 import { HippyRender, HippyRenderView } from './HippyRenderView';
+import { WrappedHippyCustomCustomRenderViewBuilder } from './HippyRenderViewBuilder';
 import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
 import { NativeRender } from './NativeRender';
 import { NativeRenderContext } from './NativeRenderContext';
@@ -48,11 +49,12 @@ export class HippyRootView {
               rootId: number,
               customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
               nativeRender: NativeRender,
+              wrappedCustomRenderViewBuilder: WrappedHippyCustomCustomRenderViewBuilder | null,
               pagerName: string,
               pagerData: HippyRecord,
               renderExceptionListener: IHippyRenderExceptionListener
   ) {
-    this.ctx = new NativeRenderContext(instanceId, rootId, customRenderViewCreatorMap, nativeRender)
+    this.ctx = new NativeRenderContext(instanceId, rootId, customRenderViewCreatorMap, nativeRender, wrappedCustomRenderViewBuilder)
     this.pagerName = pagerName
     this.pagerData = pagerData
     this.renderExceptionListener = renderExceptionListener
@@ -167,9 +169,9 @@ export struct HippyRoot {
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private static sRootIdCounter = 0
   private rootId: number = -1
-  private renderIntanceId: number = -1
+  private renderInstanceId: number = -1
   private renderExceptionListener = new HippyRenderExceptionListener()
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void
+  private wrappedCustomRenderViewBuilder: WrappedHippyCustomCustomRenderViewBuilder | null = null
   @State showRenderView: boolean = false
   private rootView: HippyRootView | null = null
   onRootViewCreated: ((rootId: number) => void) | null = null
@@ -186,10 +188,11 @@ export struct HippyRoot {
 
       HippyRoot.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
       this.rootId = HippyRoot.sRootIdCounter
-      this.renderIntanceId = this.hippyEngine.getNativeRenderProvider()!.getInstanceId()
+      this.renderInstanceId = this.hippyEngine.getNativeRenderProvider()!.getInstanceId()
       let nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
       let customRenderViewCreatorMap = nativeRender.getCustomRenderViewCreatorMap()
-      this.rootView = new HippyRootView(this.renderIntanceId, this.rootId, customRenderViewCreatorMap, nativeRender,
+      this.rootView = new HippyRootView(this.renderInstanceId, this.rootId, customRenderViewCreatorMap, nativeRender,
+                                        this.wrappedCustomRenderViewBuilder,
                                         this.pagerName, this.pagerData, this.renderExceptionListener)
       if (this.initViewSize && this.rootView) {
         this.rootView.onViewSizeChanged(this.initViewSize)
@@ -222,7 +225,6 @@ export struct HippyRoot {
         HippyRender({
           renderView: this.rootView.renderView,
           children: this.rootView.renderView.children,
-          buildCustomRenderView: this.buildCustomRenderView
         })
           .width('100%')
           .height('100%')
@@ -231,7 +233,7 @@ export struct HippyRoot {
           })
       } else {
         XComponent({
-          id: this.renderIntanceId + "_" + this.rootId,
+          id: this.renderInstanceId + "_" + this.rootId,
           type: "node",
           libraryname: 'hippy_module'
         })

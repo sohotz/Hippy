@@ -19,7 +19,7 @@
  */
 
 import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import { HRRect } from '../../utils/HRTypes';
@@ -49,13 +49,11 @@ export class HRViewPagerItemView extends HippyRenderBaseView {
 export struct HRViewPagerItem {
   @ObjectLink renderView: HRViewPagerItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   build() {
     Stack() {
       ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
+        buildHippyRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)

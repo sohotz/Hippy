@@ -24,7 +24,6 @@ import {
   HippyRenderCallback,
   HippyValue
 } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
@@ -304,7 +303,6 @@ export struct HRTextInput {
   private readonly TAG = "HRTextInput";
   @ObjectLink renderView: HRTextInputView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
   windowPromise?: Promise<window.Window> = undefined
   keyboardListener: Callback<number> = (height) => {

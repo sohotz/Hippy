@@ -19,7 +19,6 @@
  */
 
 import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
@@ -27,6 +26,7 @@ import HippyRenderBaseView, {
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRRect } from '../../utils/HRTypes';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 
 @Observed
 export class HRWaterfallItemView extends HippyRenderBaseView {
@@ -66,8 +66,6 @@ export struct HRWaterfallItem {
   private readonly TAG = "HRWaterfallItem"
   @ObjectLink renderView: HRWaterfallItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   aboutToReuse(params: Record<string, Object>): void {
   }
@@ -79,7 +77,7 @@ export struct HRWaterfallItem {
   build() {
     Stack() {
       ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
+        buildHippyRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)

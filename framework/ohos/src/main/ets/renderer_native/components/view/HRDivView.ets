@@ -20,7 +20,7 @@
 import deviceInfo  from '@ohos.deviceInfo';
 import { HippyAny } from '../../../support/common/HippyTypes';
 import { LogUtils } from '../../../support/utils/LogUtils';
-import { HRComponent } from '../../HippyRenderView';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
@@ -42,8 +42,6 @@ export class HRDivView extends HippyRenderBaseView {
 export struct HRDiv {
   @ObjectLink renderView: HRDivView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   shouldAddGesture() {
     return deviceInfo.sdkApiVersion >= 11 && (
@@ -74,7 +72,7 @@ export struct HRDiv {
     if(this.shouldAddGesture()){
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
-          this.buildRenderView(item, null)
+          buildHippyRenderView(item, null)
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
       .applyRenderViewBaseAttr(this.renderView)
@@ -82,7 +80,7 @@ export struct HRDiv {
     }else {
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
-          this.buildRenderView(item, null)
+          buildHippyRenderView(item, null)
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
       .applyRenderViewBaseAttr(this.renderView)

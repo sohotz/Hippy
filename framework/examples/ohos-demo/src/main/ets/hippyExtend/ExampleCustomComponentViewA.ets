@@ -22,7 +22,7 @@ import HippyRenderBaseView, {
   HIPPY_COMPONENT_KEY_PREFIX
 }  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
 import { HippyCustomComponentView } from 'hippy/src/main/ets/renderer_native/components/custom/HippyCustomComponentView'
-import { HRComponent } from 'hippy/src/main/ets/renderer_native/HippyRenderView'
+import { buildHippyRenderView } from 'hippy/src/main/ets/renderer_native/HippyRenderViewBuilder'
 import { NativeRenderContext } from 'hippy/src/main/ets/renderer_native/NativeRenderContext'
 import { HippyAny, HippyRenderCallback } from 'hippy/src/main/ets/support/common/HippyTypes'
 
@@ -45,7 +45,6 @@ export class ExampleCustomComponentViewA extends HippyCustomComponentView {
 export struct ExampleCustomComponentA {
   @ObjectLink renderView: ExampleCustomComponentViewA
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
 
   aboutToAppear() {
 
@@ -58,6 +57,9 @@ export struct ExampleCustomComponentA {
   build() {
     Stack() {
       Text("This is a custom component A.")
+      ForEach(this.children, (item: HippyRenderBaseView) => {
+        buildHippyRenderView(item, null)
+      }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
   }

@@ -19,7 +19,6 @@
  */
 import systemDateTime from '@ohos.systemDateTime';
 import { HippyMap, Hippy2Map } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import HippyRenderBaseView, {
   HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
@@ -31,6 +30,7 @@ import { HRListItemView } from './HRListItemView';
 import { HRListDataSource } from './HRListDataSource';
 import { HRListView } from './HRListView';
 import { HippyEndBatchCallback } from '../../uimanager/HRViewManager';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 
 const INVALID_STICKY_INDEX: number = -1
 
@@ -47,8 +47,6 @@ export struct HRList {
   private readonly TAG = "HRList"
   @ObjectLink renderView: HRListView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   private CONTENT_OFFSET: string = "contentOffset";
   private pullAction: ScrollAction = ScrollAction.None;
   private headerView: HRPullHeaderView | null = null;
@@ -340,7 +338,7 @@ export struct HRList {
       List({ initialIndex: this.headerView ? 1 : 0, scroller: this.renderView.scroller }) {
         LazyForEach(this.dataSource, (item: HippyRenderBaseView, index) => {
           ListItem() {
-            this.buildRenderView(item, null)
+            buildHippyRenderView(item, null)
           }
           .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean, currentRatio: number) => {
             this.checkPullOnItemVisibleAreaChange(index, isVisible, currentRatio)
@@ -409,7 +407,7 @@ export struct HRList {
         Column() {
           ForEach(this.stickyArray, (index: number) => {
             if (index == this.stickyIndex) {
-              this.buildRenderView(this.children[index], null)
+              buildHippyRenderView(this.children[index], null)
             }
           })
         }

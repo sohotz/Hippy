@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes'
-import { HRComponent } from '../../HippyRenderView'
 import { NativeRenderContext } from '../../NativeRenderContext'
 import { HRRect } from '../../utils/HRTypes'
 import HippyRenderBaseView, { HippyObservedArray,
@@ -26,6 +25,7 @@ import HippyRenderBaseView, { HippyObservedArray,
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HREventUtils } from '../../utils/HREventUtils'
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder'
 
 @Observed
 export class HRListItemView extends HippyRenderBaseView {
@@ -121,8 +121,6 @@ export class HRListItemView extends HippyRenderBaseView {
 export struct HRListItem {
   @ObjectLink renderView: HRListItemView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   aboutToReuse(params: Record<string, Object>): void {
   }
@@ -130,7 +128,7 @@ export struct HRListItem {
   build() {
     Stack() {
       ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
+        buildHippyRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)

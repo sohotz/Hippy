@@ -18,39 +18,16 @@
  * limitations under the License.
  */
 import window from '@ohos.window'
-import { HippyEngine } from '../hippy_framework';
 import { HippyAny, HippyRecord } from '../support/common/HippyTypes';
 import HippyRenderBaseView, { HippyObservedArray } from './components/base/HippyRenderBaseView';
 import {
   hippyRenderViewCreatorRegisterMap,
   HRRenderViewCreator } from './components/HippyRenderRegisterMap';
-import { HRImage, HRImageView } from './components/image/HRImageView';
-import { HRListItem, HRListItemView } from './components/list/HRListItemView';
-import { HRListView } from './components/list/HRListView';
-import { HRModal, HRModalView } from './components/modal/HRModalView';
-import { HRTextInput, HRTextInputView } from './components/textinput/HRTextInputView'
-import { HRViewPager, HRViewPagerView } from './components/pager/HRViewPager';
-import { HRViewPagerItem, HRViewPagerItemView } from './components/pager/HRViewPagerItem';
-import { HRWaterfall } from './components/waterfall/HRWaterfall';
-import { HRWaterfallItem, HRWaterfallItemView } from './components/waterfall/HRWaterfallItemView';
-import { HRRefreshWrapper,HRRefreshWrapperView } from './components/refreshwrapper/HRRefreshWrapper';
-import { HRRefreshWrapperItem, HRRefreshWrapperItemView } from './components/refreshwrapper/HRRefreshWrapperItem';
-import { HRRichText, HRRichTextView } from './components/richtext/HRRichTextView';
-import { HRScroll, HRScrollView } from './components/scroller/HRScrollView';
-import { HRDiv, HRDivView } from './components/view/HRDivView';
-import { HRWeb, HRWebView } from './components/web/HRWebView'
 import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
 import { NativeRenderContext } from './NativeRenderContext';
-import { HRManager } from './uimanager/HRManager';
 import { HRSize } from './utils/HRTypes';
-import { LogUtils } from '../support/utils/LogUtils';
-import { HRPullHeader, HRPullHeaderView } from './components/pullheader/HRPullHeader';
-import { HRPullFooter, HRPullFooterView } from './components/pullfooter/HRPullFooter';
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils';
-import { HRList } from './components/list/HRList';
-import { HRWaterfallView } from './components/waterfall/HRWaterfallView';
-
-export type HRComponent = HRDivView | HRScroll | HRModal | null
+import { buildHippyRenderView } from './HippyRenderViewBuilder';
 
 @Observed
 export class HippyRenderView extends HippyRenderBaseView {
@@ -150,7 +127,6 @@ export struct HippyRender {
   private readonly TAG = "HippyRender"
   @ObjectLink renderView: HippyRenderView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   aboutToAppear() {
     this.renderView.uiContext = this.getUIContext()
@@ -164,118 +140,11 @@ export struct HippyRender {
   build() {
     Stack() {
       ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
+        buildHippyRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .width('100%')
     .height('100%')
   }
 
-  @Builder
-  buildRenderView($$: HippyRenderBaseView, parentComponent: HRComponent) {
-    if ($$ instanceof HRDivView) {
-      HRDiv({
-        renderView: $$ as HRDivView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRScrollView) {
-      HRScroll({
-        renderView: $$ as HRScrollView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRRichTextView) {
-      HRRichText({ renderView: $$ as HRRichTextView, buildRenderView: this.buildRenderView })
-    } else if ($$ instanceof HRImageView) {
-      HRImage({ renderView: $$ as HRImageView })
-    } else if ($$ instanceof HRModalView) {
-      HRModal({
-        renderView: $$ as HRModalView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRListView) {
-      HRList({
-        renderView: $$ as HRListView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRListItemView) {
-      HRListItem({
-        renderView: $$ as HRListItemView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      }).reuseId($$.type)
-    } else if ($$ instanceof HRTextInputView) {
-      HRTextInput({ renderView: $$ as HRTextInputView, children: $$.children, buildRenderView: this.buildRenderView })
-    } else if ($$ instanceof HRWebView) {
-      HRWeb({ renderView: $$ as HRWebView, children: $$.children, buildRenderView: this.buildRenderView })
-    } else if ($$ instanceof HRViewPagerView) {
-      HRViewPager({
-        renderView: $$ as HRViewPagerView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRViewPagerItemView) {
-      HRViewPagerItem({
-        renderView: $$ as HRViewPagerItemView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRWaterfallItemView) {
-      HRWaterfallItem({
-        renderView: $$ as HRWaterfallItemView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      }).reuseId($$.type)
-    } else if ($$ instanceof HRWaterfallView) {
-      HRWaterfall({
-        renderView: $$ as HRWaterfallView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRRefreshWrapperView) {
-      HRRefreshWrapper({
-        renderView: $$ as HRRefreshWrapperView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRRefreshWrapperItemView) {
-      HRRefreshWrapperItem({
-        renderView: $$ as HRRefreshWrapperItemView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRPullHeaderView) {
-      HRPullHeader({
-        renderView: $$ as HRPullHeaderView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else if ($$ instanceof HRPullFooterView) {
-      HRPullFooter({
-        renderView: $$ as HRPullFooterView,
-        children: $$.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
-      })
-    } else {
-      if (this.buildCustomRenderView) {
-        this.buildCustomRenderView($$)
-      }
-    }
-  }
 }

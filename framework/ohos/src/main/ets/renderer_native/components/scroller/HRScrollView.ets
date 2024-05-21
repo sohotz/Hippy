@@ -25,7 +25,6 @@ import {
   HippyRecord,
   HippyRenderCallback
 } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
@@ -33,6 +32,7 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
 import systemDateTime from '@ohos.systemDateTime';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 
 @Observed
 export class HRScrollView extends HippyRenderBaseView {
@@ -169,8 +169,6 @@ export class HRScrollView extends HippyRenderBaseView {
 export struct HRScroll {
   @ObjectLink renderView: HRScrollView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   private isDragging: boolean = false
   private lastScrollOffset: number = 0
   private lastScrollTime: number = 0
@@ -230,7 +228,7 @@ export struct HRScroll {
     Scroll(this.renderView.scroller) {
       Stack() {
         if (this.children.length > 0) {
-          this.buildRenderView(this.children[0], this)
+          buildHippyRenderView(this.children[0], this)
         }
       }
     }

@@ -20,7 +20,6 @@
 import { HippyAny, HippyMap } from '../../../support/common/HippyTypes'
 import { NativeRenderContext } from '../../NativeRenderContext'
 import HippyRenderBaseView, { HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView'
-import { HRComponent } from '../../HippyRenderView'
 import { LogUtils } from '../../../support/utils/LogUtils'
 import { HRImageView } from '../image/HRImageView'
 import { HRNodeProps } from '../../dom_node/HRNodeProps'
@@ -193,7 +192,6 @@ export class HRRichTextView extends HippyRenderBaseView {
 @Component
 export struct HRRichText {
   @ObjectLink renderView: HRRichTextView
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
   @Builder
   TextSpan(txt: HRRichTextView) {

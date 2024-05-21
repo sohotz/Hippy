@@ -20,13 +20,13 @@
 import systemDateTime from '@ohos.systemDateTime';
 import { HippyAny, HippyMap, HippyRenderCallback,
   HippyValue } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 
 @Observed
 export class HRRefreshWrapperView extends HippyRenderBaseView {
@@ -114,8 +114,6 @@ export struct HRRefreshWrapper {
   private readonly TAG = "HRRefreshWrapper"
   @ObjectLink renderView: HRRefreshWrapperView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   aboutToAppear() {
     this.renderView.uiCtx = this.getUIContext()
@@ -128,7 +126,7 @@ export struct HRRefreshWrapper {
     List({ initialIndex: 1, scroller: this.renderView.scroller }) {
       ForEach(this.children, (item: HippyRenderBaseView) => {
         ListItem() {
-          this.buildRenderView(item, null)
+          buildHippyRenderView(item, null)
         }
       }, (item: HippyRenderBaseView) => item.tag + '')
     }

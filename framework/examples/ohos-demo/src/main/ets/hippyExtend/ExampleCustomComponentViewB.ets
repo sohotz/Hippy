@@ -22,7 +22,6 @@ import HippyRenderBaseView, {
   HIPPY_COMPONENT_KEY_PREFIX
 }  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
 import { HippyCustomComponentView } from 'hippy/src/main/ets/renderer_native/components/custom/HippyCustomComponentView'
-import { HRComponent } from 'hippy/src/main/ets/renderer_native/HippyRenderView'
 import { NativeRenderContext } from 'hippy/src/main/ets/renderer_native/NativeRenderContext'
 import { HRMeasureMode, HRMeasureResult } from 'hippy/src/main/ets/renderer_native/utils/HRMeasure'
 import { HippyAny, HippyRenderCallback } from 'hippy/src/main/ets/support/common/HippyTypes'
@@ -50,7 +49,6 @@ export class ExampleCustomComponentViewB extends HippyCustomComponentView {
 export struct ExampleCustomComponentB {
   @ObjectLink renderView: ExampleCustomComponentViewB
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView:($$: HippyRenderBaseView, parent: HRComponent) => void
 
   aboutToAppear() {
 

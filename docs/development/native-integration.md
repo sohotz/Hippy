@@ -328,7 +328,7 @@ ENV['layout_engine'] = 'Yoga'
       hippyEngine: this.hippyEngine,
       pagerName: 'demo',
       pagerData: {},
-      buildCustomRenderView: this.buildCustomRenderView,
+      wrappedCustomRenderViewBuilder: wrapBuilder(buildCustomRenderView),
       onRenderException: (exception: HippyException) => {
         this.exception = `${exception.message}\n${exception.stack}`
       },

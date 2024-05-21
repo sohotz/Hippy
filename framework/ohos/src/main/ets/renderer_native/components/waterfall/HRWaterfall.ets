@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 import { HippyAny, HippyMap, Hippy2Map, HippyRenderCallback } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
@@ -33,14 +32,13 @@ import { HRWaterfallView } from './HRWaterfallView';
 import { HRWaterfallDataSource } from './HRWaterfallDataSource';
 import { HRPullHeaderView } from '../pullheader/HRPullHeader';
 import { HippyEndBatchCallback } from '../../uimanager/HRViewManager';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 
 @Component
 export struct HRWaterfall {
   private readonly TAG = "HRWaterfall"
   @ObjectLink renderView: HRWaterfallView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   private CONTENT_OFFSET: string = "contentOffset";
 
@@ -132,7 +130,7 @@ export struct HRWaterfall {
   customRefreshComponent() {
     if (this.headerView) {
       Row() {
-        this.buildRenderView(this.headerView as HippyRenderBaseView, null)
+        buildHippyRenderView(this.headerView as HippyRenderBaseView, null)
       }
       .width("100%")
       .alignItems(VerticalAlign.Bottom)
@@ -142,7 +140,7 @@ export struct HRWaterfall {
   @Builder
   customFooter() {
     if (this.footerView) {
-      this.buildRenderView(this.footerView, null)
+      buildHippyRenderView(this.footerView, null)
     }
   }
 
@@ -153,7 +151,7 @@ export struct HRWaterfall {
           Column({ space: this.renderView.interItemSpacing }) {
             if (this.bannerView) {
               Stack() {
-                this.buildRenderView(this.bannerView, null)
+                buildHippyRenderView(this.bannerView, null)
               }
               .clip(true)
             }
@@ -161,7 +159,7 @@ export struct HRWaterfall {
             WaterFlow({ footer: this.customFooter(), scroller: this.renderView.scroller }) {
               LazyForEach(this.dataSource, (item: HippyRenderBaseView) => {
                 FlowItem() {
-                  this.buildRenderView(item, null)
+                  buildHippyRenderView(item, null)
                 }
               }, (item: HippyRenderBaseView) => item.tag + '')
             }

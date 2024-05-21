@@ -24,7 +24,6 @@ import {
   HippyRenderCallback,
   HippyValue
 } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
@@ -127,7 +126,6 @@ export struct HRWeb {
   private readonly TAG = "HRWeb";
   @ObjectLink renderView: HRWebView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
 
   notifyLoadEnd(url: string, success: boolean, msg: string) {
     LogUtils.d(this.TAG, "notifyLoadEnd: url:" + url + ",success:" + success + ",msg:" + msg)

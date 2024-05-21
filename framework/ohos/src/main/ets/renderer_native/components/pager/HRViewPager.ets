@@ -19,7 +19,6 @@
  */
 
 import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, {
@@ -27,6 +26,7 @@ import HippyRenderBaseView, {
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 
 @Observed
 export class HRViewPagerView extends HippyRenderBaseView {
@@ -103,8 +103,6 @@ export struct HRViewPager {
   private readonly TAG = "HRViewPager"
   @ObjectLink renderView: HRViewPagerView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   private PAGE_ITEM_POSITION: string = "position";
   private PAGE_ITEM_OFFSET: string = "offset";
@@ -185,7 +183,7 @@ export struct HRViewPager {
     Swiper(this.renderView.controller) {
       ForEach(this.children, (item: HippyRenderBaseView) => {
         Stack() {
-          this.buildRenderView(item, null)
+          buildHippyRenderView(item, null)
         }
       }, (item: HippyRenderBaseView) => item.tag + '')
     }

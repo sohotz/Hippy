@@ -254,6 +254,15 @@ struct PageManagement {
   }
 }
 
+@Builder
+function buildCustomRenderView($$: HippyRenderBaseView) {
+  if ($$ instanceof ExampleCustomComponentViewA) {
+    ExampleCustomComponentA({ renderView: $$ as ExampleCustomComponentViewA, children: $$.children })
+  } else if ($$ instanceof ExampleCustomComponentViewB) {
+    ExampleCustomComponentB({ renderView: $$ as ExampleCustomComponentViewB, children: $$.children })
+  }
+}
+
 @Component
 struct HippyFrame {
   @StorageLink('pageManagementItems') pageitems:HippyInfo[]  = [] //AppStorage.get('pageManagementItems') as InitParams[]
@@ -264,22 +273,13 @@ struct HippyFrame {
   @State exception: string = ""
   hippyEngine: HippyEngine | null = null
 
-  @Builder
-  buildCustomRenderView($$: HippyRenderBaseView) {
-    if ($$ instanceof ExampleCustomComponentViewA) {
-      ExampleCustomComponentA({ renderView: $$ as ExampleCustomComponentViewA, children: $$.children })
-    } else if ($$ instanceof ExampleCustomComponentViewB) {
-      ExampleCustomComponentB({ renderView: $$ as ExampleCustomComponentViewB, children: $$.children })
-    }
-  }
-
   build() {
     Column() {
       HippyRoot({
         hippyEngine: this.hippyEngine,
         pagerName: 'demo',
         pagerData: {},
-        buildCustomRenderView: this.buildCustomRenderView,
+        wrappedCustomRenderViewBuilder: wrapBuilder(buildCustomRenderView),
         onRenderException: (exception: HippyException) => {
           this.exception = `${exception.message}\n${exception.stack}`
         },

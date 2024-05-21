@@ -17,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HRComponent } from '../../HippyRenderView'
 import { NativeRenderContext } from '../../NativeRenderContext'
 import { HREventUtils } from '../../utils/HREventUtils'
 import HippyRenderBaseView, { HippyObservedArray,
@@ -26,6 +25,7 @@ import { LogUtils } from '../../../support/utils/LogUtils'
 import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRRect } from '../../utils/HRTypes'
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder'
 
 const TAG: string = "HRModal";
 const DURATION = 200
@@ -83,14 +83,12 @@ struct HippyDialog {
   controller: CustomDialogController
   @ObjectLink renderView: HRModalView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   build() {
     if (this.renderView.visible) {
       Stack() {
         ForEach(this.children, (item: HippyRenderBaseView) => {
-          this.buildRenderView(item, null)
+          buildHippyRenderView(item, null)
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
       .applyRenderViewBaseAttr(this.renderView)
@@ -116,8 +114,6 @@ struct HippyDialog {
 export struct HRModal {
   @ObjectLink renderView: HRModalView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
   private dialogController: CustomDialogController = {} as CustomDialogController
 
   handleCancel(): void {
@@ -130,8 +126,6 @@ export struct HRModal {
       builder: HippyDialog({
         renderView: this.renderView,
         children: this.children,
-        buildRenderView: this.buildRenderView,
-        buildCustomRenderView: this.buildCustomRenderView
       }),
       autoCancel: true,
       customStyle: true,

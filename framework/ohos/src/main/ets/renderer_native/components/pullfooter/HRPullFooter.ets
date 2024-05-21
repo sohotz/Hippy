@@ -19,7 +19,6 @@
  */
 
 import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common/HippyTypes';
-import { HRComponent } from '../../HippyRenderView';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import HippyRenderBaseView, {
   HippyObservedArray,
@@ -28,6 +27,7 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRRect } from '../../utils/HRTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRListView } from '../list/HRListView';
+import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 
 @Observed
 export class HRPullFooterView extends HippyRenderBaseView {
@@ -79,8 +79,6 @@ export struct HRPullFooter {
   private readonly TAG = "HRPullFooter"
   @ObjectLink renderView: HRPullFooterView
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
-  @BuilderParam buildRenderView: ($$: HippyRenderBaseView, parent: HRComponent) => void
-  @BuilderParam buildCustomRenderView: ($$: HippyRenderBaseView) => void | null
 
   aboutToAppear() {
   }
@@ -91,7 +89,7 @@ export struct HRPullFooter {
   build() {
     Stack() {
       ForEach(this.children, (item: HippyRenderBaseView) => {
-        this.buildRenderView(item, null)
+        buildHippyRenderView(item, null)
       }, (item: HippyRenderBaseView) => item.tag + '')
     }
     .applyRenderViewBaseAttr(this.renderView)
