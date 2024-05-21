@@ -284,7 +284,7 @@ ENV['layout_engine'] = 'Yoga'
 
 ## Demo 体验
 
-若想快速体验，可以直接基于我们的 [Ohos Demo](https://github.com/sohotz/Hippy/tree/feature/ohos/framework/examples/ohos-demo) 来开发
+若想快速体验，可以直接基于我们的 [Ohos Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 来开发
 
 ## 快速接入
 
@@ -293,7 +293,7 @@ ENV['layout_engine'] = 'Yoga'
 2. 源码集成
 
  - 拉取 hippy 代码到项目里（比如：根目录下）
- > https://github.com/sohotz/Hippy.git，分支：feature/ohos
+ > https://github.com/sohotz/Hippy.git，分支：main
 
  - 配置 oh-package.json5
 
@@ -355,7 +355,7 @@ ENV['layout_engine'] = 'Yoga'
   target_link_libraries(hippy_app PUBLIC hippy)
   ```
  
-具体可以参考 [Demo](https://github.com/sohotz/Hippy/tree/feature/ohos/framework/examples/ohos-demo) 工程中 `EntryAbility.ets` `ExampleHippyPage.ets` `CMakeLists.txt` 实现
+具体可以参考 [Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 工程中 `EntryAbility.ets` `ExampleHippyPage.ets` `CMakeLists.txt` 实现
 
 # Voltron/Flutter 
 
