@@ -297,12 +297,8 @@ export class HRImageView extends HippyRenderBaseView {
         return true
       case 'defaultSource':
         {
-          this.cssAlt = HRValueUtils.getString(propValue as HippyAny)
-          if (this.cssAlt?.startsWith(HRImageView.RAW_IMAGE_PREFIX)) {
-            this.cssAlt = this.convertToLocalPath(this.cssAlt)
-            this.cssAlt = $rawfile(this.cssAlt)
-            return true
-          }
+          let cssAlt = HRValueUtils.getString(propValue as HippyAny)
+          this.cssAlt = this.convertToLocalPathIfNeeded(cssAlt)
         }
         return true
       case 'tintColor'://ARGB

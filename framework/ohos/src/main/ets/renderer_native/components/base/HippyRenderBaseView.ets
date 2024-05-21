@@ -290,7 +290,7 @@ export default abstract class HippyRenderBaseView {
     return true
   }
 
-  private convertToLocalPathIfNeeded(uri: string): ResourceStr {
+  protected convertToLocalPathIfNeeded(uri: string): ResourceStr {
     // hpfile://./assets/defaultSource.jpg
     if (uri != null) {
       if (uri.startsWith("hpfile://")) {
