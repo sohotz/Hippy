@@ -195,7 +195,7 @@ export class HRConvertUtil {
         case "repeat":
           break
         case "fitXY":
-          break
+          return ImageSize.FILL
         default:
           break
       }
