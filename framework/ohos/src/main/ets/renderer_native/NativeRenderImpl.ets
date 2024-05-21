@@ -74,14 +74,25 @@ export class NativeRenderImpl implements NativeRender {
 
   private eventHandler: NativeRenderEventHandler
 
+  private customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null
+  private customMeasureRenderViews: Array<string> | null
+
   private frameworkProxy: FrameworkProxy | null = null
   private imageLoader: ImageLoaderAdapter | null = null
 
   private renderManager: HRManager
 
-  constructor(eventHandler: NativeRenderEventHandler) {
+  constructor(eventHandler: NativeRenderEventHandler,
+      customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
+      customMeasureRenderViews: Array<string> | null) {
     this.eventHandler = eventHandler
+    this.customRenderViewCreatorMap = customRenderViewCreatorMap
+    this.customMeasureRenderViews = customMeasureRenderViews
     this.renderManager = new HRManager()
+  }
+
+  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
+    return this.customRenderViewCreatorMap
   }
 
   setFrameworkProxy(proxy: FrameworkProxy) {
@@ -187,6 +198,10 @@ export class NativeRenderImpl implements NativeRender {
       m.index = node.get('index') as number
       m.props = node.get('props') as HippyMap
       viewManager.addMutations(m)
+
+      if (this.customMeasureRenderViews && this.customMeasureRenderViews.findIndex((value) => value === m.viewName) >= 0) {
+        viewManager.preCreateRenderView(m.tag, m.viewName)
+      }
     }
   }
 

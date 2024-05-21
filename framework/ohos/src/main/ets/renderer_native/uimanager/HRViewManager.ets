@@ -61,6 +61,10 @@ export class HRViewManager {
     return this.rootTag
   }
 
+  preCreateRenderView(tag: number, viewName: string): void {
+    this.createRenderView(tag, viewName)
+  }
+
   addMutations(m: HRMutation): void {
     this.mutations.push(m)
   }
@@ -101,6 +105,10 @@ export class HRViewManager {
   }
 
   private createRenderView(tag: number, viewName: string): void {
+    let existRenderView = this.viewRegistry.get(tag)
+    if (existRenderView) {
+      return
+    }
     let renderView = this.createRenderViewFromCreator(viewName)
     if (renderView) {
       renderView.tag = tag

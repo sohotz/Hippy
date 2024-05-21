@@ -34,14 +34,14 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
   private readonly EVENT_PREFIX = "on"
 
   private libHippy: HippyLibrary
-  private customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null
   private renderImpl: NativeRenderImpl
   private instanceId: number = 0
 
-  constructor(libHippy: HippyLibrary, customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null) {
+  constructor(libHippy: HippyLibrary,
+      customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
+      customMeasureRenderViews: Array<string> | null) {
     this.libHippy = libHippy
-    this.customRenderViewCreatorMap = customRenderViewCreatorMap
-    this.renderImpl = new NativeRenderImpl(this)
+    this.renderImpl = new NativeRenderImpl(this, customRenderViewCreatorMap, customMeasureRenderViews)
   }
 
   setInstanceId(instanceId: number) {
@@ -51,10 +51,6 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
 
   getInstanceId(): number {
     return this.instanceId
-  }
-
-  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
-    return this.customRenderViewCreatorMap
   }
 
   getNativeRenderImpl(): NativeRenderImpl {

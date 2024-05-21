@@ -187,8 +187,8 @@ export struct HippyRoot {
       HippyRoot.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
       this.rootId = HippyRoot.sRootIdCounter
       this.renderIntanceId = this.hippyEngine.getNativeRenderProvider()!.getInstanceId()
-      let customRenderViewCreatorMap = this.hippyEngine.getNativeRenderProvider()!.getCustomRenderViewCreatorMap()
       let nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
+      let customRenderViewCreatorMap = nativeRender.getCustomRenderViewCreatorMap()
       this.rootView = new HippyRootView(this.renderIntanceId, this.rootId, customRenderViewCreatorMap, nativeRender,
                                         this.pagerName, this.pagerData, this.renderExceptionListener)
       if (this.initViewSize && this.rootView) {

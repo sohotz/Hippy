@@ -83,7 +83,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
       }
     }
     // Render注册
-    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, customRenderViewCreatorMap)
+    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, customRenderViewCreatorMap, customMeasureRenderViews)
     this.nativeRenderer = new NativeRenderer(this.libHippy, this.nativeRenderProvider, customMeasureRenderViews)
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载

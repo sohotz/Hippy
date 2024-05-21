@@ -328,8 +328,8 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
         self->CallNativeCustomMeasureMethod(root_id, id, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
                                             self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
         LayoutSize layout_result;
-        layout_result.width = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32))));
-        layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
+        layout_result.width = static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32)));
+        layout_result.height = static_cast<float>((int32_t)(0xFFFFFFFF & result));
         return layout_result;
       };
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
