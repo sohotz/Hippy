@@ -33,11 +33,13 @@ import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRNodeProps } from '../../dom_node/HRNodeProps';
 import { Callback } from '@ohos.base';
 import window from '@ohos.window';
+import { HRPadding, HRRect } from '../../utils/HRTypes';
 
 type LocalFontWeight = number | FontWeight
 
 @Observed
 export class HRTextInputView extends HippyRenderBaseView {
+  cssPadding: Padding = { top: 0, right: 0, bottom: 0, left: 0 }
   public caretColor: ResourceColor = Color.Transparent
   public color: ResourceColor = Color.Black
   public fontFamily: string = 'HarmonyOS Sans'
@@ -296,6 +298,13 @@ export class HRTextInputView extends HippyRenderBaseView {
     this.controller.stopEditing()
   }
 
+  protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
+    super.updateRenderViewFrame(frame, padding)
+    if (padding) {
+      this.cssPadding = { top: padding.paddingTop, right: padding.paddingRight, bottom: padding.paddingBottom, left: padding.paddingLeft }
+    }
+  }
+
 }
 
 @Component
@@ -452,7 +461,7 @@ export struct HRTextInput {
         controller: this.renderView.textAreaController
       })
         .applyTextAreaRenderViewBaseAttr(this.renderView)
-        .padding(0)
+        .padding(this.renderView.cssPadding)
         .placeholderColor(this.renderView.placeholderTextColor)
         .enterKeyType(this.renderView.returnKeyType)
         .fontColor(this.renderView.color)
@@ -487,8 +496,8 @@ export struct HRTextInput {
         controller: this.renderView.controller
       })
         .applyRenderViewBaseAttr(this.renderView)
+        .padding(this.renderView.cssPadding)
         .showPasswordIcon(false)
-        .padding(0)
         .type(this.renderView.keyboardType)
         .placeholderColor(this.renderView.placeholderTextColor)
         .enterKeyType(this.renderView.returnKeyType)

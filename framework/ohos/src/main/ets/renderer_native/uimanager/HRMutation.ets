@@ -103,6 +103,11 @@ export class HRUpdateLayoutMutation {
   top: number | null = null
   width: number | null = null
   height: number | null = null
+  paddingLeft: number | null = null
+  paddingTop: number | null = null
+  paddingRight: number | null = null
+  paddingBottom: number | null = null
+
   constructor() {
     this.type = HRMutationType.UPDATE_LAYOUT
   }

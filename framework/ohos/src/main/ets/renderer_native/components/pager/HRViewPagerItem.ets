@@ -22,7 +22,7 @@ import { HippyAny, HippyMap, HippyRenderCallback } from '../../../support/common
 import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 import { NativeRenderContext } from '../../NativeRenderContext';
 import { HREventUtils } from '../../utils/HREventUtils'
-import { HRRect } from '../../utils/HRTypes';
+import { HRPadding, HRRect } from '../../utils/HRTypes';
 import HippyRenderBaseView, {
   HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
@@ -37,7 +37,7 @@ export class HRViewPagerItemView extends HippyRenderBaseView {
     return super.setProp(propKey, propValue as HippyAny)
   }
 
-  protected updateRenderViewFrame(frame: HRRect): void {
+  protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
     this.cssPositionX = 0
     this.cssPositionY = 0
     this.cssWidth = frame.width

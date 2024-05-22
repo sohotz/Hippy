@@ -24,7 +24,7 @@ import HippyRenderBaseView, { HippyObservedArray,
 import { LogUtils } from '../../../support/utils/LogUtils'
 import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes';
 import { HRValueUtils } from '../../utils/HRValueUtils';
-import { HRRect } from '../../utils/HRTypes'
+import { HRPadding, HRRect } from '../../utils/HRTypes'
 import { buildHippyRenderView } from '../../HippyRenderViewBuilder'
 
 const TAG: string = "HRModal";
@@ -69,8 +69,8 @@ export class HRModalView extends HippyRenderBaseView {
     return super.setProp(propKey, propValue as HippyAny)
   }
 
-  protected updateRenderViewFrame(frame: HRRect): void {
-    super.updateRenderViewFrame(frame)
+  protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
+    super.updateRenderViewFrame(frame, padding)
     if (this.secondLayouted) {
       this.cssVisibility = Visibility.Visible
     }

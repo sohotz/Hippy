@@ -45,6 +45,20 @@ export class HRRect {
   }
 }
 
+export class HRPadding {
+  paddingLeft: number
+  paddingTop: number
+  paddingRight: number
+  paddingBottom: number
+
+  constructor(left: number, top: number, right: number, bottom: number) {
+    this.paddingLeft = left
+    this.paddingTop = top
+    this.paddingRight = right
+    this.paddingBottom = bottom
+  }
+}
+
 export class HRTransform {
   anchor: Position | null = null
   rotate: RotateOptions | null = null

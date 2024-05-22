@@ -26,7 +26,7 @@ import HippyRenderBaseView, {
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRListView } from '../list/HRListView';
-import { HRRect } from '../../utils/HRTypes';
+import { HRPadding, HRRect } from '../../utils/HRTypes';
 import { HRWaterfallView } from '../waterfall/HRWaterfallView';
 import { buildHippyRenderView } from '../../HippyRenderViewBuilder';
 
@@ -43,7 +43,7 @@ export class HRPullHeaderView extends HippyRenderBaseView {
     return super.setProp(propKey, propValue as HippyAny)
   }
 
-  protected updateRenderViewFrame(frame: HRRect): void {
+  protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
     this.cssPositionX = 0
     this.cssPositionY = 0
     this.cssWidth = frame.width

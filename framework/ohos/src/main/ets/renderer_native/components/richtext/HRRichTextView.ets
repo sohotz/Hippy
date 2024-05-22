@@ -24,10 +24,12 @@ import { LogUtils } from '../../../support/utils/LogUtils'
 import { HRImageView } from '../image/HRImageView'
 import { HRNodeProps } from '../../dom_node/HRNodeProps'
 import { HRValueUtils } from '../../utils/HRValueUtils'
+import { HRPadding, HRRect } from '../../utils/HRTypes'
 
 @Observed
 export class HRRichTextView extends HippyRenderBaseView {
   private readonly TAG = "HRRichTextView"
+  cssPadding: Padding = { top: 0, right: 0, bottom: 0, left: 0 }
   maxLines: number = 10000000
   text: string = ""
   fontColor: number | null = null
@@ -186,6 +188,13 @@ export class HRRichTextView extends HippyRenderBaseView {
         return true;
     }
     return super.setProp(propKey, propValue)
+  }
+
+  protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
+    super.updateRenderViewFrame(frame, padding)
+    if (padding) {
+      this.cssPadding = { top: padding.paddingTop, right: padding.paddingRight, bottom: padding.paddingBottom, left: padding.paddingLeft }
+    }
   }
 }
 

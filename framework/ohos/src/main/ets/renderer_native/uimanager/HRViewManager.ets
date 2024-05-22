@@ -27,7 +27,7 @@ import { HRRenderViewCreator } from '../components/HippyRenderRegisterMap'
 import { HippyRenderView } from '../HippyRenderView'
 import { NativeRenderContext } from '../NativeRenderContext'
 import { HRMeasureMode, HRMeasureResult } from '../utils/HRMeasure'
-import { HRRect } from '../utils/HRTypes'
+import { HRPadding, HRRect } from '../utils/HRTypes'
 import { HRCreateMutation,
   HRDeleteMutation,
   HRMove2Mutation,
@@ -96,7 +96,9 @@ export class HRViewManager {
       this.removeRenderView(m.tag as number)
     } else if (mutation.type === HRMutationType.UPDATE_LAYOUT) {
       let m = mutation as HRUpdateLayoutMutation
-      this.setRenderViewFrame(m.tag as number, new HRRect(m.left as number, m.top as number, m.width as number, m.height as number))
+      this.setRenderViewFrame(m.tag as number,
+        new HRRect(m.left as number, m.top as number, m.width as number, m.height as number),
+        m.paddingLeft ? new HRPadding(m.paddingLeft as number, m.paddingTop as number, m.paddingRight as number, m.paddingBottom as number) : null)
     } else if (mutation.type === HRMutationType.UPDATE_EVENT_LISTENER) {
       let m = mutation as HRUpdateEventListenerMutation
       this.updateProps(m.tag as number, m.props as HippyMap)
@@ -210,10 +212,10 @@ export class HRViewManager {
     return false
   }
 
-  private setRenderViewFrame(tag: number, frame: HRRect): void {
+  private setRenderViewFrame(tag: number, frame: HRRect, padding: HRPadding | null): void {
     let renderView = this.viewRegistry.get(tag)
     if (renderView) {
-      renderView.setRenderViewFrame(frame)
+      renderView.setRenderViewFrame(frame, padding)
     }
   }
 

@@ -19,7 +19,7 @@
  */
 import { HippyAny, HippyRenderCallback } from '../../../support/common/HippyTypes'
 import { NativeRenderContext } from '../../NativeRenderContext'
-import { HRRect } from '../../utils/HRTypes'
+import { HRPadding, HRRect } from '../../utils/HRTypes'
 import HippyRenderBaseView, { HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView'
 import { LogUtils } from '../../../support/utils/LogUtils';
@@ -61,7 +61,7 @@ export class HRListItemView extends HippyRenderBaseView {
     return super.setProp(propKey, propValue as HippyAny)
   }
 
-  protected updateRenderViewFrame(frame: HRRect): void {
+  protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
     this.cssPositionX = 0
     this.cssPositionY = 0
     this.cssWidth = frame.width

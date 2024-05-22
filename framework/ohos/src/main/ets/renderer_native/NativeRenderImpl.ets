@@ -307,6 +307,16 @@ export class NativeRenderImpl implements NativeRender {
       m.top = px2vp(node.get('top') as number)
       m.width = px2vp(node.get('width') as number)
       m.height = px2vp(node.get('height') as number)
+      let paddingLeft = node.get('paddingLeft')
+      if (paddingLeft) {
+        let paddingTop = node.get('paddingTop')
+        let paddingRight = node.get('paddingRight')
+        let paddingBottom = node.get('paddingBottom')
+        m.paddingLeft = px2vp(paddingLeft as number)
+        m.paddingTop = px2vp(paddingTop as number)
+        m.paddingRight = px2vp(paddingRight as number)
+        m.paddingBottom = px2vp(paddingBottom as number)
+      }
       viewManager.addMutations(m)
     }
   }
