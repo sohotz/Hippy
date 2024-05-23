@@ -145,6 +145,11 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
   return BaseView::SetProp(propKey, propValue);
 }
 
+void RichTextView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrame(frame, padding);
+  textNode_.SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+}
+
 void RichTextView::OnClick() {
   if (eventClick_) {
     eventClick_();

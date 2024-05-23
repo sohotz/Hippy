@@ -92,7 +92,11 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
     RemoveRenderView(tm->tag_);
   } else if (m->type_ == HRMutationType::UPDATE_LAYOUT) {
     auto tm = std::static_pointer_cast<HRUpdateLayoutMutation>(m);
-    SetRenderViewFrame(tm->tag_, HRRect(tm->left_, tm->top_, tm->width_, tm->height_));
+    SetRenderViewFrame(
+      tm->tag_,
+      HRRect(tm->left_, tm->top_, tm->width_, tm->height_),
+      HRPadding(tm->padding_left_, tm->padding_top_, tm->padding_right_, tm->padding_bottom_)
+    );
   } else if (m->type_ == HRMutationType::UPDATE_EVENT_LISTENER) {
     auto tm = std::static_pointer_cast<HRUpdateEventListenerMutation>(m);
     UpdateProps(tm->tag_, tm->props_);
@@ -230,11 +234,11 @@ bool HRViewManager::CheckRegisteredEvent(uint32_t tag, std::string &eventName) {
   return false;
 }
 
-void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame) {
+void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding) {
   auto it = view_registry_.find(tag);
   std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
   if (renderView) {
-    renderView->SetRenderViewFrame(frame);
+    renderView->SetRenderViewFrame(frame, padding);
   }
 }
 

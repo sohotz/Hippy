@@ -387,11 +387,11 @@ bool BaseView::IsImageSpan() {
   return false;
 }
 
-void BaseView::SetRenderViewFrame(const HRRect &frame) {
-  UpdateRenderViewFrame(frame);
+void BaseView::SetRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  UpdateRenderViewFrame(frame, padding);
 }
 
-void BaseView::UpdateRenderViewFrame(const HRRect &frame) {
+void BaseView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
   if (IsImageSpan()) {
     if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
       GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));

@@ -59,6 +59,16 @@ public:
   HRRect(float x, float y, float width, float height) : x(x), y(y), width(width), height(height) {}
 };
 
+class HRPadding {
+public:
+  float paddingLeft;
+  float paddingTop;
+  float paddingRight;
+  float paddingBottom;
+  HRPadding(float paddingLeft, float paddingTop, float paddingRight, float paddingBottom)
+    : paddingLeft(paddingLeft), paddingTop(paddingTop), paddingRight(paddingRight), paddingBottom(paddingBottom) {}
+};
+
 enum class HRImageResizeMode {
   Contain,
   Cover,

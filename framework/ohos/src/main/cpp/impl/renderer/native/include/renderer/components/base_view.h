@@ -59,14 +59,14 @@ public:
   void RemoveSubView(std::shared_ptr<BaseView> &subView);
   void RemoveFromParentView();
   bool IsImageSpan();
-  void SetRenderViewFrame(const HRRect &frame);
+  void SetRenderViewFrame(const HRRect &frame, const HRPadding &padding = HRPadding(0, 0, 0, 0));
   void UpdateEventListener(HippyValueObjectType &newEvents);
   bool CheckRegisteredEvent(std::string &eventName);
   
 protected:
   virtual void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {}
   virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView) {}
-  virtual void UpdateRenderViewFrame(const HRRect &frame);
+  virtual void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding);
   virtual bool HandleGestureBySelf() { return false; }
 
 protected:

@@ -36,6 +36,7 @@ public:
 
   TextNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
   
   void OnClick() override;
   
