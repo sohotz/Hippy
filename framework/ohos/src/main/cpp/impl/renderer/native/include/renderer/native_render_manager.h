@@ -65,7 +65,7 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
 
   inline uint32_t GetId() { return id_; }
   
-  void SetRenderDelegate(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_measure_views);
+  void SetRenderDelegate(napi_env ts_env, bool enable_ark_c_api, napi_ref ts_render_provider_ref, std::set<std::string> &custom_measure_views);
 
   void InitDensity(double density);
   void CreateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
@@ -143,7 +143,28 @@ private:
 
   void HandleListenerOps(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>>& ops, const std::string& method_name);
 
- private:
+  void CreateRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes);
+  void CreateRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes);
+  void UpdateRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes);
+  void UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes);
+  void DeleteRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes);
+  void DeleteRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes);
+  void MoveRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes);
+  void MoveRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes);
+  void UpdateLayout_TS(std::weak_ptr<RootNode> root_node, const std::vector<std::shared_ptr<DomNode>>& nodes);
+  void UpdateLayout_C(std::weak_ptr<RootNode> root_node, const std::vector<std::shared_ptr<DomNode>> &nodes);
+  void MoveRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<int32_t>&& moved_ids,
+                        int32_t from_pid, int32_t to_pid, int32_t index);
+  void MoveRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<int32_t> &&moved_ids, int32_t from_pid,
+                        int32_t to_pid, int32_t index);
+  void EndBatch_TS(std::weak_ptr<RootNode> root_node);
+  void EndBatch_C(std::weak_ptr<RootNode> root_node);
+  void HandleListenerOps_TS(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>> &ops,
+                            const std::string &method_name);
+  void HandleListenerOps_C(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>> &ops,
+                           const std::string &method_name);
+  
+private:
   uint32_t id_;
   napi_env ts_env_ = 0;
   napi_ref ts_render_provider_ref_ = 0;
@@ -157,7 +178,8 @@ private:
   static std::atomic<uint32_t> unique_native_render_manager_id_;
   static footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<NativeRenderManager>> persistent_map_;
   
-  std::shared_ptr<NativeRenderProvider> render_provider_;
+  bool enable_ark_c_api_ = false;
+  std::shared_ptr<NativeRenderProvider> c_render_provider_;
 };
 
 }  // namespace native

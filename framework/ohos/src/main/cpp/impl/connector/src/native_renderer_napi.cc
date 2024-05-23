@@ -47,10 +47,11 @@ inline namespace native {
 static napi_value CreateNativeRenderManager(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
-  auto ts_render_provider_ref = arkTs.CreateReference(args[0]);
+  auto enable_ark_c_api = arkTs.GetBoolean(args[0]);
+  auto ts_render_provider_ref = arkTs.CreateReference(args[1]);
 
   std::set<std::string> custom_measure_views;
-  auto ts_array = args[1];
+  auto ts_array = args[2];
   if (arkTs.IsArray(ts_array)) {
     auto length = arkTs.GetArrayLength(ts_array);
     if (length > 0) {
@@ -64,10 +65,10 @@ static napi_value CreateNativeRenderManager(napi_env env, napi_callback_info inf
     }
   }
 
-  auto density = arkTs.GetDouble(args[2]);
+  auto density = arkTs.GetDouble(args[3]);
   auto render_manager = std::make_shared<NativeRenderManager>();
 
-  render_manager->SetRenderDelegate(env, ts_render_provider_ref, custom_measure_views);
+  render_manager->SetRenderDelegate(env, enable_ark_c_api, ts_render_provider_ref, custom_measure_views);
   render_manager->InitDensity(density);
   auto render_id = hippy::global_data_holder_key.fetch_add(1);
   auto flag = hippy::global_data_holder.Insert(render_id,

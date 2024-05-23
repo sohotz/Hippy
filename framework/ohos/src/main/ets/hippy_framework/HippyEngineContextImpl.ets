@@ -84,7 +84,8 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     }
     // Render注册
     this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, customRenderViewCreatorMap, customMeasureRenderViews)
-    this.nativeRenderer = new NativeRenderer(this.libHippy, this.nativeRenderProvider, customMeasureRenderViews)
+    let enableArkCApi = globalConfigs.enableArkCApi()
+    this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider, customMeasureRenderViews)
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)

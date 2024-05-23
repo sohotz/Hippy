@@ -73,7 +73,7 @@ export interface HippyLibrary {
     errorMsg: string): void;
   JsDriver_CallFunction(instanceId: number, action: string, callback: NativeCallback, buffer: ArrayBuffer): void;
 
-  NativeRenderer_CreateNativeRenderManager(renderProvider: NativeRenderProvider, customMeasureRenderViews: Array<string> | null, density: number): number;
+  NativeRenderer_CreateNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider, customMeasureRenderViews: Array<string> | null, density: number): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
   NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
 

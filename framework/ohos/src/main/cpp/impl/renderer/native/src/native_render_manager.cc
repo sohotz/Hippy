@@ -32,10 +32,8 @@
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_measure_text.h"
 
-#define USE_ARK_CAPI 0
 #define USE_C_MEASURE 1
 
-#if !USE_ARK_CAPI
 constexpr char kId[] = "id";
 constexpr char kPid[] = "pId";
 constexpr char kIndex[] = "index";
@@ -46,8 +44,6 @@ constexpr char kLeft[] = "left";
 constexpr char kTop[] = "top";
 constexpr char kProps[] = "props";
 constexpr char kDeleteProps[] = "deleteProps";
-#endif
-
 constexpr char kFontStyle[] = "fontStyle";
 constexpr char kLetterSpacing[] = "letterSpacing";
 constexpr char kColor[] = "kColor";
@@ -167,9 +163,6 @@ StyleFilter::StyleFilter() {
 NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"),
       serializer_(std::make_shared<footstone::value::Serializer>()) {
   id_ = unique_native_render_manager_id_.fetch_add(1);
-  
-  render_provider_ = std::make_shared<NativeRenderProvider>(id_);
-  NativeRenderProviderManager::AddRenderProvider(id_, render_provider_);
 }
 
 NativeRenderManager::~NativeRenderManager() {
@@ -177,17 +170,25 @@ NativeRenderManager::~NativeRenderManager() {
   arkTs.DeleteReference(ts_render_provider_ref_);
   ts_render_provider_ref_ = 0;
   ts_env_ = 0;
-  NativeRenderProviderManager::RemoveRenderProvider(id_);
+  
+  if (enable_ark_c_api_) {
+    NativeRenderProviderManager::RemoveRenderProvider(id_);
+  }
 }
 
-void NativeRenderManager::SetRenderDelegate(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_measure_views) {
+void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_api, napi_ref ts_render_provider_ref, std::set<std::string> &custom_measure_views) {
   persistent_map_.Insert(id_, shared_from_this());
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
   CallRenderDelegateSetIdMethod(ts_env_, ts_render_provider_ref_, "setInstanceId", id_);
   custom_measure_views_ = custom_measure_views;
   
-  render_provider_->SetTsEnv(ts_env);
+  enable_ark_c_api_ = enable_ark_c_api;
+  if (enable_ark_c_api) {
+    c_render_provider_ = std::make_shared<NativeRenderProvider>(id_);
+    c_render_provider_->SetTsEnv(ts_env);
+    NativeRenderProviderManager::AddRenderProvider(id_, c_render_provider_);
+  }
   
   NativeRenderManager::GetStyleFilter();
 }
@@ -198,69 +199,18 @@ void NativeRenderManager::InitDensity(double density) {
 
 void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
                                            std::vector<std::shared_ptr<hippy::dom::DomNode>>&& nodes) {
+  if (enable_ark_c_api_) {
+    CreateRenderNode_C(root_node, std::move(nodes));
+  } else {
+    CreateRenderNode_TS(root_node, std::move(nodes));
+  }
+}
+
+void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
   auto root = root_node.lock();
   if (!root) {
     return;
   }
-
-#if USE_ARK_CAPI
-  uint32_t root_id = root->GetId();
-  auto len = nodes.size();
-  std::vector<std::shared_ptr<HRCreateMutation>> mutations;
-  mutations.resize(len);
-  for (uint32_t i = 0; i < len; i++) {
-    const auto& render_info = nodes[i]->GetRenderInfo();
-    auto m = std::make_shared<HRCreateMutation>();
-    m->tag_ = render_info.id;
-    m->parent_tag_ = render_info.pid;
-    m->index_ = render_info.index;
-    m->view_name_ = nodes[i]->GetViewName();
-
-    if (IsMeasureNode(nodes[i]->GetViewName())) {
-      auto weak_node = nodes[i]->weak_from_this();
-      MeasureFunction measure_function = [WEAK_THIS, root_node, weak_node](float width, LayoutMeasureMode width_measure_mode,
-                                                                           float height, LayoutMeasureMode height_measure_mode,
-                                                                           void *layoutContext) -> LayoutSize {
-        DEFINE_SELF(NativeRenderManager)
-        if (!self) {
-          return LayoutSize{0, 0};
-        }
-        int64_t result;
-        self->DoMeasureText(root_node, weak_node, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
-                            self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
-        LayoutSize layout_result;
-        layout_result.width = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32))));
-        layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
-        return layout_result;
-      };
-      nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
-    }
-
-    footstone::value::HippyValue::HippyValueObjectType props;
-    // 样式属性
-    auto style = nodes[i]->GetStyleMap();
-    auto iter = style->begin();
-    auto style_filter = NativeRenderManager::GetStyleFilter();
-    while (iter != style->end()) {
-      if (style_filter->Enable(iter->first)) {
-        props[iter->first] = *(iter->second);
-      }
-      iter++;
-    }
-    // 用户自定义属性
-    auto dom_ext = *nodes[i]->GetExtStyle();
-    iter = dom_ext.begin();
-    while (iter != dom_ext.end()) {
-      props[iter->first] = *(iter->second);
-      iter++;
-    }
-  
-    m->props_ = props;
-    mutations[i] = m;
-  }
-  
-  render_provider_->CreateNode(root_id, mutations);
-#else
   
   uint32_t root_id = root->GetId();
 
@@ -361,11 +311,82 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
   
   CallNativeMethod("createNode", root->GetId(), buffer_pair);
-#endif
+}
+
+void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
+  auto root = root_node.lock();
+  if (!root) {
+    return;
+  }
+  
+  uint32_t root_id = root->GetId();
+  auto len = nodes.size();
+  std::vector<std::shared_ptr<HRCreateMutation>> mutations;
+  mutations.resize(len);
+  for (uint32_t i = 0; i < len; i++) {
+    const auto& render_info = nodes[i]->GetRenderInfo();
+    auto m = std::make_shared<HRCreateMutation>();
+    m->tag_ = render_info.id;
+    m->parent_tag_ = render_info.pid;
+    m->index_ = render_info.index;
+    m->view_name_ = nodes[i]->GetViewName();
+
+    if (IsMeasureNode(nodes[i]->GetViewName())) {
+      auto weak_node = nodes[i]->weak_from_this();
+      MeasureFunction measure_function = [WEAK_THIS, root_node, weak_node](float width, LayoutMeasureMode width_measure_mode,
+                                                                           float height, LayoutMeasureMode height_measure_mode,
+                                                                           void *layoutContext) -> LayoutSize {
+        DEFINE_SELF(NativeRenderManager)
+        if (!self) {
+          return LayoutSize{0, 0};
+        }
+        int64_t result;
+        self->DoMeasureText(root_node, weak_node, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
+                            self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
+        LayoutSize layout_result;
+        layout_result.width = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32))));
+        layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
+        return layout_result;
+      };
+      nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
+    }
+
+    footstone::value::HippyValue::HippyValueObjectType props;
+    // 样式属性
+    auto style = nodes[i]->GetStyleMap();
+    auto iter = style->begin();
+    auto style_filter = NativeRenderManager::GetStyleFilter();
+    while (iter != style->end()) {
+      if (style_filter->Enable(iter->first)) {
+        props[iter->first] = *(iter->second);
+      }
+      iter++;
+    }
+    // 用户自定义属性
+    auto dom_ext = *nodes[i]->GetExtStyle();
+    iter = dom_ext.begin();
+    while (iter != dom_ext.end()) {
+      props[iter->first] = *(iter->second);
+      iter++;
+    }
+  
+    m->props_ = props;
+    mutations[i] = m;
+  }
+  
+  c_render_provider_->CreateNode(root_id, mutations);
 }
 
 void NativeRenderManager::UpdateRenderNode(std::weak_ptr<RootNode> root_node,
                                            std::vector<std::shared_ptr<DomNode>>&& nodes) {
+  if (enable_ark_c_api_) {
+    UpdateRenderNode_C(root_node, std::move(nodes));
+  } else {
+    UpdateRenderNode_TS(root_node, std::move(nodes));
+  }
+}
+
+void NativeRenderManager::UpdateRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
   auto root = root_node.lock();
   if (!root) {
     return;
@@ -373,13 +394,73 @@ void NativeRenderManager::UpdateRenderNode(std::weak_ptr<RootNode> root_node,
 
   for (const auto &n : nodes) {
     auto node = root->GetNode(n->GetId());
-    if (node == nullptr) continue;
+    if (node == nullptr)
+      continue;
     if (n->GetViewName() == "Text") {
       MarkTextDirty(root_node, n->GetId());
     }
   }
 
-#if USE_ARK_CAPI
+  serializer_->Release();
+  serializer_->WriteHeader();
+
+  auto len = nodes.size();
+  footstone::value::HippyValue::HippyValueArrayType dom_node_array;
+  dom_node_array.resize(len);
+  for (uint32_t i = 0; i < len; i++) {
+    const auto &render_info = nodes[i]->GetRenderInfo();
+    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    dom_node[kId] = footstone::value::HippyValue(render_info.id);
+    dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
+    dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
+    dom_node[kName] = footstone::value::HippyValue(nodes[i]->GetViewName());
+
+    footstone::value::HippyValue::HippyValueObjectType diff_props;
+    footstone::value::HippyValue::HippyValueArrayType del_props;
+    auto diff = nodes[i]->GetDiffStyle();
+    if (diff) {
+      auto iter = diff->begin();
+      while (iter != diff->end()) {
+        FOOTSTONE_DCHECK(iter->second != nullptr);
+        if (iter->second) {
+          diff_props[iter->first] = *(iter->second);
+        }
+        iter++;
+      }
+    }
+    auto del = nodes[i]->GetDeleteProps();
+    if (del) {
+      auto iter = del->begin();
+      while (iter != del->end()) {
+        del_props.emplace_back(footstone::value::HippyValue(*iter));
+        iter++;
+      }
+    }
+    dom_node[kProps] = diff_props;
+    dom_node[kDeleteProps] = del_props;
+    dom_node_array[i] = dom_node;
+  }
+  serializer_->WriteValue(HippyValue(dom_node_array));
+  std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
+
+  CallNativeMethod("updateNode", root->GetId(), buffer_pair);
+}
+
+void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
+  auto root = root_node.lock();
+  if (!root) {
+    return;
+  }
+
+  for (const auto &n : nodes) {
+    auto node = root->GetNode(n->GetId());
+    if (node == nullptr)
+      continue;
+    if (n->GetViewName() == "Text") {
+      MarkTextDirty(root_node, n->GetId());
+    }
+  }
+
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRUpdateMutation>> mutations;
@@ -417,8 +498,23 @@ void NativeRenderManager::UpdateRenderNode(std::weak_ptr<RootNode> root_node,
     m->delete_props_ = del_props;
     mutations[i] = m;
   }
-  render_provider_->UpdateNode(root_id, mutations);
-#else
+  c_render_provider_->UpdateNode(root_id, mutations);
+}
+
+void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
+                                         std::vector<std::shared_ptr<DomNode>> &&nodes) {
+  if (enable_ark_c_api_) {
+    MoveRenderNode_C(root_node, std::move(nodes));
+  } else {
+    MoveRenderNode_TS(root_node, std::move(nodes));
+  }
+}
+
+void NativeRenderManager::MoveRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
+  auto root = root_node.lock();
+  if (!root) {
+    return;
+  }
 
   serializer_->Release();
   serializer_->WriteHeader();
@@ -426,54 +522,28 @@ void NativeRenderManager::UpdateRenderNode(std::weak_ptr<RootNode> root_node,
   auto len = nodes.size();
   footstone::value::HippyValue::HippyValueArrayType dom_node_array;
   dom_node_array.resize(len);
+  uint32_t pid;
   for (uint32_t i = 0; i < len; i++) {
-    const auto& render_info = nodes[i]->GetRenderInfo();
+    const auto &render_info = nodes[i]->GetRenderInfo();
     footstone::value::HippyValue::HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(render_info.id);
     dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
     dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
-    dom_node[kName] = footstone::value::HippyValue(nodes[i]->GetViewName());
-
-    footstone::value::HippyValue::HippyValueObjectType diff_props;
-    footstone::value::HippyValue::HippyValueArrayType del_props;
-    auto diff = nodes[i]->GetDiffStyle();
-    if (diff) {
-      auto iter = diff->begin();
-      while (iter != diff->end()) {
-        FOOTSTONE_DCHECK(iter->second != nullptr);
-        if (iter->second) {
-          diff_props[iter->first] = *(iter->second);
-        }
-        iter++;
-      }
-    }
-    auto del = nodes[i]->GetDeleteProps();
-    if (del) {
-      auto iter = del->begin();
-      while (iter != del->end()) {
-        del_props.emplace_back(footstone::value::HippyValue(*iter));
-        iter++;
-      }
-    }
-    dom_node[kProps] = diff_props;
-    dom_node[kDeleteProps] = del_props;
     dom_node_array[i] = dom_node;
+    pid = render_info.pid;
   }
   serializer_->WriteValue(HippyValue(dom_node_array));
-  std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
+  std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
 
-  CallNativeMethod("updateNode", root->GetId(), buffer_pair);
-#endif
+  CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode", root->GetId(), pid, buffer_pair);
 }
 
-void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
-                                         std::vector<std::shared_ptr<DomNode>> &&nodes) {
+void NativeRenderManager::MoveRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
   auto root = root_node.lock();
   if (!root) {
     return;
   }
 
-#if USE_ARK_CAPI
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   auto m = std::make_shared<HRMoveMutation>();
@@ -484,39 +554,39 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
     node_infos.push_back(HRMoveNodeInfo(render_info.id, render_info.index));
   }
   m->node_infos_ = node_infos;
-  render_provider_->MoveNode(root_id, m);
-#else
-  serializer_->Release();
-  serializer_->WriteHeader();
-
-  auto len = nodes.size();
-  footstone::value::HippyValue::HippyValueArrayType dom_node_array;
-  dom_node_array.resize(len);
-  uint32_t pid;
-  for (uint32_t i = 0; i < len; i++) {
-    const auto& render_info = nodes[i]->GetRenderInfo();
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
-    dom_node[kId] = footstone::value::HippyValue(render_info.id);
-    dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
-    dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
-    dom_node_array[i] = dom_node;
-    pid = render_info.pid;
-  }
-  serializer_->WriteValue(HippyValue(dom_node_array));
-  std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
-
-  CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode", root->GetId(), pid, buffer_pair);
-#endif
+  c_render_provider_->MoveNode(root_id, m);
 }
 
 void NativeRenderManager::DeleteRenderNode(std::weak_ptr<RootNode> root_node,
                                            std::vector<std::shared_ptr<DomNode>>&& nodes) {
+  if (enable_ark_c_api_) {
+    DeleteRenderNode_C(root_node, std::move(nodes));
+  } else {
+    DeleteRenderNode_TS(root_node, std::move(nodes));
+  }
+}
+
+void NativeRenderManager::DeleteRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
   auto root = root_node.lock();
   if (!root) {
     return;
   }
 
-#if USE_ARK_CAPI
+  std::vector<uint32_t> ids;
+  ids.resize(nodes.size());
+  for (size_t i = 0; i < nodes.size(); i++) {
+    ids[i] = nodes[i]->GetRenderInfo().id;
+  }
+
+  CallRenderDelegateDeleteNodeMethod(ts_env_, ts_render_provider_ref_, "deleteNode", root->GetId(), ids);
+}
+
+void NativeRenderManager::DeleteRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
+  auto root = root_node.lock();
+  if (!root) {
+    return;
+  }
+
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRDeleteMutation>> mutations;
@@ -527,26 +597,58 @@ void NativeRenderManager::DeleteRenderNode(std::weak_ptr<RootNode> root_node,
     m->tag_ = render_info.id;
     mutations[i] = m;
   }
-  render_provider_->DeleteNode(root_id, mutations);
-#else
-  std::vector<uint32_t> ids;
-  ids.resize(nodes.size());
-  for (size_t i = 0; i < nodes.size(); i++) {
-    ids[i] = nodes[i]->GetRenderInfo().id;
-  }
-
-  CallRenderDelegateDeleteNodeMethod(ts_env_, ts_render_provider_ref_, "deleteNode", root->GetId(), ids);
-#endif
+  c_render_provider_->DeleteNode(root_id, mutations);
 }
 
 void NativeRenderManager::UpdateLayout(std::weak_ptr<RootNode> root_node,
                                        const std::vector<std::shared_ptr<DomNode>>& nodes) {
+  if (enable_ark_c_api_) {
+    UpdateLayout_C(root_node, std::move(nodes));
+  } else {
+    UpdateLayout_TS(root_node, std::move(nodes));
+  }
+}
+
+void NativeRenderManager::UpdateLayout_TS(std::weak_ptr<RootNode> root_node, const std::vector<std::shared_ptr<DomNode>> &nodes) {
   auto root = root_node.lock();
   if (!root) {
     return;
   }
 
-#if USE_ARK_CAPI
+  serializer_->Release();
+  serializer_->WriteHeader();
+
+  auto len = nodes.size();
+  footstone::value::HippyValue::HippyValueArrayType dom_node_array;
+  dom_node_array.resize(len);
+  for (uint32_t i = 0; i < len; i++) {
+    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    dom_node[kId] = footstone::value::HippyValue(nodes[i]->GetId());
+    const auto &result = nodes[i]->GetRenderLayoutResult();
+    dom_node[kWidth] = footstone::value::HippyValue(DpToPx(result.width));
+    dom_node[kHeight] = footstone::value::HippyValue(DpToPx(result.height));
+    dom_node[kLeft] = footstone::value::HippyValue(DpToPx(result.left));
+    dom_node[kTop] = footstone::value::HippyValue(DpToPx(result.top));
+    if (IsMeasureNode(nodes[i]->GetViewName())) {
+      dom_node["paddingLeft"] = footstone::value::HippyValue(DpToPx(result.paddingLeft));
+      dom_node["paddingTop"] = footstone::value::HippyValue(DpToPx(result.paddingTop));
+      dom_node["paddingRight"] = footstone::value::HippyValue(DpToPx(result.paddingRight));
+      dom_node["paddingBottom"] = footstone::value::HippyValue(DpToPx(result.paddingBottom));
+    }
+    dom_node_array[i] = dom_node;
+  }
+  serializer_->WriteValue(HippyValue(dom_node_array));
+  std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
+
+  CallNativeMethod("updateLayout", root->GetId(), buffer_pair);
+}
+
+void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, const std::vector<std::shared_ptr<DomNode>> &nodes) {
+  auto root = root_node.lock();
+  if (!root) {
+    return;
+  }
+
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRUpdateLayoutMutation>> mutations;
@@ -567,35 +669,7 @@ void NativeRenderManager::UpdateLayout(std::weak_ptr<RootNode> root_node,
     }
     mutations[i] = m;
   }
-  render_provider_->UpdateLayout(root_id, mutations);
-#else
-  serializer_->Release();
-  serializer_->WriteHeader();
-
-  auto len = nodes.size();
-  footstone::value::HippyValue::HippyValueArrayType dom_node_array;
-  dom_node_array.resize(len);
-  for (uint32_t i = 0; i < len; i++) {
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
-    dom_node[kId] = footstone::value::HippyValue(nodes[i]->GetId());
-    const auto& result = nodes[i]->GetRenderLayoutResult();
-    dom_node[kWidth] = footstone::value::HippyValue(DpToPx(result.width));
-    dom_node[kHeight] = footstone::value::HippyValue(DpToPx(result.height));
-    dom_node[kLeft] = footstone::value::HippyValue(DpToPx(result.left));
-    dom_node[kTop] = footstone::value::HippyValue(DpToPx(result.top));
-    if (IsMeasureNode(nodes[i]->GetViewName())) {
-      dom_node["paddingLeft"] = footstone::value::HippyValue(DpToPx(result.paddingLeft));
-      dom_node["paddingTop"] = footstone::value::HippyValue(DpToPx(result.paddingTop));
-      dom_node["paddingRight"] = footstone::value::HippyValue(DpToPx(result.paddingRight));
-      dom_node["paddingBottom"] = footstone::value::HippyValue(DpToPx(result.paddingBottom));
-    }
-    dom_node_array[i] = dom_node;
-  }
-  serializer_->WriteValue(HippyValue(dom_node_array));
-  std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
-
-  CallNativeMethod("updateLayout", root->GetId(), buffer_pair);
-#endif
+  c_render_provider_->UpdateLayout(root_id, mutations);
 }
 
 void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
@@ -603,12 +677,31 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
                                          int32_t from_pid,
                                          int32_t to_pid,
                                          int32_t index) {
+  if (enable_ark_c_api_) {
+    MoveRenderNode_C(root_node, std::move(moved_ids), from_pid, to_pid, index);
+  } else {
+    MoveRenderNode_TS(root_node, std::move(moved_ids), from_pid, to_pid, index);
+  }
+}
+
+void NativeRenderManager::MoveRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<int32_t> &&moved_ids, int32_t from_pid,
+                       int32_t to_pid, int32_t index) {
   auto root = root_node.lock();
   if (!root) {
     return;
   }
 
-#if USE_ARK_CAPI
+  CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode2", root->GetId(), moved_ids, to_pid,
+                                   from_pid, index);
+}
+
+void NativeRenderManager::MoveRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<int32_t> &&moved_ids, int32_t from_pid,
+                      int32_t to_pid, int32_t index) {
+  auto root = root_node.lock();
+  if (!root) {
+    return;
+  }
+
   uint32_t root_id = root->GetId();
   auto m = std::make_shared<HRMove2Mutation>();
   std::vector<uint32_t> tags;
@@ -619,21 +712,29 @@ void NativeRenderManager::MoveRenderNode(std::weak_ptr<RootNode> root_node,
   m->to_parent_tag_ = (uint32_t)to_pid;
   m->from_parent_tag_ = (uint32_t)from_pid;
   m->index_ = index;
-  render_provider_->MoveNode2(root_id, m);
-#else
-  CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode2", root->GetId(), moved_ids, to_pid, from_pid, index);
-#endif
+  c_render_provider_->MoveNode2(root_id, m);
 }
 
 void NativeRenderManager::EndBatch(std::weak_ptr<RootNode> root_node) {
+  if (enable_ark_c_api_) {
+    EndBatch_C(root_node);
+  } else {
+    EndBatch_TS(root_node);
+  }
+}
+
+void NativeRenderManager::EndBatch_TS(std::weak_ptr<RootNode> root_node) {
   auto root = root_node.lock();
   if (root) {
-#if USE_ARK_CAPI
-  uint32_t root_id = root->GetId();
-  render_provider_->EndBatch(root_id);
-#else
-  CallNativeMethod("endBatch", root->GetId());
-#endif
+    CallNativeMethod("endBatch", root->GetId());
+  }
+}
+
+void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
+  auto root = root_node.lock();
+  if (root) {
+    uint32_t root_id = root->GetId();
+    c_render_provider_->EndBatch(root_id);
   }
 }
 
@@ -848,6 +949,15 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
 void NativeRenderManager::HandleListenerOps(std::weak_ptr<RootNode> root_node,
                                             std::map<uint32_t, std::vector<ListenerOp>>& ops,
                                             const std::string& method_name) {
+  if (enable_ark_c_api_) {
+    HandleListenerOps_C(root_node, ops, method_name);
+  } else {
+    HandleListenerOps_TS(root_node, ops, method_name);
+  }
+}
+
+void NativeRenderManager::HandleListenerOps_TS(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>> &ops,
+                          const std::string &method_name) {
   auto root = root_node.lock();
   if (!root) {
     return;
@@ -857,36 +967,6 @@ void NativeRenderManager::HandleListenerOps(std::weak_ptr<RootNode> root_node,
     return;
   }
 
-#if USE_ARK_CAPI
-  uint32_t root_id = root->GetId();
-  std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> mutations;
-  for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
-    auto m = std::make_shared<HRUpdateEventListenerMutation>();
-    footstone::value::HippyValue::HippyValueObjectType events;
-    
-    const std::vector<ListenerOp> &listener_ops = iter->second;
-    const auto len = listener_ops.size();
-    std::vector<ListenerOp>::size_type index = 0;
-    for (; index < len; index++) {
-      const ListenerOp &listener_op = listener_ops[index];
-      std::shared_ptr<DomNode> dom_node = listener_op.dom_node.lock();
-      if (dom_node == nullptr) {
-        break;
-      }
-      events[listener_op.name] = footstone::value::HippyValue(listener_op.add);
-    }
-    if (index == len) {
-      m->tag_ = iter->first;
-      m->props_ = events;
-      mutations.push_back(m);
-    }
-  }
-  ops.clear();
-  if (mutations.empty()) {
-    return;
-  }
-  render_provider_->UpdateEventListener(root_id, mutations);
-#else
   footstone::value::HippyValue::HippyValueArrayType event_listener_ops;
   for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
     footstone::value::HippyValue::HippyValueObjectType op;
@@ -914,13 +994,53 @@ void NativeRenderManager::HandleListenerOps(std::weak_ptr<RootNode> root_node,
   if (event_listener_ops.empty()) {
     return;
   }
-  
+
   serializer_->Release();
   serializer_->WriteHeader();
   serializer_->WriteValue(HippyValue(event_listener_ops));
-  std::pair<uint8_t*, size_t> buffer_pair = serializer_->Release();
+  std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
   CallNativeMethod(method_name, root->GetId(), buffer_pair);
-#endif
+}
+
+void NativeRenderManager::HandleListenerOps_C(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>> &ops,
+                         const std::string &method_name) {
+  auto root = root_node.lock();
+  if (!root) {
+    return;
+  }
+
+  if (ops.empty()) {
+    return;
+  }
+
+  uint32_t root_id = root->GetId();
+  std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> mutations;
+  for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
+    auto m = std::make_shared<HRUpdateEventListenerMutation>();
+    footstone::value::HippyValue::HippyValueObjectType events;
+
+    const std::vector<ListenerOp> &listener_ops = iter->second;
+    const auto len = listener_ops.size();
+    std::vector<ListenerOp>::size_type index = 0;
+    for (; index < len; index++) {
+      const ListenerOp &listener_op = listener_ops[index];
+      std::shared_ptr<DomNode> dom_node = listener_op.dom_node.lock();
+      if (dom_node == nullptr) {
+        break;
+      }
+      events[listener_op.name] = footstone::value::HippyValue(listener_op.add);
+    }
+    if (index == len) {
+      m->tag_ = iter->first;
+      m->props_ = events;
+      mutations.push_back(m);
+    }
+  }
+  ops.clear();
+  if (mutations.empty()) {
+    return;
+  }
+  c_render_provider_->UpdateEventListener(root_id, mutations);
 }
 
 void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, uint32_t node_id) {
@@ -960,7 +1080,7 @@ bool NativeRenderManager::IsCustomMeasureNode(const std::string &name) {
 }
 
 void NativeRenderManager::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id) {
-  render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id);
+  c_render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id);
 }
 
 }  // namespace native

@@ -143,6 +143,7 @@ export class EngineInitParams {
   public logAdapter: HippyLogAdapter | null = null;
   public v8InitParams: V8InitParams | null = null;
   public enableTurbo = false;
+  public enableArkCApi: boolean = false;
 
   constructor(
     libHippy: HippyLibrary,

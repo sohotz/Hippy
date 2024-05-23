@@ -75,6 +75,7 @@ export class HippyGlobalConfigs {
   private mDeviceAdapter: HippyDeviceAdapter | null;
   private mLogAdapter: HippyLogAdapter | null;
   private mEnableTurbo: boolean;
+  private mEnableArkCApi: boolean;
 
   constructor(params: EngineInitParams) {
     this.mContext = params.context;
@@ -90,6 +91,7 @@ export class HippyGlobalConfigs {
     this.mDeviceAdapter = params.deviceAdapter;
     this.mLogAdapter = params.logAdapter;
     this.mEnableTurbo = params.enableTurbo;
+    this.mEnableArkCApi = params.enableArkCApi;
   }
 
   public destroyIfNeed() {
@@ -160,4 +162,9 @@ export class HippyGlobalConfigs {
   public enableTurbo(): boolean {
     return this.mEnableTurbo;
   }
+
+  public enableArkCApi(): boolean {
+    return this.mEnableArkCApi;
+  }
+
 }

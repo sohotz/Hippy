@@ -174,6 +174,7 @@ export struct HippyRoot {
   private wrappedCustomRenderViewBuilder: WrappedHippyCustomCustomRenderViewBuilder | null = null
   @State showRenderView: boolean = false
   private rootView: HippyRootView | null = null
+  private enableArkCApi: boolean = false
   onRootViewCreated: ((rootId: number) => void) | null = null
 
   aboutToAppear(): void {
@@ -181,6 +182,8 @@ export struct HippyRoot {
       this.onRenderException?.(new HippyException("Error, hippyEngine is null."))
       return
     }
+
+    this.enableArkCApi = this.hippyEngine.getHippyEngineContext()!.getGlobalConfigs().enableArkCApi()
 
     if (!this.rootView) {
       this.renderExceptionListener.listener = this.onRenderException
@@ -221,17 +224,7 @@ export struct HippyRoot {
 
   build() {
     Column() {
-      if (this.showRenderView && this.rootView && this.rootView.renderView) {
-        HippyRender({
-          renderView: this.rootView.renderView,
-          children: this.rootView.renderView.children,
-        })
-          .width('100%')
-          .height('100%')
-          .onAppear(() => {
-            LogUtils.d("hippy", "did hippy render")
-          })
-      } else {
+      if (this.enableArkCApi) {
         XComponent({
           id: this.renderInstanceId + "_" + this.rootId,
           type: "node",
@@ -239,6 +232,18 @@ export struct HippyRoot {
         })
           .width("100%")
           .height("100%")
+      } else {
+        if (this.showRenderView && this.rootView && this.rootView.renderView) {
+          HippyRender({
+            renderView: this.rootView.renderView,
+            children: this.rootView.renderView.children,
+          })
+            .width('100%')
+            .height('100%')
+            .onAppear(() => {
+              LogUtils.d("hippy", "did hippy render")
+            })
+        }
       }
     }
     .width('100%')
