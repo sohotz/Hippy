@@ -13,7 +13,7 @@ import { NativeRenderer } from './connector/NativeRenderer';
 import { EngineInitParams } from './HippyEngine';
 import { HippyEngineContext } from './HippyEngineContext';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
-import { HippyModuleManagerImpl } from './modules/HippyModuleManagerImpl';
+import { HippyModuleManagerImpl, HippyNativeModuleCreator } from './modules/HippyModuleManagerImpl';
 import { HippyResourceLoader } from './adapter/http/HippyResourceLoader';
 import { DefaultProcessor } from '../vfs/DefaultProcessor';
 import { HippyModuleManager } from './modules/HippyModuleManager';
@@ -62,22 +62,30 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
     this.providers = this.mEngineInitParams.providers;
     // provider挂载
-    let customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null = null
-    let customMeasureRenderViews: Array<string> | null = null
+    let customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null = null;
+    let customMeasureRenderViews: Array<string> | null = null;
+    let customNativeModules: Map<string, HippyNativeModuleCreator> | null = null;
     if (this.providers) {
-      customRenderViewCreatorMap = new Map()
-      customMeasureRenderViews = new Array()
+      customRenderViewCreatorMap = new Map();
+      customMeasureRenderViews = new Array();
+      customNativeModules = new Map();
       for (let provider of this.providers) {
-        let map = provider.getCustomRenderViewCreatorMap()
-        if (map) {
-          map.forEach((value, key) => {
+        let apiProviderRenderMap = provider.getCustomRenderViewCreatorMap()
+        if (apiProviderRenderMap) {
+          apiProviderRenderMap.forEach((value, key) => {
             customRenderViewCreatorMap?.set(key, value)
           })
         }
-        let array = provider.getCustomMeasureRenderViews()
-        if (array) {
-          array.forEach((value) => {
+        let apiProviderMeasureArray = provider.getCustomMeasureRenderViews()
+        if (apiProviderMeasureArray) {
+          apiProviderMeasureArray.forEach((value) => {
             customMeasureRenderViews?.push(value)
+          })
+        }
+        let apiProviderNativeModules = provider.getCustomNativeModuleCreatorMap();
+        if (apiProviderNativeModules) {
+          apiProviderNativeModules.forEach((value, key) => {
+            customNativeModules?.set(key, value)
           })
         }
       }
@@ -92,6 +100,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
     // ModuleManager注册
     this.mModuleManager = new HippyModuleManagerImpl(this);
+    this.mModuleManager.addModules(customNativeModules);
     // JsDriver注册
     this.mJsDriver = new JsDriver(this.libHippy, this.mModuleManager)
     // BridgeManager注册

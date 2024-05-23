@@ -21,6 +21,7 @@ import { HippyAPIProvider } from 'hippy'
 import {
   HippyJSModuleCreator,
   HippyNativeModuleCreator } from 'hippy/src/main/ets/hippy_framework/modules/HippyModuleManagerImpl'
+import { HippyNativeModuleBase } from 'hippy/src/main/ets/hippy_framework/modules/native'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
 import {
@@ -28,10 +29,13 @@ import {
 } from 'hippy/src/main/ets/renderer_native/components/HippyRenderRegisterMap'
 import { ExampleCustomComponentViewA } from './ExampleCustomComponentViewA'
 import { ExampleCustomComponentViewB } from './ExampleCustomComponentViewB'
+import { ExampleNativeModule } from './ExampleNativeModule'
 
 export class ExampleAPIProvider implements HippyAPIProvider {
   getCustomNativeModuleCreatorMap(): Map<string, HippyNativeModuleCreator> | null {
-    return null
+    let registerMap: Map<string, HippyNativeModuleCreator> = new Map()
+    registerMap.set(ExampleNativeModule.NAME, (ctx): HippyNativeModuleBase => new ExampleNativeModule(ctx))
+    return registerMap;
   }
 
   getCustomJavaScriptModuleCreatorMap(): Map<string, HippyJSModuleCreator> | null {

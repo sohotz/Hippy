@@ -35,7 +35,6 @@ import {
 } from "./native"
 import util from '@ohos.util'
 import { HippyModuleManager } from './HippyModuleManager'
-import { HippyAPIProvider } from '..'
 import { HippyCallNativeParams } from '../bridge/HippyCallNativeParams'
 import { LogUtils } from '../../support/utils/LogUtils'
 import { HippyJavaScriptModuleBase } from './javascript/HippyJavaScriptModuleBase'
@@ -125,16 +124,16 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     }
   }
 
-  public initModules(): void {
-
-  }
-
   public destroy(): void {
     throw new Error('Method not implemented.')
   }
 
-  public addModules(apiProviders: HippyAPIProvider[]): void {
-    throw new Error('Method not implemented.')
+  public addModules(customNativeModules: Map<string, HippyNativeModuleCreator> | null): void {
+    if (customNativeModules) {
+      customNativeModules.forEach((value, key) => {
+        this.nativeModuleCreatorRegisterMap?.set(key, value)
+      })
+    }
   }
 
   public getNativeModule(name: string): HippyNativeModuleBase | null {

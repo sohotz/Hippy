@@ -21,6 +21,7 @@ import { HippyCallNativeParams } from '../bridge/HippyCallNativeParams';
 import { HippyAPIProvider } from '../bridge/HippyAPIProvider';
 import { HippyNativeModuleBase } from './native';
 import { HippyJavaScriptModuleBase } from './javascript/HippyJavaScriptModuleBase';
+import { HippyNativeModuleCreator } from './HippyModuleManagerImpl';
 
 export interface HippyModuleManager {
 
@@ -43,5 +44,5 @@ export interface HippyModuleManager {
    *
    * @param apiProviders API providers need to be added.
    */
-  addModules(apiProviders: Array<HippyAPIProvider>): void;
+  addModules(customNativeModules: Map<string, HippyNativeModuleCreator> | null): void;
 }
