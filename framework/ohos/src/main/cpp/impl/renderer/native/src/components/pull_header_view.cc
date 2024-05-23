@@ -33,7 +33,7 @@ PullHeaderView::~PullHeaderView() {}
 
 StackNode &PullHeaderView::GetLocalRootArkUINode() { return stackNode_; }
 
-bool PullHeaderView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool PullHeaderView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetProp(propKey, propValue);
 }
 

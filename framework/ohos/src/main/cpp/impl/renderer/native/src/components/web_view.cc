@@ -33,7 +33,7 @@ WebView::~WebView() {}
 
 WebNode &WebView::GetLocalRootArkUINode() { return webNode_; }
 
-bool WebView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool WebView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "url") {
     return true;
   } else if (propKey == "source") {

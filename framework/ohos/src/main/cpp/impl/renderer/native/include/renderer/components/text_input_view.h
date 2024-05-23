@@ -35,7 +35,7 @@ public:
   ~TextInputView();
 
   StackNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
+  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
   
 private:
   StackNode stackNode_;

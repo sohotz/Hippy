@@ -37,7 +37,7 @@ ImageNode &ImageView::GetLocalRootArkUINode() {
   return imageNode_;
 }
 
-bool ImageView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "verticalAlign") {
     return true;
   } else if (propKey == "src") {

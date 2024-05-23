@@ -33,7 +33,7 @@ PagerView::~PagerView() {}
 
 SwiperNode &PagerView::GetLocalRootArkUINode() { return swiperNode_; }
 
-bool PagerView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool PagerView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "initialPage") {
     return true;
   } else if (propKey == "scrollEnabled") {

@@ -33,7 +33,7 @@ TextInputView::~TextInputView() {}
 
 StackNode &TextInputView::GetLocalRootArkUINode() { return stackNode_; }
 
-bool TextInputView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "caret-color") {
     return true;
   } else if (propKey == "color") {

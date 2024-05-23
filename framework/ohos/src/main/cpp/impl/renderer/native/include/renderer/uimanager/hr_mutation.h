@@ -67,7 +67,7 @@ public:
   uint32_t parent_tag_ = 0;
   int32_t index_ = -1;
   footstone::value::HippyValue::HippyValueObjectType props_;
-  footstone::value::HippyValue::HippyValueArrayType delete_props_;
+  std::vector<std::string> delete_props_;
 };
 
 class HRMoveNodeInfo {

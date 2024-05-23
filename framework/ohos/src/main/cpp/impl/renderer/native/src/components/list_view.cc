@@ -48,7 +48,7 @@ void ListView::Init() {
 
 StackNode &ListView::GetLocalRootArkUINode() { return stackNode_; }
 
-bool ListView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool ListView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "nestedScrollTopPriority") {
     return true;
   } else if (propKey == "horizontal") {

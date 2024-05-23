@@ -34,7 +34,7 @@ using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
 class HRValueUtils {
 public:
-  static uint32_t GetUint32(HippyValue &value) {
+  static uint32_t GetUint32(const HippyValue &value) {
     double d = 0;
     bool result = value.ToDouble(d);
     if (result) {
@@ -43,7 +43,7 @@ public:
     return 0;
   }
 
-  static uint32_t GetUint32(HippyValue &value, uint32_t defaultValue) {
+  static uint32_t GetUint32(const HippyValue &value, uint32_t defaultValue) {
     double d = 0;
     bool result = value.ToDouble(d);
     if (result) {
@@ -52,7 +52,7 @@ public:
     return defaultValue;
   }
 
-  static int32_t GetInt32(HippyValue &value) {
+  static int32_t GetInt32(const HippyValue &value) {
     double d = 0;
     bool result = value.ToDouble(d);
     if (result) {
@@ -61,7 +61,7 @@ public:
     return 0;
   }
 
-  static int32_t GetInt32(HippyValue &value, int32_t defaultValue) {
+  static int32_t GetInt32(const HippyValue &value, int32_t defaultValue) {
     double d = 0;
     bool result = value.ToDouble(d);
     if (result) {
@@ -70,7 +70,7 @@ public:
     return defaultValue;
   }
 
-  static float GetFloat(HippyValue &value) {
+  static float GetFloat(const HippyValue &value) {
     double d = 0;
     bool result = value.ToDouble(d);
     if (result) {
@@ -79,7 +79,7 @@ public:
     return 0;
   }
 
-  static float GetFloat(HippyValue &value, float defaultValue) {
+  static float GetFloat(const HippyValue &value, float defaultValue) {
     double d = 0;
     bool result = value.ToDouble(d);
     if (result) {
@@ -88,7 +88,7 @@ public:
     return defaultValue;
   }
 
-  static double GetDouble(HippyValue &value) {
+  static double GetDouble(const HippyValue &value) {
     double d = 0;
     bool result = value.ToDouble(d);
     if (result) {
@@ -97,7 +97,7 @@ public:
     return 0;
   }
 
-  static double GetDouble(HippyValue &value, double defaultValue) {
+  static double GetDouble(const HippyValue &value, double defaultValue) {
     double d = 0;
     bool result = value.ToDouble(d);
     if (result) {
@@ -106,7 +106,7 @@ public:
     return defaultValue;
   }
 
-  static std::string GetString(HippyValue &value) {
+  static std::string GetString(const HippyValue &value) {
     std::string str;
     bool result = value.ToString(str);
     if (result) {
@@ -115,7 +115,7 @@ public:
     return "";
   }
   
-  static bool GetBool(HippyValue &value, bool defaultValue) {
+  static bool GetBool(const HippyValue &value, bool defaultValue) {
     bool b = false;
     bool result = value.ToBoolean(b);
     if (result) {

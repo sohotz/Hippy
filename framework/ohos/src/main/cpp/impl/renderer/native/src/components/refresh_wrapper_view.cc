@@ -33,7 +33,7 @@ RefreshWrapperView::~RefreshWrapperView() {}
 
 ListNode &RefreshWrapperView::GetLocalRootArkUINode() { return listNode_; }
 
-bool RefreshWrapperView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool RefreshWrapperView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "bounceTime") {
     return true;
   } else if (propKey == "onScrollEnable") {

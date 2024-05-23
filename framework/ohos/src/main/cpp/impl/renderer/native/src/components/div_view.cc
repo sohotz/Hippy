@@ -37,7 +37,7 @@ StackNode &DivView::GetLocalRootArkUINode() {
   return stackNode_;
 }
 
-bool DivView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool DivView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetProp(propKey, propValue);
 }
 

@@ -33,7 +33,7 @@ WaterfallItemView::~WaterfallItemView() {}
 
 StackNode &WaterfallItemView::GetLocalRootArkUINode() { return stackNode_; }
 
-bool WaterfallItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool WaterfallItemView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "type") {
     return true;
   }

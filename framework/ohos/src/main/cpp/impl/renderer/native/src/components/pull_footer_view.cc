@@ -33,7 +33,7 @@ PullFooterView::~PullFooterView() {}
 
 StackNode &PullFooterView::GetLocalRootArkUINode() { return stackNode_; }
 
-bool PullFooterView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool PullFooterView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "sticky") {
     return true;
   }

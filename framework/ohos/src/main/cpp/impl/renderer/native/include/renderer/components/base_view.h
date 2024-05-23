@@ -34,6 +34,7 @@ inline namespace native {
 
 using HippyValue = footstone::HippyValue;
 using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
+using HippyValueArrayType = footstone::value::HippyValue::HippyValueArrayType;
 
 class BaseView : public std::enable_shared_from_this<BaseView> {
 public:
@@ -51,7 +52,7 @@ public:
   void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
 
   virtual ArkUINode &GetLocalRootArkUINode() = 0;
-  virtual bool SetProp(const std::string &propKey, HippyValue &propValue);
+  virtual bool SetProp(const std::string &propKey, const HippyValue &propValue);
   virtual void OnSetPropsEnd();
   
   void AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index);
@@ -69,10 +70,10 @@ protected:
   virtual bool HandleGestureBySelf() { return false; }
 
 protected:
-  bool SetBackgroundImageProp(const std::string &propKey, HippyValue &propValue);
-  bool SetBorderProp(const std::string &propKey, HippyValue &propValue);
-  bool SetShadowProp(const std::string &propKey, HippyValue &propValue);
-  bool SetEventProp(const std::string &propKey, HippyValue &propValue);
+  bool SetBackgroundImageProp(const std::string &propKey, const HippyValue &propValue);
+  bool SetBorderProp(const std::string &propKey, const HippyValue &propValue);
+  bool SetShadowProp(const std::string &propKey, const HippyValue &propValue);
+  bool SetEventProp(const std::string &propKey, const HippyValue &propValue);
   
   void SetClickable(bool flag);
   void SetLongClickable(bool flag);

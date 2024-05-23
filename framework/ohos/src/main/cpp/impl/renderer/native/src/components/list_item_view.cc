@@ -35,7 +35,7 @@ ListItemView::~ListItemView() {}
 
 ListItemNode &ListItemView::GetLocalRootArkUINode() { return itemNode_; }
 
-bool ListItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool ListItemView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "type" || propKey == "itemViewType") {
     if (propValue.IsString()) {
       

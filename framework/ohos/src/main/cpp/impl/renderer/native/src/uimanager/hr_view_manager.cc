@@ -80,7 +80,7 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
     }
   } else if (m->type_ == HRMutationType::UPDATE) {
     auto tm = std::static_pointer_cast<HRUpdateMutation>(m);
-    UpdateProps(tm->tag_, tm->props_);
+    UpdateProps(tm->tag_, tm->props_, tm->delete_props_);
   } else if (m->type_ == HRMutationType::MOVE) {
     auto tm = std::static_pointer_cast<HRMoveMutation>(m);
     MoveRenderView(tm->node_infos_, tm->parent_tag_);
@@ -184,23 +184,33 @@ void HRViewManager::Move2RenderView(std::vector<uint32_t> tags, uint32_t newPare
   }
 }
 
-void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, HippyValueObjectType &props) {
-  if (view && props.size() > 0) {
-    for (auto it = props.begin(); it != props.end(); it++) {
-      // value maybe empty string / false / 0
-      auto &key = it->first;
-      if (key.length() > 0) {
-        view->SetProp(key, it->second);
+void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
+  if (view) {
+    if (props.size() > 0) {
+      for (auto it = props.begin(); it != props.end(); it++) {
+        // value maybe empty string / false / 0
+        auto &key = it->first;
+        if (key.length() > 0) {
+          view->SetProp(key, it->second);
+        }
+      }
+    }
+    if (deleteProps.size() > 0) {
+      for (auto it = deleteProps.begin(); it != deleteProps.end(); it++) {
+        auto &key = *it;
+        if (key.length() > 0) {
+          view->SetProp(key, HippyValue::Null());
+        }
       }
     }
     view->OnSetPropsEnd();
   }
 }
 
-void HRViewManager::UpdateProps(uint32_t tag, HippyValueObjectType &props) {
+void HRViewManager::UpdateProps(uint32_t tag, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
   auto it = view_registry_.find(tag);
   std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
-  UpdateProps(renderView, props);
+  UpdateProps(renderView, props, deleteProps);
 }
 
 void HRViewManager::UpdateEventListener(uint32_t tag, HippyValueObjectType &props) {

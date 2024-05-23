@@ -33,7 +33,7 @@ ModalView::~ModalView() {}
 
 StackNode &ModalView::GetLocalRootArkUINode() { return stackNode_; }
 
-bool ModalView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool ModalView::SetProp(const std::string &propKey, const HippyValue &propValue) {
 
   return BaseView::SetProp(propKey, propValue);
 }

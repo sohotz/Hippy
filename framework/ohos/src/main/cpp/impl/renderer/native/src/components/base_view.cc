@@ -34,7 +34,7 @@ BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(
   
 }
 
-bool BaseView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "width") {
     return true;
   } else if (propKey == "height") {
@@ -94,7 +94,7 @@ bool BaseView::SetProp(const std::string &propKey, HippyValue &propValue) {
   }
 }
 
-bool BaseView::SetBackgroundImageProp(const std::string &propKey, HippyValue &propValue) {
+bool BaseView::SetBackgroundImageProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "backgroundImage") {
     return true;
   } else if (propKey == "backgroundPositionX") {
@@ -107,7 +107,7 @@ bool BaseView::SetBackgroundImageProp(const std::string &propKey, HippyValue &pr
   return false;
 }
 
-bool BaseView::SetBorderProp(const std::string &propKey, HippyValue &propValue) {
+bool BaseView::SetBorderProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "borderRadius") {
     float value = HRValueUtils::GetFloat(propValue);
     borderTopLeftRadius_ = value;
@@ -224,7 +224,7 @@ bool BaseView::SetBorderProp(const std::string &propKey, HippyValue &propValue) 
   return false;
 }
 
-bool BaseView::SetShadowProp(const std::string &propKey, HippyValue &propValue) {
+bool BaseView::SetShadowProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "shadowOffset") {
     return true;
   } else if (propKey == "shadowOffsetX") {
@@ -251,7 +251,7 @@ bool BaseView::SetShadowProp(const std::string &propKey, HippyValue &propValue) 
     return true; \
   }
 
-bool BaseView::SetEventProp(const std::string &propKey, HippyValue &propValue) {
+bool BaseView::SetEventProp(const std::string &propKey, const HippyValue &propValue) {
   SET_EVENT_PROP_CASE("click", SetClickable)
   SET_EVENT_PROP_CASE("longclick", SetLongClickable)
   SET_EVENT_PROP_CASE("pressin", SetPressIn)

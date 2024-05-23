@@ -33,7 +33,7 @@ PagerItemView::~PagerItemView() {}
 
 StackNode &PagerItemView::GetLocalRootArkUINode() { return stackNode_; }
 
-bool PagerItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool PagerItemView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetProp(propKey, propValue);
 }
 

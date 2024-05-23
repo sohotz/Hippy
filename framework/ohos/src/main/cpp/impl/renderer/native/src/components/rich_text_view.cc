@@ -38,7 +38,7 @@ TextNode &RichTextView::GetLocalRootArkUINode() {
   return textNode_;
 }
 
-bool RichTextView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
     if (value != text_) {

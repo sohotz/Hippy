@@ -33,7 +33,7 @@ WaterfallView::~WaterfallView() {}
 
 ColumnNode &WaterfallView::GetLocalRootArkUINode() { return colNode_; }
 
-bool WaterfallView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool WaterfallView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "bounces") {
     return true;
   } else if (propKey == "contentInset") {

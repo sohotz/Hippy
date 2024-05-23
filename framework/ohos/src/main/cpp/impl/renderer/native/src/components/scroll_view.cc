@@ -35,7 +35,7 @@ ScrollView::~ScrollView() {}
 
 ScrollNode &ScrollView::GetLocalRootArkUINode() { return scrollNode_; }
 
-bool ScrollView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool ScrollView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "showScrollIndicator") {
     return true;
   } else if (propKey == "pagingEnabled") {

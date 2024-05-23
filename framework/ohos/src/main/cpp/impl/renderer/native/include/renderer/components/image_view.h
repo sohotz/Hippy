@@ -35,7 +35,7 @@ public:
   ~ImageView();
 
   ImageNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, HippyValue &propValue) override;
+  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
 
   void OnClick() override;
   void OnComplete(float width, float height) override;

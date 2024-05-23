@@ -33,7 +33,7 @@ RefreshWrapperItemView::~RefreshWrapperItemView() {}
 
 StackNode &RefreshWrapperItemView::GetLocalRootArkUINode() { return stackNode_; }
 
-bool RefreshWrapperItemView::SetProp(const std::string &propKey, HippyValue &propValue) {
+bool RefreshWrapperItemView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetProp(propKey, propValue);
 }
 

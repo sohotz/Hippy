@@ -474,7 +474,7 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     m->view_name_ = nodes[i]->GetViewName();
 
     footstone::value::HippyValue::HippyValueObjectType diff_props;
-    footstone::value::HippyValue::HippyValueArrayType del_props;
+    std::vector<std::string> del_props;
     auto diff = nodes[i]->GetDiffStyle();
     if (diff) {
       auto iter = diff->begin();
@@ -490,7 +490,7 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     if (del) {
       auto iter = del->begin();
       while (iter != del->end()) {
-        del_props.emplace_back(footstone::value::HippyValue(*iter));
+        del_props.emplace_back(*iter);
         iter++;
       }
     }
