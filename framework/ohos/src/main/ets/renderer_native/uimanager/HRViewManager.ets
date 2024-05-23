@@ -81,10 +81,10 @@ export class HRViewManager {
       let m = mutation as HRCreateMutation
       this.createRenderView(m.tag as number, m.viewName as string)
       this.insertSubRenderView(m.parentTag as number, m.tag as number, m.index as number)
-      this.updateProps(m.tag as number, m.props as HippyMap)
+      this.updateProps(m.tag as number, m.props as HippyMap, null)
     } else if (mutation.type === HRMutationType.UPDATE) {
       let m = mutation as HRUpdateMutation
-      this.updateProps(m.tag as number, m.props as HippyMap)
+      this.updateProps(m.tag as number, m.props as HippyMap, m.deleteProps)
     } else if (mutation.type === HRMutationType.MOVE) {
       let m = mutation as HRMoveMutation
       this.moveRenderView(m.nodeInfos as Array<HRMoveNodeInfo>, m.parentTag as number)
@@ -101,7 +101,7 @@ export class HRViewManager {
         m.paddingLeft ? new HRPadding(m.paddingLeft as number, m.paddingTop as number, m.paddingRight as number, m.paddingBottom as number) : null)
     } else if (mutation.type === HRMutationType.UPDATE_EVENT_LISTENER) {
       let m = mutation as HRUpdateEventListenerMutation
-      this.updateProps(m.tag as number, m.props as HippyMap)
+      this.updateProps(m.tag as number, m.props as HippyMap, null)
       this.updateEventListener(m.tag as number, m.props as HippyMap)
     }
   }
@@ -182,7 +182,7 @@ export class HRViewManager {
     }
   }
 
-  private updateProps(tag: number, props: HippyMap) {
+  private updateProps(tag: number, props: HippyMap, deleteProps: Array<string> | null) {
     let renderView = this.viewRegistry.get(tag)
     if (renderView) {
       let theView = renderView as HippyRenderBaseView
@@ -191,6 +191,13 @@ export class HRViewManager {
           // value maybe empty string / false / 0
           if (key && value != null && value != undefined) {
             theView.setProp(key, value)
+          }
+        })
+      }
+      if (deleteProps && deleteProps.length > 0) {
+        deleteProps.forEach((value: string) => {
+          if (value) {
+            theView.setProp(value, null)
           }
         })
       }

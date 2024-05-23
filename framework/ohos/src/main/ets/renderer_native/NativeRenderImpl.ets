@@ -234,6 +234,7 @@ export class NativeRenderImpl implements NativeRender {
       m.parentTag = node.get('pId') as number
       m.index = node.get('index') as number
       m.props = node.get('props') as HippyMap
+      m.deleteProps = node.get('deleteProps') as Array<string>
       viewManager.addMutations(m)
     }
   }

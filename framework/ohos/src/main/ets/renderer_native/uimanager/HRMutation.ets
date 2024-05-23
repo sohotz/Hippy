@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyMap } from '../../support/common/HippyTypes'
+import { HippyArray, HippyMap } from '../../support/common/HippyTypes'
 
 export enum HRMutationType {
   CREATE = 1,
@@ -49,6 +49,7 @@ export class HRUpdateMutation {
   parentTag: number | null = null
   index: number | null = null
   props: HippyMap | null = null
+  deleteProps: Array<string> | null = null
 
   constructor() {
     this.type = HRMutationType.UPDATE
