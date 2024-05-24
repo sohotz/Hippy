@@ -454,7 +454,7 @@ export default abstract class HippyRenderBaseView {
         break
       case HRNodeProps.SHADOW_RADIUS:
         this.checkAndBuildCssShadow();
-        (this.cssShadow as ShadowOptions).radius = HRValueUtils.getNumber(propValue);
+        (this.cssShadow as ShadowOptions).radius = vp2px(HRValueUtils.getNumber(propValue));
         break
       case HRNodeProps.SHADOW_COLOR:
         this.checkAndBuildCssShadow();
@@ -464,6 +464,9 @@ export default abstract class HippyRenderBaseView {
         } else {
           (this.cssShadow as ShadowOptions).color = HRConvertUtil.toColorWithNumberAndOpacity(this.cssShadowColor, this.cssShadowOpacity);
         }
+        break
+      case HRNodeProps.SHADOW_SPREAD:
+        // ohos not support
         break
       default:
         return false
