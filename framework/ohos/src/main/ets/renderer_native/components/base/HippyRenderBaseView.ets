@@ -435,17 +435,17 @@ export default abstract class HippyRenderBaseView {
         let m = HRValueUtils.getMap(propValue);
         let x = m ? (m as HippyMap).get('x') : 0;
         let y = m ? (m as HippyMap).get('y') : 0;
-        (this.cssShadow as ShadowOptions).offsetX = HRValueUtils.getNumber(x as HippyAny);
-        (this.cssShadow as ShadowOptions).offsetY = HRValueUtils.getNumber(y as HippyAny);
+        (this.cssShadow as ShadowOptions).offsetX = vp2px(HRValueUtils.getNumber(x as HippyAny));
+        (this.cssShadow as ShadowOptions).offsetY = vp2px(HRValueUtils.getNumber(y as HippyAny));
       }
         break
       case HRNodeProps.SHADOW_OFFSET_X:
         this.checkAndBuildCssShadow();
-        (this.cssShadow as ShadowOptions).offsetX = HRValueUtils.getNumber(propValue);
+        (this.cssShadow as ShadowOptions).offsetX = vp2px(HRValueUtils.getNumber(propValue));
         break
       case HRNodeProps.SHADOW_OFFSET_Y:
         this.checkAndBuildCssShadow();
-        (this.cssShadow as ShadowOptions).offsetY = HRValueUtils.getNumber(propValue);
+        (this.cssShadow as ShadowOptions).offsetY = vp2px(HRValueUtils.getNumber(propValue));
         break
       case HRNodeProps.SHADOW_OPACITY:
         this.checkAndBuildCssShadow();
