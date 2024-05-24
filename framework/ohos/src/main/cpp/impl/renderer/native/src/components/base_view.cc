@@ -23,8 +23,10 @@
 #include "renderer/components/base_view.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_value_utils.h"
-#include "renderer/utils/hr_value_utils.h"
+#include "renderer/utils/hr_convert_utils.h"
 #include "renderer/uimanager/hr_gesture_dispatcher.h"
+
+#define HIPPY_COMPONENT_KEY_PREFIX "HippyKey"
 
 namespace hippy {
 inline namespace render {
@@ -35,49 +37,41 @@ BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(
 }
 
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  if (propKey == "width") {
+  if (propKey == HRNodeProps::WIDTH) {
     return true;
-  } else if (propKey == "height") {
+  } else if (propKey == HRNodeProps::HEIGHT) {
     return true;
-  } else if (propKey == "padding") {
+  } else if (propKey == HRNodeProps::VISIBILITY) {
+    auto value = HRValueUtils::GetString(propValue);
+    GetLocalRootArkUINode().SetVisibility(value != HRNodeProps::HIDDEN ? true : false);
     return true;
-  } else if (propKey == "paddingVertical") {
-    return true;
-  } else if (propKey == "paddingHorizontal") {
-    return true;
-  } else if (propKey == "paddingTop") {
-    return true;
-  } else if (propKey == "paddingBottom") {
-    return true;
-  } else if (propKey == "paddingLeft") {
-    return true;
-  } else if (propKey == "paddingRight") {
-    return true;
-  } else if (propKey == "visibility") {
-    return true;
-  } else if (propKey == "backgroundColor") {
+  } else if (propKey == HRNodeProps::BACKGROUND_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
-    if (firstSetBackgroundColor_ || value != backgroundColor_) {
-      GetLocalRootArkUINode().SetBackgroundColor(value);
-      backgroundColor_ = value;
-      firstSetBackgroundColor_ = false;
+    GetLocalRootArkUINode().SetBackgroundColor(value);
+    return true;
+  } else if (propKey == HRNodeProps::OPACITY) {
+    auto value = HRValueUtils::GetFloat(propValue, 1.f);
+    GetLocalRootArkUINode().SetOpacity(value);
+    return true;
+  } else if (propKey == HRNodeProps::TRANSFORM) {
+    HippyValueArrayType valueArray;
+    if (propValue.ToArray(valueArray)) {
+      HRTransform transform;
+      HRConvertUtils::TransformToArk(valueArray, transform);
+      GetLocalRootArkUINode().SetTransform(transform, 1.0f); // TODO(hot):
     }
     return true;
-  } else if (propKey == "opacity") {
+  } else if (propKey == HRNodeProps::OVERFLOW) {
     return true;
-  } else if (propKey == "transform") {
+  } else if (propKey == HRNodeProps::Z_INDEX) {
     return true;
-  } else if (propKey == "overflow") {
+  } else if (propKey == HRNodeProps::PROP_ACCESSIBILITY_LABEL) {
     return true;
-  } else if (propKey == "zIndex") {
+  } else if (propKey == HRNodeProps::FOCUSABLE) {
     return true;
-  } else if (propKey == "accessibilityLabel") {
+  } else if (propKey == HRNodeProps::REQUEST_FOCUS) {
     return true;
-  } else if (propKey == "focusable") {
-    return true;
-  } else if (propKey == "requestFocus") {
-    return true;
-  } else if (propKey == "linearGradient") {
+  } else if (propKey == HRNodeProps::LINEAR_GRADIENT) {
     return true;
   } else {
     bool handled = SetBackgroundImageProp(propKey, propValue);
@@ -95,20 +89,20 @@ bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) 
 }
 
 bool BaseView::SetBackgroundImageProp(const std::string &propKey, const HippyValue &propValue) {
-  if (propKey == "backgroundImage") {
+  if (propKey == HRNodeProps::BACKGROUND_IMAGE) {
     return true;
-  } else if (propKey == "backgroundPositionX") {
+  } else if (propKey == HRNodeProps::BACKGROUND_POSITION_X) {
     return true;
-  } else if (propKey == "backgroundPositionY") {
+  } else if (propKey == HRNodeProps::BACKGROUND_POSITION_Y) {
     return true;
-  } else if (propKey == "backgroundSize") {
+  } else if (propKey == HRNodeProps::BACKGROUND_SIZE) {
     return true;
   }
   return false;
 }
 
 bool BaseView::SetBorderProp(const std::string &propKey, const HippyValue &propValue) {
-  if (propKey == "borderRadius") {
+  if (propKey == HRNodeProps::BORDER_RADIUS) {
     float value = HRValueUtils::GetFloat(propValue);
     borderTopLeftRadius_ = value;
     borderTopRightRadius_ = value;
@@ -116,27 +110,27 @@ bool BaseView::SetBorderProp(const std::string &propKey, const HippyValue &propV
     borderBottomLeftRadius_ = value;
     toSetBorderRadius_ = true;
     return true;
-  } else if (propKey == "borderTopLeftRadius") {
+  } else if (propKey == HRNodeProps::BORDER_TOP_LEFT_RADIUS) {
     float value = HRValueUtils::GetFloat(propValue);
     borderTopLeftRadius_ = value;
     toSetBorderRadius_ = true;
     return true;
-  } else if (propKey == "borderTopRightRadius") {
+  } else if (propKey == HRNodeProps::BORDER_TOP_RIGHT_RADIUS) {
     float value = HRValueUtils::GetFloat(propValue);
     borderTopRightRadius_ = value;
     toSetBorderRadius_ = true;
     return true;
-  } else if (propKey == "borderBottomRightRadius") {
+  } else if (propKey == HRNodeProps::BORDER_BOTTOM_RIGHT_RADIUS) {
     float value = HRValueUtils::GetFloat(propValue);
     borderBottomRightRadius_ = value;
     toSetBorderRadius_ = true;
     return true;
-  } else if (propKey == "borderBottomLeftRadius") {
+  } else if (propKey == HRNodeProps::BORDER_BOTTOM_LEFT_RADIUS) {
     float value = HRValueUtils::GetFloat(propValue);
     borderBottomLeftRadius_ = value;
     toSetBorderRadius_ = true;
     return true;
-  } else if (propKey == "borderWidth") {
+  } else if (propKey == HRNodeProps::BORDER_WIDTH) {
     float value = HRValueUtils::GetFloat(propValue);
     borderTopWidth_ = value;
     borderRightWidth_ = value;
@@ -144,27 +138,27 @@ bool BaseView::SetBorderProp(const std::string &propKey, const HippyValue &propV
     borderLeftWidth_ = value;
     toSetBorderWidth_ = true;
     return true;
-  } else if (propKey == "borderTopWidth") {
+  } else if (propKey == HRNodeProps::BORDER_TOP_WIDTH) {
     float value = HRValueUtils::GetFloat(propValue);
     borderTopWidth_ = value;
     toSetBorderWidth_ = true;
     return true;
-  } else if (propKey == "borderRightWidth") {
+  } else if (propKey == HRNodeProps::BORDER_RIGHT_WIDTH) {
     float value = HRValueUtils::GetFloat(propValue);
     borderRightWidth_ = value;
     toSetBorderWidth_ = true;
     return true;
-  } else if (propKey == "borderBottomWidth") {
+  } else if (propKey == HRNodeProps::BORDER_BOTTOM_WIDTH) {
     float value = HRValueUtils::GetFloat(propValue);
     borderBottomWidth_ = value;
     toSetBorderWidth_ = true;
     return true;
-  } else if (propKey == "borderLeftWidth") {
+  } else if (propKey == HRNodeProps::BORDER_LEFT_WIDTH) {
     float value = HRValueUtils::GetFloat(propValue);
     borderLeftWidth_ = value;
     toSetBorderWidth_ = true;
     return true;
-  } else if (propKey == "borderStyle") {
+  } else if (propKey == HRNodeProps::BORDER_STYLE) {
     std::string value = HRValueUtils::GetString(propValue);
     borderTopStyle_ = value;
     borderRightStyle_ = value;
@@ -172,27 +166,27 @@ bool BaseView::SetBorderProp(const std::string &propKey, const HippyValue &propV
     borderLeftStyle_ = value;
     toSetBorderStyle_ = true;
     return true;
-  } else if (propKey == "borderTopStyle") {
+  } else if (propKey == HRNodeProps::BORDER_TOP_STYLE) {
     std::string value = HRValueUtils::GetString(propValue);
     borderTopStyle_ = value;
     toSetBorderStyle_ = true;
     return true;
-  } else if (propKey == "borderRightStyle") {
+  } else if (propKey == HRNodeProps::BORDER_RIGHT_STYLE) {
     std::string value = HRValueUtils::GetString(propValue);
     borderRightStyle_ = value;
     toSetBorderStyle_ = true;
     return true;
-  } else if (propKey == "borderBottomStyle") {
+  } else if (propKey == HRNodeProps::BORDER_BOTTOM_STYLE) {
     std::string value = HRValueUtils::GetString(propValue);
     borderBottomStyle_ = value;
     toSetBorderStyle_ = true;
     return true;
-  } else if (propKey == "borderLeftStyle") {
+  } else if (propKey == HRNodeProps::BORDER_LEFT_STYLE) {
     std::string value = HRValueUtils::GetString(propValue);
     borderLeftStyle_ = value;
     toSetBorderStyle_ = true;
     return true;
-  } else if (propKey == "borderColor") {
+  } else if (propKey == HRNodeProps::BORDER_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     borderTopColor_ = value;
     borderRightColor_ = value;
@@ -200,22 +194,22 @@ bool BaseView::SetBorderProp(const std::string &propKey, const HippyValue &propV
     borderLeftColor_ = value;
     toSetBorderColor_ = true;
     return true;
-  } else if (propKey == "borderTopColor") {
+  } else if (propKey == HRNodeProps::BORDER_TOP_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     borderTopColor_ = value;
     toSetBorderColor_ = true;
     return true;
-  } else if (propKey == "borderRightColor") {
+  } else if (propKey == HRNodeProps::BORDER_RIGHT_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     borderRightColor_ = value;
     toSetBorderColor_ = true;
     return true;
-  } else if (propKey == "borderBottomColor") {
+  } else if (propKey == HRNodeProps::BORDER_BOTTOM_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     borderBottomColor_ = value;
     toSetBorderColor_ = true;
     return true;
-  } else if (propKey == "borderLeftColor") {
+  } else if (propKey == HRNodeProps::BORDER_LEFT_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     borderLeftColor_ = value;
     toSetBorderColor_ = true;
@@ -225,17 +219,17 @@ bool BaseView::SetBorderProp(const std::string &propKey, const HippyValue &propV
 }
 
 bool BaseView::SetShadowProp(const std::string &propKey, const HippyValue &propValue) {
-  if (propKey == "shadowOffset") {
+  if (propKey == HRNodeProps::SHADOW_OFFSET) {
     return true;
-  } else if (propKey == "shadowOffsetX") {
+  } else if (propKey == HRNodeProps::SHADOW_OFFSET_X) {
     return true;
-  } else if (propKey == "shadowOffsetY") {
+  } else if (propKey == HRNodeProps::SHADOW_OFFSET_Y) {
     return true;
-  } else if (propKey == "shadowOpacity") {
+  } else if (propKey == HRNodeProps::SHADOW_OPACITY) {
     return true;
-  } else if (propKey == "shadowRadius") {
+  } else if (propKey == HRNodeProps::SHADOW_RADIUS) {
     return true;
-  } else if (propKey == "shadowColor") {
+  } else if (propKey == HRNodeProps::SHADOW_COLOR) {
     return true;
   }
   return false;
@@ -343,7 +337,11 @@ void BaseView::OnSetPropsEnd() {
   }
   if (toSetBorderStyle_) {
     toSetBorderStyle_ = false;
-    GetLocalRootArkUINode().SetBorderStyle(borderTopStyle_, borderRightStyle_, borderBottomStyle_, borderLeftStyle_);
+    ArkUI_BorderStyle topStyle = HRConvertUtils::BorderStyleToArk(borderTopStyle_);
+    ArkUI_BorderStyle rightStyle = HRConvertUtils::BorderStyleToArk(borderRightStyle_);
+    ArkUI_BorderStyle bottomStyle = HRConvertUtils::BorderStyleToArk(borderBottomStyle_);
+    ArkUI_BorderStyle leftStyle = HRConvertUtils::BorderStyleToArk(borderLeftStyle_);
+    GetLocalRootArkUINode().SetBorderStyle(topStyle, rightStyle, bottomStyle, leftStyle);
   }
   if (toSetBorderColor_) {
     toSetBorderColor_ = false;

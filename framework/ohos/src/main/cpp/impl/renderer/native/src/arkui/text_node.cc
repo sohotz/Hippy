@@ -87,7 +87,7 @@ TextNode &TextNode::SetFontStyle(int32_t fontStyle) {
   return *this;
 }
 
-TextNode &TextNode::SetFontWeight(int32_t fontWeight) {
+TextNode &TextNode::SetFontWeight(ArkUI_FontWeight fontWeight) {
   ArkUI_NumberValue value[] = {{.i32 = fontWeight}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_WEIGHT, &item));
@@ -134,7 +134,7 @@ TextNode &TextNode::ResetTextMaxLines() {
   return *this;
 }
 
-TextNode &TextNode::SetTextAlign(int32_t align) {
+TextNode &TextNode::SetTextAlign(ArkUI_TextAlignment align) {
   ArkUI_NumberValue value[] = {{.i32 = align}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_ALIGN, &item));

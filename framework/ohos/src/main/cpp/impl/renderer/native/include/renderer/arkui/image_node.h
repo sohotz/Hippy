@@ -53,7 +53,7 @@ public:
 
   ImageNode &SetInterpolation(int32_t interpolation);
   ImageNode &SetDraggable(bool draggable);
-  ImageNode &SetFocusable(bool focusable);
+//   ImageNode &SetFocusable(bool focusable);
   ImageNode &SetResizeMethod(std::string const &resizeMethod);
   ImageNode &SetAlt(std::string const &src);
 

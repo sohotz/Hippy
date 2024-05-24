@@ -26,7 +26,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-int32_t HRTextConvertUtils::FontWeightToArk(std::string &str) {
+ArkUI_FontWeight HRTextConvertUtils::FontWeightToArk(std::string &str) {
   if (str == "normal") {
     return ArkUI_FontWeight::ARKUI_FONT_WEIGHT_NORMAL;
   } else if (str == "bold") {
@@ -66,7 +66,7 @@ int32_t HRTextConvertUtils::FontStyleToArk(std::string &str) {
   }
 }
 
-int32_t HRTextConvertUtils::TextAlignToArk(std::string &str) {
+ArkUI_TextAlignment HRTextConvertUtils::TextAlignToArk(std::string &str) {
   if (str == "left") {
     return ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_START;
   } else if (str == "right") {

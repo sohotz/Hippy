@@ -65,14 +65,14 @@ public:
   TextNode &ResetFontColor();
   TextNode &SetFontSize(float fontSize);
   TextNode &SetFontStyle(int32_t fontStyle);
-  TextNode &SetFontWeight(int32_t fontWeight);
+  TextNode &SetFontWeight(ArkUI_FontWeight fontWeight);
   TextNode &SetTextLineHeight(float textLineHeight);
   TextNode &SetTextDecoration(int32_t decorationStyle, uint32_t decorationColor = 0xFFFF0000);
   TextNode &SetTextCase(int32_t textCase);
   TextNode &SetTextLetterSpacing(float textLetterSpacing);
   TextNode &SetTextMaxLines(int32_t textMaxLines);
   TextNode &ResetTextMaxLines();
-  TextNode &SetTextAlign(int32_t align);
+  TextNode &SetTextAlign(ArkUI_TextAlignment align);
   TextNode &SetTextEllipsisMode(int32_t ellipsisMode);
   TextNode &SetTextOverflow(int32_t textOverflow);
   TextNode &SetFontFamily(const std::string &fontFamily);

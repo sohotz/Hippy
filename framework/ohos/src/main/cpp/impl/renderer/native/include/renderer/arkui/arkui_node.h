@@ -63,11 +63,32 @@ public:
 
   virtual ArkUINode &SetPosition(const HRPosition &position);
   virtual ArkUINode &SetSize(const HRSize &size);
+  virtual ArkUINode &SetVisibility(bool visibility);
+  virtual ArkUINode &SetBackgroundColor(uint32_t color);
+  virtual ArkUINode &SetOpacity(float opacity);
+  virtual ArkUINode &SetTransform(const HRTransform &transform, float pointScaleFactor);
+  virtual ArkUINode &SetMatrix(const HRMatrix &transformMatrix, float pointScaleFactor);
+  virtual ArkUINode &SetRotate(const HRRotate &rotate);
+  virtual ArkUINode &SetScale(const HRScale &scale);
+  virtual ArkUINode &SetTranslate(const HRTranslate &translate, float pointScaleFactor);
+  virtual ArkUINode &SetClip(bool clip);
+  virtual ArkUINode &SetZIndex(int32_t zIndex);
+  virtual ArkUINode &SetAccessibilityText(const std::string &accessibilityLabel);
+  virtual ArkUINode &SetFocusable(bool focusable);
+  virtual ArkUINode &SetLinearGradient(const HRLinearGradient &linearGradient);
+  virtual ArkUINode &SetId(const int32_t &tag);
+  virtual ArkUINode &SetHitTestMode(const ArkUIHitTestMode mode);
+  virtual ArkUINode &SetEnabled(bool enabled);
+  virtual ArkUINode &SetBackgroundImage(const std::string &uri);
+  virtual ArkUINode &SetBackgroundImagePosition(const HRPosition &position);
+  virtual ArkUINode &SetBackgroundImageSize(const ArkUI_ImageSize sizeStyle);
   virtual ArkUINode &SetBorderWidth(float top, float right, float bottom, float left);
   virtual ArkUINode &SetBorderColor(uint32_t top, uint32_t right, uint32_t bottom, uint32_t left);
   virtual ArkUINode &SetBorderRadius(float topLeft, float topRight, float bottomLeft, float bottomRight);
-  virtual ArkUINode &SetBorderStyle(std::string &top, std::string &right, std::string &bottom, std::string &left);
-  virtual ArkUINode &SetBackgroundColor(uint32_t color);
+  virtual ArkUINode &SetBorderStyle(ArkUI_BorderStyle top, ArkUI_BorderStyle right, ArkUI_BorderStyle bottom, ArkUI_BorderStyle left);
+  virtual ArkUINode &SetShadow(const uint32_t &shadowColor,
+                               const HRSize &shadowOffset, const float shadowOpacity,
+                               const float shadowRadius);
   
   virtual void OnNodeEvent(ArkUI_NodeEvent *event);
 

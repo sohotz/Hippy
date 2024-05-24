@@ -33,9 +33,9 @@ inline namespace native {
 
 class HRTextConvertUtils {
 public:
-  static int32_t FontWeightToArk(std::string &str);
+  static ArkUI_FontWeight FontWeightToArk(std::string &str);
   static int32_t FontStyleToArk(std::string &str);
-  static int32_t TextAlignToArk(std::string &str);
+  static ArkUI_TextAlignment TextAlignToArk(std::string &str);
   
 };
 

@@ -157,12 +157,12 @@ ImageNode &ImageNode::SetDraggable(bool draggable) {
   return *this;
 }
 
-ImageNode &ImageNode::SetFocusable(bool focusable) {
-  ArkUI_NumberValue value[] = {{.i32 = static_cast<int32_t>(focusable)}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FOCUSABLE, &item));
-  return *this;
-}
+// ImageNode &ImageNode::SetFocusable(bool focusable) {
+//   ArkUI_NumberValue value[] = {{.i32 = static_cast<int32_t>(focusable)}};
+//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FOCUSABLE, &item));
+//   return *this;
+// }
 
 ImageNode &ImageNode::SetResizeMethod(std::string const &resizeMethod) {
   auto autoResize = (resizeMethod != "scale") ? 1 : 0;

@@ -25,15 +25,22 @@
 #include <string>
 #include <arkui/native_type.h>
 #include "renderer/utils/hr_types.h"
+#include "footstone/hippy_value.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
+using HippyValue = footstone::HippyValue;
+using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
+using HippyValueArrayType = footstone::value::HippyValue::HippyValueArrayType;
+
 class HRConvertUtils {
 public:
   static ArkUI_BorderStyle BorderStyleToArk(std::string &str);
-  
+  static ArkUI_ImageSize BackgroundImageSizeToArk(std::string &str);
+  static float ToDegrees(const HippyValue &value);
+  static bool TransformToArk(HippyValueArrayType &valueArray, HRTransform &transform);
 };
 
 } // namespace native

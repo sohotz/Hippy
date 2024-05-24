@@ -94,9 +94,17 @@ protected:
   std::vector<std::shared_ptr<BaseView>> children_;
   std::weak_ptr<BaseView> parent_;
   
-  uint32_t backgroundColor_ = 0;
-//   bool visibility = true;
-
+  std::optional<uint32_t> backgroundColor_;
+  std::optional<bool> visibility_;
+  std::optional<float> opacity_;
+  std::optional<float> positionX_;
+  std::optional<float> positionY_;
+  std::optional<float> width_;
+  std::optional<float> height_;
+  std::optional<bool> overflow_;
+  std::optional<int32_t> zIndex_;
+  std::optional<std::string> accessibilityLabel_;
+  std::optional<bool> focusable_;
   float borderTopLeftRadius_ = 0;
   float borderTopRightRadius_ = 0;
   float borderBottomRightRadius_ = 0;
@@ -114,7 +122,6 @@ protected:
   uint32_t borderBottomColor_ = 0;
   uint32_t borderLeftColor_ = 0;
   
-  bool firstSetBackgroundColor_ = true;
   bool toSetBorderRadius_ = false;
   bool toSetBorderWidth_ = false;
   bool toSetBorderStyle_ = false;

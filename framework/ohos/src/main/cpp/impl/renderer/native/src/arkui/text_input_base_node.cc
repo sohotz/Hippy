@@ -38,15 +38,15 @@ void TextInputBaseNode::SetPadding(float left, float top, float right, float bot
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_PADDING, &item));
 }
 
-void TextInputBaseNode::SetFocusable(bool const &focusable) {
-  int32_t focusableValue = 1;
-  if (!focusable) {
-    focusableValue = 0;
-  }
-  ArkUI_NumberValue value[] = {{.i32 = focusableValue}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FOCUSABLE, &item));
-}
+// void TextInputBaseNode::SetFocusable(bool const &focusable) {
+//   int32_t focusableValue = 1;
+//   if (!focusable) {
+//     focusableValue = 0;
+//   }
+//   ArkUI_NumberValue value[] = {{.i32 = focusableValue}};
+//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FOCUSABLE, &item));
+// }
 
 void TextInputBaseNode::SetAutoFocus(bool autoFocus) {
   ArkUI_NumberValue value = {.i32 = static_cast<int32_t>(autoFocus)};

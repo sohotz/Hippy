@@ -77,6 +77,175 @@ ArkUINode &ArkUINode::SetSize(const HRSize &size) {
   return *this;
 }
 
+ArkUINode &ArkUINode::SetVisibility(bool visibility) {
+  ArkUI_NumberValue value[] = {{.i32 = visibility ? ARKUI_VISIBILITY_VISIBLE : ARKUI_VISIBILITY_HIDDEN}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(value), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_VISIBILITY, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetBackgroundColor(uint32_t color) {
+  ArkUI_NumberValue preparedColorValue[] = {{.u32 = color}};
+  ArkUI_AttributeItem colorItem = {preparedColorValue, sizeof(preparedColorValue) / sizeof(ArkUI_NumberValue), nullptr,
+                                   nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BACKGROUND_COLOR, &colorItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetTransform(const HRTransform &transform, float pointScaleFactor) {
+  if (transform.rotate.has_value()) {
+    SetRotate(transform.rotate.value());
+  }
+  if (transform.scale.has_value()) {
+    SetScale(transform.scale.value());
+  }
+  if (transform.translate.has_value()) {
+    SetTranslate(transform.translate.value(), pointScaleFactor);
+  }
+  if (transform.matrix.has_value()) {
+    SetMatrix(transform.matrix.value(), pointScaleFactor);
+  }
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetOpacity(float opacity) {
+  ArkUI_NumberValue opacityValue[] = {{.f32 = (float)opacity}};
+  ArkUI_AttributeItem opacityItem = {opacityValue, sizeof(opacityValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_OPACITY, &opacityItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetMatrix(const HRMatrix &transformMatrix, float pointScaleFactor) {
+  ArkUI_NumberValue transformCenterValue[] = {{0}, {0}, {0}, {0.5f}, {0.5f}};
+  ArkUI_AttributeItem transformCenterItem = {transformCenterValue,
+                                             sizeof(transformCenterValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TRANSFORM_CENTER, &transformCenterItem));
+
+  // NOTE: ArkUI translation is in `px` units
+  auto matrix = transformMatrix.m;
+  matrix[12] *= pointScaleFactor;
+  matrix[13] *= pointScaleFactor;
+  matrix[14] *= pointScaleFactor;
+
+  std::array<ArkUI_NumberValue, 16> transformValue;
+  for (uint32_t i = 0; i < 16; i++) {
+    transformValue[i] = {.f32 = static_cast<float>(matrix[i])};
+  }
+
+  ArkUI_AttributeItem transformItem = {transformValue.data(), transformValue.size(), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TRANSFORM, &transformItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetRotate(const HRRotate &rotate) {
+  ArkUI_NumberValue value[] = {{.f32 = rotate.x}, {.f32 = rotate.y}, {.f32 = rotate.z}, {.f32 = rotate.angle}, {.f32 = rotate.perspective}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ROTATE, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetScale(const HRScale &scale) {
+  ArkUI_NumberValue value[] = {{.f32 = scale.x}, {.f32 = scale.y}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCALE, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetTranslate(const HRTranslate &translate, float pointScaleFactor) {
+  ArkUI_NumberValue value[] = {{.f32 = translate.x * pointScaleFactor},
+                               {.f32 = translate.y * pointScaleFactor},
+                               {.f32 = translate.z * pointScaleFactor}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TRANSLATE, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetClip(bool clip) {
+  uint32_t isClip = static_cast<uint32_t>(clip);
+  ArkUI_NumberValue clipValue[] = {{.u32 = isClip}};
+  ArkUI_AttributeItem clipItem = {clipValue, sizeof(clipValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_CLIP, &clipItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetZIndex(int32_t zIndex) {
+  ArkUI_NumberValue value[] = {{.f32 = (float)zIndex}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_Z_INDEX, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetAccessibilityText(const std::string &accessibilityLabel) {
+  ArkUI_AttributeItem textItem = {.string = accessibilityLabel.c_str()};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ACCESSIBILITY_TEXT, &textItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetFocusable(bool focusable) {
+  ArkUI_NumberValue value[] = {{.i32 = focusable ? 1 : 0}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FOCUSABLE, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetLinearGradient(const HRLinearGradient &linearGradient) {
+  ArkUI_NumberValue value[] = {
+    {.f32 = linearGradient.angle.has_value() ? linearGradient.angle.value() : NAN},
+    {.i32 = linearGradient.direction.has_value() ? linearGradient.direction.value()
+                                                 : ARKUI_LINEAR_GRADIENT_DIRECTION_CUSTOM},
+    {.i32 = linearGradient.repeating.has_value() ? linearGradient.repeating.value() : false}};
+  ArkUI_ColorStop colorStop = {.colors = linearGradient.colors.data(),
+                               .stops = (float *)(linearGradient.stops.data()),
+                               .size = (int)linearGradient.colors.size()};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, &colorStop};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LINEAR_GRADIENT, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetId(const int32_t &tag) {
+  std::string tmpTag = std::to_string(tag);
+  ArkUI_AttributeItem idItem = {.string = tmpTag.c_str()};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ID, &idItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetHitTestMode(const ArkUIHitTestMode mode) {
+  ArkUI_NumberValue hitTestModeValue[] = {{.i32 = static_cast<int32_t>(mode)}};
+  ArkUI_AttributeItem hitTestModeItem = {.value = hitTestModeValue,
+                                         .size = sizeof(hitTestModeValue) / sizeof(ArkUI_NumberValue)};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HIT_TEST_BEHAVIOR, &hitTestModeItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetEnabled(bool enabled) {
+  ArkUI_NumberValue value = {.i32 = int32_t(enabled)};
+  ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ENABLED, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetBackgroundImage(const std::string &uri) {
+  ArkUI_NumberValue value[] = {{.i32 = ARKUI_IMAGE_REPEAT_NONE}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), uri.c_str(), nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BACKGROUND_IMAGE, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetBackgroundImagePosition(const HRPosition &position) {
+  ArkUI_NumberValue value[] = {{.f32 = position.x}, {.f32 = position.y}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BACKGROUND_IMAGE_POSITION, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetBackgroundImageSize(const ArkUI_ImageSize sizeStyle) {
+  ArkUI_NumberValue value[] = {{.i32 = sizeStyle}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BACKGROUND_IMAGE_SIZE_WITH_STYLE, &item));
+  return *this;
+}
+
 ArkUINode &ArkUINode::SetBorderWidth(float top, float right, float bottom, float left) {
   top = std::max(top, 0.0f);
   right = std::max(right, 0.0f);
@@ -123,22 +292,38 @@ ArkUINode &ArkUINode::SetBorderRadius(float topLeft, float topRight, float botto
   return *this;
 }
 
-ArkUINode &ArkUINode::SetBorderStyle(std::string &top, std::string &right, std::string &bottom, std::string &left) {
+ArkUINode &ArkUINode::SetBorderStyle(ArkUI_BorderStyle top, ArkUI_BorderStyle right, ArkUI_BorderStyle bottom, ArkUI_BorderStyle left) {
   ArkUI_NumberValue borderStyleValue[] = {
-    {.i32 = static_cast<int32_t>(HRConvertUtils::BorderStyleToArk(top))},
-    {.i32 = static_cast<int32_t>(HRConvertUtils::BorderStyleToArk(right))},
-    {.i32 = static_cast<int32_t>(HRConvertUtils::BorderStyleToArk(bottom))},
-    {.i32 = static_cast<int32_t>(HRConvertUtils::BorderStyleToArk(left))}
+    {.i32 = static_cast<int32_t>(top)},
+    {.i32 = static_cast<int32_t>(right)},
+    {.i32 = static_cast<int32_t>(bottom)},
+    {.i32 = static_cast<int32_t>(left)}
   };
   ArkUI_AttributeItem borderStyleItem = {borderStyleValue, sizeof(borderStyleValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BORDER_STYLE, &borderStyleItem));
   return *this;
 }
 
-ArkUINode &ArkUINode::SetBackgroundColor(uint32_t color) {
-  ArkUI_NumberValue preparedColorValue[] = {{.u32 = color}};
-  ArkUI_AttributeItem colorItem = {preparedColorValue, sizeof(preparedColorValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BACKGROUND_COLOR, &colorItem));
+ArkUINode &ArkUINode::SetShadow(const uint32_t &shadowColor, const HRSize &shadowOffset, const float shadowOpacity,
+                                const float shadowRadius) {
+  if (shadowOpacity <= 0.0 || shadowOpacity > 1.0) {
+    return *this;
+  }
+  uint32_t shadowColorValue = 0xff000000;
+  if (shadowColor) {
+    shadowColorValue = shadowColor;
+  }
+  uint32_t alpha = static_cast<uint32_t>((float)((shadowColorValue >> 24) & (0xff)) * shadowOpacity);
+  shadowColorValue = (alpha << 24) + (shadowColorValue & 0xffffff);
+  ArkUI_NumberValue shadowValue[] = {{.f32 = shadowRadius},
+                                     {.i32 = 0},
+                                     {.f32 = static_cast<float>(shadowOffset.width)},
+                                     {.f32 = static_cast<float>(shadowOffset.height)},
+                                     {.i32 = 0},
+                                     {.u32 = shadowColorValue},
+                                     {.u32 = 0}};
+  ArkUI_AttributeItem shadowItem = {.value = shadowValue, .size = sizeof(shadowValue) / sizeof(ArkUI_NumberValue)};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_CUSTOM_SHADOW, &shadowItem));
   return *this;
 }
 

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <arkui/native_type.h>
 #include <memory>
 #include <functional>
 
@@ -67,6 +68,51 @@ public:
   float paddingBottom;
   HRPadding(float paddingLeft, float paddingTop, float paddingRight, float paddingBottom)
     : paddingLeft(paddingLeft), paddingTop(paddingTop), paddingRight(paddingRight), paddingBottom(paddingBottom) {}
+};
+
+class HRRotate {
+public:
+  float x = 0;
+  float y = 0;
+  float z = 0;
+  float angle = 0;
+  float perspective = 0;
+};
+
+class HRScale {
+public:
+  float x = 1;
+  float y = 1;
+};
+
+class HRTranslate {
+public:
+  float x = 0;
+  float y = 0;
+  float z = 0;
+};
+
+class HRMatrix {
+public:
+  std::array<float, 16> m{{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}};
+};
+
+class HRTransform {
+public:
+  std::optional<HRPosition> anchor;
+  std::optional<HRRotate> rotate;
+  std::optional<HRScale> scale;
+  std::optional<HRTranslate> translate;
+  std::optional<HRMatrix> matrix;
+};
+
+class HRLinearGradient {
+public:
+  std::optional<float> angle;
+  std::optional<ArkUI_LinearGradientDirection> direction;
+  std::optional<bool> repeating;
+  std::vector<uint32_t> colors;
+  std::vector<float> stops;
 };
 
 enum class HRImageResizeMode {
