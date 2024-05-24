@@ -156,7 +156,8 @@ StyleFilter::StyleFilter() {
     "visibility",
     "transform",
     "opacity",
-    "overflow"
+    "overflow",
+    "direction",
   };
 }
 

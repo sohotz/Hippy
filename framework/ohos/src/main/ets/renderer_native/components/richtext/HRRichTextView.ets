@@ -49,6 +49,7 @@ export class HRRichTextView extends HippyRenderBaseView {
   wordBreak: WordBreak = WordBreak.BREAK_WORD
   ellipsisMode: EllipsisMode = EllipsisMode.END
   textOverflow: TextOverflow = TextOverflow.Clip
+  direction: Direction = Direction.Ltr
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -58,6 +59,13 @@ export class HRRichTextView extends HippyRenderBaseView {
     switch(propKey) {
       case "text":
         this.text = HRValueUtils.getString(propValue);
+        return true
+      case "direction":
+        if (HRValueUtils.getString(propValue) == "rtl") {
+          this.direction = Direction.Rtl;
+        } else {
+          this.direction = Direction.Ltr;
+        }
         return true
       case HRNodeProps.COLOR:
         this.fontColor = HRValueUtils.getNumber(propValue);
@@ -224,6 +232,7 @@ export struct HRRichText {
       .letterSpacing(txt.letterSpacing)
       .applyRenderViewBaseAttr_TextSpan(txt)
       .textBackgroundStyle({color: txt.cssBackgroundColor}) // backgroundColor无效，换成这个
+      .direction(txt.direction)
   }
 
   @Builder
@@ -272,6 +281,7 @@ export struct HRRichText {
     .wordBreak(this.renderView.wordBreak)
     .applyRenderViewBaseAttr(this.renderView)
     .padding(this.renderView.cssPadding)
+    .direction(this.renderView.direction)
     // .alignRules(?)
     // .align(Alignment.Center)
   }

@@ -360,6 +360,10 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     {
         auto typography = OH_Drawing_CreateTypography(handler_);
         double maxWidth = float(width) / density;
+        if (maxWidth == 0 || std::isnan(maxWidth)) {
+            // fix text measure width wrong when maxWidth is nan or 0
+            maxWidth = std::numeric_limits<double>::max();
+        }
         OH_Drawing_TypographyLayout(typography, maxWidth); // todo2 constraintWidth
 
         // double realWidth = OH_Drawing_TypographyGetLongestLine(typography); // 实际有像素的宽度
