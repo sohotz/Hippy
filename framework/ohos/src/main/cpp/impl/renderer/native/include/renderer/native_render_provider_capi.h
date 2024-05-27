@@ -36,8 +36,8 @@ void NativeRenderProvider_UpdateRootSize(uint32_t render_manager_id, uint32_t ro
 void NativeRenderProvider_UpdateNodeSize(uint32_t render_manager_id, uint32_t root_id, uint32_t node_id, float width, float height);
 void NativeRenderProvider_OnReceivedEvent(uint32_t render_manager_id, uint32_t root_id, uint32_t node_id,
       const std::string &event_name, const std::shared_ptr<HippyValue> &params, bool capture, bool bubble);
-void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result, std::string &func_name,
-      uint32_t root_id, uint32_t node_id, uint32_t cb_id, std::shared_ptr<HippyValue> &params);
+void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result, const std::string &func_name,
+      uint32_t root_id, uint32_t node_id, uint32_t cb_id, const HippyValue &params);
 
 } // namespace native
 } // namespace renderer

@@ -33,7 +33,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class NativeRenderProvider {
+class NativeRenderProvider : public std::enable_shared_from_this<NativeRenderProvider>{
 public:
   NativeRenderProvider(uint32_t instance_id);
   ~NativeRenderProvider() = default;
@@ -56,14 +56,14 @@ public:
                            const std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> &mutations);
   void EndBatch(uint32_t root_id);
   
-  void CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, std::string &func_name, const std::vector<HippyValue> params);
+  void CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, const std::string &func_name, const std::vector<HippyValue> &params);
 
   void OnSize(uint32_t root_id, float width, float height);
   void OnSize2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync);
   void DispatchEvent(uint32_t root_id, uint32_t node_id, const std::string &event_name,
       const std::shared_ptr<HippyValue> &params, bool capture, bool bubble, HREventType event_type);
-  void DoCallBack(int32_t result, uint32_t cb_id, std::string &func_name,
-      uint32_t root_id, uint32_t node_id, std::shared_ptr<HippyValue> &params);
+  void DoCallBack(int32_t result, uint32_t cb_id, const std::string &func_name,
+      uint32_t root_id, uint32_t node_id, const HippyValue &params);
   
 private:
   constexpr static const char * EVENT_PREFIX = "on";

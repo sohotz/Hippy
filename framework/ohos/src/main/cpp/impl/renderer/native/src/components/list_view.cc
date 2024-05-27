@@ -87,6 +87,18 @@ bool ListView::SetProp(const std::string &propKey, const HippyValue &propValue) 
   return BaseView::SetProp(propKey, propValue);
 }
 
+void ListView::Call(const std::string &method, const std::vector<HippyValue> params,
+                    std::function<void(const HippyValue &result)> callback) {
+  FOOTSTONE_DLOG(INFO) << "ListView call: method " << method << ", params: " << params.size();
+  if (method == "scrollToIndex") {
+    
+  } else if (method == "scrollToContentOffset") {
+    
+  } else if (method == "scrollToTop") {
+    
+  }
+}
+
 void ListView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
 }

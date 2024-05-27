@@ -160,6 +160,18 @@ bool NativeRenderImpl::CheckRegisteredEvent(uint32_t root_id, uint32_t node_id, 
   return view_manager->CheckRegisteredEvent(node_id, event_name);
 }
 
+void NativeRenderImpl::CallUIFunction(uint32_t root_id, uint32_t node_id, const std::string &functionName,
+                                      const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+
+  FOOTSTONE_DLOG(INFO) << "callUIFunction: rootId " << root_id << ", id " << node_id << ", functionName "
+                       << functionName << ", params" << params.size();
+  view_manager->CallViewMethod(node_id, functionName, params, callback);
+}
+
 uint64_t NativeRenderImpl::AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {

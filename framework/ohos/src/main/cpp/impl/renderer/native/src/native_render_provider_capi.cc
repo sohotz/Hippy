@@ -142,8 +142,8 @@ void NativeRenderProvider_OnReceivedEvent(uint32_t render_manager_id, uint32_t r
   render_manager->ReceivedEvent(root_node, node_id, event_name, params, capture, bubble);
 }
 
-void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result, std::string &func_name,
-            uint32_t root_id, uint32_t node_id, uint32_t cb_id, std::shared_ptr<HippyValue> &params) {
+void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result, const std::string &func_name,
+            uint32_t root_id, uint32_t node_id, uint32_t cb_id, const HippyValue &params) {
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -158,8 +158,7 @@ void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result,
     return;
   }
   
-  std::shared_ptr<HippyValue> the_params = params ? params : std::make_shared<HippyValue>();
-  std::vector<std::function<void()>> ops = {[root_id, node_id, cb_id, func_name, dom_manager, params = the_params] {
+  std::vector<std::function<void()>> ops = {[root_id, node_id, cb_id, func_name, dom_manager, params] {
     auto &root_map = RootNode::PersistentMap();
     std::shared_ptr<RootNode> root_node;
     bool ret = root_map.Find(root_id, root_node);
@@ -180,7 +179,7 @@ void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result,
       return;
     }
 
-    callback(std::make_shared<DomArgument>(*params));
+    callback(std::make_shared<DomArgument>(params));
   }};
   dom_manager->PostTask(Scene(std::move(ops)));
 }

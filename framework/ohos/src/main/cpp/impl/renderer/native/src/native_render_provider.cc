@@ -100,8 +100,18 @@ void NativeRenderProvider::EndBatch(uint32_t root_id) {
   });
 }
 
-void NativeRenderProvider::CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, std::string &func_name, const std::vector<HippyValue> params) {
-  
+void NativeRenderProvider::CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, const std::string &func_name, const std::vector<HippyValue> &params) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
+  auto weak_this = weak_from_this();
+  taskRunner->RunAsyncTask([render_impl = render_impl_, root_id, node_id, func_name, params, cb_id, weak_this]() {
+    std::function<void(const HippyValue &result)> cb = [cb_id, func_name, root_id, node_id, weak_this](const HippyValue &result) {
+      auto provider = weak_this.lock();
+      if (provider) {
+        provider->DoCallBack(1, cb_id, func_name, root_id, node_id, result);
+      }
+    };
+    render_impl->CallUIFunction(root_id, node_id, func_name, params, (cb_id == 0) ? nullptr : cb);
+  });
 }
 
 void NativeRenderProvider::OnSize(uint32_t root_id, float width, float height) {
@@ -132,8 +142,8 @@ void NativeRenderProvider::DispatchEvent(uint32_t root_id, uint32_t node_id, con
   NativeRenderProvider_OnReceivedEvent(instance_id_, root_id, node_id, event_name, params, capture, bubble);
 }
 
-void NativeRenderProvider::DoCallBack(int32_t result, uint32_t cb_id, std::string &func_name,
-                                      uint32_t root_id, uint32_t node_id, std::shared_ptr<HippyValue> &params) {
+void NativeRenderProvider::DoCallBack(int32_t result, uint32_t cb_id, const std::string &func_name,
+                                      uint32_t root_id, uint32_t node_id, const HippyValue &params) {
   NativeRenderProvider_DoCallBack(instance_id_, result, func_name, root_id, node_id, cb_id, params);
 }
 

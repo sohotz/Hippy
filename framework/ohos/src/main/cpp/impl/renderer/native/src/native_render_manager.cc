@@ -764,7 +764,16 @@ void NativeRenderManager::RemoveEventListener(std::weak_ptr<RootNode> root_node,
 
 void NativeRenderManager::CallFunction(std::weak_ptr<RootNode> root_node,
                                        std::weak_ptr<DomNode> domNode, const std::string& name, const DomArgument& param,
-                                      uint32_t cb_id) {
+                                        uint32_t cb_id) {
+  if (enable_ark_c_api_) {
+    CallFunction_C(root_node, domNode, name, param, cb_id);
+  } else {
+    CallFunction_TS(root_node, domNode, name, param, cb_id);
+  }
+}
+
+void NativeRenderManager::CallFunction_TS(std::weak_ptr<RootNode> root_node, std::weak_ptr<DomNode> domNode,
+                                          const std::string &name, const DomArgument &param, uint32_t cb_id) {
   auto root = root_node.lock();
   if (!root) {
     return;
@@ -778,17 +787,40 @@ void NativeRenderManager::CallFunction(std::weak_ptr<RootNode> root_node,
 
   std::vector<uint8_t> param_bson;
   param.ToBson(param_bson);
-  
-  void* new_buffer = malloc(param_bson.size());
+
+  void *new_buffer = malloc(param_bson.size());
   FOOTSTONE_DCHECK(new_buffer != nullptr);
   if (!new_buffer) {
     FOOTSTONE_LOG(ERROR) << "NativeRenderManager::CallFunction, malloc fail, size = " << param_bson.size();
     return;
   }
   memcpy(new_buffer, param_bson.data(), param_bson.size());
-  auto buffer_pair = std::make_pair(reinterpret_cast<uint8_t*>(new_buffer), param_bson.size());
+  auto buffer_pair = std::make_pair(reinterpret_cast<uint8_t *>(new_buffer), param_bson.size());
 
-  CallRenderDelegateCallFunctionMethod(ts_env_, ts_render_provider_ref_, "callUIFunction", root->GetId(), node->GetId(), cb_id, name, buffer_pair);
+  CallRenderDelegateCallFunctionMethod(ts_env_, ts_render_provider_ref_, "callUIFunction", root->GetId(), node->GetId(),
+                                       cb_id, name, buffer_pair);
+}
+
+void NativeRenderManager::CallFunction_C(std::weak_ptr<RootNode> root_node, std::weak_ptr<DomNode> domNode,
+                                         const std::string &name, const DomArgument &param, uint32_t cb_id) {
+  auto root = root_node.lock();
+  if (!root) {
+    return;
+  }
+
+  std::shared_ptr<DomNode> node = domNode.lock();
+  if (node == nullptr) {
+    FOOTSTONE_LOG(ERROR) << "CallJs bad node";
+    return;
+  }
+
+  HippyValue hippy_value;
+  param.ToObject(hippy_value);
+  
+  HippyValueArrayType params;
+  hippy_value.ToArray(params);
+  
+  c_render_provider_->CallUIFunction(root->GetId(), node->GetId(), cb_id, name, params);
 }
 
 void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint32_t dom_id,

@@ -159,6 +159,10 @@ private:
                         int32_t to_pid, int32_t index);
   void EndBatch_TS(std::weak_ptr<RootNode> root_node);
   void EndBatch_C(std::weak_ptr<RootNode> root_node);
+  void CallFunction_TS(std::weak_ptr<RootNode> root_node, std::weak_ptr<DomNode> domNode, const std::string &name,
+                       const DomArgument &param, uint32_t cb_id);
+  void CallFunction_C(std::weak_ptr<RootNode> root_node, std::weak_ptr<DomNode> domNode, const std::string &name,
+                      const DomArgument &param, uint32_t cb_id);
   void HandleListenerOps_TS(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>> &ops,
                             const std::string &method_name);
   void HandleListenerOps_C(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>> &ops,

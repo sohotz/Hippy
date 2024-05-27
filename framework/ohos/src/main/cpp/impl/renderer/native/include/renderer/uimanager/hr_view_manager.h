@@ -62,6 +62,9 @@ public:
   bool CheckRegisteredEvent(uint32_t tag, std::string &eventName);
   void SetRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding);
 
+  void CallViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
+                      std::function<void(const HippyValue &result)> callback);
+
   uint64_t AddEndBatchCallback(const EndBatchCallback &cb);
   void RemoveEndBatchCallback(uint64_t cbId);
   void NotifyEndBatchCallbacks();

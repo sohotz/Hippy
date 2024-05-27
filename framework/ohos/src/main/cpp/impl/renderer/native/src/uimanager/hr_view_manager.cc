@@ -242,6 +242,15 @@ void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const 
   }
 }
 
+void HRViewManager::CallViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
+                    std::function<void(const HippyValue &result)> callback) {
+  auto it = view_registry_.find(tag);
+  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  if (renderView) {
+    renderView->Call(method, params, callback);
+  }
+}
+
 uint64_t HRViewManager::AddEndBatchCallback(const EndBatchCallback &cb) {
   ++end_batch_callback_id_count_;
   end_batch_callback_map_[end_batch_callback_id_count_] = std::move(cb);

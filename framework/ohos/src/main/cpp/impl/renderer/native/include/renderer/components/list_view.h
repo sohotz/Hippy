@@ -41,6 +41,8 @@ public:
 
   StackNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void Call(const std::string &method, const std::vector<HippyValue> params,
+                    std::function<void(const HippyValue &result)> callback) override;
   
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
