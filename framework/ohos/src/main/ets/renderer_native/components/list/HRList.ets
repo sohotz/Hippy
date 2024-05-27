@@ -351,6 +351,8 @@ export struct HRList {
           })
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
+      .width('100%')
+      .height('100%')
       .listDirection(this.renderView.listDirection)
       .enableScrollInteraction(this.renderView.scrollEnabled)
       .cachedCount(this.renderView.cachedCount)
