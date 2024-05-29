@@ -48,7 +48,6 @@ public:
   //void SetFocusable(bool const &focusable);
   void SetAutoFocus(bool autoFocus);
   void SetResponseRegion(HRPosition const &position, HRSize const &size);
-  void SetFocusStatus(int32_t focus);
   void SetFontColor(uint32_t const &color);
   void SetTextAlign(std::optional<TextAlignment> const &textAlign);
   // virtual void SetFont(TextAttributes const &textAttributes) = 0;

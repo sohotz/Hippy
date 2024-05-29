@@ -75,6 +75,7 @@ public:
   virtual ArkUINode &SetZIndex(int32_t zIndex);
   virtual ArkUINode &SetAccessibilityText(const std::string &accessibilityLabel);
   virtual ArkUINode &SetFocusable(bool focusable);
+  virtual ArkUINode &SetFocusStatus(int32_t focus);
   virtual ArkUINode &SetLinearGradient(const HRLinearGradient &linearGradient);
   virtual ArkUINode &SetId(const int32_t &tag);
   virtual ArkUINode &SetHitTestMode(const ArkUIHitTestMode mode);
@@ -86,9 +87,7 @@ public:
   virtual ArkUINode &SetBorderColor(uint32_t top, uint32_t right, uint32_t bottom, uint32_t left);
   virtual ArkUINode &SetBorderRadius(float topLeft, float topRight, float bottomLeft, float bottomRight);
   virtual ArkUINode &SetBorderStyle(ArkUI_BorderStyle top, ArkUI_BorderStyle right, ArkUI_BorderStyle bottom, ArkUI_BorderStyle left);
-  virtual ArkUINode &SetShadow(const uint32_t &shadowColor,
-                               const HRSize &shadowOffset, const float shadowOpacity,
-                               const float shadowRadius);
+  virtual ArkUINode &SetShadow(const HRShadow &shadow);
   
   virtual void OnNodeEvent(ArkUI_NodeEvent *event);
 

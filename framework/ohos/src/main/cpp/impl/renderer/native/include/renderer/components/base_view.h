@@ -73,6 +73,7 @@ protected:
   virtual bool HandleGestureBySelf() { return false; }
 
 protected:
+  bool SetLinearGradientProp(const std::string &propKey, const HippyValue &propValue);
   bool SetBackgroundImageProp(const std::string &propKey, const HippyValue &propValue);
   bool SetBorderProp(const std::string &propKey, const HippyValue &propValue);
   bool SetShadowProp(const std::string &propKey, const HippyValue &propValue);
@@ -90,6 +91,9 @@ protected:
   void SetInterceptPullUp(bool flag);
   void SetAttachedToWindowHandle(bool flag);
   void SetDetachedFromWindowHandle(bool flag);
+  
+  void HandleInterceptPullUp();
+  std::string ConvertToLocalPathIfNeeded(const std::string &uri);
 
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t tag_;
@@ -97,17 +101,8 @@ protected:
   std::vector<std::shared_ptr<BaseView>> children_;
   std::weak_ptr<BaseView> parent_;
   
-  std::optional<uint32_t> backgroundColor_;
-  std::optional<bool> visibility_;
-  std::optional<float> opacity_;
-  std::optional<float> positionX_;
-  std::optional<float> positionY_;
-  std::optional<float> width_;
-  std::optional<float> height_;
-  std::optional<bool> overflow_;
-  std::optional<int32_t> zIndex_;
-  std::optional<std::string> accessibilityLabel_;
-  std::optional<bool> focusable_;
+  HRPosition backgroundImagePosition_ = {0, 0};
+  
   float borderTopLeftRadius_ = 0;
   float borderTopRightRadius_ = 0;
   float borderBottomRightRadius_ = 0;
@@ -125,10 +120,14 @@ protected:
   uint32_t borderBottomColor_ = 0;
   uint32_t borderLeftColor_ = 0;
   
+  HRShadow shadow_;
+  
+  bool toSetBackgroundImagePosition_ = false;
   bool toSetBorderRadius_ = false;
   bool toSetBorderWidth_ = false;
   bool toSetBorderStyle_ = false;
   bool toSetBorderColor_ = false;
+  bool toSetShadow = false;
   
   std::function<void()> eventClick_;
   std::function<void()> eventLongPress_;
@@ -140,6 +139,8 @@ protected:
   std::function<void()> eventTouchCancel_;
   std::function<void()> eventAttachedToWindow_;
   std::function<void()> eventDetachedFromWindow_;
+  
+  bool flagInterceptPullUp_ = false;
   
   HippyValueObjectType events_;
 };

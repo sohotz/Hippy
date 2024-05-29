@@ -49,7 +49,7 @@ public:
   }
 
   static void HandleTouchEvent(std::shared_ptr<NativeRenderContext> &ctx, uint32_t node_id,
-      float window_x, float window_y, std::string &event_name);
+      float window_x, float window_y, const std::string &event_name);
 
 };
 

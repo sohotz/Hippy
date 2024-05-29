@@ -189,6 +189,13 @@ ArkUINode &ArkUINode::SetFocusable(bool focusable) {
   return *this;
 }
 
+ArkUINode &ArkUINode::SetFocusStatus(int32_t focus) {
+  ArkUI_NumberValue value[] = {{.i32 = focus}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FOCUS_STATUS, &item));
+  return *this;
+}
+
 ArkUINode &ArkUINode::SetLinearGradient(const HRLinearGradient &linearGradient) {
   ArkUI_NumberValue value[] = {
     {.f32 = linearGradient.angle.has_value() ? linearGradient.angle.value() : NAN},
@@ -304,21 +311,21 @@ ArkUINode &ArkUINode::SetBorderStyle(ArkUI_BorderStyle top, ArkUI_BorderStyle ri
   return *this;
 }
 
-ArkUINode &ArkUINode::SetShadow(const uint32_t &shadowColor, const HRSize &shadowOffset, const float shadowOpacity,
-                                const float shadowRadius) {
-  if (shadowOpacity <= 0.0 || shadowOpacity > 1.0) {
-    return *this;
+ArkUINode &ArkUINode::SetShadow(const HRShadow &shadow) {
+  float shadowOpacity = 1.f;
+  if (shadow.shadowOpacity.has_value() && shadow.shadowOpacity.value() > 0 && shadow.shadowOpacity.value() < 1.f) {
+    shadowOpacity = shadow.shadowOpacity.value();
   }
   uint32_t shadowColorValue = 0xff000000;
-  if (shadowColor) {
-    shadowColorValue = shadowColor;
+  if (shadow.shadowColor.has_value()) {
+    shadowColorValue = shadow.shadowColor.value();
   }
   uint32_t alpha = static_cast<uint32_t>((float)((shadowColorValue >> 24) & (0xff)) * shadowOpacity);
   shadowColorValue = (alpha << 24) + (shadowColorValue & 0xffffff);
-  ArkUI_NumberValue shadowValue[] = {{.f32 = shadowRadius},
+  ArkUI_NumberValue shadowValue[] = {{.f32 = shadow.shadowRadius},
                                      {.i32 = 0},
-                                     {.f32 = static_cast<float>(shadowOffset.width)},
-                                     {.f32 = static_cast<float>(shadowOffset.height)},
+                                     {.f32 = static_cast<float>(shadow.shadowOffset.width)},
+                                     {.f32 = static_cast<float>(shadow.shadowOffset.height)},
                                      {.i32 = 0},
                                      {.u32 = shadowColorValue},
                                      {.u32 = 0}};

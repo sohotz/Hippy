@@ -38,8 +38,10 @@ BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(
 
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::WIDTH) {
+    // TODO(hot):
     return true;
   } else if (propKey == HRNodeProps::HEIGHT) {
+    // TODO(hot):
     return true;
   } else if (propKey == HRNodeProps::VISIBILITY) {
     auto value = HRValueUtils::GetString(propValue);
@@ -62,16 +64,30 @@ bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) 
     }
     return true;
   } else if (propKey == HRNodeProps::OVERFLOW) {
+    auto value = HRValueUtils::GetString(propValue);
+    bool clip = value != HRNodeProps::HIDDEN ? false : true;
+    GetLocalRootArkUINode().SetClip(clip);
     return true;
   } else if (propKey == HRNodeProps::Z_INDEX) {
+    auto value = HRValueUtils::GetInt32(propValue);
+    GetLocalRootArkUINode().SetZIndex(value);
     return true;
   } else if (propKey == HRNodeProps::PROP_ACCESSIBILITY_LABEL) {
+    auto value = HRValueUtils::GetString(propValue);
+    GetLocalRootArkUINode().SetAccessibilityText(value);
     return true;
   } else if (propKey == HRNodeProps::FOCUSABLE) {
+    auto value = HRValueUtils::GetBool(propValue, false);
+    GetLocalRootArkUINode().SetFocusable(value);
     return true;
   } else if (propKey == HRNodeProps::REQUEST_FOCUS) {
+    auto value = HRValueUtils::GetBool(propValue, false);
+    if (value) {
+      GetLocalRootArkUINode().SetFocusStatus(1);
+    }
     return true;
   } else if (propKey == HRNodeProps::LINEAR_GRADIENT) {
+    SetLinearGradientProp(propKey, propValue);
     return true;
   } else {
     bool handled = SetBackgroundImageProp(propKey, propValue);
@@ -88,14 +104,92 @@ bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) 
   }
 }
 
+bool BaseView::SetLinearGradientProp(const std::string &propKey, const HippyValue &propValue) {
+  HippyValueObjectType m;
+  if (!propValue.ToObject(m)) {
+    return false;
+  }
+  
+  auto angleIt = m.find("angle");
+  if (angleIt == m.end()) {
+    return false;
+  }
+  std::string angle;
+  if (!angleIt->second.ToString(angle)) {
+    return false;
+  }
+  if (angle.length() == 0) {
+    return false;
+  }
+
+  auto colorStopListIt = m.find("colorStopList");
+  if (colorStopListIt == m.end()) {
+    return false;
+  }
+  HippyValueArrayType colorStopList;
+  if (!colorStopListIt->second.ToArray(colorStopList)) {
+    return false;
+  }
+  if (colorStopList.size() == 0) {
+    return false;
+  }
+  
+  HRLinearGradient linearGradient;
+
+  auto size = colorStopList.size();
+  for (uint32_t i = 0; i < size; i++) {
+    HippyValueObjectType colorStop;
+    if (!colorStopList[i].ToObject(colorStop)) {
+      continue;
+    }
+    auto color = HRValueUtils::GetUint32(colorStop["color"]);
+    float ratio = 0.f;
+    if (colorStop.find("ratio") != colorStop.end()) {
+      ratio = HRValueUtils::GetFloat(colorStop["ratio"]);
+    } else if (i == size - 1) {
+      ratio = 1.f;
+    }
+    linearGradient.colors.push_back(color);
+    linearGradient.stops.push_back(ratio);
+  }
+  
+  if (angle == "totopright") {
+    linearGradient.direction = ARKUI_LINEAR_GRADIENT_DIRECTION_RIGHT_TOP;
+  } else if (angle == "tobottomright") {
+    linearGradient.direction = ARKUI_LINEAR_GRADIENT_DIRECTION_RIGHT_BOTTOM;
+  } else if (angle == "tobottomleft") {
+    linearGradient.direction = ARKUI_LINEAR_GRADIENT_DIRECTION_LEFT_BOTTOM;
+  } else if (angle == "totopleft") {
+    linearGradient.direction = ARKUI_LINEAR_GRADIENT_DIRECTION_LEFT_TOP;
+  } else {
+    uint32_t value = static_cast<uint32_t>(std::stof(angle)) % 360;
+    linearGradient.angle = value;
+  }
+  
+  GetLocalRootArkUINode().SetLinearGradient(linearGradient);
+
+  return true;
+}
+
 bool BaseView::SetBackgroundImageProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::BACKGROUND_IMAGE) {
+    std::string value;
+    if (propValue.ToString(value)) {
+      GetLocalRootArkUINode().SetBackgroundImage(ConvertToLocalPathIfNeeded(value));
+    }
     return true;
   } else if (propKey == HRNodeProps::BACKGROUND_POSITION_X) {
+    backgroundImagePosition_.x = HRValueUtils::GetFloat(propValue);
+    toSetBackgroundImagePosition_ = true;
     return true;
   } else if (propKey == HRNodeProps::BACKGROUND_POSITION_Y) {
+    backgroundImagePosition_.y = HRValueUtils::GetFloat(propValue);
+    toSetBackgroundImagePosition_ = true;
     return true;
   } else if (propKey == HRNodeProps::BACKGROUND_SIZE) {
+    auto value = HRValueUtils::GetString(propValue);
+    auto imageSize = HRConvertUtils::BackgroundImageSizeToArk(value);
+    GetLocalRootArkUINode().SetBackgroundImageSize(imageSize);
     return true;
   }
   return false;
@@ -220,16 +314,37 @@ bool BaseView::SetBorderProp(const std::string &propKey, const HippyValue &propV
 
 bool BaseView::SetShadowProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::SHADOW_OFFSET) {
+    HippyValueObjectType m;
+    if (propValue.ToObject(m)) {
+      auto x = HRValueUtils::GetFloat(m["x"]);
+      auto y = HRValueUtils::GetFloat(m["y"]);
+      shadow_.shadowOffset.width = x;
+      shadow_.shadowOffset.height = y;
+    }
+    toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_OFFSET_X) {
+    shadow_.shadowOffset.width = HRValueUtils::GetFloat(propValue);
+    toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_OFFSET_Y) {
+    shadow_.shadowOffset.height = HRValueUtils::GetFloat(propValue);
+    toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_OPACITY) {
+    shadow_.shadowOpacity = HRValueUtils::GetFloat(propValue);
+    toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_RADIUS) {
+    shadow_.shadowRadius = HRValueUtils::GetFloat(propValue);
+    toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_COLOR) {
+    shadow_.shadowColor = HRValueUtils::GetUint32(propValue);
+    toSetShadow = true;
+    return true;
+  } else if (propKey == HRNodeProps::SHADOW_SPREAD) {
+    // ohos not support
     return true;
   }
   return false;
@@ -283,50 +398,183 @@ void BaseView::SetClickable(bool flag) {
 }
 
 void BaseView::SetLongClickable(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventLongPress_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        HRGestureDispatcher::HandleClickEvent(view->ctx_, view->tag_, HRNodeProps::ON_LONG_CLICK);
+      }
+    };
+  } else {
+    eventLongPress_ = nullptr;
+  }
 }
 
 void BaseView::SetPressIn(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventPressIn_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        HRGestureDispatcher::HandleClickEvent(view->ctx_, view->tag_, HRNodeProps::ON_PRESS_IN);
+      }
+    };
+  } else {
+    eventPressIn_ = nullptr;
+  }
 }
 
 void BaseView::SetPressOut(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventPressOut_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        HRGestureDispatcher::HandleClickEvent(view->ctx_, view->tag_, HRNodeProps::ON_PRESS_OUT);
+      }
+    };
+  } else {
+    eventPressOut_ = nullptr;
+  }
 }
 
 void BaseView::SetTouchDownHandle(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventTouchDown_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        float touchX = 0; // TODO(hot):
+        float touchY = 0;
+        HRGestureDispatcher::HandleTouchEvent(view->ctx_, view->tag_, touchX, touchY, HRNodeProps::ON_TOUCH_DOWN);
+      }
+    };
+  } else {
+    eventTouchDown_ = nullptr;
+  }
 }
 
 void BaseView::SetTouchMoveHandle(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventTouchMove_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        float touchX = 0; // TODO(hot):
+        float touchY = 0;
+        HRGestureDispatcher::HandleTouchEvent(view->ctx_, view->tag_, touchX, touchY, HRNodeProps::ON_TOUCH_MOVE);
+      }
+    };
+  } else {
+    eventTouchMove_ = nullptr;
+  }
 }
 
 void BaseView::SetTouchEndHandle(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventTouchUp_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        float touchX = 0; // TODO(hot):
+        float touchY = 0;
+        HRGestureDispatcher::HandleTouchEvent(view->ctx_, view->tag_, touchX, touchY, HRNodeProps::ON_TOUCH_END);
+      }
+    };
+  } else {
+    eventTouchUp_ = nullptr;
+  }
 }
 
 void BaseView::SetTouchCancelHandle(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventTouchCancel_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        float touchX = 0; // TODO(hot):
+        float touchY = 0;
+        HRGestureDispatcher::HandleTouchEvent(view->ctx_, view->tag_, touchX, touchY, HRNodeProps::ON_TOUCH_CANCEL);
+      }
+    };
+  } else {
+    eventTouchCancel_ = nullptr;
+  }
 }
 
 void BaseView::SetInterceptTouch(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  GetLocalRootArkUINode().SetHitTestMode(flag ? ArkUIHitTestMode::BLOCK : ArkUIHitTestMode::DEFAULT);
 }
 
 void BaseView::SetInterceptPullUp(bool flag) {
-  
+  if (HandleGestureBySelf()) {
+  return;
+  }
+  flagInterceptPullUp_ = flag;
+}
+
+void BaseView::HandleInterceptPullUp() {
+  // TODO(hot);
 }
 
 void BaseView::SetAttachedToWindowHandle(bool flag) {
-  
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventAttachedToWindow_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        HRGestureDispatcher::HandleAttachedToWindow(view->ctx_, view->tag_);
+      }
+    };
+  } else {
+    eventAttachedToWindow_ = nullptr;
+  }
 }
 
 void BaseView::SetDetachedFromWindowHandle(bool flag) {
-  
+  if (flag) {
+    auto weak_view = weak_from_this();
+    eventDetachedFromWindow_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        HRGestureDispatcher::HandleDetachedFromWindow(view->ctx_, view->tag_);
+      }
+    };
+  } else {
+    eventDetachedFromWindow_ = nullptr;
+  }
 }
 
 void BaseView::OnSetPropsEnd() {
+  if (toSetBackgroundImagePosition_) {
+    toSetBackgroundImagePosition_ = false;
+    GetLocalRootArkUINode().SetBackgroundImagePosition(backgroundImagePosition_);
+  }
   if (toSetBorderRadius_) {
     toSetBorderRadius_ = false;
     GetLocalRootArkUINode().SetBorderRadius(borderTopLeftRadius_, borderTopRightRadius_, borderBottomLeftRadius_, borderBottomRightRadius_);
@@ -346,6 +594,10 @@ void BaseView::OnSetPropsEnd() {
   if (toSetBorderColor_) {
     toSetBorderColor_ = false;
     GetLocalRootArkUINode().SetBorderColor(borderTopColor_, borderRightColor_, borderBottomColor_, borderLeftColor_);
+  }
+  if (toSetShadow) {
+    toSetShadow = false;
+    GetLocalRootArkUINode().SetShadow(shadow_);
   }
 }
 
@@ -415,6 +667,11 @@ bool BaseView::CheckRegisteredEvent(std::string &eventName) {
     }
   }
   return false;
+}
+
+std::string BaseView::ConvertToLocalPathIfNeeded(const std::string &uri) {
+  // TODO(hot):
+  return uri;
 }
 
 } // namespace native

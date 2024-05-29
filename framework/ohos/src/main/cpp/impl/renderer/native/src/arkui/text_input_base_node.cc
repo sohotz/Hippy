@@ -60,12 +60,6 @@ void TextInputBaseNode::SetResponseRegion(HRPosition const &position, HRSize con
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_RESPONSE_REGION, &item));
 }
 
-void TextInputBaseNode::SetFocusStatus(int32_t focus) {
-  ArkUI_NumberValue value[] = {{.i32 = focus}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FOCUS_STATUS, &item));
-}
-
 void TextInputBaseNode::SetFontColor(uint32_t const &color) {
   uint32_t colorValue = color;
   ArkUI_NumberValue preparedColorValue[] = {{.u32 = colorValue}};

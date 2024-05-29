@@ -126,6 +126,14 @@ enum class HRImageResizeMode {
 
 enum class HRBorderStyle : uint8_t { Solid, Dotted, Dashed };
 
+class HRShadow {
+public:
+  HRSize shadowOffset = {0, 0};
+  float shadowRadius = 0;
+  std::optional<uint32_t> shadowColor;
+  std::optional<float> shadowOpacity;
+};
+
 using EndBatchCallback = std::function<void()>;
 
 } // namespace native

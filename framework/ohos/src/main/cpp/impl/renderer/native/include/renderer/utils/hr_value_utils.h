@@ -24,6 +24,7 @@
 
 #include <arkui/native_type.h>
 #include "footstone/hippy_value.h"
+#include "renderer/components/base_view.h"
 
 namespace hippy {
 inline namespace render {

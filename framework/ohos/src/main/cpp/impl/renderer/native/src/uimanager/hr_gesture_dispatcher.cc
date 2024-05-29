@@ -31,7 +31,7 @@ using HippyValue = footstone::HippyValue;
 using HippyValueObjectType = footstone::HippyValue::HippyValueObjectType;
 
 void HRGestureDispatcher::HandleTouchEvent(std::shared_ptr<NativeRenderContext> &ctx, uint32_t node_id, float window_x,
-    float window_y, std::string &event_name) {
+    float window_y, const std::string &event_name) {
   HippyValueObjectType param;
   param[HRGestureDispatcher::KEY_PAGE_X] = HippyValue(window_x);
   param[HRGestureDispatcher::KEY_PAGE_Y] = HippyValue(window_y);
