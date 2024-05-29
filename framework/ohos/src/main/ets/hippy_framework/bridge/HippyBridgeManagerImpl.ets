@@ -135,7 +135,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     throw new Error('Method not implemented.');
   }
 
-  execCallback(params: Map<string, HippyMap | HippyValue | HippyArray>): void {
+  execCallback(params: Map<string, HippyAny>): void {
     if (this.mBridgeState == BridgeState.INITIALIZED) {
       let binaryWriter = new BinaryWriter()
       let serializer = new Serializer(binaryWriter)
