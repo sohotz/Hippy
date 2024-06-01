@@ -37,14 +37,28 @@ public:
 
   ListItemNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  
+
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
 
+  void CheckExposureView(float currentRatio);
+  
 private:
+  uint32_t CalculateExposureState(float currentRatio);
+  void MoveToExposureState(uint32_t state);
+  
+  static const uint32_t EXPOSURE_STATE_FULL_VISIBLE = 1;
+  static const uint32_t EXPOSURE_STATE_INVISIBLE = 2;
+  static const uint32_t EXPOSURE_STATE_PART_VISIBLE = 3;
+
   ListItemNode itemNode_;
   StackNode stackNode_;
+
+  std::string type_;
+  bool sticky_ = false;
+
+  uint32_t exposureState_ = ListItemView::EXPOSURE_STATE_INVISIBLE;
 };
 
 } // namespace native
