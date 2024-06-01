@@ -33,8 +33,7 @@ using namespace std::literals;
 constexpr std::string_view ASSET_PREFIX = "asset://";
 
 ImageNode::ImageNode()
-    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_IMAGE)),
-      imageNodeDelegate_(nullptr) {
+    : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_IMAGE)) {
   for (auto eventType : IMAGE_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }

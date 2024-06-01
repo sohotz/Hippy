@@ -37,6 +37,17 @@ bool PullHeaderView::SetProp(const std::string &propKey, const HippyValue &propV
   return BaseView::SetProp(propKey, propValue);
 }
 
+void PullHeaderView::Call(const std::string &method, const std::vector<HippyValue> params,
+                    std::function<void(const HippyValue &result)> callback) {
+  if (method == "collapsePullHeader") {
+
+  } else if (method == "collapsePullHeaderWithOptions") {
+
+  } else if (method == "expandPullHeader") {
+
+  }
+}
+
 void PullHeaderView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
   stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
@@ -45,6 +56,19 @@ void PullHeaderView::OnChildInserted(std::shared_ptr<BaseView> const &childView,
 void PullHeaderView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
   stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+}
+
+void PullHeaderView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  stackNode_.SetPosition(HRPosition(0, 0));
+  stackNode_.SetSize(HRSize(frame.width, frame.height));
+}
+
+void PullHeaderView::OnHeadRefreshFinish() {
+  
+}
+
+void PullHeaderView::OnHeaderRefresh() {
+  
 }
 
 } // namespace native

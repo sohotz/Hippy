@@ -35,9 +35,20 @@ StackNode &PullFooterView::GetLocalRootArkUINode() { return stackNode_; }
 
 bool PullFooterView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "sticky") {
+    auto value = HRValueUtils::GetBool(propValue, false);
+    if (value) {
+      sticky_ = value;
+    }
     return true;
   }
   return BaseView::SetProp(propKey, propValue);
+}
+
+void PullFooterView::Call(const std::string &method, const std::vector<HippyValue> params,
+                          std::function<void(const HippyValue &result)> callback) {
+  if (method == "collapsePullFooter") {
+
+  }
 }
 
 void PullFooterView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
@@ -48,6 +59,11 @@ void PullFooterView::OnChildInserted(std::shared_ptr<BaseView> const &childView,
 void PullFooterView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
   stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+}
+
+void PullFooterView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  stackNode_.SetPosition(HRPosition(0, 0));
+  stackNode_.SetSize(HRSize(frame.width, frame.height));
 }
 
 } // namespace native

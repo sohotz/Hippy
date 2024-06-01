@@ -39,7 +39,7 @@ public:
 
 class ImageNode : public ArkUINode {
 protected:
-  ImageNodeDelegate *imageNodeDelegate_;
+  ImageNodeDelegate *imageNodeDelegate_ = nullptr;
   std::string uri_;
 
 public:

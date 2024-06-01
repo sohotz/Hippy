@@ -29,6 +29,7 @@ inline namespace native {
 
 ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   stackNode_.AddChild(listNode_);
+  listNode_.SetNodeDelegate(this);
 }
 
 ListView::~ListView() {
@@ -107,10 +108,70 @@ void ListView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
 }
 
+void ListView::OnAppear() {
+  
+}
+
+void ListView::OnDisappear() {
+  
+}
+
+void ListView::OnScroll(float scrollOffsetX, float scrollOffsetY) {
+  
+}
+
+void ListView::OnScrollStart() {
+  
+}
+
+void ListView::OnScrollStop() {
+  
+}
+
 void ListView::HandleOnChildrenUpdated() {
   for (uint32_t i = 0; i < children_.size(); i++) {
     listNode_.AddChild(children_[i]->GetLocalRootArkUINode());
   }
+}
+
+void ListView::EmitScrollEvent(const std::string &eventName) {
+  
+}
+
+void ListView::CheckSendOnScrollEvent() {
+  
+}
+
+void ListView::CheckSendReachEndEvent(int32_t lastIndex) {
+  
+}
+
+bool ListView::IsReachEnd(int32_t lastIndex) {
+  return false;
+}
+
+void ListView::SendOnReachedEvent() {
+  
+}
+
+void ListView::CheckBeginDrag() {
+  
+}
+
+void ListView::CheckEndDrag() {
+  
+}
+
+void ListView::CheckPullOnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) {
+  
+}
+
+void ListView::CheckPullOnScroll() {
+  
+}
+
+void ListView::CheckStickyOnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) {
+  
 }
 
 } // namespace native

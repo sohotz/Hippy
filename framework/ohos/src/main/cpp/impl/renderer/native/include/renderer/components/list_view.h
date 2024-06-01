@@ -32,7 +32,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ListView : public BaseView {
+class ListView : public BaseView, public ListNodeDelegate {
 public:
   ListView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ListView();
@@ -46,9 +46,26 @@ public:
   
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
-  
+
+  void OnAppear() override;
+  void OnDisappear() override;
+  void OnScroll(float scrollOffsetX, float scrollOffsetY) override;
+  void OnScrollStart() override;
+  void OnScrollStop() override;
+
 private:
   void HandleOnChildrenUpdated();
+  
+  void EmitScrollEvent(const std::string &eventName);
+  void CheckSendOnScrollEvent();
+  void CheckSendReachEndEvent(int32_t lastIndex);
+  bool IsReachEnd(int32_t lastIndex);
+  void SendOnReachedEvent();
+  void CheckBeginDrag();
+  void CheckEndDrag();
+  void CheckPullOnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio);
+  void CheckPullOnScroll();
+  void CheckStickyOnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio);
   
   StackNode stackNode_;
   ListNode listNode_;

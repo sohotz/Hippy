@@ -27,11 +27,29 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+static constexpr ArkUI_NodeEventType LIST_NODE_EVENT_TYPES[] = {
+  NODE_EVENT_ON_APPEAR,
+  NODE_EVENT_ON_DISAPPEAR,
+//   NODE_LIST_ON_SCROLL_INDEX,
+  NODE_SCROLL_EVENT_ON_SCROLL,
+  NODE_SCROLL_EVENT_ON_SCROLL_START,
+  NODE_SCROLL_EVENT_ON_SCROLL_STOP,
+//   NODE_SCROLL_EVENT_ON_REACH_START,
+//   NODE_SCROLL_EVENT_ON_REACH_END
+};
+
 ListNode::ListNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_LIST)) {
+  for (auto eventType : LIST_NODE_EVENT_TYPES) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
+  }
 }
 
-ListNode::~ListNode() {}
+ListNode::~ListNode() {
+  for (auto eventType : LIST_NODE_EVENT_TYPES) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
+  }
+}
 
 void ListNode::AddChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
@@ -45,6 +63,37 @@ void ListNode::InsertChild(ArkUINode &child, int32_t index) {
 void ListNode::RemoveChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
 }
+
+void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  if (listNodeDelegate_ == nullptr) {
+    return;
+  }
+
+  auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
+  auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
+  if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_APPEAR) {
+    listNodeDelegate_->OnAppear();
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
+    listNodeDelegate_->OnDisappear();
+//   } else if (eventType == ArkUI_NodeEventType::NODE_LIST_ON_SCROLL_INDEX) {
+    
+  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_SCROLL) {
+    float x = nodeComponentEvent->data[0].f32;
+    float y = nodeComponentEvent->data[1].f32;
+    listNodeDelegate_->OnScroll(x, y);
+  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_SCROLL_START) {
+    listNodeDelegate_->OnScrollStart();
+  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_SCROLL_STOP) {
+    listNodeDelegate_->OnScrollStop();
+  }
+//   } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_START) {
+//    
+//   } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_END) {
+//    
+//   }
+}
+
+void ListNode::SetNodeDelegate(ListNodeDelegate *listNodeDelegate) { listNodeDelegate_ = listNodeDelegate; }
 
 } // namespace native
 } // namespace render

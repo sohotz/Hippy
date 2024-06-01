@@ -28,8 +28,20 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class ListNodeDelegate {
+public:
+  virtual ~ListNodeDelegate() = default;
+  virtual void OnAppear() {}
+  virtual void OnDisappear() {}
+  virtual void OnScroll(float scrollOffsetX, float scrollOffsetY) {}
+  virtual void OnScrollStart() {}
+  virtual void OnScrollStop() {}
+};
+
 class ListNode : public ArkUINode {
 protected:
+  ListNodeDelegate *listNodeDelegate_ = nullptr;
+
 public:
   ListNode();
   ~ListNode();
@@ -37,6 +49,9 @@ public:
   void AddChild(ArkUINode &child);
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
+
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void SetNodeDelegate(ListNodeDelegate *listNodeDelegate);
 };
 
 } // namespace native
