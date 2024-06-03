@@ -49,9 +49,12 @@ public:
 
   void OnAppear() override;
   void OnDisappear() override;
+  void OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) override;
   void OnScroll(float scrollOffsetX, float scrollOffsetY) override;
   void OnScrollStart() override;
   void OnScrollStop() override;
+  void OnReachStart() override;
+  void OnReachEnd() override;
 
 private:
   void HandleOnChildrenUpdated();

@@ -33,9 +33,12 @@ public:
   virtual ~ListNodeDelegate() = default;
   virtual void OnAppear() {}
   virtual void OnDisappear() {}
+  virtual void OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) {}
   virtual void OnScroll(float scrollOffsetX, float scrollOffsetY) {}
   virtual void OnScrollStart() {}
   virtual void OnScrollStop() {}
+  virtual void OnReachStart() {}
+  virtual void OnReachEnd() {}
 };
 
 class ListNode : public ArkUINode {
@@ -49,6 +52,7 @@ public:
   void AddChild(ArkUINode &child);
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
+  void RemoveAllChildren();
 
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ListNodeDelegate *listNodeDelegate);

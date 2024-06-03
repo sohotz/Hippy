@@ -116,6 +116,10 @@ void ListView::OnDisappear() {
   
 }
 
+void ListView::OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) {
+  
+}
+
 void ListView::OnScroll(float scrollOffsetX, float scrollOffsetY) {
   
 }
@@ -128,7 +132,16 @@ void ListView::OnScrollStop() {
   
 }
 
+void ListView::OnReachStart() {
+  
+}
+
+void ListView::OnReachEnd() {
+  
+}
+
 void ListView::HandleOnChildrenUpdated() {
+  listNode_.RemoveAllChildren();
   for (uint32_t i = 0; i < children_.size(); i++) {
     listNode_.AddChild(children_[i]->GetLocalRootArkUINode());
   }

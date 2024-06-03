@@ -30,12 +30,12 @@ inline namespace native {
 static constexpr ArkUI_NodeEventType LIST_NODE_EVENT_TYPES[] = {
   NODE_EVENT_ON_APPEAR,
   NODE_EVENT_ON_DISAPPEAR,
-//   NODE_LIST_ON_SCROLL_INDEX,
+  NODE_LIST_ON_SCROLL_INDEX,
   NODE_SCROLL_EVENT_ON_SCROLL,
   NODE_SCROLL_EVENT_ON_SCROLL_START,
   NODE_SCROLL_EVENT_ON_SCROLL_STOP,
-//   NODE_SCROLL_EVENT_ON_REACH_START,
-//   NODE_SCROLL_EVENT_ON_REACH_END
+  NODE_SCROLL_EVENT_ON_REACH_START,
+  NODE_SCROLL_EVENT_ON_REACH_END
 };
 
 ListNode::ListNode()
@@ -64,6 +64,16 @@ void ListNode::RemoveChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
 }
 
+void ListNode::RemoveAllChildren() {
+  uint32_t count = NativeNodeApi::GetInstance()->getTotalChildCount(nodeHandle_);
+  for (int32_t i = static_cast<int32_t>(count) - 1; i >= 0; i--) {
+    ArkUI_NodeHandle childHandle = NativeNodeApi::GetInstance()->getChildAt(nodeHandle_, i);
+    if (childHandle) {
+      MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, childHandle));
+    }
+  }
+}
+
 void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   if (listNodeDelegate_ == nullptr) {
     return;
@@ -75,8 +85,11 @@ void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     listNodeDelegate_->OnAppear();
   } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
     listNodeDelegate_->OnDisappear();
-//   } else if (eventType == ArkUI_NodeEventType::NODE_LIST_ON_SCROLL_INDEX) {
-    
+  } else if (eventType == ArkUI_NodeEventType::NODE_LIST_ON_SCROLL_INDEX) {
+    int32_t firstIndex = nodeComponentEvent->data[0].i32;
+    int32_t lastIndex = nodeComponentEvent->data[1].i32;
+    int32_t centerIndex = nodeComponentEvent->data[2].i32;
+    listNodeDelegate_->OnScrollIndex(firstIndex, lastIndex, centerIndex);
   } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_SCROLL) {
     float x = nodeComponentEvent->data[0].f32;
     float y = nodeComponentEvent->data[1].f32;
@@ -85,12 +98,11 @@ void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     listNodeDelegate_->OnScrollStart();
   } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_SCROLL_STOP) {
     listNodeDelegate_->OnScrollStop();
+  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_START) {
+    listNodeDelegate_->OnReachStart();
+  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_END) {
+    listNodeDelegate_->OnReachEnd();
   }
-//   } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_START) {
-//    
-//   } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_END) {
-//    
-//   }
 }
 
 void ListNode::SetNodeDelegate(ListNodeDelegate *listNodeDelegate) { listNodeDelegate_ = listNodeDelegate; }
