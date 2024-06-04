@@ -27,14 +27,12 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-PullHeaderView::PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+PullHeaderView::PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx) : ListItemView(ctx) {}
 
 PullHeaderView::~PullHeaderView() {}
 
-StackNode &PullHeaderView::GetLocalRootArkUINode() { return stackNode_; }
-
 bool PullHeaderView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  return BaseView::SetProp(propKey, propValue);
+  return ListItemView::SetProp(propKey, propValue);
 }
 
 void PullHeaderView::Call(const std::string &method, const std::vector<HippyValue> params,
@@ -46,21 +44,6 @@ void PullHeaderView::Call(const std::string &method, const std::vector<HippyValu
   } else if (method == "expandPullHeader") {
 
   }
-}
-
-void PullHeaderView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
-}
-
-void PullHeaderView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
-}
-
-void PullHeaderView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  stackNode_.SetPosition(HRPosition(0, 0));
-  stackNode_.SetSize(HRSize(frame.width, frame.height));
 }
 
 void PullHeaderView::OnHeadRefreshFinish() {

@@ -23,29 +23,22 @@
 #pragma once
 
 #include "renderer/components/base_view.h"
-#include "renderer/arkui/stack_node.h"
+#include "renderer/components/list_item_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class PullFooterView : public BaseView {
+class PullFooterView : public ListItemView {
 public:
   PullFooterView(std::shared_ptr<NativeRenderContext> &ctx);
   ~PullFooterView();
-
-  StackNode &GetLocalRootArkUINode() override;
+  
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
   void Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
   
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
-  
 private:
-  StackNode stackNode_;
-  
   bool sticky_ = false;
 };
 

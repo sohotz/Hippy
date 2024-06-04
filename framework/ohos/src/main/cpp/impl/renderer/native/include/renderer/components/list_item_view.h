@@ -41,6 +41,11 @@ public:
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  
+  float GetWidth() { return width_; }
+  float GetHeight() { return height_; }
+  std::string &GetType() { return type_; }
+  bool IsSticky() { return sticky_; }
 
   void CheckExposureView(float currentRatio);
   
@@ -54,6 +59,9 @@ private:
 
   ListItemNode itemNode_;
   StackNode stackNode_;
+  
+  float width_ = 0;
+  float height_ = 0;
 
   std::string type_;
   bool sticky_ = false;

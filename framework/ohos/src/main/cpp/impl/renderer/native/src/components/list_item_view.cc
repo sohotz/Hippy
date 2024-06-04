@@ -70,6 +70,8 @@ void ListItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
 void ListItemView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
   stackNode_.SetPosition(HRPosition(0, 0));
   stackNode_.SetSize(HRSize(frame.width, frame.height));
+  width_ = frame.width;
+  height_ = frame.height;
 }
 
 void ListItemView::CheckExposureView(float currentRatio) {

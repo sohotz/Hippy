@@ -23,6 +23,7 @@
 #pragma once
 
 #include "renderer/arkui/arkui_node.h"
+#include "renderer/arkui/arkui_node_registry.h"
 
 namespace hippy {
 inline namespace render {
@@ -39,9 +40,10 @@ public:
   virtual void OnScrollStop() {}
   virtual void OnReachStart() {}
   virtual void OnReachEnd() {}
+  virtual void OnTouch(int32_t touchType) {}
 };
 
-class ListNode : public ArkUINode {
+class ListNode : public ArkUINode, public TouchEventHandler {
 protected:
   ListNodeDelegate *listNodeDelegate_ = nullptr;
 
@@ -53,9 +55,17 @@ public:
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
   void RemoveAllChildren();
+  
+  HRPoint GetScrollOffset();
+  void ScrollTo(float offsetX, float offsetY, bool animated);
+  void ScrollToIndex(int32_t index, bool animated, bool isScrollAlignStart);
+  void SetListDirection(bool isVertical);
+  void SetScrollEdgeEffect(bool hasEffect);
+  void SetScrollNestedScroll(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward);
 
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ListNodeDelegate *listNodeDelegate);
+  void OnTouchEvent(ArkUI_UIInputEvent *event) override;
 };
 
 } // namespace native

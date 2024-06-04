@@ -27,9 +27,21 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ListItemNode::ListItemNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_LIST_ITEM)) {}
+static constexpr ArkUI_NodeEventType LIST_ITEM_NODE_EVENT_TYPES[] = {
+  NODE_EVENT_ON_VISIBLE_AREA_CHANGE
+};
 
-ListItemNode::~ListItemNode() {}
+ListItemNode::ListItemNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_LIST_ITEM)) {
+//   for (auto eventType : LIST_ITEM_NODE_EVENT_TYPES) {
+//     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
+//   }
+}
+
+ListItemNode::~ListItemNode() {
+  for (auto eventType : LIST_ITEM_NODE_EVENT_TYPES) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
+  }
+}
 
 void ListItemNode::AddChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
@@ -43,6 +55,22 @@ void ListItemNode::InsertChild(ArkUINode &child, int32_t index) {
 void ListItemNode::RemoveChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
 }
+
+void ListItemNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  if (listItemNodeDelegate_ == nullptr) {
+    return;
+  }
+
+  auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
+  auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
+  if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_VISIBLE_AREA_CHANGE) {
+    bool isVisible = nodeComponentEvent->data[0].i32;
+    float currentRatio = nodeComponentEvent->data[1].f32;
+    listItemNodeDelegate_->OnItemVisibleAreaChange(itemIndex_, isVisible, currentRatio);
+  }
+}
+
+void ListItemNode::SetNodeDelegate(ListItemNodeDelegate *nodeDelegate) { listItemNodeDelegate_ = nodeDelegate; }
 
 } // namespace native
 } // namespace render

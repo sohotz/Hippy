@@ -43,12 +43,14 @@ ListNode::ListNode()
   for (auto eventType : LIST_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
+  ArkUINodeRegistry::GetInstance().RegisterTouchHandler(this, this);
 }
 
 ListNode::~ListNode() {
   for (auto eventType : LIST_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }
+  ArkUINodeRegistry::GetInstance().UnregisterTouchHandler(this);
 }
 
 void ListNode::AddChild(ArkUINode &child) {
@@ -72,6 +74,49 @@ void ListNode::RemoveAllChildren() {
       MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, childHandle));
     }
   }
+}
+
+HRPoint ListNode::GetScrollOffset() {
+  auto item = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_SCROLL_OFFSET);
+  float x = item->value[0].f32;
+  float y = item->value[1].f32;
+  return HRPoint(x, y);
+}
+
+void ListNode::ScrollTo(float offsetX, float offsetY, bool animated) {
+  ArkUI_NumberValue value[] = {{.f32 = offsetX},
+                               {.f32 = offsetY},
+                               {.i32 = animated ? 1000 : 0},
+                               {.i32 = ArkUI_AnimationCurve::ARKUI_CURVE_SMOOTH},
+                               {.i32 = 0}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_OFFSET, &item));
+}
+
+void ListNode::ScrollToIndex(int32_t index, bool animated, bool isScrollAlignStart) {
+  ArkUI_NumberValue value[] = {{.i32 = index},
+                               {.i32 = animated},
+                               {.i32 = isScrollAlignStart ? ARKUI_SCROLL_ALIGNMENT_START : ARKUI_SCROLL_ALIGNMENT_END}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_SCROLL_TO_INDEX, &item));
+}
+
+void ListNode::SetListDirection(bool isVertical) {
+  ArkUI_NumberValue value[] = {{.i32 = isVertical ? ARKUI_AXIS_VERTICAL : ARKUI_AXIS_HORIZONTAL}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_DIRECTION, &item));
+}
+
+void ListNode::SetScrollEdgeEffect(bool hasEffect) {
+//   ArkUI_NumberValue value[] = {{.i32 = hasEffect ? ARKUI_EDGE_EFFECT_SPRING : ARKUI_EDGE_EFFECT_NONE}};
+//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_EDGE_EFFECT, &item));
+}
+
+void ListNode::SetScrollNestedScroll(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward) {
+  ArkUI_NumberValue value[] = {{.i32 = scrollBackward}, {.i32 = scrollForward}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_NESTED_SCROLL, &item));
 }
 
 void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
@@ -106,6 +151,14 @@ void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
 }
 
 void ListNode::SetNodeDelegate(ListNodeDelegate *listNodeDelegate) { listNodeDelegate_ = listNodeDelegate; }
+
+void ListNode::OnTouchEvent(ArkUI_UIInputEvent *event) {
+  if (listNodeDelegate_ == nullptr) {
+    return;
+  }
+  auto type = OH_ArkUI_UIInputEvent_GetType(event);
+  listNodeDelegate_->OnTouch(type);
+}
 
 } // namespace native
 } // namespace render

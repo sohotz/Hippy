@@ -27,11 +27,9 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : ListItemView(ctx) {}
 
 PullFooterView::~PullFooterView() {}
-
-StackNode &PullFooterView::GetLocalRootArkUINode() { return stackNode_; }
 
 bool PullFooterView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "sticky") {
@@ -41,7 +39,7 @@ bool PullFooterView::SetProp(const std::string &propKey, const HippyValue &propV
     }
     return true;
   }
-  return BaseView::SetProp(propKey, propValue);
+  return ListItemView::SetProp(propKey, propValue);
 }
 
 void PullFooterView::Call(const std::string &method, const std::vector<HippyValue> params,
@@ -49,21 +47,6 @@ void PullFooterView::Call(const std::string &method, const std::vector<HippyValu
   if (method == "collapsePullFooter") {
 
   }
-}
-
-void PullFooterView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
-}
-
-void PullFooterView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
-}
-
-void PullFooterView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  stackNode_.SetPosition(HRPosition(0, 0));
-  stackNode_.SetSize(HRSize(frame.width, frame.height));
 }
 
 } // namespace native

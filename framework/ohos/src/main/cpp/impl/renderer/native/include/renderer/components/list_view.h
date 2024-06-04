@@ -26,13 +26,24 @@
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/stack_node.h"
 #include "renderer/arkui/list_node.h"
-#include "renderer/arkui/list_item_node.h"
+#include "renderer/components/pull_footer_view.h"
+#include "renderer/components/pull_header_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ListView : public BaseView, public ListNodeDelegate {
+const int32_t INVALID_STICKY_INDEX = -1;
+
+enum class ScrollAction : int32_t {
+  None,
+  PullHeader,
+  ReleaseHeader,
+  PullFooter,
+  ReleaseFooter
+};
+
+class ListView : public BaseView, public ListNodeDelegate, public ListItemNodeDelegate {
 public:
   ListView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ListView();
@@ -46,6 +57,7 @@ public:
   
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
 
   void OnAppear() override;
   void OnDisappear() override;
@@ -55,6 +67,9 @@ public:
   void OnScrollStop() override;
   void OnReachStart() override;
   void OnReachEnd() override;
+  void OnTouch(int32_t touchType) override;
+  
+  void OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) override;
 
 private:
   void HandleOnChildrenUpdated();
@@ -69,10 +84,54 @@ private:
   void CheckPullOnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio);
   void CheckPullOnScroll();
   void CheckStickyOnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio);
-  
+  void CheckInitOffset();
+
+  constexpr static const char *CONTENT_OFFSET = "contentOffset";
+  constexpr static const char *PULL_HEADER_VIEW_TYPE = "PullHeaderView";
+  constexpr static const char *PULL_FOOTER_VIEW_TYPE = "PullFooterView";
+  constexpr static const char *LIST_VIEW_ITEM_TYPE = "ListViewItem";
+
   StackNode stackNode_;
   ListNode listNode_;
-  std::vector<ListItemNode> listItemNodes_;
+
+  float width_ = 0;
+  float height_ = 0;
+  
+  bool scrollEnabled_ = true;
+  float initialOffset_ = 0;
+  int32_t cachedCount_ = 4;
+  int32_t scrollEventThrottle_ = 30;
+  int32_t preloadItemNumber_ = 0;
+  bool exposureEventEnabled_ = false;
+  bool rowShouldSticky_ = false;
+
+  bool scrollBeginDragEventEnable_ = false;
+  bool scrollEndDragEventEnable_ = false;
+  bool momentumScrollBeginEventEnable_ = false;
+  bool momentumScrollEndEventEnable_ = false;
+  bool onScrollEventEnable_ = false;
+
+  bool hasPullHeader_ = false;
+  float pullHeaderHeight_ = 0;
+  
+  ScrollAction pullAction_ = ScrollAction::None;
+  std::shared_ptr<PullHeaderView> headerView_ = nullptr;
+  std::shared_ptr<PullFooterView> footerView_ = nullptr;
+  int64_t lastScrollTime_ = 0;
+  bool isLastTimeReachEnd_ = false;
+
+  int32_t stickyIndex_ = INVALID_STICKY_INDEX;
+  std::vector<int32_t> stickyArray_;
+  std::vector<int32_t> stickyStack_;
+  
+  bool isDragging_ = false;
+  float lastMoveY_ = 0;
+
+  bool initOffsetUsed_ = false;
+  bool headerViewFullVisible_ = false;
+  bool footerViewFullVisible_ = false;
+  float lastItemFullVisibleYOffset_ = 0;
+  
   uint64_t end_batch_callback_id_ = 0;
 };
 

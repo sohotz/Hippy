@@ -94,6 +94,7 @@ protected:
   
   void HandleInterceptPullUp();
   std::string ConvertToLocalPathIfNeeded(const std::string &uri);
+  int64_t GetTimeMilliSeconds();
 
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t tag_;

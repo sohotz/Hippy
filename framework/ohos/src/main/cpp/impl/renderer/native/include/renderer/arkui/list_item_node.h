@@ -28,8 +28,17 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class ListItemNodeDelegate {
+public:
+  virtual ~ListItemNodeDelegate() = default;
+  virtual void OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) {}
+};
+
 class ListItemNode : public ArkUINode {
 protected:
+  ListItemNodeDelegate *listItemNodeDelegate_ = nullptr;
+  int32_t itemIndex_ = -1;
+
 public:
   ListItemNode();
   ~ListItemNode();
@@ -37,6 +46,11 @@ public:
   void AddChild(ArkUINode &child);
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
+
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void SetNodeDelegate(ListItemNodeDelegate *nodeDelegate);
+  
+  void SetItemIndex(int32_t index) { itemIndex_ = index; }
 };
 
 } // namespace native
