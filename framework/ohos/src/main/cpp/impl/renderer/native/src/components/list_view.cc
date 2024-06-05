@@ -32,6 +32,9 @@ inline namespace native {
 ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   stackNode_.AddChild(listNode_);
   listNode_.SetNodeDelegate(this);
+  listNode_.SetSizePercent(HRSize(1.f, 1.f));
+  listNode_.SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
+  listNode_.SetListCachedCount(4);
 }
 
 ListView::~ListView() {
@@ -46,6 +49,8 @@ void ListView::Init() {
       auto listView = std::static_pointer_cast<ListView>(view);
       listView->HandleOnChildrenUpdated();
       listView->CheckInitOffset();
+      
+      // TODO(hot): rowShouldSticky
     }
   });
 }
@@ -66,20 +71,19 @@ bool ListView::SetProp(const std::string &propKey, const HippyValue &propValue) 
     return true;
   } else if (propKey == "horizontal") {
     auto value = HRValueUtils::GetBool(propValue, false);
-    if (value) {
-      listNode_.SetListDirection(false);
-    } else {
-      listNode_.SetListDirection(true);
-    }
+    isVertical_ = !value;
+    listNode_.SetListDirection(isVertical_);
     return true;
   } else if (propKey == "scrollEnabled") {
-    scrollEnabled_ = HRValueUtils::GetBool(propValue, true);
+    auto value = HRValueUtils::GetBool(propValue, true);
+    listNode_.SetEnableScrollInteraction(value);
     return true;
   } else if (propKey == "initialContentOffset") {
     initialOffset_ = HRValueUtils::GetFloat(propValue);
     return true;
   } else if (propKey == "itemViewCacheSize") {
-    cachedCount_ = HRValueUtils::GetInt32(propValue);
+    auto value = HRValueUtils::GetInt32(propValue);
+    listNode_.SetListCachedCount(value);
     return true;
   } else if (propKey == "scrollEventThrottle") {
     scrollEventThrottle_ = HRValueUtils::GetInt32(propValue, 30);
@@ -120,11 +124,23 @@ void ListView::Call(const std::string &method, const std::vector<HippyValue> par
                     std::function<void(const HippyValue &result)> callback) {
   FOOTSTONE_DLOG(INFO) << "ListView call: method " << method << ", params: " << params.size();
   if (method == "scrollToIndex") {
-    
+    auto xIndex = HRValueUtils::GetInt32(params[0]);
+    auto yIndex = HRValueUtils::GetInt32(params[1]);
+    auto animated = HRValueUtils::GetBool(params[2], false);
+    auto index = isVertical_ ? yIndex : xIndex;
+    listNode_.ScrollToIndex(hasPullHeader_ ? index + 1 : index, animated, true);
   } else if (method == "scrollToContentOffset") {
-    
+    auto xOffset = HRValueUtils::GetFloat(params[0]);
+    auto yOffset = HRValueUtils::GetFloat(params[1]);
+    auto animated = HRValueUtils::GetBool(params[2], false);
+    if (isVertical_) {
+      yOffset += pullHeaderHeight_;
+    } else {
+      xOffset += pullHeaderHeight_;
+    }
+    listNode_.ScrollTo(xOffset, yOffset, animated);
   } else if (method == "scrollToTop") {
-    
+    listNode_.ScrollToIndex(hasPullHeader_ ? 1 : 0, true, true);
   }
 }
 
@@ -140,6 +156,10 @@ void ListView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &paddi
   BaseView::UpdateRenderViewFrame(frame, padding);
   width_ = frame.width;
   height_ = frame.height;
+}
+
+void ListView::ScrollToIndex(int32_t index, bool animated) {
+  listNode_.ScrollToIndex(index, animated, true);
 }
 
 void ListView::OnAppear() {

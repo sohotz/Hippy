@@ -21,6 +21,8 @@
  */
 
 #include "renderer/components/pull_header_view.h"
+#include "renderer/components/list_view.h"
+#include "renderer/components/waterfall_view.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -38,20 +40,47 @@ bool PullHeaderView::SetProp(const std::string &propKey, const HippyValue &propV
 void PullHeaderView::Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) {
   if (method == "collapsePullHeader") {
-
+    OnHeadRefreshFinish();
   } else if (method == "collapsePullHeaderWithOptions") {
-
+    HippyValueObjectType map;
+    bool r = params[0].ToObject(map);
+    if (r && map.size() > 0) {
+      auto collapseTime = HRValueUtils::GetInt32(map["time"]);
+      if (collapseTime > 0) {
+        // TODO(hot):
+        FOOTSTONE_DLOG(INFO) << "PullHeaderView collapse delay: " << collapseTime;
+        OnHeadRefreshFinish();
+      } else {
+        OnHeadRefreshFinish();
+      }
+    }
   } else if (method == "expandPullHeader") {
-
+    OnHeaderRefresh();
   }
 }
 
 void PullHeaderView::OnHeadRefreshFinish() {
-  
+  auto parentView = parent_.lock();
+  if (parentView) {
+    if (parentView->GetViewType() == "ListView") {
+      auto listView = std::static_pointer_cast<ListView>(parentView);
+      listView->ScrollToIndex(1, true);
+    } else if (parentView->GetViewType() == "WaterfallView") {
+      auto waterView = std::static_pointer_cast<WaterfallView>(parentView);
+      // TODO(hot):
+      //waterView->OnHeadRefreshFinish();
+    }
+  }
 }
 
 void PullHeaderView::OnHeaderRefresh() {
-  
+  auto parentView = parent_.lock();
+  if (parentView) {
+    if (parentView->GetViewType() == "ListView") {
+      auto listView = std::static_pointer_cast<ListView>(parentView);
+      listView->ScrollToIndex(0, true);
+    }
+  }
 }
 
 } // namespace native

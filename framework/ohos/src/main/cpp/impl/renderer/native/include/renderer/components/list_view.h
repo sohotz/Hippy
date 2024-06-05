@@ -58,6 +58,8 @@ public:
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  
+  void ScrollToIndex(int32_t index, bool animated);
 
   void OnAppear() override;
   void OnDisappear() override;
@@ -97,9 +99,8 @@ private:
   float width_ = 0;
   float height_ = 0;
   
-  bool scrollEnabled_ = true;
+  bool isVertical_ = true;
   float initialOffset_ = 0;
-  int32_t cachedCount_ = 4;
   int32_t scrollEventThrottle_ = 30;
   int32_t preloadItemNumber_ = 0;
   bool exposureEventEnabled_ = false;

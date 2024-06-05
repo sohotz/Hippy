@@ -62,6 +62,9 @@ public:
   void SetListDirection(bool isVertical);
   void SetScrollEdgeEffect(bool hasEffect);
   void SetScrollNestedScroll(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward);
+  void SetEnableScrollInteraction(bool enabled);
+  void SetListCachedCount(int32_t count);
+  void SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode);
 
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ListNodeDelegate *listNodeDelegate);

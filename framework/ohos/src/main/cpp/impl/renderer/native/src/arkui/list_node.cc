@@ -119,6 +119,24 @@ void ListNode::SetScrollNestedScroll(ArkUI_ScrollNestedMode scrollForward, ArkUI
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_NESTED_SCROLL, &item));
 }
 
+void ListNode::SetEnableScrollInteraction(bool enabled) {
+  ArkUI_NumberValue value[] = {{.i32 = enabled}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_ENABLE_SCROLL_INTERACTION, &item));
+}
+
+void ListNode::SetListCachedCount(int32_t count) {
+  ArkUI_NumberValue value[] = {{.i32 = count}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_CACHED_COUNT, &item));
+}
+
+void ListNode::SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode) {
+  ArkUI_NumberValue value[] = {{.i32 = mode}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_BAR_DISPLAY_MODE, &item));
+}
+
 void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   if (listNodeDelegate_ == nullptr) {
     return;

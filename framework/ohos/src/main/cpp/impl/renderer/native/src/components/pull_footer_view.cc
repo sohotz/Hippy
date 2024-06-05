@@ -45,7 +45,7 @@ bool PullFooterView::SetProp(const std::string &propKey, const HippyValue &propV
 void PullFooterView::Call(const std::string &method, const std::vector<HippyValue> params,
                           std::function<void(const HippyValue &result)> callback) {
   if (method == "collapsePullFooter") {
-
+    // nothing to do
   }
 }
 

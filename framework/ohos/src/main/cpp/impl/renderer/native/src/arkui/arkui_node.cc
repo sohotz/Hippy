@@ -77,6 +77,17 @@ ArkUINode &ArkUINode::SetSize(const HRSize &size) {
   return *this;
 }
 
+ArkUINode &ArkUINode::SetSizePercent(const HRSize &size) {
+  ArkUI_NumberValue widthValue[] = {{size.width}};
+  ArkUI_AttributeItem widthItem = {widthValue, sizeof(widthValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WIDTH_PERCENT, &widthItem));
+
+  ArkUI_NumberValue heightValue[] = {{size.height}};
+  ArkUI_AttributeItem heightItem = {heightValue, sizeof(heightValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT_PERCENT, &heightItem));
+  return *this;
+}
+
 ArkUINode &ArkUINode::SetVisibility(bool visibility) {
   ArkUI_NumberValue value[] = {{.i32 = visibility ? ARKUI_VISIBILITY_VISIBLE : ARKUI_VISIBILITY_HIDDEN}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(value), nullptr, nullptr};
