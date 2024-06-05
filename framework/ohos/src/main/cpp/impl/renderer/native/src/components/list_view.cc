@@ -469,7 +469,7 @@ void ListView::CheckInitOffset() {
     initOffsetUsed_ = true;
     
     if (headerView_) {
-      listNode_.ScrollToIndex(1, false, true);
+      listNode_.ScrollToIndex(1, true, true); // TODO(hot):
     }
     
     if (initialOffset_ > 0) {

@@ -95,7 +95,7 @@ void ListNode::ScrollTo(float offsetX, float offsetY, bool animated) {
 
 void ListNode::ScrollToIndex(int32_t index, bool animated, bool isScrollAlignStart) {
   ArkUI_NumberValue value[] = {{.i32 = index},
-                               {.i32 = animated},
+                               {.i32 = animated ? 1 : 0},
                                {.i32 = isScrollAlignStart ? ARKUI_SCROLL_ALIGNMENT_START : ARKUI_SCROLL_ALIGNMENT_END}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_SCROLL_TO_INDEX, &item));
@@ -108,9 +108,10 @@ void ListNode::SetListDirection(bool isVertical) {
 }
 
 void ListNode::SetScrollEdgeEffect(bool hasEffect) {
-//   ArkUI_NumberValue value[] = {{.i32 = hasEffect ? ARKUI_EDGE_EFFECT_SPRING : ARKUI_EDGE_EFFECT_NONE}};
-//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_EDGE_EFFECT, &item));
+  ArkUI_NumberValue value[] = {{.i32 = hasEffect ? ARKUI_EDGE_EFFECT_SPRING : ARKUI_EDGE_EFFECT_NONE},
+                               {.i32 = hasEffect ? 1 : 0}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_EDGE_EFFECT, &item));
 }
 
 void ListNode::SetScrollNestedScroll(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward) {

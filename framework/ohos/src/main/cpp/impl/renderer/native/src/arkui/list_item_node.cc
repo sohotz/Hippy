@@ -32,9 +32,12 @@ static constexpr ArkUI_NodeEventType LIST_ITEM_NODE_EVENT_TYPES[] = {
 };
 
 ListItemNode::ListItemNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_LIST_ITEM)) {
-//   for (auto eventType : LIST_ITEM_NODE_EVENT_TYPES) {
-//     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
-//   }
+  for (auto eventType : LIST_ITEM_NODE_EVENT_TYPES) {
+    ArkUI_NumberValue value[] = {{.f32 = 0.f},
+                                 {.f32 = 1.f}};
+    ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, &item));
+  }
 }
 
 ListItemNode::~ListItemNode() {
