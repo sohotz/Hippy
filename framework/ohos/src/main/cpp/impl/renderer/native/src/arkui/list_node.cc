@@ -168,7 +168,10 @@ void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
     ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
     auto type = OH_ArkUI_UIInputEvent_GetType(inputEvent);
-    listNodeDelegate_->OnTouch(type);
+    if (type == ARKUI_UIINPUTEVENT_TYPE_TOUCH) {
+      auto action = OH_ArkUI_UIInputEvent_GetAction(inputEvent);
+      listNodeDelegate_->OnTouch(action);
+    }
   }
 }
 

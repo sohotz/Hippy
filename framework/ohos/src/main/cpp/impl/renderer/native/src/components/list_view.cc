@@ -202,10 +202,10 @@ void ListView::OnReachEnd() {
   SendOnReachedEvent();
 }
 
-void ListView::OnTouch(int32_t touchType) {
-  if (touchType == UI_TOUCH_EVENT_ACTION_DOWN || touchType == UI_TOUCH_EVENT_ACTION_MOVE) {
+void ListView::OnTouch(int32_t actionType) {
+  if (actionType == UI_TOUCH_EVENT_ACTION_DOWN || actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
     CheckBeginDrag();
-  } else if (touchType == UI_TOUCH_EVENT_ACTION_UP || touchType == UI_TOUCH_EVENT_ACTION_CANCEL) {
+  } else if (actionType == UI_TOUCH_EVENT_ACTION_UP || actionType == UI_TOUCH_EVENT_ACTION_CANCEL) {
     CheckEndDrag();
   }
 }

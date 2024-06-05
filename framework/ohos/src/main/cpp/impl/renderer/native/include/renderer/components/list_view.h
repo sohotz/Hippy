@@ -69,7 +69,7 @@ public:
   void OnScrollStop() override;
   void OnReachStart() override;
   void OnReachEnd() override;
-  void OnTouch(int32_t touchType) override;
+  void OnTouch(int32_t actionType) override;
   
   void OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) override;
 
