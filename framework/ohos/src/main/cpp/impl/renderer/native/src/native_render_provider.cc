@@ -125,21 +125,21 @@ void NativeRenderProvider::OnSize2(uint32_t root_id, uint32_t node_id, float wid
 void NativeRenderProvider::DispatchEvent(uint32_t root_id, uint32_t node_id, const std::string &event_name,
     const std::shared_ptr<HippyValue> &params, bool capture, bool bubble, HREventType event_type) {
   // Because the native(C++) DOM use lowercase names, convert to lowercase here
-  std::string lower_name = event_name;
-  std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+  std::string lower_case_event_name = event_name;
+  std::transform(lower_case_event_name.begin(), lower_case_event_name.end(), lower_case_event_name.begin(), ::tolower);
   // Compatible with events prefixed with on in old version
   std::string prefix(NativeRenderProvider::EVENT_PREFIX);
-  if (lower_name.compare(0, prefix.length(), prefix) == 0) {
-    lower_name = lower_name.substr(prefix.length());
+  if (lower_case_event_name.compare(0, prefix.length(), prefix) == 0) {
+    lower_case_event_name = lower_case_event_name.substr(prefix.length());
   }
-  if (event_type != HREventType::GESTURE && !render_impl_->CheckRegisteredEvent(root_id, node_id, lower_name)) {
+  if (event_type != HREventType::GESTURE && !render_impl_->CheckRegisteredEvent(root_id, node_id, lower_case_event_name)) {
     return;
   }
   
   FOOTSTONE_DLOG(INFO) << "NativeRenderProvider dispatchEvent: id " << node_id << ", eventName " << event_name
     << ", eventType " << static_cast<int32_t>(event_type) << ", params " << params;
   
-  NativeRenderProvider_OnReceivedEvent(instance_id_, root_id, node_id, event_name, params, capture, bubble);
+  NativeRenderProvider_OnReceivedEvent(instance_id_, root_id, node_id, lower_case_event_name, params, capture, bubble);
 }
 
 void NativeRenderProvider::DoCallBack(int32_t result, uint32_t cb_id, const std::string &func_name,
