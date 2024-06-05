@@ -35,7 +35,8 @@ static constexpr ArkUI_NodeEventType LIST_NODE_EVENT_TYPES[] = {
   NODE_SCROLL_EVENT_ON_SCROLL_START,
   NODE_SCROLL_EVENT_ON_SCROLL_STOP,
   NODE_SCROLL_EVENT_ON_REACH_START,
-  NODE_SCROLL_EVENT_ON_REACH_END
+  NODE_SCROLL_EVENT_ON_REACH_END,
+  NODE_TOUCH_EVENT
 };
 
 ListNode::ListNode()
@@ -43,14 +44,12 @@ ListNode::ListNode()
   for (auto eventType : LIST_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
-  ArkUINodeRegistry::GetInstance().RegisterTouchHandler(this, this);
 }
 
 ListNode::~ListNode() {
   for (auto eventType : LIST_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }
-  ArkUINodeRegistry::GetInstance().UnregisterTouchHandler(this);
 }
 
 void ListNode::AddChild(ArkUINode &child) {
@@ -166,18 +165,14 @@ void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     listNodeDelegate_->OnReachStart();
   } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_END) {
     listNodeDelegate_->OnReachEnd();
+  } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
+    ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
+    auto type = OH_ArkUI_UIInputEvent_GetType(inputEvent);
+    listNodeDelegate_->OnTouch(type);
   }
 }
 
 void ListNode::SetNodeDelegate(ListNodeDelegate *listNodeDelegate) { listNodeDelegate_ = listNodeDelegate; }
-
-void ListNode::OnTouchEvent(ArkUI_UIInputEvent *event) {
-  if (listNodeDelegate_ == nullptr) {
-    return;
-  }
-  auto type = OH_ArkUI_UIInputEvent_GetType(event);
-  listNodeDelegate_->OnTouch(type);
-}
 
 } // namespace native
 } // namespace render

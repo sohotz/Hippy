@@ -32,12 +32,6 @@ inline namespace native {
 
 class ArkUINode;
 
-class TouchEventHandler {
-public:
-  virtual void OnTouchEvent(ArkUI_UIInputEvent *event) = 0;
-  virtual ~TouchEventHandler() = default;
-};
-
 class ArkUINodeRegistry {
 public:
   static ArkUINodeRegistry &GetInstance();
@@ -45,16 +39,12 @@ public:
   void RegisterNode(ArkUINode *node);
   void UnregisterNode(ArkUINode *node);
 
-  void RegisterTouchHandler(ArkUINode *node, TouchEventHandler *touchEventHandler);
-  void UnregisterTouchHandler(ArkUINode *node);
-
 private:
   ArkUINodeRegistry();
 
   void ReceiveEvent(ArkUI_NodeEvent *event);
 
   std::unordered_map<ArkUI_NodeHandle, ArkUINode *> nodesByHandle_;
-  std::unordered_map<ArkUI_NodeHandle, TouchEventHandler *> touchHandlersByNodeHandle_;
 };
 
 } // namespace native

@@ -43,7 +43,7 @@ public:
   virtual void OnTouch(int32_t touchType) {}
 };
 
-class ListNode : public ArkUINode, public TouchEventHandler {
+class ListNode : public ArkUINode {
 protected:
   ListNodeDelegate *listNodeDelegate_ = nullptr;
 
@@ -68,7 +68,6 @@ public:
 
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ListNodeDelegate *listNodeDelegate);
-  void OnTouchEvent(ArkUI_UIInputEvent *event) override;
 };
 
 } // namespace native

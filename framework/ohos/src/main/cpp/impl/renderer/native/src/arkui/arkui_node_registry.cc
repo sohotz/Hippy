@@ -54,24 +54,6 @@ void ArkUINodeRegistry::UnregisterNode(ArkUINode *node) {
   nodesByHandle_.erase(it);
 }
 
-void ArkUINodeRegistry::RegisterTouchHandler(ArkUINode *node, TouchEventHandler *touchEventHandler) {
-  FOOTSTONE_DLOG(INFO) << "Register touch handler for node handle " << node->GetArkUINodeHandle();
-  auto [_it, inserted] = touchHandlersByNodeHandle_.emplace(node->GetArkUINodeHandle(), touchEventHandler);
-  if (!inserted) {
-    FOOTSTONE_LOG(WARNING) << "Touch handler for node handle " << node->GetArkUINodeHandle() << " was already registered";
-  }
-}
-
-void ArkUINodeRegistry::UnregisterTouchHandler(ArkUINode* node) {
-  FOOTSTONE_DLOG(INFO) << "Unregister touch handler for node handle " << node->GetArkUINodeHandle();
-  auto it = touchHandlersByNodeHandle_.find(node->GetArkUINodeHandle());
-  if (it == touchHandlersByNodeHandle_.end()) {
-    FOOTSTONE_LOG(WARNING) << "Touch handler for node handle " << node->GetArkUINodeHandle() << " not found";
-    return;
-  }
-  touchHandlersByNodeHandle_.erase(it);
-}
-
 ArkUINodeRegistry::ArkUINodeRegistry() {
   NativeNodeApi::GetInstance()->registerNodeEventReceiver([](ArkUI_NodeEvent* event) {
     ArkUINodeRegistry::GetInstance().ReceiveEvent(event);
@@ -81,18 +63,6 @@ ArkUINodeRegistry::ArkUINodeRegistry() {
 void ArkUINodeRegistry::ReceiveEvent(ArkUI_NodeEvent *event) {
   try {
     ArkUI_NodeHandle nodeHanle = OH_ArkUI_NodeEvent_GetNodeHandle(event);
-    if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
-      auto it = touchHandlersByNodeHandle_.find(nodeHanle);
-      if (it == touchHandlersByNodeHandle_.end()) {
-        FOOTSTONE_LOG(WARNING) << "Touch event for node with handle " << nodeHanle << " not found";
-        return;
-      }
-
-      ArkUI_UIInputEvent *input_event = OH_ArkUI_NodeEvent_GetInputEvent(event);
-      it->second->OnTouchEvent(input_event);
-      return;
-    }
-
     auto it = nodesByHandle_.find(nodeHanle);
     if (it == nodesByHandle_.end()) {
       FOOTSTONE_LOG(WARNING) << "Node with handle " << nodeHanle << " not found";

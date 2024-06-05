@@ -345,8 +345,6 @@ ArkUINode &ArkUINode::SetShadow(const HRShadow &shadow) {
   return *this;
 }
 
-void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {}
-
 void ArkUINode::RegisterClickEvent() {
   if (!hasClickEvent_) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));

@@ -90,7 +90,7 @@ public:
   virtual ArkUINode &SetBorderStyle(ArkUI_BorderStyle top, ArkUI_BorderStyle right, ArkUI_BorderStyle bottom, ArkUI_BorderStyle left);
   virtual ArkUINode &SetShadow(const HRShadow &shadow);
   
-  virtual void OnNodeEvent(ArkUI_NodeEvent *event);
+  virtual void OnNodeEvent(ArkUI_NodeEvent *event) {}
 
   void RegisterClickEvent();
   void UnregisterClickEvent();
