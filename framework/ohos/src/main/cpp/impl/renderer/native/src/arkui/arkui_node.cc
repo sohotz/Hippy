@@ -77,6 +77,14 @@ ArkUINode &ArkUINode::SetSize(const HRSize &size) {
   return *this;
 }
 
+HRSize ArkUINode::GetSize() const {
+  auto widthValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_WIDTH)->value;
+  float width = widthValue->f32;
+  auto heightValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_HEIGHT)->value;
+  float height = heightValue->f32;
+  return HRSize{width, height};
+}
+
 ArkUINode &ArkUINode::SetSizePercent(const HRSize &size) {
   ArkUI_NumberValue widthValue[] = {{size.width}};
   ArkUI_AttributeItem widthItem = {widthValue, sizeof(widthValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
