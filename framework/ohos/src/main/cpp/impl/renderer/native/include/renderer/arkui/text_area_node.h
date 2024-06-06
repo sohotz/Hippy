@@ -52,13 +52,13 @@ public:
   void SetTextContent(std::string const &textContent) override;
   void SetTextSelection(int32_t start, int32_t end) override;
   void SetCaretColor(uint32_t const &color) override;
-  void SetMaxLength(int32_t maxLength) override;
+  void SetMaxLength(int32_t const &maxLength) override;
   void SetPlaceholder(std::string const &placeholder) override;
   void SetPlaceholderColor(uint32_t const &color) override;
   std::string GetTextContent() override;
   void SetTextEditing(bool const enable) override;
-  void SetInputType(int32_t const keyboardType) override;
-  void SetEnterKeyType(ArkUI_EnterKeyType const returnKeyType) override;
+  void SetInputType(int32_t const &keyboardType) override;
+  void SetEnterKeyType(ArkUI_EnterKeyType const &returnKeyType) override;
   HRRect GetTextContentRect() override;
     
   HRPoint GetTextAreaOffset() const;

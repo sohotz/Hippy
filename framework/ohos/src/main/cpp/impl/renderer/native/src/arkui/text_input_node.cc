@@ -100,7 +100,7 @@ void TextInputNode::SetCaretColor(uint32_t const &color) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_CARET_COLOR, &item));
 }
 
-void TextInputNode::SetMaxLength(int32_t maxLength) {
+void TextInputNode::SetMaxLength(int32_t const &maxLength) {
   ArkUI_NumberValue value = {.i32 = maxLength};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_MAX_LENGTH, &item));
@@ -141,7 +141,7 @@ void TextInputNode::SetCaretHidden(bool hidden) {
   }
 }
 
-void TextInputNode::SetInputType(int32_t keyboardType) {
+void TextInputNode::SetInputType(int32_t const &keyboardType) {
   ArkUI_NumberValue value = {.i32 = keyboardType};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_TYPE, &item));
@@ -160,7 +160,7 @@ void TextInputNode::SetPasswordIconVisibility(bool isVisible) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_SHOW_PASSWORD_ICON, &item));
 }
 
-void TextInputNode::SetEnterKeyType(ArkUI_EnterKeyType returnKeyType) {
+void TextInputNode::SetEnterKeyType(ArkUI_EnterKeyType const &returnKeyType) {
   ArkUI_NumberValue value = {.i32 = returnKeyType};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_ENTER_KEY_TYPE, &item));
@@ -177,7 +177,7 @@ void TextInputNode::ResetSelectedBackgroundColor() {
   MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_INPUT_SELECTED_BACKGROUND_COLOR));
 }
 
-void TextInputNode::SetTextEditing(bool enable){
+void TextInputNode::SetTextEditing(bool const enable){
   ArkUI_NumberValue value = {.i32 = enable ? 1 : 0};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_EDITING, &item));

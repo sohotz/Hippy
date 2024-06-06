@@ -90,7 +90,7 @@ void TextAreaNode::SetCaretColor(uint32_t const &color) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_AREA_CARET_COLOR, &item));
 }
 
-void TextAreaNode::SetMaxLength(int32_t maxLength) {
+void TextAreaNode::SetMaxLength(int32_t const &maxLength) {
   ArkUI_NumberValue value = {.i32 = maxLength};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_AREA_MAX_LENGTH, &item));
@@ -120,7 +120,7 @@ HRPoint TextAreaNode::GetTextAreaOffset() const {
   return HRPoint{x, y};
 }
 
-void TextAreaNode::SetInputType(int32_t keyboardType) {
+void TextAreaNode::SetInputType(int32_t const &keyboardType) {
   ArkUI_NumberValue value = {.i32 = keyboardType};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_AREA_TYPE, &item));
@@ -138,7 +138,7 @@ void TextAreaNode::SetTextEditing(bool const enable) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_AREA_EDITING, &item));
 }
 
-void TextAreaNode::SetEnterKeyType(ArkUI_EnterKeyType const returnKeyType) {
+void TextAreaNode::SetEnterKeyType(ArkUI_EnterKeyType const &returnKeyType) {
   ArkUI_NumberValue value = {.i32 = returnKeyType};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_AREA_ENTER_KEY_TYPE, &item));
