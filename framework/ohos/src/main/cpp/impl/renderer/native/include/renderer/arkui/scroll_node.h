@@ -31,11 +31,11 @@ inline namespace native {
 class ScrollNodeDelegate {
 public:
   virtual ~ScrollNodeDelegate() = default;
-  virtual void OnScroll(float xOffset, float yOffset){}
-  virtual void OnScrollStart(){}
-  virtual void OnScrollStop(){}
+  virtual void OnScroll(float xOffset, float yOffset) {}
+  virtual void OnScrollStart() {}
+  virtual void OnScrollStop() {}
   virtual float OnScrollFrameBegin(float offset, int32_t scrollState) { return offset; }
-	virtual void OnTouch(int32_t actionType) {}
+  virtual void OnTouch(int32_t actionType) {}
 };
 
 class ScrollNode : public ArkUINode {
@@ -49,9 +49,8 @@ protected:
   float initialContentOffset_;
   float scrollEventThrottle_;
   float scrollMinOffset_;
-  
-protected:
   void ScrollToContentOffset(float contentOffset);
+
 public:
   ScrollNode();
   ~ScrollNode();
@@ -65,13 +64,13 @@ public:
   ScrollNode &SetInitialContentOffset(float initialContentOffset);
   ScrollNode &SetScrollEventThrottle(float scrollEventThrottle);
   ScrollNode &SetScrollMinOffset(float scrollMinOffset);
-  
+
   void AddChild(ArkUINode &child);
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
   void ScrollTo(float x, float y, bool animated, int32_t duration = 0);
-	void OnNodeEvent(ArkUI_NodeEvent *event) override;
-	void SetNodeDelegate(ScrollNodeDelegate *scrollNodeDelegate);
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void SetNodeDelegate(ScrollNodeDelegate *scrollNodeDelegate);
   HRPoint GetScrollContentOffset() const;
   ArkUI_ScrollDirection GetAxis() const;
   float GetScrollMinOffset() const;
