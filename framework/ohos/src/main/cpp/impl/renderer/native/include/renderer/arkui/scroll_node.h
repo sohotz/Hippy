@@ -31,21 +31,51 @@ inline namespace native {
 class ScrollNodeDelegate {
 public:
   virtual ~ScrollNodeDelegate() = default;
-  virtual void OnScroll(){}
+  virtual void OnScroll(float xOffset, float yOffset){}
   virtual void OnScrollStart(){}
   virtual void OnScrollStop(){}
   virtual float OnScrollFrameBegin(float offset, int32_t scrollState) { return offset; }
+	virtual void OnTouch(int32_t actionType) {}
 };
 
 class ScrollNode : public ArkUINode {
 protected:
+  ScrollNodeDelegate *scrollNodeDelegate_;
+  bool showScrollIndicator_;
+  bool pagingEnabled_;
+  float friction_;
+  bool scrollEnabled_;
+  ArkUI_ScrollDirection axis_;
+  float initialContentOffset_;
+  float scrollEventThrottle_;
+  float scrollMinOffset_;
+  
+protected:
+  void ScrollToContentOffset(float contentOffset);
 public:
   ScrollNode();
   ~ScrollNode();
 
+  ScrollNode &SetShowScrollIndicator(bool showScrollIndicator);
+  ScrollNode &SetPagingEnabled(bool pagingEnabled);
+  ScrollNode &SetFlingEnabled(bool flingEnabled);
+  ScrollNode &SetContentOffset4Reuse(HRPoint const &contentOffset4Reuse);
+  ScrollNode &SetScrollEnabled(bool scrollEnabled);
+  ScrollNode &SetHorizontal(bool horizontal);
+  ScrollNode &SetInitialContentOffset(float initialContentOffset);
+  ScrollNode &SetScrollEventThrottle(float scrollEventThrottle);
+  ScrollNode &SetScrollMinOffset(float scrollMinOffset);
+  
   void AddChild(ArkUINode &child);
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
+  void ScrollTo(float x, float y, bool animated, int32_t duration = 0);
+	void OnNodeEvent(ArkUI_NodeEvent *event) override;
+	void SetNodeDelegate(ScrollNodeDelegate *scrollNodeDelegate);
+  HRPoint GetScrollContentOffset() const;
+  ArkUI_ScrollDirection GetAxis() const;
+  float GetScrollMinOffset() const;
+  float GetScrollEventThrottle() const;
 };
 
 } // namespace native

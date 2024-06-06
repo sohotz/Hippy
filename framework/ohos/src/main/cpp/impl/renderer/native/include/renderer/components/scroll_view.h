@@ -30,20 +30,34 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ScrollView : public BaseView {
+class ScrollView : public BaseView, ScrollNodeDelegate {
 public:
   ScrollView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ScrollView();
 
   ScrollNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void Call(const std::string &method, const std::vector<HippyValue> params,
+                    std::function<void(const HippyValue &result)> callback) override;
   
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
+
+  void OnScroll(float xOffset, float yOffset) override;
+  void OnScrollStart() override;
+  void OnScrollStop() override;
+  void OnTouch(int32_t actionType) override; 
   
 private:
+  void CheckFireBeginDragEvent();
+  void CheckFireEndDragEvent();
+  void EmitScrollEvent(std::string &eventName);
+  
   ScrollNode scrollNode_;
   StackNode stackNode_;
+  bool isDragging_;
+  float lastScrollOffset_;
+  int64_t lastScrollTime_;
 };
 
 } // namespace native
