@@ -47,6 +47,10 @@ void PagerItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
+void PagerItemView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  GetLocalRootArkUINode().SetPosition(HRPosition(0, 0));
+  GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
+}
 } // namespace native
 } // namespace render
 } // namespace hippy
