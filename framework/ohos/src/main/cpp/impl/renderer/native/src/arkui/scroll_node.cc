@@ -27,6 +27,14 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+static constexpr ArkUI_NodeEventType SCROLL_NODE_EVENT_TYPES[] = {
+  NODE_EVENT_ON_APPEAR,
+  NODE_SCROLL_EVENT_ON_SCROLL,
+  NODE_SCROLL_EVENT_ON_SCROLL_START,
+  NODE_SCROLL_EVENT_ON_SCROLL_STOP,
+  NODE_TOUCH_EVENT
+};
+
 ScrollNode::ScrollNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_SCROLL)),
       scrollNodeDelegate_(nullptr) {
@@ -35,9 +43,16 @@ ScrollNode::ScrollNode()
   scrollMinOffset_ = 5;
   SetScrollEnabled(true);
   SetHorizontal(false);
+  for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
+  }
 }
 
-ScrollNode::~ScrollNode() {}
+ScrollNode::~ScrollNode() {
+  for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
+  }
+}
 
 void ScrollNode::SetNodeDelegate(ScrollNodeDelegate *scrollNodeDelegate) { scrollNodeDelegate_ = scrollNodeDelegate; }
 
