@@ -23,6 +23,7 @@
 #pragma once
 
 #include "renderer/arkui/arkui_node.h"
+#include <bits/alltypes.h>
 
 namespace hippy {
 inline namespace render {
@@ -49,15 +50,26 @@ public:
   void SetAutoFocus(bool autoFocus);
   void SetResponseRegion(HRPosition const &position, HRSize const &size);
   void SetFontColor(uint32_t const &color);
-  void SetTextAlign(std::optional<TextAlignment> const &textAlign);
+  void SetTextAlign(ArkUI_TextAlignment const &textAlign);
+  void SetTextAlignVertical(ArkUI_Alignment const &alignment);
+  void SetFontWeight(ArkUI_FontWeight const &weight);
+  void SetFontStyle(ArkUI_FontStyle const &style);
+  void SetFontSize(float_t const &size);
+  void SetFontFamily(std::string const &family);
+  void SetMaxLines(int32_t const &lines);
+
   // virtual void SetFont(TextAttributes const &textAttributes) = 0;
   virtual void SetTextContent(std::string const &textContent) = 0;
   virtual void SetTextSelection(int32_t start, int32_t end) = 0;
   virtual void SetCaretColor(uint32_t const &color) = 0;
-  virtual void SetMaxLength(int32_t maxLength) = 0;
+  virtual void SetMaxLength(int32_t const &maxLength) = 0;
   virtual void SetPlaceholder(std::string const &placeholder) = 0;
   virtual void SetPlaceholderColor(uint32_t const &color) = 0;
   virtual std::string GetTextContent() = 0;
+  virtual void SetTextEditing(bool const enable) = 0;
+  virtual void SetInputType(int32_t const &keyboardType) = 0;
+  virtual void SetEnterKeyType(ArkUI_EnterKeyType const &enterKeyType) = 0;
+  virtual HRRect GetTextContentRect() = 0;
 };
 
 } // namespace native
