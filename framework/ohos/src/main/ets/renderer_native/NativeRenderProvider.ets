@@ -170,7 +170,7 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
     return this.renderImpl.customMeasure(this.libHippy, this.instanceId, rootId, nodeId, width, widthMode, height, heightMode)
   }
 
-  spanPosition(rootId: number, nodeId: number,x: number,y: number): void {
+  spanPosition(rootId: number, nodeId: number, x: number, y: number): void {
     this.renderImpl.spanPosition(rootId, nodeId, x, y);
   }
 

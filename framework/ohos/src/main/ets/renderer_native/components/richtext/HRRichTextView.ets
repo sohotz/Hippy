@@ -44,6 +44,7 @@ export class HRRichTextView extends HippyRenderBaseView {
   fontFamily: string | null = null
   decorationType: TextDecorationType = TextDecorationType.None
   decorationColor: number = 0
+  decorationStyle: TextDecorationStyle = TextDecorationStyle.SOLID
   letterSpacing: number = 0
   textAlign: TextAlign = TextAlign.Start
   wordBreak: WordBreak = WordBreak.BREAK_WORD
@@ -60,17 +61,10 @@ export class HRRichTextView extends HippyRenderBaseView {
       case "text":
         this.text = HRValueUtils.getString(propValue);
         return true
-      case "direction":
-        if (HRValueUtils.getString(propValue) == "rtl") {
-          this.direction = Direction.Rtl;
-        } else {
-          this.direction = Direction.Ltr;
-        }
-        return true
       case HRNodeProps.COLOR:
         this.fontColor = HRValueUtils.getNumber(propValue);
         return true
-      case "enableScale": //todo
+      case "enableScale": // Android有，iOS无
         return true;
       case HRNodeProps.FONT_FAMILY:
         this.fontFamily = HRValueUtils.getString(propValue);
@@ -82,8 +76,7 @@ export class HRRichTextView extends HippyRenderBaseView {
         let t = HRValueUtils.getString(propValue);
         if (t == 'italic') {
           this.fontStyle = FontStyle.Italic;
-        }
-        else {
+        } else {
           this.fontStyle = FontStyle.Normal;
         }
       }
@@ -110,9 +103,9 @@ export class HRRichTextView extends HippyRenderBaseView {
       case HRNodeProps.LINE_HEIGHT:
         this.lineHeight = HRValueUtils.getNumber(propValue);
         return true
-      case HRNodeProps.LINE_SPACING_EXTRA: //todo
+      case HRNodeProps.LINE_SPACING_EXTRA: // Android有，iOS无
         return true;
-      case HRNodeProps.LINE_SPACING_MULTIPLIER: //todo
+      case HRNodeProps.LINE_SPACING_MULTIPLIER: // TODO:
         return true;
       case HRNodeProps.NUMBER_OF_LINES:
         this.maxLines = HRValueUtils.getNumber(propValue);
@@ -133,7 +126,7 @@ export class HRRichTextView extends HippyRenderBaseView {
         }
       }
         return true;
-      case HRNodeProps.TEXT_DECORATION_LINE: { //安卓可以同时显示下划线和删除线
+      case HRNodeProps.TEXT_DECORATION_LINE: { // 安卓可以同时显示下划线和删除线
         let t = HRValueUtils.getString(propValue);
         this.decorationType = TextDecorationType.None;
         t.split(" ").forEach(s => {
@@ -156,12 +149,12 @@ export class HRRichTextView extends HippyRenderBaseView {
         }
         return true;
       case HRNodeProps.TEXT_SHADOW_RADIUS:
-        this.shadowRadius = HRValueUtils.getNumber(propValue);
+        this.shadowRadius = HRValueUtils.getNumber2(propValue, 1.0);
         return true;
-      case "textDecorationColor": //下划线/删除线的颜色，安卓无，next有
+      case HRNodeProps.TEXT_DECORATION_COLOR: // 下划线/删除线的颜色
         this.decorationColor = HRValueUtils.getNumber(propValue);
         return true;
-      case HRNodeProps.ELLIPSIZE_MODE: { //todo 文本超长裁剪时，省略号在前/中/后，设置了，不生效
+      case HRNodeProps.ELLIPSIZE_MODE: {
         let t = HRValueUtils.getString(propValue);
         if (t == "clip") {
           this.textOverflow = TextOverflow.Clip;
@@ -181,16 +174,26 @@ export class HRRichTextView extends HippyRenderBaseView {
         }
       }
         return true;
-      case "textDecorationStyle": //todo 下划线/删除线的类型：DOUBLE，DOTTED，DASHED，SOLID，安卓有，next无
+      case HRNodeProps.TEXT_DECORATION_STYLE:
+        let t = HRValueUtils.getString(propValue);
+        if (t == "double") {
+          this.decorationStyle = TextDecorationStyle.DOUBLE;
+        } else if (t == "dotted") {
+          this.decorationStyle = TextDecorationStyle.DOTTED;
+        } else if (t == "dashed") {
+          this.decorationStyle = TextDecorationStyle.DASHED;
+        } else {
+          this.decorationStyle = TextDecorationStyle.SOLID;
+        }
         return true;
-      case HRNodeProps.BREAK_STRATEGY: { //todo 文本断行策略，不完全匹配
+      case HRNodeProps.BREAK_STRATEGY: { // 文本断行策略，不完全匹配
         let t = HRValueUtils.getString(propValue);
         if (t == "high_quality") {
           this.wordBreak = WordBreak.BREAK_ALL;
         } else if (t == "balanced") {
           this.wordBreak = WordBreak.BREAK_WORD;
-        } else { //t == "simple"
-          this.wordBreak = WordBreak.BREAK_WORD; //如果使用WordBreak.NORMAL，超过行宽的连续字符不会换行(被裁剪)
+        } else {
+          this.wordBreak = WordBreak.BREAK_WORD; // 如果使用WordBreak.NORMAL，超过行宽的连续字符不会换行(被裁剪)
         }
       }
         return true;
@@ -213,6 +216,7 @@ export struct HRRichText {
   @Builder
   TextSpan(txt: HRRichTextView) {
     Span(txt.text)
+      .applyRenderViewBaseAttr_TextSpan(txt)
       .fontColor(txt.fontColor)
       .fontSize(txt.fontSize)
       .lineHeight(txt.lineHeight)
@@ -227,10 +231,10 @@ export struct HRRichText {
       .fontFamily(txt.fontFamily)
       .decoration({
         type: txt.decorationType,
-        color: txt.decorationColor
+        color: txt.decorationColor,
+        style: txt.decorationStyle
       })
       .letterSpacing(txt.letterSpacing)
-      .applyRenderViewBaseAttr_TextSpan(txt)
       .textBackgroundStyle({color: txt.cssBackgroundColor}) // backgroundColor无效，换成这个
       .direction(txt.direction)
   }
@@ -238,9 +242,9 @@ export struct HRRichText {
   @Builder
   ImageSpan(img: HRImageView) {
     ImageSpan(img.getImage())
+      .applyRenderViewBaseAttr_ImageSpan(img)
       // .verticalAlign(img.spanVerticalAlign)
       .objectFit(img.spanObjectFit)
-      .applyRenderViewBaseAttr_ImageSpan(img)
       .textBackgroundStyle({color: img.cssBackgroundColor})
   }
 
@@ -257,9 +261,10 @@ export struct HRRichText {
         }, (item: HippyRenderBaseView) => item.tag + '')
       }
     }
+    .applyRenderViewBaseAttr(this.renderView)
     .fontColor(this.renderView.fontColor)
     .fontSize(this.renderView.fontSize)
-    // .lineHeight(this.renderView.lineHeight) // TODO: 暂时注释，因为ArkUI有bug，设置了这个文本不能垂直居中
+    .lineHeight(this.renderView.lineHeight) // ArkUI设置了这个文本不能垂直居中，解决方法：module.json5里metadata里配置half_leading
     .textOverflow({ overflow: this.renderView.textOverflow })
     .ellipsisMode(this.renderView.ellipsisMode)
     .maxLines(this.renderView.maxLines)
@@ -274,16 +279,14 @@ export struct HRRichText {
     .fontFamily(this.renderView.fontFamily)
     .decoration({
       type: this.renderView.decorationType,
-      color: this.renderView.decorationColor
+      color: this.renderView.decorationColor,
+      style: this.renderView.decorationStyle
     })
     .letterSpacing(this.renderView.letterSpacing)
     .textAlign(this.renderView.textAlign)
     .wordBreak(this.renderView.wordBreak)
-    .applyRenderViewBaseAttr(this.renderView)
     .padding(this.renderView.cssPadding)
     .direction(this.renderView.direction)
-    // .alignRules(?)
-    // .align(Alignment.Center)
   }
 }
 

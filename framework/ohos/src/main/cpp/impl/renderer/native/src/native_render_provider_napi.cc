@@ -182,7 +182,7 @@ void CallRenderDelegateMeasureMethod(napi_env env, napi_ref render_provider_ref,
 void CallRenderDelegateSpanPositionMethod(napi_env env, napi_ref render_provider_ref,
   const std::string& method, uint32_t root_id, uint32_t node_id, const float x, const float y) {
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
-  taskRunner->RunSyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, node_id, x, y]() {
+  taskRunner->RunAsyncTask([env = env, render_provider_ref = render_provider_ref, method, root_id, node_id, x, y]() {
     ArkTS arkTs(env);
     std::vector<napi_value> args = {
       arkTs.CreateUint32(root_id),
