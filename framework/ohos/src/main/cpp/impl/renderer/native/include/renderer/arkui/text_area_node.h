@@ -56,10 +56,14 @@ public:
   void SetPlaceholder(std::string const &placeholder) override;
   void SetPlaceholderColor(uint32_t const &color) override;
   std::string GetTextContent() override;
-  
+  void SetTextEditing(bool const enable) override;
+  void SetInputType(int32_t const keyboardType) override;
+  void SetEnterKeyType(ArkUI_EnterKeyType const returnKeyType) override;
+  HRRect GetTextContentRect() override;
+    
   HRPoint GetTextAreaOffset() const;
-  void SetInputType(ArkUI_TextInputType keyboardType);
   void DefaultSetPadding();
+    
 };
 
 } // namespace native

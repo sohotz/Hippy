@@ -57,15 +57,18 @@ public:
   void SetPlaceholder(std::string const &placeholder) override;
   void SetPlaceholderColor(uint32_t const &color) override;
   std::string GetTextContent() override;
+  void SetTextEditing(bool const enable) override;
+  void SetInputType(int32_t const keyboardType) override;
+  void SetEnterKeyType(ArkUI_EnterKeyType const returnKeyType) override;
+  HRRect GetTextContentRect() override;
 
   HRPoint GetTextInputOffset() const;
   void SetCaretHidden(bool hidden);
-  void SetInputType(ArkUI_TextInputType keyboardType);
   void SetSelectedBackgroundColor(uint32_t const &color);
   void SetPasswordIconVisibility(bool isVisible);
-  void SetEnterKeyType(uint32_t returnKeyType);
   void SetCancelButtonMode(uint32_t mode);
   void ResetSelectedBackgroundColor();
+    
 };
 
 } // namespace native

@@ -141,7 +141,7 @@ void TextInputNode::SetCaretHidden(bool hidden) {
   }
 }
 
-void TextInputNode::SetInputType(ArkUI_TextInputType keyboardType) {
+void TextInputNode::SetInputType(int32_t keyboardType) {
   ArkUI_NumberValue value = {.i32 = keyboardType};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_TYPE, &item));
@@ -160,8 +160,8 @@ void TextInputNode::SetPasswordIconVisibility(bool isVisible) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_SHOW_PASSWORD_ICON, &item));
 }
 
-void TextInputNode::SetEnterKeyType(uint32_t returnKeyType) {
-  ArkUI_NumberValue value = {.i32 = ARKUI_ENTER_KEY_TYPE_DONE}; // TODO(hot):
+void TextInputNode::SetEnterKeyType(ArkUI_EnterKeyType returnKeyType) {
+  ArkUI_NumberValue value = {.i32 = returnKeyType};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_ENTER_KEY_TYPE, &item));
 }
@@ -175,6 +175,22 @@ void TextInputNode::SetCancelButtonMode(uint32_t mode) {
 
 void TextInputNode::ResetSelectedBackgroundColor() {
   MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_INPUT_SELECTED_BACKGROUND_COLOR));
+}
+
+void TextInputNode::SetTextEditing(bool enable){
+  ArkUI_NumberValue value = {.i32 = enable ? 1 : 0};
+  ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_EDITING, &item));
+}
+
+HRRect TextInputNode::GetTextContentRect() {
+  auto item = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_TEXT_INPUT_CONTENT_RECT);
+  float x = static_cast<float>(item->value[0].f32);
+  float y = static_cast<float>(item->value[1].f32);
+  float w = static_cast<float>(item->value[2].f32);
+  float h = static_cast<float>(item->value[3].f32);
+  HRRect rect(x, y, w, h);
+  return rect;
 }
 
 } // namespace native
