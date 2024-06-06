@@ -107,6 +107,8 @@ export class HRNodeProps {
   static readonly TEXT_ALIGN = "textAlign"
   static readonly TEXT_ALIGN_VERTICAL = "textAlignVertical"
   static readonly TEXT_DECORATION_LINE = "textDecorationLine"
+  static readonly TEXT_DECORATION_COLOR = "textDecorationColor"
+  static readonly TEXT_DECORATION_STYLE = "textDecorationStyle"
   static readonly TEXT_SHADOW_OFFSET = "textShadowOffset"
   static readonly TEXT_SHADOW_RADIUS = "textShadowRadius"
   static readonly TEXT_SHADOW_COLOR = "textShadowColor"

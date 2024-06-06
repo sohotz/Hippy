@@ -22,12 +22,19 @@
 
 #include "renderer/components/pager_view.h"
 #include "renderer/utils/hr_value_utils.h"
+#include "renderer/utils/hr_event_utils.h"
+#include "footstone/logging.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
+PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  swiperNode_.SetNodeDelegate(this);
+  GetLocalRootArkUINode().ShowIndicator(false);
+  GetLocalRootArkUINode().NodeSwiperLoop(0);
+  FOOTSTONE_DLOG(INFO) << "PagerView initialized.";
+}
 
 PagerView::~PagerView() {}
 
@@ -35,14 +42,37 @@ SwiperNode &PagerView::GetLocalRootArkUINode() { return swiperNode_; }
 
 bool PagerView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "initialPage") {
+    initialPage_ = HRValueUtils::GetInt32(propValue);
+    index_ = initialPage_;
+    GetLocalRootArkUINode().NodeSwiperIndex(index_);
+    return true;
+  } else if (propKey == "pagescroll") {
+    propValue.ToInt32(initialPage_);
+    index_ = initialPage_;
+    GetLocalRootArkUINode().NodeSwiperIndex(index_);
     return true;
   } else if (propKey == "scrollEnabled") {
+    bool enable;
+    propValue.ToBoolean(enable);
+    disableSwipe_ = !enable;
+    GetLocalRootArkUINode().SetEnabled(enable);
     return true;
   } else if (propKey == "direction") {
+    std::string directionVal;
+    propValue.ToString(directionVal);
+    if (directionVal == "vertical") {
+      vertical_ = true;
+      GetLocalRootArkUINode().NodeSwiperVertical(1);
+    }
     return true;
   } else if (propKey == "vertical") {
+    vertical_ = true;
+    GetLocalRootArkUINode().NodeSwiperVertical(1);
     return true;
   } else if (propKey == "pageMargin") {
+    prevMargin_ = nextMargin_ = HRValueUtils::GetFloat(propValue);
+    GetLocalRootArkUINode().NodeSwiperPrevMargin(prevMargin_);
+    GetLocalRootArkUINode().NodeSwiperNextMargin(nextMargin_);
     return true;
   }
   return BaseView::SetProp(propKey, propValue);
@@ -58,6 +88,89 @@ void PagerView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   swiperNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
+void PagerView::OnChange(const int32_t &index) {
+  HippyValueObjectType selectedPayload = {{"position", HippyValue{index}}};
+  std::shared_ptr<HippyValue> selectedParams = std::make_shared<HippyValue>(selectedPayload);
+  HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SELECTED, selectedParams);
+
+  HippyValueObjectType changedPayload = {{"pageScrollState", HippyValue{"idle"}}};
+  std::shared_ptr<HippyValue> changedParams = std::make_shared<HippyValue>(changedPayload);
+  HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED,
+                                   changedParams);
+}
+
+void PagerView::OnAnimationStart(const int32_t &currentIndex, const int32_t &targetIndex,
+                                 const float_t &currentOffset, const float_t &targetOffset,
+                                 const float_t &swipeVelocity) {
+  FOOTSTONE_DLOG(INFO) << "PagerView::OnAnimationStart - From index: " << currentIndex
+                       << ", To index: " << targetIndex << ", Current offset: " << currentOffset
+                       << ", Target offset: " << targetOffset
+                       << ", Swipe velocity: " << swipeVelocity;
+}
+
+void PagerView::OnAnimationEnd(const int32_t &currentIndex, const float_t &finalOffset) {
+  FOOTSTONE_DLOG(INFO) << "PagerView::OnAnimationEnd - Index: " << currentIndex
+                       << ", Final offset: " << finalOffset;
+}
+
+void PagerView::OnContentDidScroll(const int32_t &swiperPageIndex, const int32_t &windowPageIndex,
+                                   const float_t &pageMoveRatio, const float_t &pageAxisSize) {
+  FOOTSTONE_DLOG(INFO) << "PagerView::OnContentDidScroll - SwiperPageIndex: " << swiperPageIndex
+                       << ", WindowPageIndex: " << windowPageIndex
+                       << ", Move ratio: " << pageMoveRatio << ", Page size: " << pageAxisSize;
+}
+
+void PagerView::OnGestureSwipe(const int32_t &swiperPageIndex,
+                               const float_t &elementOffsetFromStart) {
+  HippyValueObjectType type = {{"position", HippyValue{swiperPageIndex}},
+                               {"offset", HippyValue{elementOffsetFromStart}}};
+  std::shared_ptr<HippyValue> params = std::make_shared<HippyValue>(type);
+  HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL, params);
+}
+
+void PagerView::OnTouchIntercept(const int32_t &eventEnum) {
+  FOOTSTONE_DLOG(INFO) << "PagerView::OnTouchIntercept - eventEnum:" << eventEnum;
+}
+
+void PagerView::SendScrollStateChangeEvent(const std::string &state) {
+  HippyValueObjectType payload = {{"pageScrollState", HippyValue{state}}};
+  auto params = std::make_shared<HippyValue>(payload);
+  HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED, params);
+}
+
+void PagerView::OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {
+  int32_t touchAction = OH_ArkUI_UIInputEvent_GetAction(inputEvent);
+  FOOTSTONE_DLOG(INFO) << "PagerView::OnNodeTouchEvent - Action: " << touchAction;
+
+  switch (touchAction) {
+  case UI_TOUCH_EVENT_ACTION_CANCEL:
+    // No specific action needed for cancel, logging suffices.
+    break;
+  case UI_TOUCH_EVENT_ACTION_DOWN:
+    SendScrollStateChangeEvent("dragging");
+    break;
+  case UI_TOUCH_EVENT_ACTION_MOVE:
+    // If needed, handle move action here in the future.
+    break;
+  case UI_TOUCH_EVENT_ACTION_UP:
+    SendScrollStateChangeEvent("settling");
+    break;
+  default:
+    FOOTSTONE_DLOG(INFO) << "Unknown touch action received: " << touchAction;
+    break;
+  }
+}
+void PagerView::Call(const std::string &method, const std::vector<HippyValue> params,
+                     std::function<void(const HippyValue &result)> callback) {
+  if (method == "setPage") {
+    index_ = HRValueUtils::GetInt32(params[0]);
+    GetLocalRootArkUINode().NodeSwiperSwipeToIndex(index_, 1);
+  } else if (method == "setPageWithoutAnimation") {
+  } else if (method == "next") {
+  } else if (method == "prev") {
+  } else if (method == "setIndex") {
+  }
+}
 } // namespace native
 } // namespace render
 } // namespace hippy

@@ -99,16 +99,6 @@ export default abstract class HippyRenderBaseView {
 
   setProp(propKey: string, propValue: HippyAny): boolean {
     switch (propKey) {
-      case HRNodeProps.WIDTH:
-        if (this.isImageSpan()) {
-          this.cssWidth = HRValueUtils.getNumber(propValue);
-        }
-        break;
-      case HRNodeProps.HEIGHT:
-        if (this.isImageSpan()) {
-          this.cssHeight = HRValueUtils.getNumber(propValue);
-        }
-        break;
       case HRNodeProps.VISIBILITY:
         this.cssVisibility = HRValueUtils.getString(propValue) != HRNodeProps.HIDDEN ? Visibility.Visible : Visibility.Hidden
         break
@@ -752,21 +742,7 @@ export default abstract class HippyRenderBaseView {
     }
   }
 
-  isImageSpan(): boolean {
-    if(this.parentView && this.parentView.viewType == "Text" && this.viewType == "Image") {
-      return true;
-    }
-    return false;
-  }
-
   protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
-    if(this.isImageSpan()) {
-      if(frame.x != 0 || frame.y != 0){ // c 测得span的位置
-        this.cssPositionX = frame.x
-        this.cssPositionY = frame.y
-      }
-      return;
-    }
     this.cssPositionX = frame.x
     this.cssPositionY = frame.y
     this.cssWidth = frame.width

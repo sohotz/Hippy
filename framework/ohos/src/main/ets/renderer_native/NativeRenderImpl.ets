@@ -442,19 +442,19 @@ export class NativeRenderImpl implements NativeRender {
     stream.push(...tmpStr);
   }
 
-  spanPosition(rootId: number, nodeId: number,x: number,y: number) : void {
+  spanPosition(rootId: number, nodeId: number, x: number, y: number) : void {
     let viewManager = this.renderManager.getViewManager(rootId)
     if (!viewManager) {
       return
     }
 
-      let m: HRUpdateLayoutMutation = new HRUpdateLayoutMutation()
-      m.tag = nodeId
-      m.left = x
-      m.top = y
-      m.width = 0
-      m.height = 0
-      viewManager.addMutations(m)
+    let m: HRUpdateLayoutMutation = new HRUpdateLayoutMutation()
+    m.tag = nodeId
+    m.left = x
+    m.top = y
+    m.width = 0
+    m.height = 0
+    viewManager.addMutations(m)
   }
 
   measure(libHippy:HippyLibrary, instanceId: number, rootId: number, nodeId: number, width: number, widthMode: number, height: number, heightMode: number): bigint {

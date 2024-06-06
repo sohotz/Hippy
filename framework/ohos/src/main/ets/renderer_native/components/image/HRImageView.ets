@@ -32,6 +32,7 @@ import { HashMap } from '@kit.ArkTS';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HippyResourceLoader } from '../../../hippy_framework/adapter/http/HippyResourceLoader';
 import { UrlUtils } from '../../../support/utils/UrlUtils';
+import { HRPadding, HRRect } from '../../utils/HRTypes';
 
 interface ImageLoadEvent {
   width: number
@@ -264,6 +265,16 @@ export class HRImageView extends HippyRenderBaseView {
 
   setProp(propKey: string, propValue: HippyAny | HippyRenderCallback): boolean {
     switch (propKey) {
+      case HRNodeProps.WIDTH:
+        if (this.isImageSpan()) {
+          this.cssWidth = HRValueUtils.getNumber(propValue as HippyAny);
+        }
+        return true;
+      case HRNodeProps.HEIGHT:
+        if (this.isImageSpan()) {
+          this.cssHeight = HRValueUtils.getNumber(propValue as HippyAny);
+        }
+        return true;
       case HRNodeProps.VERTICAL_ALIGN:
         if(this.isImageSpan()) {
           let t = HRValueUtils.getString(propValue as HippyAny);
@@ -334,6 +345,24 @@ export class HRImageView extends HippyRenderBaseView {
         break
     }
     return super.setProp(propKey, propValue as HippyAny)
+  }
+
+  isImageSpan(): boolean {
+    if(this.parentView && this.parentView.viewType == "Text") {
+      return true;
+    }
+    return false;
+  }
+
+  protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
+    if(this.isImageSpan()) {
+      if(frame.x != 0 || frame.y != 0) { // c 测得span的位置
+        this.cssPositionX = frame.x
+        this.cssPositionY = frame.y
+      }
+      return;
+    }
+    super.updateRenderViewFrame(frame, padding)
   }
 
   private initCallbacks() {
