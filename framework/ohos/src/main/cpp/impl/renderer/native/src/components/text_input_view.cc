@@ -31,11 +31,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-TextInputView::TextInputView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-//    GetLocalRootArkUINode().SetBackgroundColor(0x00000000);
-//    GetLocalRootArkUINode().SetBorderRadius(0, 0, 0, 0);
-//    GetLocalRootArkUINode().SetBorderWidth(0.1, 0.1, 0.1, 0.1);
-}
+TextInputView::TextInputView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
 
 TextInputView::~TextInputView() {}
 
@@ -47,14 +43,16 @@ TextInputBaseNode &TextInputView::GetTextNode() {
     else 
       return textAreaNode_;
 }
+
 void TextInputView::InitNode(){
     if (this->multiline == false) {
         stackNode_.AddChild(textInputNode_);
         textInputNode_.SetTextInputNodeDelegate(this);
     } else {
         stackNode_.AddChild(textAreaNode_);
-        textAreaNode_.SetTextInputNodeDelegate(this);
+        textAreaNode_.SetTextAreaNodeDelegate(this);
     }
+    GetTextNode().SetBorderRadius(0, 0, 0, 0);
     GetTextNode().SetBackgroundColor(0x00000000);
 }
 
@@ -78,7 +76,7 @@ bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propVa
   } else if (propKey == "fontStyle") {
     std::string style = HRValueUtils::GetString(propValue);
     if(style == "italic")
-    this->fontStyle = ArkUI_FontStyle::ARKUI_FONT_STYLE_ITALIC;
+      this->fontStyle = ArkUI_FontStyle::ARKUI_FONT_STYLE_ITALIC;
     return true;
   } else if (propKey == "fontWeight") {
     SetFontWeight(propValue);
@@ -88,6 +86,7 @@ bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propVa
     return true;
   } else if (propKey == "multiline") {
     this->multiline = HRValueUtils::GetBool(propValue, false);
+    FOOTSTONE_DLOG(INFO)<<"multiline = "<< this->multiline;
     if(this->multiline)
       this->textAlignVertical = ArkUI_Alignment::ARKUI_ALIGNMENT_TOP;
     return true;
@@ -159,8 +158,10 @@ void TextInputView::OnSetPropsEnd(){
   GetTextNode().SetPlaceholderColor(this->placeholderTextColor);
   GetTextNode().SetInputType((ArkUI_TextInputType)this->keyboardType);
   GetTextNode().SetEnterKeyType((ArkUI_EnterKeyType)this->returnKeyType);
-  GetTextNode().SetMaxLines(this->maxLines);
   GetTextNode().SetTextContent(this->value);
+  if(this->multiline){
+    GetTextNode().SetMaxLines(this->maxLines);
+  }
   return BaseView::OnSetPropsEnd();
 }
 
@@ -273,6 +274,8 @@ void TextInputView::HideInputMethod(const HippyValueArrayType &param){
 void TextInputView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding){
   BaseView::UpdateRenderViewFrame(frame, padding);
   GetTextNode().SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+  HRSize size(frame.width,frame.height);
+  GetTextNode().SetSize(size);
 }
 
 void TextInputView::OnChange(std::string text){
