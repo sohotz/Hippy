@@ -40,7 +40,11 @@ SpanNode &SpanNode::SetSpanContent(const std::string &text) {
 }
 
 SpanNode &SpanNode::SetFontColor(uint32_t color) {
-  ArkUI_NumberValue value[] = {{.u32 = color}};
+  uint32_t colorValue = color;
+  if (colorValue >> 24 == 0) {
+    colorValue |= ((uint32_t)0xff << 24);
+  }
+  ArkUI_NumberValue value[] = {{.u32 = colorValue}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_COLOR, &item));
   return *this;
