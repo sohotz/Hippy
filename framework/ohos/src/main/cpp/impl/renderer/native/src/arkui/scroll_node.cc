@@ -41,8 +41,6 @@ ScrollNode::ScrollNode()
   initialContentOffset_ = 0;
   scrollEventThrottle_ = 30;
   scrollMinOffset_ = 5;
-  SetScrollEnabled(true);
-  SetHorizontal(false);
   for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }

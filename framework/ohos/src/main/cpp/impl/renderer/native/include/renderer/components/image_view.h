@@ -43,8 +43,9 @@ public:
 
 private:
   ImageNode imageNode_;
-  
   std::string src_;
+  
+  void fetchImage(const std::string &imageUrl);
 };
 
 } // namespace native

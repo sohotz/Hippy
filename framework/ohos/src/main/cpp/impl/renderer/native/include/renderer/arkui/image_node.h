@@ -29,6 +29,27 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+enum class ImageTintColorBlendMode : int32_t {
+  CLEAR,
+  SRC,
+  DST,
+  SRC_OVER,
+  DST_OVER,
+  SRC_IN,
+  DST_IN,
+  SRC_OUT,
+  DST_OUT,
+  DST_ATOP = 10,
+  XOR,
+  ADD,
+  MULTIPLY,
+  SCREEN,
+  OVERLAY,
+  DARKEN,
+  LIGHTEN,
+  SRC_ATOP,
+};
+
 class ImageNodeDelegate {
 public:
   virtual ~ImageNodeDelegate() = default;
@@ -37,23 +58,34 @@ public:
   virtual void OnError(int32_t errorCode) {}
 };
 
+static constexpr int32_t kColorFilterMatrixArrayCount = 20; 
+
 class ImageNode : public ArkUINode {
 protected:
   ImageNodeDelegate *imageNodeDelegate_ = nullptr;
   std::string uri_;
-
+  ImageTintColorBlendMode cssTintColorBlendMode_ = ImageTintColorBlendMode::SRC_ATOP;
+  ImageTintColorBlendMode cssPreTintColorBlendMode_ = ImageTintColorBlendMode::SRC_ATOP;
+  std::vector<int32_t> cssTintColor_;
+  
+  void SetTintColorBlendModePrivate(int32_t blendMode);
+  void SetColorFilterMatrix();
+  void SetColorFilter(ArkUI_NumberValue value[kColorFilterMatrixArrayCount]);
+  
+  
 public:
   ImageNode();
   ~ImageNode();
   ImageNode &SetSources(std::string const &src);
   ImageNode &SetResizeMode(HRImageResizeMode const &mode);
   ImageNode &SetTintColor(uint32_t sharedColor);
+  ImageNode &SetTintColorBlendMode(int32_t blendMode);
   ImageNode &SetBlur(float blur);
   ImageNode &SetObjectRepeat(HRImageResizeMode const &resizeMode);
+  ImageNode &SetResizeable(float left, float top, float right, float bottom);
 
   ImageNode &SetInterpolation(int32_t interpolation);
   ImageNode &SetDraggable(bool draggable);
-//   ImageNode &SetFocusable(bool focusable);
   ImageNode &SetResizeMethod(std::string const &resizeMethod);
   ImageNode &SetAlt(std::string const &src);
 
