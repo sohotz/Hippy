@@ -68,7 +68,7 @@ void TextAreaNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   }
 }
 
-void TextAreaNode::SetTextInputNodeDelegate(TextAreaNodeDelegate *textAreaNodeDelegate) {
+void TextAreaNode::SetTextAreaNodeDelegate(TextAreaNodeDelegate *textAreaNodeDelegate) {
   textAreaNodeDelegate_ = textAreaNodeDelegate;
 }
 

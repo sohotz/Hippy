@@ -47,7 +47,7 @@ public:
   ~TextAreaNode();
   
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
-  void SetTextInputNodeDelegate(TextAreaNodeDelegate *textAreaNodeDelegate);
+  void SetTextAreaNodeDelegate(TextAreaNodeDelegate *textAreaNodeDelegate);
   
   void SetTextContent(std::string const &textContent) override;
   void SetTextSelection(int32_t start, int32_t end) override;
