@@ -29,6 +29,8 @@ inline namespace render {
 inline namespace native {
 
 ScrollView::ScrollView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  GetLocalRootArkUINode().SetScrollEnabled(true);
+  GetLocalRootArkUINode().SetHorizontal(false);
   isDragging_ = false;
   lastScrollOffset_ = 0;
   lastScrollTime_ = 0;
