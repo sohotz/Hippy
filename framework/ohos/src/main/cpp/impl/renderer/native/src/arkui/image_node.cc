@@ -22,6 +22,7 @@
 
 #include "renderer/arkui/image_node.h"
 #include "renderer/arkui/native_node_api.h"
+#include <native_drawing/drawing_types.h>
 
 namespace hippy {
 inline namespace render {
@@ -92,8 +93,8 @@ ImageNode &ImageNode::SetResizeMode(HRImageResizeMode const &mode) {
   } else if (mode == HRImageResizeMode::FitXY) {
     val = ARKUI_OBJECT_FIT_FILL;
   } else if (mode == HRImageResizeMode::Repeat) {
-    val = ARKUI_OBJECT_FIT_NONE;
-    // TODO(hot):
+    val = ARKUI_OBJECT_FIT_SCALE_DOWN;
+    SetObjectRepeat(mode);
   }
 
   ArkUI_NumberValue value[] = {{.i32 = val}};
@@ -102,24 +103,132 @@ ImageNode &ImageNode::SetResizeMode(HRImageResizeMode const &mode) {
   return *this;
 }
 
+ImageNode &ImageNode::SetResizeable(float left, float top, float right, float bottom) {
+  ArkUI_NumberValue value[] = {{.f32 = left}, {.f32 = top}, {.f32 = right}, {.f32 = bottom}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_RESIZABLE, &item));
+  return *this;
+}
+
+ImageNode &ImageNode::SetTintColorBlendMode(int32_t blendMode) {
+  SetTintColorBlendModePrivate(blendMode);
+  if (cssTintColorBlendMode_ != cssPreTintColorBlendMode_) {
+    SetColorFilterMatrix();
+  }
+  return *this;
+}
+
+void ImageNode::SetTintColorBlendModePrivate(int32_t blendMode) {
+  cssPreTintColorBlendMode_ = cssTintColorBlendMode_;
+  if (blendMode == 0) {
+    cssTintColorBlendMode_ = ImageTintColorBlendMode::CLEAR;
+    return;
+	} else if (blendMode == 1) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::SRC;
+    return;
+	} else if (blendMode == 2) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::DST;
+	} else if (blendMode == 3) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::SRC_OVER;
+    return;
+	} else if (blendMode == 4) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::DST_OVER;
+    return;
+	} else if (blendMode == 5) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::SRC_IN;
+    return;
+	} else if (blendMode == 6) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::DST_IN;
+    return;
+	} else if (blendMode == 7) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::SRC_OUT;
+    return;
+	} else if (blendMode == 8) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::DST_OUT;
+    return;
+	} else if (blendMode == 10) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::DST_ATOP;
+    return;
+	} else if (blendMode == 11) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::XOR;
+    return;
+	} else if (blendMode == 12) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::ADD;
+    return;
+	} else if (blendMode == 13) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::MULTIPLY;
+    return;
+	} else if (blendMode == 14) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::SCREEN;
+    return;
+	} else if (blendMode == 15) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::OVERLAY;
+    return;
+	} else if (blendMode == 16) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::DARKEN;
+    return;
+	} else if (blendMode == 17) {
+		cssTintColorBlendMode_ = ImageTintColorBlendMode::LIGHTEN;
+    return;
+	}
+  cssTintColorBlendMode_ = ImageTintColorBlendMode::SRC_ATOP;
+}
+
+void ImageNode::SetColorFilter(ArkUI_NumberValue value[kColorFilterMatrixArrayCount]) {
+  ArkUI_AttributeItem item = {value, kColorFilterMatrixArrayCount, nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_COLOR_FILTER, &item));
+}
+
+void ImageNode::SetColorFilterMatrix() {
+  if (cssTintColor_.size() == 4) {
+    float matrixColor[4] = {(float)(cssTintColor_[0] / 255.0), (float)(cssTintColor_[1] / 255.0), (float)(cssTintColor_[2] / 255.0), (float)(cssTintColor_[3] / 255.0)};
+    if (cssTintColorBlendMode_ == ImageTintColorBlendMode::CLEAR) {
+      ArkUI_NumberValue value[] = { {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0} };
+      SetColorFilter(value);
+      return;
+    }  else if (cssTintColorBlendMode_ == ImageTintColorBlendMode::SRC) {
+      ArkUI_NumberValue value[] = { {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[0]},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[1]},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[2]},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[3]} };
+      SetColorFilter(value);
+      return;
+		} else if (cssTintColorBlendMode_ == ImageTintColorBlendMode::DST) {
+      ArkUI_NumberValue value[] = { {.f32 = 1}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0},
+                                    {.f32 = 0}, {.f32 = 1}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 1}, {.f32 = 0}, {.f32 = 0},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 1}, {.f32 = 0} };
+      SetColorFilter(value);
+      return;
+		} else if (cssTintColorBlendMode_ == ImageTintColorBlendMode::SRC_ATOP) {
+      ArkUI_NumberValue value[] = { {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
+                                    {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 1}, {.f32 = 0} };
+      SetColorFilter(value);
+      return;
+		}
+	}
+}
+
 ImageNode &ImageNode::SetTintColor(uint32_t sharedColor) {
   if (!sharedColor) { // restore default value
     MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_IMAGE_COLOR_FILTER));
     return *this;
   }
-  
-  float ratio = 255;
-  float red = (float)((sharedColor >> 16) & 0xff) / ratio;
-  float green = (float)((sharedColor >> 8) & 0xff) / ratio;
-  float blue = (float)((sharedColor >> 0) & 0xff) / ratio;
-
-  ArkUI_NumberValue value[] = {{.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = red},   {.f32 = 0},
-                               {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = green}, {.f32 = 0},
-                               {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = blue},  {.f32 = 0},
-                               {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 1},     {.f32 = 0}};
-
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_COLOR_FILTER, &item));
+  cssTintColor_.clear();
+  int32_t red = (sharedColor >> 16) & 0xff;
+  int32_t green = (sharedColor >> 8) & 0xff;
+  int32_t blue = sharedColor & 0xff;
+  int32_t alpha = (sharedColor >> 24) &0xff;
+  cssTintColor_.push_back(red);
+  cssTintColor_.push_back(green);
+  cssTintColor_.push_back(blue);
+  cssTintColor_.push_back(alpha);
+  SetColorFilterMatrix();
   return *this;
 }
 
@@ -155,13 +264,6 @@ ImageNode &ImageNode::SetDraggable(bool draggable) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_DRAGGABLE, &item));
   return *this;
 }
-
-// ImageNode &ImageNode::SetFocusable(bool focusable) {
-//   ArkUI_NumberValue value[] = {{.i32 = static_cast<int32_t>(focusable)}};
-//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FOCUSABLE, &item));
-//   return *this;
-// }
 
 ImageNode &ImageNode::SetResizeMethod(std::string const &resizeMethod) {
   auto autoResize = (resizeMethod != "scale") ? 1 : 0;
