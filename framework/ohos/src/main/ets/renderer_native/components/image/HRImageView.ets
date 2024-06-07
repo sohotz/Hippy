@@ -85,6 +85,7 @@ export class HRImageView extends HippyRenderBaseView {
   resizable: ResizableOptions | null = null
   cssTintColor: number[] = [0] // RGBA
   cssColorFilter: ColorFilter = [0]
+  draggable: boolean = false
   cssTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.SRC_ATOP
   cssPreTintColorBlendMode: TintColorBlendMode = TintColorBlendMode.SRC_ATOP
   onCompleteCallback: ((event?: ImageLoadEvent) => void) | null = null
@@ -341,6 +342,10 @@ export class HRImageView extends HippyRenderBaseView {
           this.resizable = null
         }
         return true
+      case 'draggable':
+        let draggable = HRValueUtils.getBoolean(propValue as HippyAny, false)
+        this.draggable = draggable;
+        return true
       default:
         break
     }
@@ -465,6 +470,7 @@ export struct HRImage {
       .objectRepeat(this.renderView.imageRepeat)
       .colorFilter(this.renderView.cssColorFilter)
       .resizable(this.renderView.resizable)
+      .draggable(this.renderView.draggable)
       .onComplete(this.renderView.onCompleteCallback)
       .onError(this.renderView.onErrorCallback)
   }
