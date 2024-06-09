@@ -61,7 +61,6 @@ public:
   void AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index);
   void RemoveSubView(std::shared_ptr<BaseView> &subView);
   void RemoveFromParentView();
-  bool IsImageSpan();
   void SetRenderViewFrame(const HRRect &frame, const HRPadding &padding = HRPadding(0, 0, 0, 0));
   void UpdateEventListener(HippyValueObjectType &newEvents);
   bool CheckRegisteredEvent(std::string &eventName);

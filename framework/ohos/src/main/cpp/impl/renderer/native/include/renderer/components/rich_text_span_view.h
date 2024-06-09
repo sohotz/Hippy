@@ -22,28 +22,41 @@
 
 #pragma once
 
-#include "renderer/arkui/arkui_node.h"
+#include "renderer/components/base_view.h"
+#include "renderer/arkui/span_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ImageSpanNodeDelegate {
+class RichTextSpanView : public BaseView, public SpanNodeDelegate {
 public:
-  virtual ~ImageSpanNodeDelegate() = default;
-  virtual void OnClick() {}
-};
+  RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx);
+  ~RichTextSpanView();
 
-class ImageSpanNode : public ArkUINode {
-protected:
-  ImageSpanNodeDelegate *imageSpanNodeDelegate_ = nullptr;
+  SpanNode &GetLocalRootArkUINode() override;
+  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+
+  void OnClick() override;
   
-public:
-  ImageSpanNode();
-  ~ImageSpanNode();
+private:
+  SpanNode spanNode_;
   
-  void OnNodeEvent(ArkUI_NodeEvent *event) override;
-  void SetSpanNodeDelegate(ImageSpanNodeDelegate *imageSpanNodeDelegate);
+  std::string text_;
+  uint32_t color_ = 0;
+  std::string fontFamily_;
+  float fontSize_ = 0;
+  int32_t fontStyle_ = 0;
+  int32_t fontWeight_ = 0;
+  float letterSpacing_ = 0;
+  float lineHeight_ = 0;
+  int32_t numberOfLines_ = 1;
+  int32_t textAlign_ = 0;
+
+  bool firstSetColor_ = true;
+  bool firstSetLetterSpacing_ = true;
+  bool firstSetTextAlign_ = true;
 };
 
 } // namespace native

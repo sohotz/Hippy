@@ -29,7 +29,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, std::shared_ptr<NativeRenderContext> &ctx);
+std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_parent_text, std::shared_ptr<NativeRenderContext> &ctx);
 
 } // namespace native
 } // namespace render

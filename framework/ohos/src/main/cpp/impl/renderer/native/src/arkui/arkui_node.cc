@@ -76,6 +76,20 @@ ArkUINode &ArkUINode::SetSize(const HRSize &size) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT, &heightItem));
   return *this;
 }
+ 
+ArkUINode &ArkUINode::SetWidth(float width) {
+  ArkUI_NumberValue widthValue[] = {{width}};
+  ArkUI_AttributeItem widthItem = {widthValue, sizeof(widthValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WIDTH, &widthItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetHeight(float height) {
+  ArkUI_NumberValue heightValue[] = {{height}};
+  ArkUI_AttributeItem heightItem = {heightValue, sizeof(heightValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT, &heightItem));
+  return *this;
+}
 
 HRSize ArkUINode::GetSize() const {
   auto widthValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_WIDTH)->value;

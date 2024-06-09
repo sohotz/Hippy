@@ -33,6 +33,8 @@
 #include "renderer/components/refresh_wrapper_item_view.h"
 #include "renderer/components/refresh_wrapper_view.h"
 #include "renderer/components/rich_text_view.h"
+#include "renderer/components/rich_text_span_view.h"
+#include "renderer/components/rich_text_image_span_view.h"
 #include "renderer/components/scroll_view.h"
 #include "renderer/components/text_input_view.h"
 #include "renderer/components/waterfall_item_view.h"
@@ -43,13 +45,21 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, std::shared_ptr<NativeRenderContext> &ctx) {
+std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_parent_text, std::shared_ptr<NativeRenderContext> &ctx) {
   if (view_name == "View") {
     return std::make_shared<DivView>(ctx);
   } else if (view_name == "Image") {
-    return std::make_shared<ImageView>(ctx);
+    if (is_parent_text) {
+      return std::make_shared<RichTextImageSpanView>(ctx);
+    } else {
+      return std::make_shared<ImageView>(ctx);
+    }
   } else if (view_name == "Text") {
-    return std::make_shared<RichTextView>(ctx);
+    if (is_parent_text) {
+      return std::make_shared<RichTextSpanView>(ctx);
+    } else {
+      return std::make_shared<RichTextView>(ctx);
+    }
   } else if (view_name == "Modal") {
     return std::make_shared<ModalView>(ctx);
   } else if (view_name == "ListView") {

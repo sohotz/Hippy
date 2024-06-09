@@ -63,6 +63,8 @@ public:
 
   virtual ArkUINode &SetPosition(const HRPosition &position);
   virtual ArkUINode &SetSize(const HRSize &size);
+  virtual ArkUINode &SetWidth(float width);
+  virtual ArkUINode &SetHeight(float height);
   virtual ArkUINode &SetSizePercent(const HRSize &size);
   virtual ArkUINode &SetVisibility(bool visibility);
   virtual ArkUINode &SetBackgroundColor(uint32_t color);

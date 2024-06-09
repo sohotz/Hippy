@@ -73,7 +73,7 @@ void HRViewManager::ApplyMutations() {
 void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
   if (m->type_ == HRMutationType::CREATE) {
     auto tm = std::static_pointer_cast<HRCreateMutation>(m);
-    auto view = CreateRenderView(tm->tag_, tm->view_name_);
+    auto view = CreateRenderView(tm->tag_, tm->view_name_, tm->is_parent_text_);
     if (view) {
       InsertSubRenderView(tm->parent_tag_, view, tm->index_);
       UpdateProps(view, tm->props_);
@@ -104,8 +104,8 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
   }
 }
 
-std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string view_name) {
-  auto view = HippyCreateRenderView(view_name, ctx_);
+std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string view_name, bool is_parent_text) {
+  auto view = HippyCreateRenderView(view_name, is_parent_text, ctx_);
   if (view) {
     view->SetTag(tag);
     view->SetViewType(view_name);

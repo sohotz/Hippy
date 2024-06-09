@@ -20,7 +20,7 @@
  *
  */
 
-#include "renderer/components/rich_text_view.h"
+#include "renderer/components/rich_text_span_view.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
@@ -28,21 +28,21 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-RichTextView::RichTextView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  textNode_.SetTextNodeDelegate(this);
+RichTextSpanView::RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  spanNode_.SetSpanNodeDelegate(this);
 }
 
-RichTextView::~RichTextView() {}
+RichTextSpanView::~RichTextSpanView() {}
 
-TextNode &RichTextView::GetLocalRootArkUINode() {
-  return textNode_;
+SpanNode &RichTextSpanView::GetLocalRootArkUINode() {
+  return spanNode_;
 }
 
-bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
     if (value != text_) {
-      GetLocalRootArkUINode().SetTextContent(value);
+//       GetLocalRootArkUINode().SetTextContent(value);
       text_ = value;
     }
     return true;
@@ -104,7 +104,7 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
   } else if (propKey == "numberOfLines") {
     int32_t value = HRValueUtils::GetInt32(propValue, 1);
     if (value != numberOfLines_) {
-      GetLocalRootArkUINode().SetTextMaxLines(value);
+//       GetLocalRootArkUINode().SetTextMaxLines(value);
       numberOfLines_ = value;
     }
     return true;
@@ -112,7 +112,7 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     std::string value = HRValueUtils::GetString(propValue);
     ArkUI_TextAlignment align = HRTextConvertUtils::TextAlignToArk(value);
     if (firstSetTextAlign_ || align != textAlign_) {
-      GetLocalRootArkUINode().SetTextAlign(align);
+//       GetLocalRootArkUINode().SetTextAlign(align);
       textAlign_ = align;
       firstSetTextAlign_ = false;
     }
@@ -142,25 +142,18 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     
     return true;
   }
-  return BaseView::SetProp(propKey, propValue);
+  
+  // Not to set some attributes for text span.
+  // For example: NODE_BACKGROUND_COLOR will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
+  return false;
 }
 
-void RichTextView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrame(frame, padding);
-  textNode_.SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+void RichTextSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  // Nothing to set for text span.
+  // NODE_POSITION / NODE_WIDTH will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
 }
 
-void RichTextView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  textNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
-}
-
-void RichTextView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
-  textNode_.RemoveChild(childView->GetLocalRootArkUINode());
-}
-
-void RichTextView::OnClick() {
+void RichTextSpanView::OnClick() {
   if (eventClick_) {
     eventClick_();
   }

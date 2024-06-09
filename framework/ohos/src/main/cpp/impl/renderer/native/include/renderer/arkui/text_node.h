@@ -55,7 +55,7 @@ public:
   TextNode();
   ~TextNode() override;
 
-  void InsertChild(ArkUINode &child, std::size_t index);
+  void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetTextNodeDelegate(TextNodeDelegate *textNodeDelegate);

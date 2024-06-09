@@ -372,6 +372,10 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     }
   
     m->props_ = props;
+    auto parentNode = nodes[i]->GetParent();
+    if (parentNode && parentNode->GetViewName() == "Text") {
+      m->is_parent_text_ = true;
+    }
     mutations[i] = m;
   }
   

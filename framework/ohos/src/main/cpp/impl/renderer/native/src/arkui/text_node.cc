@@ -34,7 +34,7 @@ TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_
 
 TextNode::~TextNode() {}
 
-void TextNode::InsertChild(ArkUINode &child, std::size_t index) {
+void TextNode::InsertChild(ArkUINode &child, int32_t index) {
   MaybeThrow(
     NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
 }
