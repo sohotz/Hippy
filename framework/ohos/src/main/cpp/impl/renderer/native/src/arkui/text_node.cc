@@ -105,8 +105,8 @@ TextNode &TextNode::SetTextLineHeight(float textLineHeight) {
   return *this;
 }
 
-TextNode &TextNode::SetTextDecoration(int32_t decorationStyle, uint32_t decorationColor) {
-  ArkUI_NumberValue value[] = {{.i32 = decorationStyle}, {.u32 = decorationColor}};
+TextNode &TextNode::SetTextDecoration(ArkUI_TextDecorationType decorationType, uint32_t decorationColor, ArkUI_TextDecorationStyle decorationStyle) {
+  ArkUI_NumberValue value[] = {{.i32 = decorationType}, {.u32 = decorationColor}, {.i32 = decorationStyle}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_DECORATION, &item));
   return *this;
@@ -145,17 +145,24 @@ TextNode &TextNode::SetTextAlign(ArkUI_TextAlignment align) {
   return *this;
 }
 
-TextNode &TextNode::SetTextEllipsisMode(int32_t ellipsisMode) {
+TextNode &TextNode::SetTextEllipsisMode(ArkUI_EllipsisMode ellipsisMode) {
   ArkUI_NumberValue value[] = {{.i32 = ellipsisMode}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_ELLIPSIS_MODE, &item));
   return *this;
 }
 
-TextNode &TextNode::SetTextOverflow(int32_t textOverflow) {
+TextNode &TextNode::SetTextOverflow(ArkUI_TextOverflow textOverflow) {
   ArkUI_NumberValue value[] = {{.i32 = textOverflow}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_OVERFLOW, &item));
+  return *this;
+}
+
+TextNode &TextNode::SetWordBreak(ArkUI_WordBreak workBreak) {
+  ArkUI_NumberValue value[] = {{.i32 = workBreak}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_WORD_BREAK, &item));
   return *this;
 }
 
@@ -184,7 +191,7 @@ TextNode &TextNode::SetTextBaselineOffset(float textBaselineOffset) {
   return *this;
 }
 
-TextNode &TextNode::SetTextShadow(float textShadowRadius, int32_t textShadowType, uint32_t textShadowColor,
+TextNode &TextNode::SetTextShadow(float textShadowRadius, ArkUI_ShadowType textShadowType, uint32_t textShadowColor,
                                   float textShadowOffsetX, float textShadowOffsetY) {
   ArkUI_NumberValue value[] = {{.f32 = textShadowRadius},
                                {.i32 = textShadowType},

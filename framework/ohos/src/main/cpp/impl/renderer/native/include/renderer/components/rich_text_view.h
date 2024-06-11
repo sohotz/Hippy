@@ -36,6 +36,7 @@ public:
 
   TextNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void OnSetPropsEnd() override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
   
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
@@ -56,6 +57,17 @@ private:
   std::optional<float> lineHeight_;
   std::optional<int32_t> numberOfLines_;
   std::optional<int32_t> textAlign_;
+  
+  ArkUI_TextDecorationType decorationType_ = ARKUI_TEXT_DECORATION_TYPE_NONE;
+  ArkUI_TextDecorationStyle decorationStyle_ = ARKUI_TEXT_DECORATION_STYLE_SOLID;
+  uint32_t decorationColor_ = 0xff000000;
+  float textShadowRadius_ = 0.f;
+  float textShadowOffsetX_ = 0.f;
+  float textShadowOffsetY_ = 0.f;
+  uint32_t textShadowColor_ = 0xff000000;
+  
+  bool toSetTextDecoration_ = false;
+  bool toSetTextShadow = false;
 };
 
 } // namespace native

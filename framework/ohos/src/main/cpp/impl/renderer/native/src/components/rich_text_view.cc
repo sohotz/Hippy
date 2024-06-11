@@ -59,7 +59,7 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
   } else if (propKey == HRNodeProps::FONT_FAMILY) {
     std::string value = HRValueUtils::GetString(propValue);
     if (!fontFamily_.has_value() || value != fontFamily_) {
-      // TODO:
+      // TODO(hot):
       fontFamily_ = value;
     }
     return true;
@@ -102,7 +102,7 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     return true;
   } else if (propKey == HRNodeProps::LINE_SPACING_EXTRA) { // Android有，iOS无
     return true;
-  } else if (propKey == HRNodeProps::LINE_SPACING_MULTIPLIER) { // TODO:
+  } else if (propKey == HRNodeProps::LINE_SPACING_MULTIPLIER) { // TODO(hot):
     return true;
   } else if (propKey == HRNodeProps::NUMBER_OF_LINES) {
     int32_t value = HRValueUtils::GetInt32(propValue, 1);
@@ -123,31 +123,64 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     }
     return true;
   } else if (propKey == HRNodeProps::TEXT_DECORATION_LINE) {
-    
+    std::string value = HRValueUtils::GetString(propValue);
+    decorationType_ = HRTextConvertUtils::TextDecorationTypeToArk(value);
+    toSetTextDecoration_ = true;
     return true;
   } else if (propKey == HRNodeProps::TEXT_DECORATION_COLOR) {
-    
+    decorationColor_ = HRValueUtils::GetUint32(propValue);
+    toSetTextDecoration_ = true;
     return true;
   } else if (propKey == HRNodeProps::TEXT_DECORATION_STYLE) {
-    
+    std::string value = HRValueUtils::GetString(propValue);
+    decorationStyle_ = HRTextConvertUtils::TextDecorationStyleToArk(value);
+    toSetTextDecoration_ = true;
     return true;
   } else if (propKey == HRNodeProps::TEXT_SHADOW_COLOR) {
-    
+    textShadowColor_ = HRValueUtils::GetUint32(propValue);
+    toSetTextShadow = true;
     return true;
   } else if (propKey == HRNodeProps::TEXT_SHADOW_OFFSET) {
-    
+    HippyValueObjectType m;
+    if (propValue.ToObject(m)) {
+      textShadowOffsetX_ = HRValueUtils::GetFloat(m["width"]);
+      textShadowOffsetY_ = HRValueUtils::GetFloat(m["height"]);
+    }
+    toSetTextShadow = true;
     return true;
   } else if (propKey == HRNodeProps::TEXT_SHADOW_RADIUS) {
-    
+    textShadowRadius_ = HRValueUtils::GetFloat(propValue);
+    toSetTextShadow = true;
     return true;
   } else if (propKey == HRNodeProps::ELLIPSIZE_MODE) {
-    
+    std::string value = HRValueUtils::GetString(propValue);
+    ArkUI_EllipsisMode ellipsisMode = ARKUI_ELLIPSIS_MODE_END;
+    ArkUI_TextOverflow textOverflow = ARKUI_TEXT_OVERFLOW_NONE;
+    if (HRTextConvertUtils::EllipsisModeToArk(value, ellipsisMode, textOverflow)) {
+      GetLocalRootArkUINode().SetTextOverflow(textOverflow);
+      GetLocalRootArkUINode().SetTextEllipsisMode(ellipsisMode);
+    }
     return true;
   } else if (propKey == HRNodeProps::BREAK_STRATEGY) {
-    
+    std::string value = HRValueUtils::GetString(propValue);
+    ArkUI_WordBreak wordBreak = HRTextConvertUtils::WordBreakToArk(value);
+    GetLocalRootArkUINode().SetWordBreak(wordBreak);
     return true;
   }
+  
   return BaseView::SetProp(propKey, propValue);
+}
+
+void RichTextView::OnSetPropsEnd() {
+  if (toSetTextDecoration_) {
+    toSetTextDecoration_ = false;
+    GetLocalRootArkUINode().SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
+  }
+  if (toSetTextShadow) {
+    toSetTextShadow = false;
+    GetLocalRootArkUINode().SetTextShadow(textShadowRadius_, ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, textShadowOffsetX_, textShadowOffsetY_);
+  }
+  BaseView::OnSetPropsEnd();
 }
 
 void RichTextView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
