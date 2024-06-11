@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/rich_text_view.h"
+#include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
@@ -41,104 +42,108 @@ TextNode &RichTextView::GetLocalRootArkUINode() {
 bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
-    if (value != text_) {
+    if (!text_.has_value() || value != text_) {
       GetLocalRootArkUINode().SetTextContent(value);
       text_ = value;
     }
     return true;
-  } else if (propKey == "color") {
+  } else if (propKey == HRNodeProps::COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
-    if (firstSetColor_ || value != color_) {
+    if (!color_.has_value() || value != color_) {
       GetLocalRootArkUINode().SetFontColor(value);
       color_ = value;
-      firstSetColor_ = false;
     }
     return true;
   } else if (propKey == "enableScale") {
     return true;
-  } else if (propKey == "fontFamily") {
-    
+  } else if (propKey == HRNodeProps::FONT_FAMILY) {
+    std::string value = HRValueUtils::GetString(propValue);
+    if (!fontFamily_.has_value() || value != fontFamily_) {
+      // TODO:
+      fontFamily_ = value;
+    }
     return true;
-  } else if (propKey == "fontSize") {
+  } else if (propKey == HRNodeProps::FONT_SIZE) {
     float value = HRValueUtils::GetFloat(propValue);
-    if (value != fontSize_) {
+    if (!fontSize_.has_value() || value != fontSize_) {
       GetLocalRootArkUINode().SetFontSize(value);
       fontSize_ = value;
     }
     return true;
-  } else if (propKey == "fontStyle") {
+  } else if (propKey == HRNodeProps::FONT_STYLE) {
     std::string value = HRValueUtils::GetString(propValue);
     int32_t style = HRTextConvertUtils::FontStyleToArk(value);
-    if (style != fontStyle_) {
+    if (!fontStyle_.has_value() || style != fontStyle_) {
       GetLocalRootArkUINode().SetFontStyle(style);
       fontStyle_ = style;
     }
     return true;
-  } else if (propKey == "fontWeight") {
+  } else if (propKey == HRNodeProps::FONT_WEIGHT) {
     std::string value = HRValueUtils::GetString(propValue);
     ArkUI_FontWeight weight = HRTextConvertUtils::FontWeightToArk(value);
-    if (weight != fontWeight_) {
+    if (!fontWeight_.has_value() || weight != fontWeight_) {
       GetLocalRootArkUINode().SetFontWeight(weight);
       fontWeight_ = weight;
     }
     return true;
-  } else if (propKey == "letterSpacing") {
+  } else if (propKey == HRNodeProps::LETTER_SPACING) {
     float value = HRValueUtils::GetFloat(propValue);
-    if (firstSetLetterSpacing_ || value != letterSpacing_) {
+    if (!letterSpacing_.has_value() || value != letterSpacing_) {
       GetLocalRootArkUINode().SetTextLetterSpacing(value);
       letterSpacing_ = value;
-      firstSetLetterSpacing_ = false;
     }
     return true;
-  } else if (propKey == "lineHeight") {
+  } else if (propKey == HRNodeProps::LINE_HEIGHT) {
     float value = HRValueUtils::GetFloat(propValue);
-    if (value != lineHeight_) {
+    if (!lineHeight_.has_value() || value != lineHeight_) {
       GetLocalRootArkUINode().SetTextLineHeight(value);
       lineHeight_ = value;
     }
     return true;
-  } else if (propKey == "lineSpacingExtra") {
+  } else if (propKey == HRNodeProps::LINE_SPACING_EXTRA) { // Android有，iOS无
     return true;
-  } else if (propKey == "lineSpacingMultiplier") {
+  } else if (propKey == HRNodeProps::LINE_SPACING_MULTIPLIER) { // TODO:
     return true;
-  } else if (propKey == "numberOfLines") {
+  } else if (propKey == HRNodeProps::NUMBER_OF_LINES) {
     int32_t value = HRValueUtils::GetInt32(propValue, 1);
-    if (value != numberOfLines_) {
+    if (value <= 0) {
+      value = 10000000;
+    }
+    if (!numberOfLines_.has_value() || value != numberOfLines_) {
       GetLocalRootArkUINode().SetTextMaxLines(value);
       numberOfLines_ = value;
     }
     return true;
-  } else if (propKey == "textAlign") {
+  } else if (propKey == HRNodeProps::TEXT_ALIGN) {
     std::string value = HRValueUtils::GetString(propValue);
     ArkUI_TextAlignment align = HRTextConvertUtils::TextAlignToArk(value);
-    if (firstSetTextAlign_ || align != textAlign_) {
+    if (!textAlign_.has_value() || align != textAlign_) {
       GetLocalRootArkUINode().SetTextAlign(align);
       textAlign_ = align;
-      firstSetTextAlign_ = false;
     }
     return true;
-  } else if (propKey == "textDecorationLine") {
+  } else if (propKey == HRNodeProps::TEXT_DECORATION_LINE) {
     
     return true;
-  } else if (propKey == "textDecorationColor") {
+  } else if (propKey == HRNodeProps::TEXT_DECORATION_COLOR) {
     
     return true;
-  } else if (propKey == "textDecorationStyle") {
+  } else if (propKey == HRNodeProps::TEXT_DECORATION_STYLE) {
     
     return true;
-  } else if (propKey == "textShadowColor") {
+  } else if (propKey == HRNodeProps::TEXT_SHADOW_COLOR) {
     
     return true;
-  } else if (propKey == "textShadowOffset") {
+  } else if (propKey == HRNodeProps::TEXT_SHADOW_OFFSET) {
     
     return true;
-  } else if (propKey == "textShadowRadius") {
+  } else if (propKey == HRNodeProps::TEXT_SHADOW_RADIUS) {
     
     return true;
-  } else if (propKey == "ellipsizeMode") {
+  } else if (propKey == HRNodeProps::ELLIPSIZE_MODE) {
     
     return true;
-  } else if (propKey == "breakStrategy") {
+  } else if (propKey == HRNodeProps::BREAK_STRATEGY) {
     
     return true;
   }
