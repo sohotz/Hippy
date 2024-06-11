@@ -143,7 +143,7 @@ void ScrollView::EmitScrollEvent(std::string &eventName) {
 
   HippyValueObjectType contentSizeObj;
   HRSize layoutSize = scrollNode_.GetSize();
-  HRSize size = children_.size() > 0 ? stackNode_.GetSize() : layoutSize;
+  HRSize size = children_.size() > 0 ? children_[0]->GetLocalRootArkUINode().GetSize() : layoutSize;
   contentSizeObj.insert_or_assign("width", size.width);
   contentSizeObj.insert_or_assign("height", size.height);
 

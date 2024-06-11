@@ -92,10 +92,16 @@ ArkUINode &ArkUINode::SetHeight(float height) {
 }
 
 HRSize ArkUINode::GetSize() const {
-  auto widthValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_WIDTH)->value;
-  float width = widthValue->f32;
-  auto heightValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_HEIGHT)->value;
-  float height = heightValue->f32;
+  float width = 0.0;
+  float height = 0.0;
+  auto widthValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_WIDTH);
+  if (widthValue) {
+    width = widthValue->value->f32;
+  }
+  auto heightValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_HEIGHT);
+  if (heightValue) {
+    height = heightValue->value->f32;
+  }
   return HRSize{width, height};
 }
 
