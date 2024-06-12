@@ -52,8 +52,6 @@ private:
   std::optional<int32_t> fontWeight_;
   std::optional<float> letterSpacing_;
   std::optional<float> lineHeight_;
-  std::optional<int32_t> numberOfLines_;
-  std::optional<int32_t> textAlign_;
   
   ArkUI_TextDecorationType decorationType_ = ARKUI_TEXT_DECORATION_TYPE_NONE;
   ArkUI_TextDecorationStyle decorationStyle_ = ARKUI_TEXT_DECORATION_STYLE_SOLID;

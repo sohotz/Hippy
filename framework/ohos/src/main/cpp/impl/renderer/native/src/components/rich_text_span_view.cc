@@ -54,8 +54,6 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
       color_ = value;
     }
     return true;
-  } else if (propKey == "enableScale") {
-    return true;
   } else if (propKey == HRNodeProps::FONT_FAMILY) {
     std::string value = HRValueUtils::GetString(propValue);
     if (!fontFamily_.has_value() || value != fontFamily_) {
@@ -100,28 +98,6 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
       lineHeight_ = value;
     }
     return true;
-  } else if (propKey == HRNodeProps::LINE_SPACING_EXTRA) { // Android有，iOS无
-    return true;
-  } else if (propKey == HRNodeProps::LINE_SPACING_MULTIPLIER) { // TODO(hot):
-    return true;
-//   } else if (propKey == HRNodeProps::NUMBER_OF_LINES) {
-//     int32_t value = HRValueUtils::GetInt32(propValue, 1);
-//     if (value <= 0) {
-//       value = 10000000;
-//     }
-//     if (!numberOfLines_.has_value() || value != numberOfLines_) {
-//       GetLocalRootArkUINode().SetTextMaxLines(value);
-//       numberOfLines_ = value;
-//     }
-//     return true;
-//   } else if (propKey == HRNodeProps::TEXT_ALIGN) {
-//     std::string value = HRValueUtils::GetString(propValue);
-//     ArkUI_TextAlignment align = HRTextConvertUtils::TextAlignToArk(value);
-//     if (!textAlign_.has_value() || align != textAlign_) {
-//       GetLocalRootArkUINode().SetTextAlign(align);
-//       textAlign_ = align;
-//     }
-//     return true;
   } else if (propKey == HRNodeProps::TEXT_DECORATION_LINE) {
     std::string value = HRValueUtils::GetString(propValue);
     decorationType_ = HRTextConvertUtils::TextDecorationTypeToArk(value);
@@ -152,20 +128,6 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
     textShadowRadius_ = HRValueUtils::GetFloat(propValue);
     toSetTextShadow = true;
     return true;
-//   } else if (propKey == HRNodeProps::ELLIPSIZE_MODE) {
-//     std::string value = HRValueUtils::GetString(propValue);
-//     ArkUI_EllipsisMode ellipsisMode = ARKUI_ELLIPSIS_MODE_END;
-//     ArkUI_TextOverflow textOverflow = ARKUI_TEXT_OVERFLOW_NONE;
-//     if (HRTextConvertUtils::EllipsisModeToArk(value, ellipsisMode, textOverflow)) {
-//       GetLocalRootArkUINode().SetTextOverflow(textOverflow);
-//       GetLocalRootArkUINode().SetTextEllipsisMode(ellipsisMode);
-//     }
-//     return true;
-//   } else if (propKey == HRNodeProps::BREAK_STRATEGY) {
-//     std::string value = HRValueUtils::GetString(propValue);
-//     ArkUI_WordBreak wordBreak = HRTextConvertUtils::WordBreakToArk(value);
-//     GetLocalRootArkUINode().SetWordBreak(wordBreak);
-//     return true;
   } else if (propKey == HRNodeProps::BACKGROUND_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     GetLocalRootArkUINode().SetSpanTextBackgroundStyle(value);
@@ -180,7 +142,7 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
 void RichTextSpanView::OnSetPropsEnd() {
   if (toSetTextDecoration_) {
     toSetTextDecoration_ = false;
-//     GetLocalRootArkUINode().SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
+    GetLocalRootArkUINode().SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
   }
   if (toSetTextShadow) {
     toSetTextShadow = false;

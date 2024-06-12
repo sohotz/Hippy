@@ -23,14 +23,22 @@
 #include "renderer/components/rich_text_image_span_view.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_text_convert_utils.h"
+#include "renderer/utils/hr_url_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
+// TODO(hot):
+static const std::string BASE64_IMAGE_PREFIX = "data:image";
+static const std::string RAW_IMAGE_PREFIX = "hpfile://";
+static const std::string ASSETS_PREFIX = "assets://";
+static const std::string INTERNET_IMAGE_PREFIX = "http";
+
 RichTextImageSpanView::RichTextImageSpanView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   imageSpanNode_.SetSpanNodeDelegate(this);
+  imageSpanNode_.SetImageObjectFit(ARKUI_OBJECT_FIT_FILL);
 }
 
 RichTextImageSpanView::~RichTextImageSpanView() {}
@@ -60,6 +68,17 @@ bool RichTextImageSpanView::SetProp(const std::string &propKey, const HippyValue
       
     }
     return true;
+  } else if (propKey == "src") {
+    auto value = HRValueUtils::GetString(propValue);
+    if (value != src_) {
+      src_ = value;
+      fetchImage(value);
+    }
+    return true;
+  } else if (propKey == "defaultSource") {
+    auto value = HRValueUtils::GetString(propValue);
+    GetLocalRootArkUINode().SetAlt(value);
+    return true;
   }
   
   // Not to set some attributes for text span.
@@ -71,6 +90,24 @@ void RichTextImageSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRP
     GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));
     return;
   }
+}
+
+void RichTextImageSpanView::fetchImage(const std::string &imageUrl) {
+  if (imageUrl.size() > 0) {
+    if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
+      GetLocalRootArkUINode().SetSources(imageUrl);
+      return;
+		} else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
+			std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
+      GetLocalRootArkUINode().SetSources(convertUrl);
+      return;
+		} else if (HRUrlUtils::isWebUrl(imageUrl)) {
+			GetLocalRootArkUINode().SetSources(imageUrl);
+      return;
+		}
+    
+    // TODO(hot):
+	}
 }
 
 void RichTextImageSpanView::OnClick() {

@@ -114,6 +114,13 @@ void NativeRenderProvider::CallUIFunction(uint32_t root_id, uint32_t node_id, ui
   });
 }
 
+void NativeRenderProvider::SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
+  taskRunner->RunAsyncTask([render_impl = render_impl_, root_id, node_id, x, y]() {
+    render_impl->SpanPosition(root_id, node_id, x, y);
+  });
+}
+
 void NativeRenderProvider::OnSize(uint32_t root_id, float width, float height) {
   NativeRenderProvider_UpdateRootSize(instance_id_, root_id, width, height);
 }

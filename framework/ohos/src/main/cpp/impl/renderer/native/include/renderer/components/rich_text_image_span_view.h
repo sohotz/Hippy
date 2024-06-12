@@ -41,7 +41,11 @@ public:
   void OnClick() override;
   
 private:
+  void fetchImage(const std::string &imageUrl);
+  
   ImageSpanNode imageSpanNode_;
+  
+  std::string src_;
 };
 
 } // namespace native

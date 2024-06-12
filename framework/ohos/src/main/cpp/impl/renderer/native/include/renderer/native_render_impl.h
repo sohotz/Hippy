@@ -57,6 +57,8 @@ public:
   void CallUIFunction(uint32_t root_id, uint32_t node_id, const std::string &functionName,
                       const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback);
 
+  void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
+  
   uint64_t AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) override;
   void RemoveEndBatchCallback(uint32_t root_id, uint64_t cbId) override;
 

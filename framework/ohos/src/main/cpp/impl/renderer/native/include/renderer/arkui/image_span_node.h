@@ -37,13 +37,19 @@ public:
 class ImageSpanNode : public ArkUINode {
 protected:
   ImageSpanNodeDelegate *imageSpanNodeDelegate_ = nullptr;
+  std::string uri_;
   
 public:
   ImageSpanNode();
   ~ImageSpanNode();
   
+  ImageSpanNode &SetSources(std::string const &src);
+  ImageSpanNode &SetAlt(std::string const &src);
+  ImageSpanNode &SetImageObjectFit(ArkUI_ObjectFit fit);
+  
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetSpanNodeDelegate(ImageSpanNodeDelegate *imageSpanNodeDelegate);
+  
 };
 
 } // namespace native
