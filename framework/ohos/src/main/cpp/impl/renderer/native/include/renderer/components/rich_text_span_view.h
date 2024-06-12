@@ -36,6 +36,7 @@ public:
 
   SpanNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void OnSetPropsEnd() override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
 
   void OnClick() override;
@@ -43,20 +44,27 @@ public:
 private:
   SpanNode spanNode_;
   
-  std::string text_;
-  uint32_t color_ = 0;
-  std::string fontFamily_;
-  float fontSize_ = 0;
-  int32_t fontStyle_ = 0;
-  int32_t fontWeight_ = 0;
-  float letterSpacing_ = 0;
-  float lineHeight_ = 0;
-  int32_t numberOfLines_ = 1;
-  int32_t textAlign_ = 0;
-
-  bool firstSetColor_ = true;
-  bool firstSetLetterSpacing_ = true;
-  bool firstSetTextAlign_ = true;
+  std::optional<std::string> text_;
+  std::optional<uint32_t> color_;
+  std::optional<std::string> fontFamily_;
+  std::optional<float> fontSize_;
+  std::optional<int32_t> fontStyle_;
+  std::optional<int32_t> fontWeight_;
+  std::optional<float> letterSpacing_;
+  std::optional<float> lineHeight_;
+  std::optional<int32_t> numberOfLines_;
+  std::optional<int32_t> textAlign_;
+  
+  ArkUI_TextDecorationType decorationType_ = ARKUI_TEXT_DECORATION_TYPE_NONE;
+  ArkUI_TextDecorationStyle decorationStyle_ = ARKUI_TEXT_DECORATION_STYLE_SOLID;
+  uint32_t decorationColor_ = 0xff000000;
+  float textShadowRadius_ = 0.f;
+  float textShadowOffsetX_ = 0.f;
+  float textShadowOffsetY_ = 0.f;
+  uint32_t textShadowColor_ = 0xff000000;
+  
+  bool toSetTextDecoration_ = false;
+  bool toSetTextShadow = false;
 };
 
 } // namespace native

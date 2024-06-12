@@ -129,7 +129,7 @@ SpanNode &SpanNode::SetTextShadow(float textShadowRadius, int32_t textShadowType
   return *this;
 }
 
-SpanNode &SpanNode::SetBackgroundStyle(uint32_t color) {
+SpanNode &SpanNode::SetSpanTextBackgroundStyle(uint32_t color) {
   ArkUI_NumberValue value[] = {{.u32 = color}, {.f32 = 0}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SPAN_TEXT_BACKGROUND_STYLE, &item));

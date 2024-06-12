@@ -57,7 +57,7 @@ public:
                           float textShadowOffsetX, float textShadowOffsetY);
   SpanNode &SetTextLineHeight(float textLineHeight);
   SpanNode &SetTextCase(int32_t textCase);
-  SpanNode &SetBackgroundStyle(uint32_t color);
+  SpanNode &SetSpanTextBackgroundStyle(uint32_t color);
 };
 
 } // namespace native
