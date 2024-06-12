@@ -97,6 +97,10 @@ public:
 
   void RegisterClickEvent();
   void UnregisterClickEvent();
+  void RegisterAppearEvent();
+  void UnregisterAppearEvent();
+  void RegisterDisappearEvent();
+  void UnregisterDisappearEvent();
 
 protected:
   void MaybeThrow(int32_t status) {
@@ -110,6 +114,8 @@ protected:
   ArkUI_NodeHandle nodeHandle_;
   
   bool hasClickEvent_ = false;
+  bool hasAppearEvent_ = false;
+  bool hasDisappearEvent_ = false;
 };
 
 } // namespace native

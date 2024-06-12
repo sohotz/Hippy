@@ -387,6 +387,34 @@ void ArkUINode::UnregisterClickEvent() {
   }
 }
 
+void ArkUINode::RegisterAppearEvent() {
+    if (!hasAppearEvent_) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_EVENT_ON_APPEAR, 0, nullptr));
+    hasAppearEvent_ = true;
+  }
+}
+
+void ArkUINode::UnregisterAppearEvent() {
+  if (hasAppearEvent_) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_APPEAR);
+    hasAppearEvent_ = false;
+  }
+}
+
+void ArkUINode::RegisterDisappearEvent() {
+    if (!hasDisappearEvent_) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_EVENT_ON_DISAPPEAR, 0, nullptr));
+    hasDisappearEvent_ = true;
+  }
+}
+
+void ArkUINode::UnregisterDisappearEvent() {
+  if (hasDisappearEvent_) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_DISAPPEAR);
+    hasDisappearEvent_ = false;
+  }
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

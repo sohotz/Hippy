@@ -31,7 +31,9 @@ inline namespace native {
 class StackNodeDelegate {
 public:
   virtual ~StackNodeDelegate() = default;
-  virtual void OnClick(){}
+  virtual void OnClick() {}
+  virtual void OnAppear() {}
+  virtual void OnDisappear() {}
 };
 
 class StackNode : public ArkUINode {
