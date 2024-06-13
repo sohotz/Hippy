@@ -372,6 +372,10 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     }
   
     m->props_ = props;
+    auto parentNode = nodes[i]->GetParent();
+    if (parentNode && parentNode->GetViewName() == "Text") {
+      m->is_parent_text_ = true;
+    }
     mutations[i] = m;
   }
   
@@ -973,7 +977,11 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       double x = measureResult.spanPos[i].x;
       double y = measureResult.spanPos[i].y;
       // 把 c 测量到的imageSpan的位置，通知给ArkTS组件
-      CallRenderDelegateSpanPositionMethod(ts_env_, ts_render_provider_ref_, "spanPosition", root->GetId(), imageSpanNode[i]->GetId(), float(x), float(y));
+      if (enable_ark_c_api_) {
+        c_render_provider_->SpanPosition(root->GetId(), imageSpanNode[i]->GetId(), float(x), float(y));
+      } else {
+        CallRenderDelegateSpanPositionMethod(ts_env_, ts_render_provider_ref_, "spanPosition", root->GetId(), imageSpanNode[i]->GetId(), float(x), float(y));
+      }
     }
   }
   result = static_cast<int64_t>(ceil(measureResult.width)) << 32 | static_cast<int64_t>(ceil(measureResult.height));

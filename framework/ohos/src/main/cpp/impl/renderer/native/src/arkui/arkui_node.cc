@@ -76,12 +76,32 @@ ArkUINode &ArkUINode::SetSize(const HRSize &size) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT, &heightItem));
   return *this;
 }
+ 
+ArkUINode &ArkUINode::SetWidth(float width) {
+  ArkUI_NumberValue widthValue[] = {{width}};
+  ArkUI_AttributeItem widthItem = {widthValue, sizeof(widthValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WIDTH, &widthItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetHeight(float height) {
+  ArkUI_NumberValue heightValue[] = {{height}};
+  ArkUI_AttributeItem heightItem = {heightValue, sizeof(heightValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT, &heightItem));
+  return *this;
+}
 
 HRSize ArkUINode::GetSize() const {
-  auto widthValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_WIDTH)->value;
-  float width = widthValue->f32;
-  auto heightValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_HEIGHT)->value;
-  float height = heightValue->f32;
+  float width = 0.0;
+  float height = 0.0;
+  auto widthValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_WIDTH);
+  if (widthValue) {
+    width = widthValue->value->f32;
+  }
+  auto heightValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_HEIGHT);
+  if (heightValue) {
+    height = heightValue->value->f32;
+  }
   return HRSize{width, height};
 }
 
@@ -364,6 +384,34 @@ void ArkUINode::UnregisterClickEvent() {
   if (hasClickEvent_) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK);
     hasClickEvent_ = false;
+  }
+}
+
+void ArkUINode::RegisterAppearEvent() {
+    if (!hasAppearEvent_) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_EVENT_ON_APPEAR, 0, nullptr));
+    hasAppearEvent_ = true;
+  }
+}
+
+void ArkUINode::UnregisterAppearEvent() {
+  if (hasAppearEvent_) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_APPEAR);
+    hasAppearEvent_ = false;
+  }
+}
+
+void ArkUINode::RegisterDisappearEvent() {
+    if (!hasDisappearEvent_) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_EVENT_ON_DISAPPEAR, 0, nullptr));
+    hasDisappearEvent_ = true;
+  }
+}
+
+void ArkUINode::UnregisterDisappearEvent() {
+  if (hasDisappearEvent_) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_DISAPPEAR);
+    hasDisappearEvent_ = false;
   }
 }
 

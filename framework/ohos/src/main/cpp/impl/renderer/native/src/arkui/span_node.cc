@@ -33,6 +33,18 @@ SpanNode::SpanNode()
 
 SpanNode::~SpanNode() {}
 
+void SpanNode::SetSpanNodeDelegate(SpanNodeDelegate *spanNodeDelegate) { spanNodeDelegate_ = spanNodeDelegate; }
+
+void SpanNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  if (spanNodeDelegate_ == nullptr) {
+    return;
+  }
+  
+  if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_ON_CLICK) {
+    spanNodeDelegate_->OnClick();
+  }
+}
+
 SpanNode &SpanNode::SetSpanContent(const std::string &text) {
   ArkUI_AttributeItem item = {.string = text.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SPAN_CONTENT, &item));
@@ -40,7 +52,11 @@ SpanNode &SpanNode::SetSpanContent(const std::string &text) {
 }
 
 SpanNode &SpanNode::SetFontColor(uint32_t color) {
-  ArkUI_NumberValue value[] = {{.u32 = color}};
+  uint32_t colorValue = color;
+  if (colorValue >> 24 == 0) {
+    colorValue |= ((uint32_t)0xff << 24);
+  }
+  ArkUI_NumberValue value[] = {{.u32 = colorValue}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_COLOR, &item));
   return *this;
@@ -74,8 +90,8 @@ SpanNode &SpanNode::SetTextLineHeight(float textLineHeight) {
   return *this;
 }
 
-SpanNode &SpanNode::SetTextDecoration(int32_t decorationStyle, uint32_t decorationColor /*= 0xFFFF0000*/) {
-  ArkUI_NumberValue value[] = {{.i32 = decorationStyle}, {.u32 = decorationColor}};
+SpanNode &SpanNode::SetTextDecoration(ArkUI_TextDecorationType decorationType, uint32_t decorationColor, ArkUI_TextDecorationStyle decorationStyle) {
+  ArkUI_NumberValue value[] = {{.i32 = decorationType}, {.u32 = decorationColor}, {.i32 = decorationStyle}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_DECORATION, &item));
   return *this;
@@ -101,7 +117,7 @@ SpanNode &SpanNode::SetFontFamily(const std::string &fontFamily) {
   return *this;
 }
 
-SpanNode &SpanNode::SetTextShadow(float textShadowRadius, int32_t textShadowType, uint32_t textShadowColor,
+SpanNode &SpanNode::SetTextShadow(float textShadowRadius, ArkUI_ShadowType textShadowType, uint32_t textShadowColor,
                                   float textShadowOffsetX, float textShadowOffsetY) {
   ArkUI_NumberValue value[] = {{.f32 = textShadowRadius},
                                {.i32 = textShadowType},
@@ -113,7 +129,7 @@ SpanNode &SpanNode::SetTextShadow(float textShadowRadius, int32_t textShadowType
   return *this;
 }
 
-SpanNode &SpanNode::SetBackgroundStyle(uint32_t color) {
+SpanNode &SpanNode::SetSpanTextBackgroundStyle(uint32_t color) {
   ArkUI_NumberValue value[] = {{.u32 = color}, {.f32 = 0}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SPAN_TEXT_BACKGROUND_STYLE, &item));

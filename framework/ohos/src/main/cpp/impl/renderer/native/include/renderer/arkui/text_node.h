@@ -55,7 +55,7 @@ public:
   TextNode();
   ~TextNode() override;
 
-  void InsertChild(ArkUINode &child, std::size_t index);
+  void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetTextNodeDelegate(TextNodeDelegate *textNodeDelegate);
@@ -67,18 +67,19 @@ public:
   TextNode &SetFontStyle(int32_t fontStyle);
   TextNode &SetFontWeight(ArkUI_FontWeight fontWeight);
   TextNode &SetTextLineHeight(float textLineHeight);
-  TextNode &SetTextDecoration(int32_t decorationStyle, uint32_t decorationColor = 0xFFFF0000);
+  TextNode &SetTextDecoration(ArkUI_TextDecorationType decorationType, uint32_t decorationColor, ArkUI_TextDecorationStyle decorationStyle);
   TextNode &SetTextCase(int32_t textCase);
   TextNode &SetTextLetterSpacing(float textLetterSpacing);
   TextNode &SetTextMaxLines(int32_t textMaxLines);
   TextNode &ResetTextMaxLines();
   TextNode &SetTextAlign(ArkUI_TextAlignment align);
-  TextNode &SetTextEllipsisMode(int32_t ellipsisMode);
-  TextNode &SetTextOverflow(int32_t textOverflow);
+  TextNode &SetTextEllipsisMode(ArkUI_EllipsisMode ellipsisMode);
+  TextNode &SetTextOverflow(ArkUI_TextOverflow textOverflow);
+  TextNode &SetWordBreak(ArkUI_WordBreak workBreak);
   TextNode &SetFontFamily(const std::string &fontFamily);
   TextNode &SetTextCopyOption(int32_t testCopyOption);
   TextNode &SetTextBaselineOffset(float textBaselineOffset);
-  TextNode &SetTextShadow(float textShadowRadius, int32_t textShadowType, uint32_t textShadowColor,
+  TextNode &SetTextShadow(float textShadowRadius, ArkUI_ShadowType textShadowType, uint32_t textShadowColor,
                           float textShadowOffsetX, float textShadowOffsetY);
   TextNode &SetMinFontSize(float minFontSize);
   TextNode &SetMaxFontSize(float maxFontSize);

@@ -458,7 +458,11 @@ std::shared_ptr<DomNode> RootNode::GetNode(uint32_t id) {
 
 std::tuple<float, float> RootNode::GetRootSize() { return GetLayoutSize(); }
 
-void RootNode::SetRootSize(float width, float height) { SetLayoutSize(width, height); }
+void RootNode::SetRootSize(float width, float height) {
+  if (!disable_set_root_size_) {
+    SetLayoutSize(width, height);
+  }
+}
 
 void RootNode::SetRootOrigin(float x, float y) { SetLayoutOrigin(x, y); }
 

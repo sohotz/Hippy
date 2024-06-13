@@ -284,6 +284,10 @@ void YogaLayoutNode::SetWidth(float width) { YGNodeStyleSetWidth(yoga_node_, wid
 
 void YogaLayoutNode::SetHeight(float height) { YGNodeStyleSetHeight(yoga_node_, height); }
 
+void YogaLayoutNode::SetMaxWidth(float width) { YGNodeStyleSetMaxWidth(yoga_node_, width); }
+
+void YogaLayoutNode::SetMaxHeight(float height) { YGNodeStyleSetMaxHeight(yoga_node_, height); }
+
 void YogaLayoutNode::SetScaleFactor(float scale_factor) { YGConfigSetPointScaleFactor(yoga_config_, scale_factor); }
 
 static LayoutMeasureMode ToLayoutMeasureMode(YGMeasureMode measure_mode) {

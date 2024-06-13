@@ -48,7 +48,7 @@ void PagerItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
 }
 
 void PagerItemView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  GetLocalRootArkUINode().SetPosition(HRPosition(0, 0));
+  // Not set position here, or scroll error.
   GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
 }
 } // namespace native

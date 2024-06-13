@@ -63,6 +63,8 @@ public:
 
   virtual ArkUINode &SetPosition(const HRPosition &position);
   virtual ArkUINode &SetSize(const HRSize &size);
+  virtual ArkUINode &SetWidth(float width);
+  virtual ArkUINode &SetHeight(float height);
   virtual ArkUINode &SetSizePercent(const HRSize &size);
   virtual ArkUINode &SetVisibility(bool visibility);
   virtual ArkUINode &SetBackgroundColor(uint32_t color);
@@ -95,6 +97,10 @@ public:
 
   void RegisterClickEvent();
   void UnregisterClickEvent();
+  void RegisterAppearEvent();
+  void UnregisterAppearEvent();
+  void RegisterDisappearEvent();
+  void UnregisterDisappearEvent();
 
 protected:
   void MaybeThrow(int32_t status) {
@@ -108,6 +114,8 @@ protected:
   ArkUI_NodeHandle nodeHandle_;
   
   bool hasClickEvent_ = false;
+  bool hasAppearEvent_ = false;
+  bool hasDisappearEvent_ = false;
 };
 
 } // namespace native

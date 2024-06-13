@@ -193,6 +193,10 @@ export default abstract class HippyRenderBaseView {
         continue
       }
       let color = HRValueUtils.getNumber(colorStop.get('color') as HippyAny)
+      // change color to transparent when color is 0x00000000
+      if (color == 0) {
+          color = Color.Transparent
+      }
       let ratio = 0.0
       if (colorStop.get('ratio')) {
         ratio = HRValueUtils.getNumber(colorStop.get('ratio') as HippyAny)

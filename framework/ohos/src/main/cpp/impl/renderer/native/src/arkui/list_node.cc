@@ -28,8 +28,6 @@ inline namespace render {
 inline namespace native {
 
 static constexpr ArkUI_NodeEventType LIST_NODE_EVENT_TYPES[] = {
-  NODE_EVENT_ON_APPEAR,
-  NODE_EVENT_ON_DISAPPEAR,
   NODE_LIST_ON_SCROLL_INDEX,
   NODE_SCROLL_EVENT_ON_SCROLL,
   NODE_SCROLL_EVENT_ON_SCROLL_START,
@@ -41,12 +39,16 @@ static constexpr ArkUI_NodeEventType LIST_NODE_EVENT_TYPES[] = {
 
 ListNode::ListNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_LIST)) {
+  RegisterAppearEvent();
+  RegisterDisappearEvent();
   for (auto eventType : LIST_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
 }
 
 ListNode::~ListNode() {
+  UnregisterAppearEvent();
+  UnregisterDisappearEvent();
   for (auto eventType : LIST_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }

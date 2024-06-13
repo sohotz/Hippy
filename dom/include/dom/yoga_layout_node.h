@@ -46,6 +46,10 @@ class YogaLayoutNode : public LayoutNode, public std::enable_shared_from_this<Yo
   void SetWidth(float width) override;
 
   void SetHeight(float height) override;
+    
+  void SetMaxWidth(float width) override;
+
+  void SetMaxHeight(float height) override;
 
   void SetScaleFactor(float sacle_factor) override;
 

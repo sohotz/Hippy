@@ -62,6 +62,9 @@ void TextInputBaseNode::SetResponseRegion(HRPosition const &position, HRSize con
 
 void TextInputBaseNode::SetFontColor(uint32_t const &color) {
   uint32_t colorValue = color;
+  if (colorValue >> 24 == 0) {
+    colorValue |= ((uint32_t)0xff << 24);
+  }
   ArkUI_NumberValue preparedColorValue[] = {{.u32 = colorValue}};
   ArkUI_AttributeItem colorItem = {preparedColorValue, sizeof(preparedColorValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_COLOR, &colorItem));

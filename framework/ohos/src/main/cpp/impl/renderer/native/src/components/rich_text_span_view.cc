@@ -20,7 +20,7 @@
  *
  */
 
-#include "renderer/components/rich_text_view.h"
+#include "renderer/components/rich_text_span_view.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_value_utils.h"
@@ -29,21 +29,21 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-RichTextView::RichTextView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  textNode_.SetTextNodeDelegate(this);
+RichTextSpanView::RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+  spanNode_.SetSpanNodeDelegate(this);
 }
 
-RichTextView::~RichTextView() {}
+RichTextSpanView::~RichTextSpanView() {}
 
-TextNode &RichTextView::GetLocalRootArkUINode() {
-  return textNode_;
+SpanNode &RichTextSpanView::GetLocalRootArkUINode() {
+  return spanNode_;
 }
 
-bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
     if (!text_.has_value() || value != text_) {
-      GetLocalRootArkUINode().SetTextContent(value);
+      GetLocalRootArkUINode().SetSpanContent(value);
       text_ = value;
     }
     return true;
@@ -53,8 +53,6 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
       GetLocalRootArkUINode().SetFontColor(value);
       color_ = value;
     }
-    return true;
-  } else if (propKey == "enableScale") {
     return true;
   } else if (propKey == HRNodeProps::FONT_FAMILY) {
     std::string value = HRValueUtils::GetString(propValue);
@@ -100,28 +98,6 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
       lineHeight_ = value;
     }
     return true;
-  } else if (propKey == HRNodeProps::LINE_SPACING_EXTRA) { // Android有，iOS无
-    return true;
-  } else if (propKey == HRNodeProps::LINE_SPACING_MULTIPLIER) { // TODO(hot):
-    return true;
-  } else if (propKey == HRNodeProps::NUMBER_OF_LINES) {
-    int32_t value = HRValueUtils::GetInt32(propValue, 1);
-    if (value <= 0) {
-      value = 10000000;
-    }
-    if (!numberOfLines_.has_value() || value != numberOfLines_) {
-      GetLocalRootArkUINode().SetTextMaxLines(value);
-      numberOfLines_ = value;
-    }
-    return true;
-  } else if (propKey == HRNodeProps::TEXT_ALIGN) {
-    std::string value = HRValueUtils::GetString(propValue);
-    ArkUI_TextAlignment align = HRTextConvertUtils::TextAlignToArk(value);
-    if (!textAlign_.has_value() || align != textAlign_) {
-      GetLocalRootArkUINode().SetTextAlign(align);
-      textAlign_ = align;
-    }
-    return true;
   } else if (propKey == HRNodeProps::TEXT_DECORATION_LINE) {
     std::string value = HRValueUtils::GetString(propValue);
     decorationType_ = HRTextConvertUtils::TextDecorationTypeToArk(value);
@@ -152,26 +128,18 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     textShadowRadius_ = HRValueUtils::GetFloat(propValue);
     toSetTextShadow = true;
     return true;
-  } else if (propKey == HRNodeProps::ELLIPSIZE_MODE) {
-    std::string value = HRValueUtils::GetString(propValue);
-    ArkUI_EllipsisMode ellipsisMode = ARKUI_ELLIPSIS_MODE_END;
-    ArkUI_TextOverflow textOverflow = ARKUI_TEXT_OVERFLOW_NONE;
-    if (HRTextConvertUtils::EllipsisModeToArk(value, ellipsisMode, textOverflow)) {
-      GetLocalRootArkUINode().SetTextOverflow(textOverflow);
-      GetLocalRootArkUINode().SetTextEllipsisMode(ellipsisMode);
-    }
-    return true;
-  } else if (propKey == HRNodeProps::BREAK_STRATEGY) {
-    std::string value = HRValueUtils::GetString(propValue);
-    ArkUI_WordBreak wordBreak = HRTextConvertUtils::WordBreakToArk(value);
-    GetLocalRootArkUINode().SetWordBreak(wordBreak);
+  } else if (propKey == HRNodeProps::BACKGROUND_COLOR) {
+    uint32_t value = HRValueUtils::GetUint32(propValue);
+    GetLocalRootArkUINode().SetSpanTextBackgroundStyle(value);
     return true;
   }
   
-  return BaseView::SetProp(propKey, propValue);
+  // Not to set some attributes for text span.
+  // For example: NODE_BACKGROUND_COLOR will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
+  return false;
 }
 
-void RichTextView::OnSetPropsEnd() {
+void RichTextSpanView::OnSetPropsEnd() {
   if (toSetTextDecoration_) {
     toSetTextDecoration_ = false;
     GetLocalRootArkUINode().SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
@@ -183,22 +151,12 @@ void RichTextView::OnSetPropsEnd() {
   BaseView::OnSetPropsEnd();
 }
 
-void RichTextView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrame(frame, padding);
-  textNode_.SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+void RichTextSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  // Nothing to set for text span.
+  // NODE_POSITION / NODE_WIDTH will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
 }
 
-void RichTextView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  textNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
-}
-
-void RichTextView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
-  textNode_.RemoveChild(childView->GetLocalRootArkUINode());
-}
-
-void RichTextView::OnClick() {
+void RichTextSpanView::OnClick() {
   if (eventClick_) {
     eventClick_();
   }

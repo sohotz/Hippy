@@ -36,23 +36,39 @@ using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 class HRValueUtils {
 public:
   static uint32_t GetUint32(const HippyValue &value) {
-    double d = 0;
-    bool result = value.ToDouble(d);
-    if (result) {
-      return static_cast<uint32_t>(d);
+    if (value.IsUInt32()) {
+      uint32_t uintValue = 0;
+      value.ToUint32(uintValue);
+      return uintValue;
+    } else if (value.IsInt32()) {
+      int32_t intValue = 0;
+      value.ToInt32(intValue);
+      return static_cast<uint32_t>(intValue);
+    } else if (value.IsDouble()) {
+      double doubleValue = 0;
+      value.ToDouble(doubleValue);
+      return static_cast<uint32_t>(doubleValue);
     }
     return 0;
   }
 
   static uint32_t GetUint32(const HippyValue &value, uint32_t defaultValue) {
-    double d = 0;
-    bool result = value.ToDouble(d);
-    if (result) {
-      return static_cast<uint32_t>(d);
+    if (value.IsUInt32()) {
+      uint32_t uintValue = 0;
+      value.ToUint32(uintValue);
+      return uintValue;
+    } else if (value.IsInt32()) {
+      int32_t intValue = 0;
+      value.ToInt32(intValue);
+      return static_cast<uint32_t>(intValue);
+    } else if (value.IsDouble()) {
+      double doubleValue = 0;
+      value.ToDouble(doubleValue);
+      return static_cast<uint32_t>(doubleValue);
     }
     return defaultValue;
   }
-
+  
   static int32_t GetInt32(const HippyValue &value) {
     double d = 0;
     bool result = value.ToDouble(d);

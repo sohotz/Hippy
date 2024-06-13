@@ -117,6 +117,8 @@ public:
   constexpr static const char * TEXT_ALIGN = "textAlign";
   constexpr static const char * TEXT_ALIGN_VERTICAL = "textAlignVertical";
   constexpr static const char * TEXT_DECORATION_LINE = "textDecorationLine";
+  constexpr static const char * TEXT_DECORATION_COLOR = "textDecorationColor";
+  constexpr static const char * TEXT_DECORATION_STYLE = "textDecorationStyle";
   constexpr static const char * TEXT_SHADOW_OFFSET = "textShadowOffset";
   constexpr static const char * TEXT_SHADOW_RADIUS = "textShadowRadius";
   constexpr static const char * TEXT_SHADOW_COLOR = "textShadowColor";

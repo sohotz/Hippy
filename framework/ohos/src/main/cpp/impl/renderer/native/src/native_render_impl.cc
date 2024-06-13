@@ -172,6 +172,20 @@ void NativeRenderImpl::CallUIFunction(uint32_t root_id, uint32_t node_id, const 
   view_manager->CallViewMethod(node_id, functionName, params, callback);
 }
 
+void NativeRenderImpl::SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  
+  std::shared_ptr<HRUpdateLayoutMutation> m = std::make_shared<HRUpdateLayoutMutation>();
+  m->tag_ = node_id;
+  m->left_ = x;
+  m->top_ = y;
+  auto tm = std::static_pointer_cast<HRMutation>(m);
+  view_manager->AddMutations(tm);
+}
+
 uint64_t NativeRenderImpl::AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {

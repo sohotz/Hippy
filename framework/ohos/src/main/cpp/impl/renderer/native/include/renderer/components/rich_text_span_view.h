@@ -23,29 +23,26 @@
 #pragma once
 
 #include "renderer/components/base_view.h"
-#include "renderer/arkui/text_node.h"
+#include "renderer/arkui/span_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RichTextView : public BaseView, public TextNodeDelegate {
+class RichTextSpanView : public BaseView, public SpanNodeDelegate {
 public:
-  RichTextView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~RichTextView();
+  RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx);
+  ~RichTextSpanView();
 
-  TextNode &GetLocalRootArkUINode() override;
+  SpanNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
   void OnSetPropsEnd() override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
-  
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
-  
+
   void OnClick() override;
   
 private:
-  TextNode textNode_;
+  SpanNode spanNode_;
   
   std::optional<std::string> text_;
   std::optional<uint32_t> color_;
@@ -55,8 +52,6 @@ private:
   std::optional<int32_t> fontWeight_;
   std::optional<float> letterSpacing_;
   std::optional<float> lineHeight_;
-  std::optional<int32_t> numberOfLines_;
-  std::optional<int32_t> textAlign_;
   
   ArkUI_TextDecorationType decorationType_ = ARKUI_TEXT_DECORATION_TYPE_NONE;
   ArkUI_TextDecorationStyle decorationStyle_ = ARKUI_TEXT_DECORATION_STYLE_SOLID;

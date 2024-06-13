@@ -104,6 +104,8 @@ set(SOURCE_SET
   src/components/refresh_wrapper_item_view.cc
   src/components/refresh_wrapper_view.cc
   src/components/rich_text_view.cc
+  src/components/rich_text_span_view.cc
+  src/components/rich_text_image_span_view.cc
   src/components/root_view.cc
   src/components/scroll_view.cc
   src/components/text_input_view.cc

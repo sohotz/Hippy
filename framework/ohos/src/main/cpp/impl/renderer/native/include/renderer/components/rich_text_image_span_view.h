@@ -22,34 +22,30 @@
 
 #pragma once
 
-#include "renderer/arkui/arkui_node.h"
+#include "renderer/components/base_view.h"
+#include "renderer/arkui/image_span_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ImageSpanNodeDelegate {
+class RichTextImageSpanView : public BaseView, public ImageSpanNodeDelegate {
 public:
-  virtual ~ImageSpanNodeDelegate() = default;
-  virtual void OnClick() {}
-};
+  RichTextImageSpanView(std::shared_ptr<NativeRenderContext> &ctx);
+  ~RichTextImageSpanView();
 
-class ImageSpanNode : public ArkUINode {
-protected:
-  ImageSpanNodeDelegate *imageSpanNodeDelegate_ = nullptr;
-  std::string uri_;
+  ImageSpanNode &GetLocalRootArkUINode() override;
+  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+
+  void OnClick() override;
   
-public:
-  ImageSpanNode();
-  ~ImageSpanNode();
+private:
+  void fetchImage(const std::string &imageUrl);
   
-  ImageSpanNode &SetSources(std::string const &src);
-  ImageSpanNode &SetAlt(std::string const &src);
-  ImageSpanNode &SetImageObjectFit(ArkUI_ObjectFit fit);
+  ImageSpanNode imageSpanNode_;
   
-  void OnNodeEvent(ArkUI_NodeEvent *event) override;
-  void SetSpanNodeDelegate(ImageSpanNodeDelegate *imageSpanNodeDelegate);
-  
+  std::string src_;
 };
 
 } // namespace native

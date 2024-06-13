@@ -37,13 +37,7 @@ BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(
 }
 
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  if (propKey == HRNodeProps::WIDTH) {
-    // TODO(hot):
-    return true;
-  } else if (propKey == HRNodeProps::HEIGHT) {
-    // TODO(hot):
-    return true;
-  } else if (propKey == HRNodeProps::VISIBILITY) {
+  if (propKey == HRNodeProps::VISIBILITY) {
     auto value = HRValueUtils::GetString(propValue);
     GetLocalRootArkUINode().SetVisibility(value != HRNodeProps::HIDDEN ? true : false);
     return true;
@@ -629,26 +623,11 @@ void BaseView::RemoveFromParentView() {
   }
 }
 
-bool BaseView::IsImageSpan() {
-  auto parentView = parent_.lock();
-  if (parentView && parentView->GetViewType() == "Text" && view_type_ == "Image") {
-    return true;
-  }
-  return false;
-}
-
 void BaseView::SetRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
   UpdateRenderViewFrame(frame, padding);
 }
 
 void BaseView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  if (IsImageSpan()) {
-    if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
-      GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));
-      return;
-    }
-  }
-
   GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));
   GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
 }

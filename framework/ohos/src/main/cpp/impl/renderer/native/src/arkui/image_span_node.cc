@@ -27,9 +27,57 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+constexpr std::string_view ASSET_PREFIX = "asset://";
+
 ImageSpanNode::ImageSpanNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_IMAGE_SPAN)) {}
 
 ImageSpanNode::~ImageSpanNode() {}
+
+void ImageSpanNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  if (imageSpanNodeDelegate_ == nullptr) {
+    return;
+  }
+  
+  if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_ON_CLICK) {
+    imageSpanNodeDelegate_->OnClick();
+  }
+}
+
+void ImageSpanNode::SetSpanNodeDelegate(ImageSpanNodeDelegate *imageSpanNodeDelegate) {
+  imageSpanNodeDelegate_ = imageSpanNodeDelegate; 
+}
+
+ImageSpanNode &ImageSpanNode::SetSources(std::string const &src) {
+  ArkUI_AttributeItem item;
+  uri_ = src;
+  if (uri_.rfind(ASSET_PREFIX, 0) == 0) {
+    std::string resourceStr = std::string("resource://RAWFILE/") + "assets/";
+    resourceStr += uri_.substr(ASSET_PREFIX.size());
+    item = {.string = resourceStr.c_str()};
+  } else {
+    item = {.string = uri_.c_str()};
+  }
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_SPAN_SRC, &item));
+  return *this;
+}
+
+ImageSpanNode &ImageSpanNode::SetAlt(std::string const &src) {
+  if (!src.empty()) {
+    auto uri = src;
+    std::string resourceStr = std::string("resource://RAWFILE/") + "assets/";
+    resourceStr += uri.substr(ASSET_PREFIX.size());
+    ArkUI_AttributeItem item = {.string = resourceStr.c_str()};
+    MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_SPAN_ALT, &item));
+  }
+  return *this;
+}
+
+ImageSpanNode &ImageSpanNode::SetImageObjectFit(ArkUI_ObjectFit fit) {
+  ArkUI_NumberValue value[] = {{.i32 = fit}};
+  ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_OBJECT_FIT, &item));
+  return *this;
+}
 
 } // namespace native
 } // namespace render

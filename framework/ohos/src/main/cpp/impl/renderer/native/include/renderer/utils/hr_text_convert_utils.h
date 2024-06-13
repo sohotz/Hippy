@@ -36,7 +36,10 @@ public:
   static ArkUI_FontWeight FontWeightToArk(std::string &str);
   static int32_t FontStyleToArk(std::string &str);
   static ArkUI_TextAlignment TextAlignToArk(std::string &str);
-  
+  static ArkUI_TextDecorationType TextDecorationTypeToArk(std::string &str);
+  static ArkUI_TextDecorationStyle TextDecorationStyleToArk(std::string &str);
+  static bool EllipsisModeToArk(std::string &str, ArkUI_EllipsisMode &ellipsisMode, ArkUI_TextOverflow &textOverflow);
+  static ArkUI_WordBreak WordBreakToArk(std::string &str);
 };
 
 } // namespace native

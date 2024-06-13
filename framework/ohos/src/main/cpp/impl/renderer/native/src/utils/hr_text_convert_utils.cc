@@ -21,6 +21,7 @@
  */
 
 #include "renderer/utils/hr_text_convert_utils.h"
+#include <sstream>
 
 namespace hippy {
 inline namespace render {
@@ -75,6 +76,64 @@ ArkUI_TextAlignment HRTextConvertUtils::TextAlignToArk(std::string &str) {
     return ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_CENTER;
   } else {
     return ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_START;
+  }
+}
+
+ArkUI_TextDecorationType HRTextConvertUtils::TextDecorationTypeToArk(std::string &str) {
+  ArkUI_TextDecorationType type = ARKUI_TEXT_DECORATION_TYPE_NONE;
+  std::stringstream ss(str);
+  std::string token;
+  while (std::getline(ss, token, ' ')) {
+    if (token == "underline") {
+      type = ARKUI_TEXT_DECORATION_TYPE_UNDERLINE;
+    } else if (token == "line-through") {
+      type = ARKUI_TEXT_DECORATION_TYPE_LINE_THROUGH;
+    }
+  }
+  return type;
+}
+
+ArkUI_TextDecorationStyle HRTextConvertUtils::TextDecorationStyleToArk(std::string &str) {
+  ArkUI_TextDecorationStyle style = ARKUI_TEXT_DECORATION_STYLE_SOLID;
+  if (str == "double") {
+    style = ARKUI_TEXT_DECORATION_STYLE_DOUBLE;
+  } else if (str == "dotted") {
+    style = ARKUI_TEXT_DECORATION_STYLE_DOTTED;
+  } else if (str == "dashed") {
+    style = ARKUI_TEXT_DECORATION_STYLE_DASHED;
+  } else {
+    style = ARKUI_TEXT_DECORATION_STYLE_SOLID;
+  }
+  return style;
+}
+
+bool HRTextConvertUtils::EllipsisModeToArk(std::string &str, ArkUI_EllipsisMode &ellipsisMode, ArkUI_TextOverflow &textOverflow) {
+  if (str == "clip") {
+    textOverflow = ARKUI_TEXT_OVERFLOW_CLIP;
+    return true;
+  } else {
+    textOverflow = ARKUI_TEXT_OVERFLOW_ELLIPSIS;
+    if (str == "head") {
+      ellipsisMode = ARKUI_ELLIPSIS_MODE_START;
+      return true;
+    } else if (str == "middle") {
+      ellipsisMode = ARKUI_ELLIPSIS_MODE_CENTER;
+      return true;
+    } else if (str == "tail") {
+      ellipsisMode = ARKUI_ELLIPSIS_MODE_END;
+      return true;
+    }
+  }
+  return false;
+}
+
+ArkUI_WordBreak HRTextConvertUtils::WordBreakToArk(std::string &str) {
+  if (str == "high_quality") {
+    return ARKUI_WORD_BREAK_BREAK_ALL;
+  } else if (str == "balanced") {
+    return ARKUI_WORD_BREAK_BREAK_WORD;
+  } else {
+    return ARKUI_WORD_BREAK_BREAK_WORD;
   }
 }
 

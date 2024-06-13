@@ -28,7 +28,6 @@ inline namespace render {
 inline namespace native {
 
 static constexpr ArkUI_NodeEventType SCROLL_NODE_EVENT_TYPES[] = {
-  NODE_EVENT_ON_APPEAR,
   NODE_SCROLL_EVENT_ON_SCROLL,
   NODE_SCROLL_EVENT_ON_SCROLL_START,
   NODE_SCROLL_EVENT_ON_SCROLL_STOP,
@@ -41,12 +40,14 @@ ScrollNode::ScrollNode()
   initialContentOffset_ = 0;
   scrollEventThrottle_ = 30;
   scrollMinOffset_ = 5;
+  RegisterAppearEvent();
   for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
 }
 
 ScrollNode::~ScrollNode() {
+  UnregisterAppearEvent();
   for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }

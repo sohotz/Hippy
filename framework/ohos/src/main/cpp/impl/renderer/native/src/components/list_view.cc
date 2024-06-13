@@ -227,6 +227,7 @@ void ListView::OnItemVisibleAreaChange(int32_t index, bool isVisible, float curr
 }
 
 void ListView::HandleOnChildrenUpdated() {
+  // TODO(hot):
   listNode_.RemoveAllChildren();
   for (uint32_t i = 0; i < children_.size(); i++) {
     listNode_.AddChild(children_[i]->GetLocalRootArkUINode());

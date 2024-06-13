@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/image_view.h"
+#include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_url_utils.h"
 #include "renderer/utils/hr_value_utils.h"
@@ -46,9 +47,7 @@ ImageNode &ImageView::GetLocalRootArkUINode() {
 }
 
 bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  if (propKey == "verticalAlign") {
-    return true;
-  } else if (propKey == "src") {
+  if (propKey == "src") {
     auto value = HRValueUtils::GetString(propValue);
     if (value != src_) {
       src_ = value;
@@ -91,6 +90,10 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
     GetLocalRootArkUINode().SetDraggable(value);
 	}
 	return BaseView::SetProp(propKey, propValue);
+}
+
+void ImageView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrame(frame, padding);
 }
 
 void ImageView::fetchImage(const std::string &imageUrl) {

@@ -94,6 +94,9 @@ class RootNode : public DomNode {
   void SetRootOrigin(float x, float y);
   void Traverse(const std::function<void(const std::shared_ptr<DomNode>&)>& on_traverse);
   void AddInterceptor(const std::shared_ptr<DomActionInterceptor>& interceptor);
+  void SetDisableSetRootSize(bool disable) {
+    disable_set_root_size_ = disable;
+  }
 
   static footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<RootNode>>& PersistentMap() {
     return persistent_map_;
@@ -127,6 +130,8 @@ class RootNode : public DomNode {
   std::vector<std::shared_ptr<DomActionInterceptor>> interceptors_;
   std::shared_ptr<AnimationManager> animation_manager_;
   std::unique_ptr<DomNodeStyleDiffer> style_differ_;
+
+  bool disable_set_root_size_ { false };
 
   static footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<RootNode>> persistent_map_;
 };
