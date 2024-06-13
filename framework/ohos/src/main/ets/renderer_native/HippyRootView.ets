@@ -164,7 +164,7 @@ export struct HippyRoot {
   hippyEngine: HippyEngine | null = null
   pagerName: string = ""
   pagerData: HippyRecord = {}
-  initViewSize: HRSize = HRConvertUtil.screenSize()
+  initViewSize: HRSize = HRConvertUtil.getScreenSize()
   onRenderException: ((exception: HippyException) => void) | null = null
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private static sRootIdCounter = 0

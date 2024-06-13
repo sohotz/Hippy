@@ -28,6 +28,8 @@ import { HRValueUtils } from './HRValueUtils'
 import { LogUtils } from '../../support/utils/LogUtils'
 
 export class HRConvertUtil {
+  private static screenSize: HRSize = new HRSize(0, 0);
+
   static toBorderStyle(cssString: string): BorderStyle | undefined {
     if (cssString == 'solid') {
       return BorderStyle.Solid
@@ -265,17 +267,21 @@ export class HRConvertUtil {
     return HRConvertUtil.toColorWithNumber(rgbValue + opacityValue)
   }
 
-  public static screenSize(): HRSize {
-    let width = 0
-    let height = 0
-
-    try {
-      const displayRes = display.getDefaultDisplaySync()
-      width = displayRes.width
-      height = displayRes.height
-    } catch (e) {
+  public static getScreenSize(): HRSize {
+    if (HRConvertUtil.screenSize.width > 0 && HRConvertUtil.screenSize.height > 0) {
+      return HRConvertUtil.screenSize;
+    } else {
+      let width = 0
+      let height = 0
+      try {
+        const displayRes = display.getDefaultDisplaySync()
+        width = displayRes.width
+        height = displayRes.height
+      } catch (e) {
+      }
+      HRConvertUtil.screenSize = new HRSize(px2vp(width) , px2vp(height));
+      return HRConvertUtil.screenSize
     }
-    return new HRSize(px2vp(width) , px2vp(height))
   }
 
   public static statusBarHeight(avoidArea: window.AvoidArea | null) {
