@@ -48,10 +48,10 @@ class SwiperNodeDelegate {
 
 
 class SwiperNode : public ArkUINode {
-  protected:
+protected:
   SwiperNodeDelegate *swiperNodeDelegate_ = nullptr;
 
-  public:
+public:
   SwiperNode();
   ~SwiperNode();
 
@@ -62,13 +62,13 @@ class SwiperNode : public ArkUINode {
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
 
-  void ShowIndicator(bool show);
-  void NodeSwiperIndex(int32_t index);
-  void NodeSwiperSwipeToIndex(int32_t index, int32_t animation);
-  void NodeSwiperVertical(int32_t direction);
-  void NodeSwiperPrevMargin(float fValue);
-  void NodeSwiperNextMargin(float fValue);
-  void NodeSwiperLoop(int32_t enable);
+  void SetShowIndicator(bool show);
+  void SetSwiperIndex(int32_t index);
+  void SetSwiperSwipeToIndex(int32_t index, int32_t animation);
+  void SetSwiperVertical(int32_t direction);
+  void SetSwiperPrevMargin(float fValue);
+  void SetSwiperNextMargin(float fValue);
+  void SetSwiperLoop(int32_t enable);
 };
 
 } // namespace native

@@ -30,7 +30,7 @@ inline namespace render {
 inline namespace native {
 
 class PagerView : public BaseView, public SwiperNodeDelegate {
-  public:
+public:
   PagerView(std::shared_ptr<NativeRenderContext> &ctx);
   ~PagerView();
 
@@ -52,8 +52,6 @@ class PagerView : public BaseView, public SwiperNodeDelegate {
   void OnTouchIntercept(const int32_t &eventEnum) override;
   void OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) override;
 
-  void WangzCheck(const HippyValue &value);
-
   void Call(const std::string &method, const std::vector<HippyValue> params,
             std::function<void(const HippyValue &result)> callback) override;
 
@@ -64,7 +62,7 @@ class PagerView : public BaseView, public SwiperNodeDelegate {
   bool disableSwipe_ = true;
   bool vertical_ = false;
 
-  private:
+private:
   SwiperNode swiperNode_;
   void SendScrollStateChangeEvent(const std::string &state);
 };
