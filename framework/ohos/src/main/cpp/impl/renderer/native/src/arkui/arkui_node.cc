@@ -120,14 +120,14 @@ ArkUINode &ArkUINode::SetSizePercent(const HRSize &size) {
   return *this;
 }
 
-ArkUINode &ArkUINode::SetPercentWidth(float percent) {
+ArkUINode &ArkUINode::SetWidthPercent(float percent) {
   ArkUI_NumberValue value[] = {{.f32 = percent}};
   ArkUI_AttributeItem item = {value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WIDTH_PERCENT, &item));
   return *this;
 }
 
-ArkUINode &ArkUINode::SetPercentHeight(float percent) {
+ArkUINode &ArkUINode::SetHeightPercent(float percent) {
   ArkUI_NumberValue value[] = {{.f32 = percent}};
   ArkUI_AttributeItem item = {value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT_PERCENT, &item));

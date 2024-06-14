@@ -66,8 +66,8 @@ public:
   virtual ArkUINode &SetWidth(float width);
   virtual ArkUINode &SetHeight(float height);
   virtual ArkUINode &SetSizePercent(const HRSize &size);
-  virtual ArkUINode &SetPercentWidth(float percent);
-  virtual ArkUINode &SetPercentHeight(float percent);
+  virtual ArkUINode &SetWidthPercent(float percent);
+  virtual ArkUINode &SetHeightPercent(float percent);
   virtual ArkUINode &SetVisibility(bool visibility);
   virtual ArkUINode &SetBackgroundColor(uint32_t color);
   virtual ArkUINode &SetOpacity(float opacity);
