@@ -1,4 +1,4 @@
-project(hippy_app)
+project(hippy)
 cmake_minimum_required(VERSION 3.14)
 
 set(DEMO_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../")
@@ -8,8 +8,8 @@ set(HIPPY_IMPL_CPP_DIR "${HIPPY_ROOT_DIR}/src/main/cpp/impl")
 
 add_subdirectory("${HIPPY_IMPL_CPP_DIR}" ./hippy_impl)
 
-add_library(hippy_app SHARED
+add_library(hippy SHARED
 
 )
 
-target_link_libraries(hippy_app PUBLIC hippy_impl)
+target_link_libraries(hippy PUBLIC hippy_impl)
