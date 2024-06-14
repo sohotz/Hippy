@@ -172,6 +172,11 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
 }
 
 void RichTextView::OnSetPropsEnd() {
+  if (!fontSize_.has_value()) {
+    float defaultValue = HRNodeProps::FONT_SIZE_SP;
+    GetLocalRootArkUINode().SetFontSize(defaultValue);
+    fontSize_ = defaultValue;
+  }
   if (toSetTextDecoration_) {
     toSetTextDecoration_ = false;
     GetLocalRootArkUINode().SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);

@@ -220,10 +220,14 @@ ImageNode &ImageNode::SetTintColor(uint32_t sharedColor) {
     return *this;
   }
   cssTintColor_.clear();
-  int32_t red = (sharedColor >> 16) & 0xff;
-  int32_t green = (sharedColor >> 8) & 0xff;
-  int32_t blue = sharedColor & 0xff;
-  int32_t alpha = (sharedColor >> 24) &0xff;
+  uint32_t colorValue = sharedColor;
+  if (colorValue >> 24 == 0) {
+    colorValue |= ((uint32_t)0xff << 24);
+  }
+  int32_t alpha = colorValue & 0xff;
+  int32_t red = (colorValue >> 8) & 0xff;
+  int32_t green = (colorValue >> 16) & 0xff;
+  int32_t blue = (colorValue >> 24) &0xff;
   cssTintColor_.push_back(red);
   cssTintColor_.push_back(green);
   cssTintColor_.push_back(blue);

@@ -305,10 +305,10 @@ ENV['layout_engine'] = 'Yoga'
 
 3. 初始化代码
 
- - 获取 libhippy_app.so 接口对象和 UIAbility context
+ - 获取 libhippy.so 接口对象和 UIAbility context
 
   ```TypeScript
-  import libHippy from 'libhippy_app.so'
+  import libHippy from 'libhippy.so'
   AppStorage.setOrCreate("libHippy", libHippy)
   AppStorage.setOrCreate("abilityContext", this.context)
   ```
@@ -338,21 +338,21 @@ ENV['layout_engine'] = 'Yoga'
  - 初始化 c++ 依赖
  
   ```cmake
-  project(hippy_app)
+  project("hippy")
   cmake_minimum_required(VERSION 3.14)
 
   set(MODULE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../")
   set(PROJECT_ROOT_DIR "${MODULE_ROOT_DIR}/../")
   set(HIPPY_ROOT_DIR "${PROJECT_ROOT_DIR}/Hippy/")
-  set(HIPPY_CPP_DIR "${HIPPY_ROOT_DIR}/framework/ohos/src/main/cpp/impl")
+  set(HIPPY_IMPL_CPP_DIR "${HIPPY_ROOT_DIR}/framework/ohos/src/main/cpp/impl")
 
-  add_subdirectory("${HIPPY_CPP_DIR}" ./hippy)
+  add_subdirectory("${HIPPY_IMPL_CPP_DIR}" ./hippy_impl)
 
-  add_library(hippy_app SHARED
+  add_library(hippy SHARED
       "main.cpp"
   )
 
-  target_link_libraries(hippy_app PUBLIC hippy)
+  target_link_libraries(hippy PUBLIC hippy_impl)
   ```
  
 具体可以参考 [Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 工程中 `EntryAbility.ets` `ExampleHippyPage.ets` `CMakeLists.txt` 实现

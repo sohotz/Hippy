@@ -22,7 +22,7 @@ import hilog from '@ohos.hilog';
 import Want from '@ohos.app.ability.Want';
 import window from '@ohos.window';
 import UIAbility from '@ohos.app.ability.UIAbility';
-import libHippy from 'libhippy_app.so'
+import libHippy from 'libhippy.so'
 import font from '@ohos.font';
 import { EngineInitParams } from 'hippy';
 

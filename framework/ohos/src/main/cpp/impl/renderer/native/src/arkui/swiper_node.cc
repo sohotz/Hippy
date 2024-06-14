@@ -108,47 +108,47 @@ void SwiperNode::RemoveChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
 }
 
-void SwiperNode::ShowIndicator(bool show) {
+void SwiperNode::SetShowIndicator(bool show) {
   ArkUI_NumberValue value = {.i32 = int32_t(show)};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_SHOW_INDICATOR, &item));
 }
 
-void SwiperNode::NodeSwiperIndex(int32_t index) {
+void SwiperNode::SetSwiperIndex(int32_t index) {
   ArkUI_NumberValue value = {.i32 = int32_t(index)};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_INDEX, &item));
 }
 
-void SwiperNode::NodeSwiperSwipeToIndex(int32_t index, int32_t animation) {
+void SwiperNode::SetSwiperSwipeToIndex(int32_t index, int32_t animation) {
   ArkUI_NumberValue value[] = {{.i32 = int32_t(index)}, {.i32 = int32_t(animation)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_SWIPE_TO_INDEX, &item));
 }
 
-void SwiperNode::NodeSwiperVertical(int32_t direction) {
+void SwiperNode::SetSwiperVertical(int32_t direction) {
   ArkUI_NumberValue value = {.i32 = int32_t(direction)};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_VERTICAL, &item));
 }
 
-void SwiperNode::NodeSwiperPrevMargin(float fValue) {
+void SwiperNode::SetSwiperPrevMargin(float fValue) {
   ArkUI_NumberValue value = {.f32 = fValue};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_PREV_MARGIN, &item));
 }
 
-void SwiperNode::NodeSwiperNextMargin(float fValue) {
+void SwiperNode::SetSwiperNextMargin(float fValue) {
   ArkUI_NumberValue value = {.f32 = fValue};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_NEXT_MARGIN, &item));
 }
 
-void SwiperNode::NodeSwiperLoop(int32_t enable) {
+void SwiperNode::SetSwiperLoop(int32_t enable) {
   ArkUI_NumberValue value = {.i32 = enable};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_LOOP, &item));

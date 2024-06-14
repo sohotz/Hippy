@@ -61,7 +61,7 @@ static napi_module hippyModule = {
   .nm_flags = 0,
   .nm_filename = nullptr,
   .nm_register_func = HippyModuleRegisterFunc,
-  .nm_modname = "hippy_module",
+  .nm_modname = "hippy",
   .nm_priv = ((void *)0),
   .reserved = {0},
 };

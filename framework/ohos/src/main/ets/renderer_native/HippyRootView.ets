@@ -228,7 +228,7 @@ export struct HippyRoot {
         XComponent({
           id: this.renderInstanceId + "_" + this.rootId,
           type: "node",
-          libraryname: 'hippy_module'
+          libraryname: 'hippy'
         })
           .width("100%")
           .height("100%")

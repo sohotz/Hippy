@@ -105,6 +105,10 @@ HRSize ArkUINode::GetSize() const {
   return HRSize{width, height};
 }
 
+uint32_t ArkUINode::GetTotalChildCount() const {
+  return NativeNodeApi::GetInstance()->getTotalChildCount(nodeHandle_);
+}
+
 ArkUINode &ArkUINode::SetSizePercent(const HRSize &size) {
   ArkUI_NumberValue widthValue[] = {{size.width}};
   ArkUI_AttributeItem widthItem = {widthValue, sizeof(widthValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
@@ -113,6 +117,20 @@ ArkUINode &ArkUINode::SetSizePercent(const HRSize &size) {
   ArkUI_NumberValue heightValue[] = {{size.height}};
   ArkUI_AttributeItem heightItem = {heightValue, sizeof(heightValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT_PERCENT, &heightItem));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetWidthPercent(float percent) {
+  ArkUI_NumberValue value[] = {{.f32 = percent}};
+  ArkUI_AttributeItem item = {value, 1, nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WIDTH_PERCENT, &item));
+  return *this;
+}
+
+ArkUINode &ArkUINode::SetHeightPercent(float percent) {
+  ArkUI_NumberValue value[] = {{.f32 = percent}};
+  ArkUI_AttributeItem item = {value, 1, nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT_PERCENT, &item));
   return *this;
 }
 

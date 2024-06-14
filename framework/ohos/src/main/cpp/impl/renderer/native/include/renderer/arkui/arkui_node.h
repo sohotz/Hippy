@@ -66,6 +66,8 @@ public:
   virtual ArkUINode &SetWidth(float width);
   virtual ArkUINode &SetHeight(float height);
   virtual ArkUINode &SetSizePercent(const HRSize &size);
+  virtual ArkUINode &SetWidthPercent(float percent);
+  virtual ArkUINode &SetHeightPercent(float percent);
   virtual ArkUINode &SetVisibility(bool visibility);
   virtual ArkUINode &SetBackgroundColor(uint32_t color);
   virtual ArkUINode &SetOpacity(float opacity);
@@ -92,6 +94,7 @@ public:
   virtual ArkUINode &SetBorderStyle(ArkUI_BorderStyle top, ArkUI_BorderStyle right, ArkUI_BorderStyle bottom, ArkUI_BorderStyle left);
   virtual ArkUINode &SetShadow(const HRShadow &shadow);
   virtual HRSize GetSize() const;
+  virtual uint32_t GetTotalChildCount() const;
 
   virtual void OnNodeEvent(ArkUI_NodeEvent *event) {}
 

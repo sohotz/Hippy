@@ -31,8 +31,8 @@ inline namespace native {
 
 PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   swiperNode_.SetNodeDelegate(this);
-  GetLocalRootArkUINode().ShowIndicator(false);
-  GetLocalRootArkUINode().NodeSwiperLoop(0);
+  GetLocalRootArkUINode().SetShowIndicator(false);
+  GetLocalRootArkUINode().SetSwiperLoop(0);
   FOOTSTONE_DLOG(INFO) << "PagerView initialized.";
 }
 
@@ -44,12 +44,7 @@ bool PagerView::SetProp(const std::string &propKey, const HippyValue &propValue)
   if (propKey == "initialPage") {
     initialPage_ = HRValueUtils::GetInt32(propValue);
     index_ = initialPage_;
-    GetLocalRootArkUINode().NodeSwiperIndex(index_);
-    return true;
-  } else if (propKey == "pagescroll") {
-    propValue.ToInt32(initialPage_);
-    index_ = initialPage_;
-    GetLocalRootArkUINode().NodeSwiperIndex(index_);
+    GetLocalRootArkUINode().SetSwiperIndex(index_);
     return true;
   } else if (propKey == "scrollEnabled") {
     bool enable;
@@ -62,17 +57,17 @@ bool PagerView::SetProp(const std::string &propKey, const HippyValue &propValue)
     propValue.ToString(directionVal);
     if (directionVal == "vertical") {
       vertical_ = true;
-      GetLocalRootArkUINode().NodeSwiperVertical(1);
+      GetLocalRootArkUINode().SetSwiperVertical(1);
     }
     return true;
   } else if (propKey == "vertical") {
     vertical_ = true;
-    GetLocalRootArkUINode().NodeSwiperVertical(1);
+    GetLocalRootArkUINode().SetSwiperVertical(1);
     return true;
   } else if (propKey == "pageMargin") {
     prevMargin_ = nextMargin_ = HRValueUtils::GetFloat(propValue);
-    GetLocalRootArkUINode().NodeSwiperPrevMargin(prevMargin_);
-    GetLocalRootArkUINode().NodeSwiperNextMargin(nextMargin_);
+    GetLocalRootArkUINode().SetSwiperPrevMargin(prevMargin_);
+    GetLocalRootArkUINode().SetSwiperNextMargin(nextMargin_);
     return true;
   }
   return BaseView::SetProp(propKey, propValue);
@@ -97,6 +92,7 @@ void PagerView::OnChange(const int32_t &index) {
   std::shared_ptr<HippyValue> changedParams = std::make_shared<HippyValue>(changedPayload);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED,
                                    changedParams);
+  index_ = index;
 }
 
 void PagerView::OnAnimationStart(const int32_t &currentIndex, const int32_t &targetIndex,
@@ -129,19 +125,18 @@ void PagerView::OnGestureSwipe(const int32_t &swiperPageIndex,
 }
 
 void PagerView::OnTouchIntercept(const int32_t &eventEnum) {
-  FOOTSTONE_DLOG(INFO) << "PagerView::OnTouchIntercept - eventEnum:" << eventEnum;
+    //No specific actions required
 }
 
 void PagerView::SendScrollStateChangeEvent(const std::string &state) {
   HippyValueObjectType payload = {{"pageScrollState", HippyValue{state}}};
   auto params = std::make_shared<HippyValue>(payload);
-  HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED, params);
+  HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED,
+                                   params);
 }
 
 void PagerView::OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {
   int32_t touchAction = OH_ArkUI_UIInputEvent_GetAction(inputEvent);
-  FOOTSTONE_DLOG(INFO) << "PagerView::OnNodeTouchEvent - Action: " << touchAction;
-
   switch (touchAction) {
   case UI_TOUCH_EVENT_ACTION_CANCEL:
     // No specific action needed for cancel, logging suffices.
@@ -160,15 +155,47 @@ void PagerView::OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {
     break;
   }
 }
+
 void PagerView::Call(const std::string &method, const std::vector<HippyValue> params,
                      std::function<void(const HippyValue &result)> callback) {
   if (method == "setPage") {
+    if (params.empty()) {
+      return;
+    }
     index_ = HRValueUtils::GetInt32(params[0]);
-    GetLocalRootArkUINode().NodeSwiperSwipeToIndex(index_, 1);
+    GetLocalRootArkUINode().SetSwiperSwipeToIndex(index_, 1);
   } else if (method == "setPageWithoutAnimation") {
+    if (params.empty()) {
+      return;
+    }
+    index_ = HRValueUtils::GetInt32(params[0]);
+    GetLocalRootArkUINode().SetSwiperIndex(index_);
   } else if (method == "next") {
+    int32_t total = static_cast<int32_t>(GetLocalRootArkUINode().GetTotalChildCount());
+    if (total < 1) {
+      return;
+    }
+    if (index_ < total - 1) {
+      GetLocalRootArkUINode().SetSwiperSwipeToIndex(++index_, 1);
+    }
   } else if (method == "prev") {
+    if (index_ > 0) {
+      GetLocalRootArkUINode().SetSwiperSwipeToIndex(--index_, 1);
+    }
   } else if (method == "setIndex") {
+    HippyValueObjectType map;
+    if (params.empty() || !params[0].IsObject()) {
+      FOOTSTONE_DLOG(INFO) << "Unknown params";
+      return;
+    }
+    bool r = params[0].ToObject(map);
+    if (r && map.size() > 0) {
+      index_ = HRValueUtils::GetInt32(map["index"]);
+      int32_t animated = HRValueUtils::GetBool(map["animated"], 0);
+      GetLocalRootArkUINode().SetSwiperSwipeToIndex(index_, animated);
+    }
+  } else {
+    FOOTSTONE_DLOG(INFO) << "Unknown function name: " << method;
   }
 }
 } // namespace native
