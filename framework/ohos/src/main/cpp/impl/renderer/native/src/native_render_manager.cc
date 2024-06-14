@@ -822,7 +822,9 @@ void NativeRenderManager::CallFunction_C(std::weak_ptr<RootNode> root_node, std:
   param.ToObject(hippy_value);
   
   HippyValueArrayType params;
-  hippy_value.ToArray(params);
+  if (hippy_value.IsArray()) {
+    hippy_value.ToArray(params);
+  }
   
   c_render_provider_->CallUIFunction(root->GetId(), node->GetId(), cb_id, name, params);
 }
