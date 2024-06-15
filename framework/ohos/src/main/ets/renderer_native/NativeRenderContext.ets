@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap'
-import { WrappedHippyCustomCustomRenderViewBuilder } from './HippyRenderViewBuilder'
+import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
 import { NativeRender } from './NativeRender'
 
 export class NativeRenderContext {
@@ -26,12 +26,12 @@ export class NativeRenderContext {
   private instanceId: number
   private customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null
   private nativeRender: NativeRender
-  public wrappedCustomRenderViewBuilder: WrappedHippyCustomCustomRenderViewBuilder | null
+  public wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null
 
   constructor(instanceId: number, rootId: number,
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       nativeRender: NativeRender,
-      wrappedCustomRenderViewBuilder: WrappedHippyCustomCustomRenderViewBuilder | null) {
+      wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null) {
     this.instanceId = instanceId
     this.rootId = rootId
     this.customRenderViewCreatorMap = customRenderViewCreatorMap
