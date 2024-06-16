@@ -121,6 +121,10 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     // this.mDevSupportManager.setDevCallback(this);
   }
 
+  getLibHippy(): HippyLibrary {
+    return this.mEngineInitParams.libHippy
+  }
+
   getDevSupportManager(): DevSupportManager {
     return this.mDevSupportManager;
   }

@@ -184,6 +184,10 @@ export struct HippyRoot {
     }
 
     this.enableArkCApi = this.hippyEngine.getHippyEngineContext()!.getGlobalConfigs().enableArkCApi()
+    if (this.enableArkCApi) {
+      let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
+      // TODO(hot):
+    }
 
     if (!this.rootView) {
       this.renderExceptionListener.listener = this.onRenderException

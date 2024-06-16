@@ -236,6 +236,15 @@ napi_value OhNapi_OnLoad(napi_env env, napi_value exports) {
 
 REGISTER_OH_NAPI_ONLOAD(hippy::OhNapi_OnLoad)
 
+static napi_value RegisterCustomTsRenderViews(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  // const std::set<std::string> &views, napi_ref builderCallbackRef, napi_env env
+  
+  return arkTs.GetUndefined();
+}
+
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_RegisterCustomTsRenderViews", RegisterCustomTsRenderViews)
+
 }
 }
 }

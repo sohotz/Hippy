@@ -22,9 +22,10 @@
 
 #pragma once
 
-#include <map>
 #include <ace/xcomponent/native_interface_xcomponent.h>
-#include <sys/types.h>
+#include <js_native_api.h>
+#include <js_native_api_types.h>
+#include <map>
 #include "renderer/components/root_view.h"
 #include "renderer/uimanager/hr_mutation.h"
 
@@ -40,6 +41,7 @@ public:
   ~HRViewManager() = default;
   
   void AttachToNativeXComponent(OH_NativeXComponent* nativeXComponent);
+  void RegisterCustomTsRenderViews(const std::set<std::string> &views, napi_ref builderCallbackRef, napi_env env);
 
   int GetRootTag() {
     return (int)root_id_;
@@ -50,7 +52,7 @@ public:
   void ApplyMutations();
   void ApplyMutation(std::shared_ptr<HRMutation> &m);
   
-  std::shared_ptr<BaseView> CreateRenderView(uint32_t tag, std::string view_name, bool is_parent_text);
+  std::shared_ptr<BaseView> CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   void RemoveRenderView(uint32_t tag);
   void RemoveFromRegistry(std::shared_ptr<BaseView> &renderView);
   void InsertSubRenderView(uint32_t parentTag, std::shared_ptr<BaseView> &childView, int32_t index);
@@ -73,6 +75,10 @@ private:
   void MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, std::shared_ptr<RootView> &rootView);
   void MaybeDetachRootNode(OH_NativeXComponent *nativeXComponent, std::shared_ptr<RootView> &rootView);
   
+  std::shared_ptr<BaseView> CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
+  std::shared_ptr<BaseView> CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
+  void UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
+  
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t root_id_;
   OH_NativeXComponent *nativeXComponent_;
@@ -81,6 +87,10 @@ private:
   std::vector<std::shared_ptr<HRMutation>> mutations_;
   uint64_t end_batch_callback_id_count_ = 0;
   std::map<uint64_t, EndBatchCallback> end_batch_callback_map_;
+  
+  std::set<std::string> custom_ts_render_views_;
+  napi_ref ts_custom_builder_callback_ref_ = nullptr;
+  napi_env ts_env_ = nullptr;
 };
 
 } // namespace native

@@ -26,8 +26,11 @@ import { HashMap } from '@kit.ArkTS';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HippyJsException } from './common/HippyJsException';
 import { DevSupportManager } from './devsupport/DevSupportManager';
+import { HippyLibrary } from '../hippy_library/HippyLibrary';
 
 export interface HippyEngineContext {
+
+  getLibHippy(): HippyLibrary
 
   getComponentName(): string
 
