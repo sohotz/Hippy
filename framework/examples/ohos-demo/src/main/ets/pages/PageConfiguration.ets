@@ -99,7 +99,6 @@ struct PageConfiguration {
     params.debugServerHost = info.debugServerHost as string
     params.debugMode = info.isDebugMode as boolean
     //params.enableLog = true
-    params.enableArkCApi = false
 
     params.providers = new Array(new ExampleAPIProvider())
 
