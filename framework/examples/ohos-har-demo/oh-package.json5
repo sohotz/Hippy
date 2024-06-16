@@ -1,10 +1,11 @@
 {
-  "name": "entry",
+  "name": "entry_har",
   "version": "1.0.0",
   "description": "Please describe the basic information.",
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {}
+  "dependencies": {
+    "hippy": "file:./libs/hippy.har"
+  }
 }
-

@@ -1,6 +1,6 @@
 {
   "module": {
-    "name": "entry",
+    "name": "entry_har",
     "type": "entry",
     "description": "$string:module_desc",
     "mainElement": "EntryAbility",
