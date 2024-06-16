@@ -286,11 +286,11 @@ ENV['layout_engine'] = 'Yoga'
 
 若想快速体验，可以直接基于我们的 [Ohos Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 来开发
 
-## 快速接入
+## 接入方式一：Har包快速接入
 
 1. 创建一个 Ohos 工程
 
-2. 源码集成
+2. Har包集成
 
  - 拉取 hippy 代码到项目里（比如：根目录下）
  > https://github.com/sohotz/Hippy.git，分支：main
@@ -356,6 +356,12 @@ ENV['layout_engine'] = 'Yoga'
   ```
  
 具体可以参考 [Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 工程中 `EntryAbility.ets` `ExampleHippyPage.ets` `CMakeLists.txt` 实现
+
+## 接入方式二：源码接入
+
+
+## 接入方式三：定制场景接入
+
 
 # Voltron/Flutter 
 
