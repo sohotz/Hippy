@@ -223,6 +223,10 @@ export struct HippyRoot {
   aboutToDisappear(): void {
     if (this.rootView) {
       this.rootView.onDestroy()
+      if (this.hippyEngine) {
+        let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
+        libHippy.NativeRenderProvider_DestroyRoot(this.renderInstanceId, this.rootId)
+      }
     }
   }
 

@@ -64,10 +64,7 @@ public:
   ScrollNode &SetInitialContentOffset(float initialContentOffset);
   ScrollNode &SetScrollEventThrottle(float scrollEventThrottle);
   ScrollNode &SetScrollMinOffset(float scrollMinOffset);
-
-  void AddChild(ArkUINode &child);
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
+  
   void ScrollTo(float x, float y, bool animated, int32_t duration = 0);
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ScrollNodeDelegate *scrollNodeDelegate);

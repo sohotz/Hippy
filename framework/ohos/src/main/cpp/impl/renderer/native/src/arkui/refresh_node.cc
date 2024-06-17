@@ -33,18 +33,6 @@ RefreshNode::RefreshNode()
 
 RefreshNode::~RefreshNode() {}
 
-void RefreshNode::AddChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
-void RefreshNode::InsertChild(ArkUINode &child, int32_t index) {
-  MaybeThrow(
-    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
-}
-
-void RefreshNode::RemoveChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
 
 } // namespace native
 } // namespace render

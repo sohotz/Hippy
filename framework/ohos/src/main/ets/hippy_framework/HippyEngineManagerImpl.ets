@@ -24,6 +24,7 @@ import {
   EngineInitStatus,
   HippyEngine,
   HippyEngineInitCallback,
+  HippyModuleDestroyCallback,
   HippyModuleLoadCallback,
   ModuleLoadParams,
   V8InitParams
@@ -217,6 +218,14 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
       this.cachedLoadParams = loadParams
       this.cachedLoadCallback = loadCallback
     }
+  }
+
+  destroyModule(rootId: number, destroyCallback: HippyModuleDestroyCallback): void {
+
+  }
+
+  destroyEngine(): void {
+
   }
 
   attachToRootView(rootId: number): void {

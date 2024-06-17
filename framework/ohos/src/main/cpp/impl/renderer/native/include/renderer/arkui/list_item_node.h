@@ -43,10 +43,6 @@ public:
   ListItemNode();
   ~ListItemNode();
 
-  void AddChild(ArkUINode &child);
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
-
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ListItemNodeDelegate *nodeDelegate);
   

@@ -105,6 +105,8 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   }
 
   void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id);
+  
+  void DestroyRoot(uint32_t root_id);
 
 private:
   inline void MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, uint32_t node_id);

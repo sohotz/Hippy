@@ -43,6 +43,10 @@ void NativeRenderProvider::RegisterNativeXComponentHandle(OH_NativeXComponent *n
   });
 }
 
+void NativeRenderProvider::DestroyRoot(uint32_t root_id) {
+  render_impl_->DestroyRoot(root_id);
+}
+
 void NativeRenderProvider::CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
   taskRunner->RunAsyncTask([render_impl = render_impl_, root_id = root_id, mutations = mutations]() {

@@ -54,19 +54,6 @@ ListNode::~ListNode() {
   }
 }
 
-void ListNode::AddChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
-void ListNode::InsertChild(ArkUINode &child, int32_t index) {
-  MaybeThrow(
-    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
-}
-
-void ListNode::RemoveChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
 void ListNode::RemoveAllChildren() {
   uint32_t count = NativeNodeApi::GetInstance()->getTotalChildCount(nodeHandle_);
   for (int32_t i = static_cast<int32_t>(count) - 1; i >= 0; i--) {

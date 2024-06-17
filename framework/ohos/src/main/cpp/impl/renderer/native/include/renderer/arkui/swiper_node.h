@@ -58,10 +58,6 @@ public:
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(SwiperNodeDelegate *swiperNodeDelegate);
 
-  void AddChild(ArkUINode &child);
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
-
   void SetShowIndicator(bool show);
   void SetSwiperIndex(int32_t index);
   void SetSwiperSwipeToIndex(int32_t index, int32_t animation);

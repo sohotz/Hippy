@@ -44,9 +44,6 @@ public:
   CustomTsNode(ArkUI_NodeHandle nodeHandle);
   ~CustomTsNode() override;
 
-  void AddChild(ArkUINode &child);
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetCustomTsNodeDelegate(CustomTsNodeDelegate *tsNodeDelegate);
 

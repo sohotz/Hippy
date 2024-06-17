@@ -44,9 +44,6 @@ public:
   StackNode();
   ~StackNode() override;
 
-  void AddChild(ArkUINode &child);
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate);
   StackNode &SetMargin(float left, float top, float right, float bottom);

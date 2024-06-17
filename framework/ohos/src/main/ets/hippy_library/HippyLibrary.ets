@@ -86,6 +86,7 @@ export interface HippyLibrary {
   NativeRenderProvider_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
 
   NativeRenderProvider_RegisterCustomTsRenderViews(instanceId: number, rootId: number, customTsRenderViews: Array<string> | null, builderCallback: (params: HippyRenderViewForCApiParams) => FrameNode): void;
+  NativeRenderProvider_DestroyRoot(instanceId: number, rootId: number): void;
 
   VfsManager_CreateVfs(vfsDelegate: VfsManager): number;
   VfsManager_DestroyVfs(instanceId: number): void;
