@@ -54,13 +54,8 @@ void StackNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     return;
   }
   
-  auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
-  if (eventType == ArkUI_NodeEventType::NODE_ON_CLICK) {
+  if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_ON_CLICK) {
     stackNodeDelegate_->OnClick();
-  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_APPEAR) {
-    stackNodeDelegate_->OnAppear();
-  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
-    stackNodeDelegate_->OnDisappear();
   }
 }
 

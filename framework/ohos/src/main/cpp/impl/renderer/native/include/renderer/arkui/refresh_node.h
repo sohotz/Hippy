@@ -28,6 +28,23 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+enum class RefreshStatus {
+  Inactive,
+  Drag,
+  OverDrag,
+  Refresh
+};
+
+class RefreshNodeDelegate {
+public:
+  virtual ~RefreshNodeDelegate() = default;
+  virtual void onHeadRefreshFinish() {}
+  virtual void onStartRefresh() {}
+  virtual void onEndRefresh() {}
+  virtual void onStateChange() {}
+  virtual void onStateChange(RefreshStatus refreshStatus) {}
+  virtual void onRefreshing() {}
+};
 class RefreshNode : public ArkUINode {
 protected:
 public:

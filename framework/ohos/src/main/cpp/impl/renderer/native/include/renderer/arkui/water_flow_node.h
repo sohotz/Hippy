@@ -23,13 +23,22 @@
 #pragma once
 
 #include "renderer/arkui/arkui_node.h"
+#include "renderer/arkui/arkui_node_registry.h"
+
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class WaterFlowNodeDelegate {
+public:
+  virtual ~WaterFlowNodeDelegate() = default;
+  virtual void onScrollIndex(int32_t firstIndex, int32_t lastIndex) {}
+  virtual void OnReachEnd() {}
+};
 class WaterFlowNode : public ArkUINode {
 protected:
+  WaterFlowNodeDelegate *WaterFlowNodeDelegate_ = nullptr;
 public:
   WaterFlowNode();
   ~WaterFlowNode();
@@ -37,6 +46,15 @@ public:
   void AddChild(ArkUINode &child);
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
+  void RemoveAllChildren();
+  HRPoint GetScrollOffset();
+  void SetScrollEdgeEffect(bool hasEffect);
+  void ScrollTo(float offsetX, float offsetY, bool animated);
+  void ScrollToIndex(int32_t index, bool animated, bool isScrollAlignStart);
+  void SetColumnsTemplate(std::string columnsTemplate);
+  void SetNodeDelegate(WaterFlowNodeDelegate *waterFlowNodeDelegate);
+  // void OnNodeEvent(ArkUI_NodeEvent *event);
+  // void OnTouchEvent(ArkUI_UIInputEvent *event);
 };
 
 } // namespace native

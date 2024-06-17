@@ -31,15 +31,13 @@ inline namespace native {
 class StackNodeDelegate {
 public:
   virtual ~StackNodeDelegate() = default;
-  virtual void OnClick() {}
-  virtual void OnAppear() {}
-  virtual void OnDisappear() {}
+  virtual void OnClick(){}
 };
 
 class StackNode : public ArkUINode {
 protected:
   StackNodeDelegate *stackNodeDelegate_;
-
+  int32_t itemIndex_ = -1;
 public:
   StackNode();
   ~StackNode() override;
@@ -51,6 +49,7 @@ public:
   void SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate);
   StackNode &SetMargin(float left, float top, float right, float bottom);
   StackNode &SetAlign(int32_t align);
+  void SetItemIndex(int32_t index) { itemIndex_ = index; }
 };
 
 } // namespace native
