@@ -40,7 +40,7 @@ import { HRWaterfallItem, HRWaterfallItemView } from './components/waterfall/HRW
 import { HRWaterfallView } from './components/waterfall/HRWaterfallView';
 import { HRWeb, HRWebView } from './components/web/HRWebView';
 
-export type WrappedHippyCustomCustomRenderViewBuilder = WrappedBuilder<[HippyRenderBaseView]>
+export type WrappedHippyCustomRenderViewBuilder = WrappedBuilder<[HippyRenderBaseView]>
 
 export type HRComponent = HRDivView | HRScroll | HRModal | null
 

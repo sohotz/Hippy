@@ -72,6 +72,7 @@ set(SOURCE_SET
   src/arkui/arkui_node.cc
   src/arkui/arkui_node_registry.cc
   src/arkui/column_node.cc
+  src/arkui/custom_ts_node.cc
   src/arkui/image_node.cc
   src/arkui/image_span_node.cc
   src/arkui/list_item_node.cc
@@ -92,6 +93,8 @@ set(SOURCE_SET
   src/arkui/web_node.cc
   src/components/hippy_render_view_creator.cc
   src/components/base_view.cc
+  src/components/custom_ts_view.cc
+  src/components/custom_view.cc
   src/components/div_view.cc
   src/components/image_view.cc
   src/components/list_item_view.cc

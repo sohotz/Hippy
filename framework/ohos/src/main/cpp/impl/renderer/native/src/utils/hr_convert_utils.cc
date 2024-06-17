@@ -78,7 +78,7 @@ bool HRConvertUtils::TransformToArk(HippyValueArrayType &valueArray, HRTransform
     for (auto it : transformObj) {
       if (it.first == "matrix") {
         HippyValueArrayType value;
-        if (!it.second.ToArray(value) || value.size() < 16) {
+        if (!it.second.IsArray() || !it.second.ToArray(value) || value.size() < 16) {
           continue;
         }
         HRMatrix matrix;
@@ -146,7 +146,7 @@ bool HRConvertUtils::TransformToArk(HippyValueArrayType &valueArray, HRTransform
         transform.scale = scale;
       } else if (it.first == "translate") {
         HippyValueArrayType array;
-        if (!it.second.ToArray(array)) {
+        if (!it.second.IsArray() || !it.second.ToArray(array)) {
           continue;
         }
         HRTranslate translate;

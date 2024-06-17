@@ -34,19 +34,6 @@ StackNode::StackNode()
 
 StackNode::~StackNode() {}
 
-void StackNode::AddChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
-void StackNode::InsertChild(ArkUINode &child, int32_t index) {
-  MaybeThrow(
-    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
-}
-
-void StackNode::RemoveChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
 void StackNode::SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate) { stackNodeDelegate_ = stackNodeDelegate; }
 
 void StackNode::OnNodeEvent(ArkUI_NodeEvent *event) {

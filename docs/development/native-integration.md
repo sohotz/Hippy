@@ -284,22 +284,37 @@ ENV['layout_engine'] = 'Yoga'
 
 ## Demo 体验
 
-若想快速体验，可以直接基于我们的 [Ohos Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 来开发
+若想快速体验，可以打开我们的 [Ohos Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 来体验
 
-## 快速接入
+2个 Demo 说明：
 
-1. 创建一个 Ohos 工程
+Ohos Demo：源码依赖 Hippy。体验方法：IDE 打开 hippy 项目根目录直接运行 entry。
 
-2. 源码集成
+Ohos Har Demo：Har 包方式依赖 Hippy。 体验方法：Hippy/framework/examples/ohos-har-demo/oh-package.json5 取消 dependencies 里注释的依赖内容，
+Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目根目录运行 entry_har。 
 
- - 拉取 hippy 代码到项目里（比如：根目录下）
+## 接入方式一：Har包快速接入
+
+1. Har 包构建
+ - 拉取 hippy 代码
  > https://github.com/sohotz/Hippy.git，分支：main
+
+ - 构建 hippy.har：IDE 打开 hippy 工程根目录，IDE 菜单 - Build - Make Module 'hippy'
+ > Har 包生成目录：Hippy0129/framework/ohos/build/default/outputs/default/hippy.har
+ 
+ > 如果菜单不显示 “Make Module 'hippy'”，可先选择到 hippy 模块内，比如选择文件：Hippy/framework/ohos/src/main/cpp/CMakeLists.txt
+
+2. 创建一个 Ohos 工程
+
+3. Har 包集成
+
+ - 引入hippy.har（比如：libs目录下）
 
  - 配置 oh-package.json5
 
  ```json
   "dependencies": {
-     "hippy": "file:../Hippy/framework/ohos/"
+    "hippy": "file:./libs/hippy.har"
   }
  ```
 
@@ -335,27 +350,64 @@ ENV['layout_engine'] = 'Yoga'
   })
   ```
  
- - 初始化 c++ 依赖
- 
-  ```cmake
-  project("hippy")
-  cmake_minimum_required(VERSION 3.14)
+具体可以参考 [Har Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-har-demo) 工程中 `EntryAbility.ets` `Index.ets` 实现
 
-  set(MODULE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../")
-  set(PROJECT_ROOT_DIR "${MODULE_ROOT_DIR}/../")
-  set(HIPPY_ROOT_DIR "${PROJECT_ROOT_DIR}/Hippy/")
-  set(HIPPY_IMPL_CPP_DIR "${HIPPY_ROOT_DIR}/framework/ohos/src/main/cpp/impl")
+## 接入方式二：源码接入
 
-  add_subdirectory("${HIPPY_IMPL_CPP_DIR}" ./hippy_impl)
+> 源码接入主要为了方便在 App 项目里直接调试 Hippy 代码（c++ 和 ets 代码）。
 
-  add_library(hippy SHARED
-      "main.cpp"
-  )
+1. 创建一个 Ohos 工程
 
-  target_link_libraries(hippy PUBLIC hippy_impl)
+2. Har包集成
+
+- 拉取 hippy 代码到项目里（比如：根目录下）
+> https://github.com/sohotz/Hippy.git，分支：main
+
+- 配置 oh-package.json5
+
+ ```json
+  "dependencies": {
+     "hippy": "file:../Hippy/framework/ohos/"
+  }
+ ```
+
+3. 初始化代码
+
+- 获取 libhippy.so 接口对象和 UIAbility context
+
+  ```TypeScript
+  import libHippy from 'libhippy.so'
+  AppStorage.setOrCreate("libHippy", libHippy)
+  AppStorage.setOrCreate("abilityContext", this.context)
   ```
- 
-具体可以参考 [Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 工程中 `EntryAbility.ets` `ExampleHippyPage.ets` `CMakeLists.txt` 实现
+
+- 创建 HippyEngine、初始化 HippyEngine、加载业务 bundle
+
+  ```TypeScript
+  this.hippyEngine = createHippyEngine(params)
+  this.hippyEngine.initEngine()
+  this.hippyEngine?.loadModule()
+  ```
+
+- 组装 HippyRoot 组件
+
+ ```TypeScript
+  HippyRoot({
+      hippyEngine: this.hippyEngine,
+      pagerName: 'demo',
+      pagerData: {},
+      wrappedCustomRenderViewBuilder: wrapBuilder(buildCustomRenderView),
+      onRenderException: (exception: HippyException) => {
+        this.exception = `${exception.message}\n${exception.stack}`
+      },
+  })
+  ```
+
+具体可以参考 [Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 工程中 `EntryAbility.ets` `ExampleHippyPage.ets` 实现
+
+## 接入方式三：定制场景接入
+
+- 对于需要直接依赖 hippy c++ 代码编译使用的定制场景，可参考  [Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 工程中 `CMakeLists.txt` 说明
 
 # Voltron/Flutter 
 

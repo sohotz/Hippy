@@ -42,6 +42,8 @@ public:
   uint32_t GetInstanceId() { return instance_id_; }
   
   void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id);
+  
+  void DestroyRoot(uint32_t root_id);
 
   void CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations);
   void UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations);

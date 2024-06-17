@@ -51,7 +51,7 @@ bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) 
     return true;
   } else if (propKey == HRNodeProps::TRANSFORM) {
     HippyValueArrayType valueArray;
-    if (propValue.ToArray(valueArray)) {
+    if (propValue.IsArray() && propValue.ToArray(valueArray)) {
       HRTransform transform;
       HRConvertUtils::TransformToArk(valueArray, transform);
       GetLocalRootArkUINode().SetTransform(transform, 1.0f); // TODO(hot):
@@ -121,7 +121,7 @@ bool BaseView::SetLinearGradientProp(const std::string &propKey, const HippyValu
     return false;
   }
   HippyValueArrayType colorStopList;
-  if (!colorStopListIt->second.ToArray(colorStopList)) {
+  if (!colorStopListIt->second.IsArray() || !colorStopListIt->second.ToArray(colorStopList)) {
     return false;
   }
   if (colorStopList.size() == 0) {

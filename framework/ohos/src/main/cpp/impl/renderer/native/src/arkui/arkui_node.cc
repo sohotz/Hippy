@@ -59,6 +59,19 @@ void ArkUINode::MarkDirty() {
   NativeNodeApi::GetInstance()->markDirty(GetArkUINodeHandle(), ArkUI_NodeDirtyFlag::NODE_NEED_MEASURE);
 }
 
+void ArkUINode::AddChild(ArkUINode &child) {
+  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
+}
+
+void ArkUINode::InsertChild(ArkUINode &child, int32_t index) {
+  MaybeThrow(
+    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
+}
+
+void ArkUINode::RemoveChild(ArkUINode &child) {
+  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
+}
+
 ArkUINode &ArkUINode::SetPosition(const HRPosition &position) {
   ArkUI_NumberValue value[] = {{position.x}, {position.y}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};

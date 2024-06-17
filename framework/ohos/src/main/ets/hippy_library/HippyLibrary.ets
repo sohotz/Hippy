@@ -25,6 +25,8 @@ import { HippyAny } from '../support/common/HippyTypes';
 import { FetchResourceCallback } from '../vfs/FetchResourceCallback';
 import { ResourceDataHolder } from '../vfs/ResourceDataHolder';
 import { VfsManager } from '../vfs/VfsManager';
+import { FrameNode } from '@kit.ArkUI';
+import { HippyRenderViewForCApiParams } from '../renderer_native/capi/HippyRenderViewBuilderCApi';
 
 export interface HippyLibrary {
   DomManager_SetRenderManager(instanceId: number, renderId: number): void;
@@ -82,6 +84,9 @@ export interface HippyLibrary {
   NativeRenderProvider_OnReceivedEvent(instanceId: number, rootId: number, nodeId: number, eventName: string, buffer: ArrayBuffer | null, useCapture: boolean, useBubble: boolean): void;
   NativeRenderProvider_DoCallBack(instanceId: number, result: number, functionName: string, rootId: number, nodeId: number, callbackId: number, buffer: ArrayBuffer | null): void;
   NativeRenderProvider_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
+
+  NativeRenderProvider_RegisterCustomTsRenderViews(instanceId: number, rootId: number, customTsRenderViews: Array<string> | null, builderCallback: (params: HippyRenderViewForCApiParams) => FrameNode): void;
+  NativeRenderProvider_DestroyRoot(instanceId: number, rootId: number): void;
 
   VfsManager_CreateVfs(vfsDelegate: VfsManager): number;
   VfsManager_DestroyVfs(instanceId: number): void;

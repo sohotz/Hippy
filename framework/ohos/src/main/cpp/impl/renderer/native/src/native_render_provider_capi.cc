@@ -236,6 +236,35 @@ napi_value OhNapi_OnLoad(napi_env env, napi_value exports) {
 
 REGISTER_OH_NAPI_ONLOAD(hippy::OhNapi_OnLoad)
 
+static napi_value RegisterCustomTsRenderViews(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  // const std::set<std::string> &views, napi_ref builderCallbackRef, napi_env env
+  
+  return arkTs.GetUndefined();
+}
+
+static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "DestroyRoot: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+  
+  render_manager->DestroyRoot(root_id);
+
+  return arkTs.GetUndefined();
+}
+
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_RegisterCustomTsRenderViews", RegisterCustomTsRenderViews)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DestroyRoot", DestroyRoot)
+
 }
 }
 }

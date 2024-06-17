@@ -39,6 +39,9 @@ public:
 //   void InitViewManager(uint32_t root_id);
   std::shared_ptr<HRViewManager> GetViewManager(uint32_t root_id);
   std::shared_ptr<HRVirtualViewManager> GetVirtualNodeManager(uint32_t root_id);
+  
+  void RemoveViewManager(uint32_t root_id);
+  void RemoveVirtualNodeManager(uint32_t root_id);
 
 private:
   void AddViewManager(uint32_t root_id, std::shared_ptr<HRViewManager> &view_manager);

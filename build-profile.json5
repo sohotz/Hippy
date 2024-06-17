@@ -38,6 +38,18 @@
       ]
     },
     {
+      "name": "entry_har",
+      "srcPath": "./framework/examples/ohos-har-demo",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    },
+    {
       "name": "hippy",
       "srcPath": "./framework/ohos"
     },

@@ -33,19 +33,6 @@ WaterFlowNode::WaterFlowNode()
 
 WaterFlowNode::~WaterFlowNode() {}
 
-void WaterFlowNode::AddChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
-void WaterFlowNode::InsertChild(ArkUINode &child, int32_t index) {
-  MaybeThrow(
-    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
-}
-
-void WaterFlowNode::RemoveChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
 } // namespace native
 } // namespace render
 } // namespace hippy

@@ -26,7 +26,7 @@ import HippyRenderBaseView from './components/base/HippyRenderBaseView';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import { FrameworkProxy } from './FrameworkProxy';
 import { HippyRender, HippyRenderView } from './HippyRenderView';
-import { WrappedHippyCustomCustomRenderViewBuilder } from './HippyRenderViewBuilder';
+import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder';
 import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
 import { NativeRender } from './NativeRender';
 import { NativeRenderContext } from './NativeRenderContext';
@@ -49,7 +49,7 @@ export class HippyRootView {
               rootId: number,
               customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
               nativeRender: NativeRender,
-              wrappedCustomRenderViewBuilder: WrappedHippyCustomCustomRenderViewBuilder | null,
+              wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null,
               pagerName: string,
               pagerData: HippyRecord,
               renderExceptionListener: IHippyRenderExceptionListener
@@ -171,7 +171,7 @@ export struct HippyRoot {
   private rootId: number = -1
   private renderInstanceId: number = -1
   private renderExceptionListener = new HippyRenderExceptionListener()
-  private wrappedCustomRenderViewBuilder: WrappedHippyCustomCustomRenderViewBuilder | null = null
+  private wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null = null
   @State showRenderView: boolean = false
   private rootView: HippyRootView | null = null
   private enableArkCApi: boolean = false
@@ -184,6 +184,10 @@ export struct HippyRoot {
     }
 
     this.enableArkCApi = this.hippyEngine.getHippyEngineContext()!.getGlobalConfigs().enableArkCApi()
+    if (this.enableArkCApi) {
+      let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
+      // TODO(hot):
+    }
 
     if (!this.rootView) {
       this.renderExceptionListener.listener = this.onRenderException
@@ -219,6 +223,10 @@ export struct HippyRoot {
   aboutToDisappear(): void {
     if (this.rootView) {
       this.rootView.onDestroy()
+      if (this.hippyEngine) {
+        let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
+        libHippy.NativeRenderProvider_DestroyRoot(this.renderInstanceId, this.rootId)
+      }
     }
   }
 

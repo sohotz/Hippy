@@ -54,6 +54,10 @@ export interface HippyEngine {
 
   loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): void
 
+  destroyModule(rootId: number, destroyCallback: HippyModuleDestroyCallback): void
+
+  destroyEngine(): void
+
   getNativeRenderProvider(): NativeRenderProvider | null
 
   onBackPressed(handler: BackPressHandler): boolean
@@ -70,6 +74,8 @@ export function createHippyEngine(params: EngineInitParams): HippyEngine {
 export type HippyEngineInitCallback = (statusCode: EngineInitStatus, msg: string) => void
 
 export type HippyModuleLoadCallback = (statusCode: ModuleLoadStatus, msg: string) => void
+
+export type HippyModuleDestroyCallback = (result: boolean) => void
 
 export class V8InitParams {
   public initialHeapSize: number = 0;
@@ -143,7 +149,7 @@ export class EngineInitParams {
   public logAdapter: HippyLogAdapter | null = null;
   public v8InitParams: V8InitParams | null = null;
   public enableTurbo = false;
-  public enableArkCApi: boolean = false;
+  public enableArkCApi: boolean = true;
 
   constructor(
     libHippy: HippyLibrary,

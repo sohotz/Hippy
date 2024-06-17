@@ -32,7 +32,7 @@ inline namespace native {
 class DivView : public BaseView, public StackNodeDelegate {
 public:
   DivView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~DivView();
+  virtual ~DivView();
 
   StackNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;

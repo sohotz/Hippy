@@ -31,19 +31,6 @@ RowNode::RowNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_No
 
 RowNode::~RowNode() {}
 
-void RowNode::AddChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
-void RowNode::InsertChild(ArkUINode &child, int32_t index) {
-  MaybeThrow(
-    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
-}
-
-void RowNode::RemoveChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
 } // namespace native
 } // namespace render
 } // namespace hippy

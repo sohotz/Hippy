@@ -1126,6 +1126,10 @@ void NativeRenderManager::RegisterNativeXComponentHandle(OH_NativeXComponent *na
   c_render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id);
 }
 
+void NativeRenderManager::DestroyRoot(uint32_t root_id) {
+  c_render_provider_->DestroyRoot(root_id);
+}
+
 }  // namespace native
 }  // namespace render
 }  // namespace hippy

@@ -95,19 +95,6 @@ void SwiperNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   }
 }
 
-void SwiperNode::AddChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
-void SwiperNode::InsertChild(ArkUINode &child, int32_t index) {
-  MaybeThrow(NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(),
-                                                         static_cast<int32_t>(index)));
-}
-
-void SwiperNode::RemoveChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
-}
-
 void SwiperNode::SetShowIndicator(bool show) {
   ArkUI_NumberValue value = {.i32 = int32_t(show)};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};

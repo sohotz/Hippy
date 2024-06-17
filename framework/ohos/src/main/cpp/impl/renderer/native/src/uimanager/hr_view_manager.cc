@@ -20,7 +20,12 @@
  *
  */
 
+#include <arkui/native_node_napi.h>
 #include "renderer/uimanager/hr_view_manager.h"
+#include "oh_napi/ark_ts.h"
+#include "oh_napi/oh_napi_object_builder.h"
+#include "renderer/components/custom_ts_view.h"
+#include "renderer/components/custom_view.h"
 #include "renderer/components/hippy_render_view_creator.h"
 #include "renderer/native_render_context.h"
 #include "footstone/logging.h"
@@ -57,6 +62,12 @@ void HRViewManager::MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, s
 }
 
 void HRViewManager::MaybeDetachRootNode(OH_NativeXComponent *nativeXComponent, std::shared_ptr<RootView> &rootView) {
+}
+
+void HRViewManager::RegisterCustomTsRenderViews(const std::set<std::string> &views, napi_ref builderCallbackRef, napi_env env) {
+  custom_ts_render_views_ = views;
+  ts_custom_builder_callback_ref_ = builderCallbackRef;
+  ts_env_ = env;
 }
 
 void HRViewManager::AddMutations(std::shared_ptr<HRMutation> &m) {
@@ -104,8 +115,23 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
   }
 }
 
-std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string view_name, bool is_parent_text) {
-  auto view = HippyCreateRenderView(view_name, is_parent_text, ctx_);
+std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  std::shared_ptr<BaseView> view = nullptr;
+  
+  // custom ts view
+  view = CreateCustomTsRenderView(tag, view_name, is_parent_text);
+  if (view) {
+    return view;
+  }
+  
+  // custom cpp view
+  view = CreateCustomRenderView(tag, view_name, is_parent_text);
+  if (view) {
+    return view;
+  }
+  
+  // build-in view
+  view = HippyCreateRenderView(view_name, is_parent_text, ctx_);
   if (view) {
     view->SetTag(tag);
     view->SetViewType(view_name);
@@ -114,6 +140,43 @@ std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::str
   } else {
     FOOTSTONE_DLOG(INFO) << "CreateRenderView failed, " << view_name;
   }
+  return nullptr;
+}
+
+std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  if (custom_ts_render_views_.find(view_name) != custom_ts_render_views_.end()) {
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(ts_env_, &scope);
+    if (scope == nullptr) {
+      return nullptr;
+    }
+    
+    ArkTS arkTs(ts_env_);
+    auto params_builder = arkTs.CreateObjectBuilder();
+    params_builder.AddProperty("", "");
+    
+    napi_value callback = arkTs.GetReferenceValue(ts_custom_builder_callback_ref_);
+    std::vector<napi_value> args = {
+      params_builder.Build()
+    };
+    napi_value global;
+    napi_get_global(ts_env_, &global);
+    napi_value tsNode = arkTs.Call(callback, args, global);
+    ArkUI_NodeHandle nodeHandle = nullptr;
+    OH_ArkUI_GetNodeHandleFromNapiValue(ts_env_, tsNode, &nodeHandle);
+    
+    napi_close_handle_scope(ts_env_, scope);
+    
+    auto view = std::make_shared<CustomTsView>(ctx_, nodeHandle);
+    view->SetTag(tag);
+    view->SetViewType(view_name);
+    view_registry_[tag] = view;
+    return view;
+  }
+  return nullptr;
+}
+
+std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
   return nullptr;
 }
 
@@ -209,6 +272,10 @@ void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, const HippyValu
     }
     view->OnSetPropsEnd();
   }
+}
+
+void HRViewManager::UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
+  
 }
 
 void HRViewManager::UpdateProps(uint32_t tag, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {

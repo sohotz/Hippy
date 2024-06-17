@@ -43,6 +43,11 @@ void NativeRenderImpl::RegisterNativeXComponentHandle(OH_NativeXComponent *nativ
   view_manager->AttachToNativeXComponent(nativeXComponent);
 }
 
+void NativeRenderImpl::DestroyRoot(uint32_t root_id) {
+  hr_manager_->RemoveViewManager(root_id);
+  hr_manager_->RemoveVirtualNodeManager(root_id);
+}
+
 void NativeRenderImpl::CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);
