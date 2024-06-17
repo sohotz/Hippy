@@ -29,7 +29,14 @@ inline namespace native {
 
 WaterfallView::WaterfallView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
 
-WaterfallView::~WaterfallView() {}
+WaterfallView::~WaterfallView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      colNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+}
 
 ColumnNode &WaterfallView::GetLocalRootArkUINode() { return colNode_; }
 

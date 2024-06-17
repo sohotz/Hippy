@@ -32,7 +32,15 @@ ListItemView::ListItemView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView
   itemNode_.AddChild(stackNode_);
 }
 
-ListItemView::~ListItemView() {}
+ListItemView::~ListItemView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+  itemNode_.RemoveChild(stackNode_);
+}
 
 ListItemNode &ListItemView::GetLocalRootArkUINode() { return itemNode_; }
 

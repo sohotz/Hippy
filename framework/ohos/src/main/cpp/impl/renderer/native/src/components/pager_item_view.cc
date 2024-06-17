@@ -29,7 +29,14 @@ inline namespace native {
 
 PagerItemView::PagerItemView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
 
-PagerItemView::~PagerItemView() {}
+PagerItemView::~PagerItemView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+}
 
 StackNode &PagerItemView::GetLocalRootArkUINode() { return stackNode_; }
 

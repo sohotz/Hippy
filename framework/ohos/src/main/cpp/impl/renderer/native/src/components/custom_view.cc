@@ -31,7 +31,14 @@ CustomView::CustomView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx
   stackNode_.SetStackNodeDelegate(this);
 }
 
-CustomView::~CustomView() {}
+CustomView::~CustomView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+}
 
 StackNode &CustomView::GetLocalRootArkUINode() {
   return stackNode_;

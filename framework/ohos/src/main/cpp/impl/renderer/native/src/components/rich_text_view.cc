@@ -33,7 +33,14 @@ RichTextView::RichTextView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView
   textNode_.SetTextNodeDelegate(this);
 }
 
-RichTextView::~RichTextView() {}
+RichTextView::~RichTextView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      textNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+}
 
 TextNode &RichTextView::GetLocalRootArkUINode() {
   return textNode_;

@@ -31,7 +31,14 @@ CustomTsView::CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_Node
   tsNode_.SetCustomTsNodeDelegate(this);
 }
 
-CustomTsView::~CustomTsView() {}
+CustomTsView::~CustomTsView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      tsNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+}
 
 CustomTsNode &CustomTsView::GetLocalRootArkUINode() {
   return tsNode_;

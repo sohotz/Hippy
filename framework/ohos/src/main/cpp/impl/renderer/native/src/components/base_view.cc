@@ -36,6 +36,10 @@ BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(
   
 }
 
+BaseView::~BaseView() {
+
+}
+
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::VISIBILITY) {
     auto value = HRValueUtils::GetString(propValue);
