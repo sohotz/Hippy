@@ -292,7 +292,7 @@ ENV['layout_engine'] = 'Yoga'
  - 拉取 hippy 代码
  > https://github.com/sohotz/Hippy.git，分支：main
 
- - 构建 hippy.har：IDE 菜单，Build - Make Module 'hippy'
+ - 构建 hippy.har：IDE 打开 hippy 工程根目录，IDE 菜单 - Build - Make Module 'hippy'
  > Har 包生成目录：Hippy0129/framework/ohos/build/default/outputs/default/hippy.har
  
  > 如果菜单不显示 “Make Module 'hippy'”，可先选择到 hippy 模块内，比如选择文件：Hippy/framework/ohos/src/main/cpp/CMakeLists.txt
@@ -347,7 +347,7 @@ ENV['layout_engine'] = 'Yoga'
 
 ## 接入方式二：源码接入
 
-> 源码接入主要为了方便在 App 项目里直接调试 Hippy 代码（cpp 和 ets 代码）。
+> 源码接入主要为了方便在 App 项目里直接调试 Hippy 代码（c++ 和 ets 代码）。
 
 1. 创建一个 Ohos 工程
 
