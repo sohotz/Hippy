@@ -26,8 +26,8 @@
   },
   "modules": [
     {
-      "name": "entry",
-      "srcPath": "./framework/examples/ohos-demo",
+      "name": "entry_har",
+      "srcPath": "./framework/examples/ohos-har-demo",
       "targets": [
         {
           "name": "default",
@@ -38,8 +38,8 @@
       ]
     },
     {
-      "name": "entry_har",
-      "srcPath": "./framework/examples/ohos-har-demo",
+      "name": "entry",
+      "srcPath": "./framework/examples/ohos-demo",
       "targets": [
         {
           "name": "default",
