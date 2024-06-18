@@ -31,7 +31,14 @@ DivView::DivView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   stackNode_.SetStackNodeDelegate(this);
 }
 
-DivView::~DivView() {}
+DivView::~DivView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+}
 
 StackNode &DivView::GetLocalRootArkUINode() {
   return stackNode_;

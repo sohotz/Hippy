@@ -36,7 +36,14 @@ PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) 
   FOOTSTONE_DLOG(INFO) << "PagerView initialized.";
 }
 
-PagerView::~PagerView() {}
+PagerView::~PagerView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      swiperNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+}
 
 SwiperNode &PagerView::GetLocalRootArkUINode() { return swiperNode_; }
 

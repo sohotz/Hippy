@@ -39,7 +39,7 @@ using HippyValueArrayType = footstone::value::HippyValue::HippyValueArrayType;
 class BaseView : public std::enable_shared_from_this<BaseView> {
 public:
   BaseView(std::shared_ptr<NativeRenderContext> &ctx);
-  virtual ~BaseView() = default;
+  virtual ~BaseView();
   
   std::shared_ptr<NativeRenderContext> &GetCtx() { return ctx_; }
   uint32_t GetTag() { return tag_; }

@@ -33,7 +33,19 @@ inline namespace render {
 inline namespace native {
 
 BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(0) {
-  
+#if HIPPY_OHOS_MEM_CHECK
+  static int sCount = 0;
+  ++sCount;
+  FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, view, new: " << this << ", type: " << view_type_ << ", count: " << sCount;
+#endif
+}
+
+BaseView::~BaseView() {
+#if HIPPY_OHOS_MEM_CHECK
+  static int sCount = 0;
+  ++sCount;
+  FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, view, del: " << this << ", type: " << view_type_ << ", count: " << sCount;
+#endif
 }
 
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {

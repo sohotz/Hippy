@@ -29,7 +29,14 @@ inline namespace native {
 
 RefreshWrapperItemView::RefreshWrapperItemView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {}
 
-RefreshWrapperItemView::~RefreshWrapperItemView() {}
+RefreshWrapperItemView::~RefreshWrapperItemView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+}
 
 StackNode &RefreshWrapperItemView::GetLocalRootArkUINode() { return stackNode_; }
 

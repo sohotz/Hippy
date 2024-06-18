@@ -38,7 +38,15 @@ ScrollView::ScrollView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx
   scrollNode_.AddChild(stackNode_);
 }
 
-ScrollView::~ScrollView() {}
+ScrollView::~ScrollView() {
+  if (!children_.empty()) {
+    for (const auto &child : children_) {
+      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    }
+    children_.clear();
+  }
+  scrollNode_.RemoveChild(stackNode_);
+}
 
 ScrollNode &ScrollView::GetLocalRootArkUINode() { return scrollNode_; }
 
