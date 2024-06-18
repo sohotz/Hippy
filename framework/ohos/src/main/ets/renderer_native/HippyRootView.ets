@@ -119,7 +119,7 @@ export class HippyRootView {
   }
 
   onDestroy() {
-
+    this.renderView = null
   }
 
   private performRenderViewTask(task: () => void) {
@@ -223,6 +223,7 @@ export struct HippyRoot {
   aboutToDisappear(): void {
     if (this.rootView) {
       this.rootView.onDestroy()
+      this.rootView = null
       if (this.hippyEngine) {
         let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
         libHippy.NativeRenderProvider_DestroyRoot(this.renderInstanceId, this.rootId)
