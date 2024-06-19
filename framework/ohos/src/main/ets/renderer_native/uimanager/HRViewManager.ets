@@ -61,6 +61,10 @@ export class HRViewManager {
     return this.rootTag
   }
 
+  getRootRenderView(): HippyRenderView | null {
+    return this.rootRenderView
+  }
+
   preCreateRenderView(tag: number, viewName: string): void {
     this.createRenderView(tag, viewName)
   }

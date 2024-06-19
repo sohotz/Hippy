@@ -241,6 +241,10 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     }
   }
 
+  destroyRoot(rootId: number): void {
+    this.mEngineContext!.destroyRoot(rootId)
+  }
+
   getVfsManager(): VfsManager {
     return this.mEngineContext!.getVfsManager();
   }

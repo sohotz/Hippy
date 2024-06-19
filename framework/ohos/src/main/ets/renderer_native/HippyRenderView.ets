@@ -53,6 +53,11 @@ export class HippyRenderView extends HippyRenderBaseView {
     renderManger.initViewManager(this)
   }
 
+  onDestroy(): void {
+    let renderManger = this.ctx.getNativeRender().getRenderManager()
+    renderManger.destroyViewManager(this.ctx.getRootId())
+  }
+
   setProp(propKey: string, propValue: HippyAny): boolean {
     if (propKey != null && typeof propValue == 'boolean') {
       this.handleRootEvent(propKey, propValue)

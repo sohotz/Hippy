@@ -27,6 +27,8 @@ export interface FrameworkProxy {
 
   attachToRootView(rootId: number): void
 
+  destroyRoot(rootId: number): void
+
   // TODO(eksea)
   // getImageDecoderAdapter(): ImageDecoderAdapter
 

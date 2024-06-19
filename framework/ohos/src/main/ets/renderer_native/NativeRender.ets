@@ -30,6 +30,8 @@ import { HippyEndBatchCallback } from './uimanager/HRViewManager';
 export interface NativeRender {
   attachToRootView(rootId: number): void
 
+  destroyRoot(rootId: number): void
+
   getRenderManager(): HRManager
 
   getBundlePath(): string
