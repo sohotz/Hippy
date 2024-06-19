@@ -64,9 +64,9 @@ void HRViewManager::MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, s
 void HRViewManager::MaybeDetachRootNode(OH_NativeXComponent *nativeXComponent, std::shared_ptr<RootView> &rootView) {
 }
 
-void HRViewManager::RegisterCustomTsRenderViews(const std::set<std::string> &views, napi_ref builderCallbackRef, napi_env env) {
+void HRViewManager::RegisterCustomTsRenderViews(const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env) {
   custom_ts_render_views_ = views;
-  ts_custom_builder_callback_ref_ = builderCallbackRef;
+  ts_custom_builder_callback_ref_ = builder_callback_ref;
   ts_env_ = env;
 }
 

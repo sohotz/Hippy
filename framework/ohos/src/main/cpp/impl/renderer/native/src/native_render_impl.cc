@@ -43,6 +43,15 @@ void NativeRenderImpl::RegisterNativeXComponentHandle(OH_NativeXComponent *nativ
   view_manager->AttachToNativeXComponent(nativeXComponent);
 }
 
+void NativeRenderImpl::RegisterCustomTsRenderViews(uint32_t root_id, const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  
+  view_manager->RegisterCustomTsRenderViews(views, builder_callback_ref, env);
+}
+
 void NativeRenderImpl::DestroyRoot(uint32_t root_id) {
   hr_manager_->RemoveViewManager(root_id);
   hr_manager_->RemoveVirtualNodeManager(root_id);
