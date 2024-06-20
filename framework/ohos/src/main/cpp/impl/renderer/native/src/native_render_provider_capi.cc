@@ -215,8 +215,11 @@ static void RegisterNativeXComponent(napi_env env, napi_value exports) {
   std::getline(ss, instanceId, '_');
   std::string rootId;
   std::getline(ss, rootId, '_');
+  std::string nodeId;
+  std::getline(ss, nodeId, '_');
   uint32_t render_manager_id = static_cast<uint32_t>(std::stoul(instanceId, nullptr));
   uint32_t root_id = static_cast<uint32_t>(std::stoul(rootId, nullptr));
+  uint32_t node_id = nodeId.size() > 0 ? static_cast<uint32_t>(std::stoul(nodeId, nullptr)) : 0;
 
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
@@ -226,7 +229,7 @@ static void RegisterNativeXComponent(napi_env env, napi_value exports) {
     return;
   }
 
-  render_manager->RegisterNativeXComponentHandle(nativeXComponent, root_id);
+  render_manager->RegisterNativeXComponentHandle(nativeXComponent, root_id, node_id);
 }
 
 napi_value OhNapi_OnLoad(napi_env env, napi_value exports) {
@@ -235,42 +238,6 @@ napi_value OhNapi_OnLoad(napi_env env, napi_value exports) {
 }
 
 REGISTER_OH_NAPI_ONLOAD(hippy::OhNapi_OnLoad)
-
-static napi_value RegisterCustomTsRenderViews(napi_env env, napi_callback_info info) {
-  ArkTS arkTs(env);
-  auto args = arkTs.GetCallbackArgs(info);
-  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
-  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
-  
-  std::set<std::string> custom_ts_views;
-  auto ts_array = args[2];
-  if (arkTs.IsArray(ts_array)) {
-    auto length = arkTs.GetArrayLength(ts_array);
-    if (length > 0) {
-      for (uint32_t i = 0; i < length; i ++) {
-        auto ts_view = arkTs.GetArrayElement(ts_array, i);
-        auto view_name = arkTs.GetString(ts_view);
-        if (view_name.length() > 0) {
-          custom_ts_views.insert(view_name);
-        }
-      }
-    }
-  }
-  
-  auto callback_ref = arkTs.CreateReference(args[3]);
-  
-  auto &map = NativeRenderManager::PersistentMap();
-  std::shared_ptr<NativeRenderManager> render_manager;
-  bool ret = map.Find(render_manager_id, render_manager);
-  if (!ret) {
-    FOOTSTONE_DLOG(WARNING) << "RegisterCustomTsRenderViews: render_manager_id invalid";
-    return arkTs.GetUndefined();
-  }
-  
-  render_manager->RegisterCustomTsRenderViews(root_id, custom_ts_views, callback_ref, env);
-  
-  return arkTs.GetUndefined();
-}
 
 static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
@@ -291,7 +258,6 @@ static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
-REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_RegisterCustomTsRenderViews", RegisterCustomTsRenderViews)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DestroyRoot", DestroyRoot)
 
 }

@@ -28,6 +28,11 @@ import { LogUtils } from '../support/utils/LogUtils';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HippyAny } from '../support/common/HippyTypes';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
+import { CreateRenderViewParamsForCApi,
+  SetRenderViewFrameParamsForCApi,
+  UpdateEventListenerParamsForCApi,
+  UpdatePropsParamsForCApi} from './NativeRenderBuilderForCApi';
+import { FrameNode } from '@kit.ArkUI';
 
 export class NativeRenderProvider implements NativeRenderEventHandler {
   private readonly TAG = "NativeRenderProvider"
@@ -218,4 +223,25 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
     }
     this.libHippy?.NativeRenderProvider_DoCallBack(this.instanceId, result, functionName, rootId, nodeId, callbackId, buffer)
   }
+
+  // for c-api
+  createRenderViewForCApi(params: CreateRenderViewParamsForCApi): FrameNode | null {
+    return this.renderImpl.createRenderViewForCApi(params)
+  }
+
+  // for c-api
+  updatePropsForCApi(params: UpdatePropsParamsForCApi): void {
+    this.renderImpl.updatePropsForCApi(params)
+  }
+
+  // for c-api
+  updateEventListenerForCApi(params: UpdateEventListenerParamsForCApi): void {
+    this.renderImpl.updateEventListenerForCApi(params)
+  }
+
+  // for c-api
+  setRenderViewFrameForCApi(params: SetRenderViewFrameParamsForCApi): void {
+    this.renderImpl.setRenderViewFrameForCApi(params)
+  }
+
 }

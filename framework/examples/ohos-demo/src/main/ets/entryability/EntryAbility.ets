@@ -66,6 +66,9 @@ export default class EntryAbility extends UIAbility {
       // OhMeasureText::RegisterFont("TTTGB", this.context.resourceDir + "/fonts/TTTGB.otf")
       // 注意：TTTGB.otf 在 src/main/ets/fonts 和 src/main/resources/resfile/fonts 中各需一份拷贝，rawfile/fonts可以删除
       // 建议在 HippyEngine.ets的EngineInitParams 中加一个registerFont的方法，把上面ArkTS的字体注册也一起封装进去
+
+      // TODO(hot):
+      AppStorage.setOrCreate<UIContext>('UIContext', windowStage.getMainWindowSync().getUIContext())
     });
   }
 

@@ -34,7 +34,7 @@ CustomTsView::CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_Node
 CustomTsView::~CustomTsView() {
   if (!children_.empty()) {
     for (const auto &child : children_) {
-      tsNode_.RemoveChild(child->GetLocalRootArkUINode());
+      containerNode_.RemoveChild(child->GetLocalRootArkUINode());
     }
     children_.clear();
   }
@@ -50,12 +50,12 @@ bool CustomTsView::SetProp(const std::string &propKey, const HippyValue &propVal
 
 void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
-  tsNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+  containerNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
 void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
-  tsNode_.RemoveChild(childView->GetLocalRootArkUINode());
+  containerNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 void CustomTsView::OnClick() {

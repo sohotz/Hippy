@@ -24,6 +24,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/custom_ts_node.h"
+#include "renderer/arkui/stack_node.h"
 
 namespace hippy {
 inline namespace render {
@@ -35,6 +36,7 @@ public:
   ~CustomTsView();
 
   CustomTsNode &GetLocalRootArkUINode() override;
+  StackNode &GetContainerArkUINode() { return containerNode_; }
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
 
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
@@ -44,6 +46,7 @@ public:
   
 private:
   CustomTsNode tsNode_;
+  StackNode containerNode_;
 };
 
 } // namespace native
