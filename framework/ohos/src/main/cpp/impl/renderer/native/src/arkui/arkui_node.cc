@@ -416,6 +416,12 @@ ArkUINode &ArkUINode::SetShadow(const HRShadow &shadow) {
   return *this;
 }
 
+ArkUINode &ArkUINode::SetExpandSafeArea(){
+//TODO  NODE_EXPAND_SAFE_AREA not define in devEco 5.0.0.400 will add in later
+//  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_EXPAND_SAFE_AREA,nullptr ));
+  return *this;    
+}
+
 void ArkUINode::RegisterClickEvent() {
   if (!hasClickEvent_) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));
@@ -456,6 +462,20 @@ void ArkUINode::UnregisterDisappearEvent() {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_DISAPPEAR);
     hasDisappearEvent_ = false;
   }
+}
+
+void ArkUINode::RegisterAreaChangeEvent(){
+  if (!hasAreaChangeEvent_){
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_EVENT_ON_AREA_CHANGE, 0, nullptr));
+    hasAreaChangeEvent_ = true ; 
+  }  
+}
+
+void ArkUINode::UnregisterAreaChangeEvent(){
+  if (hasAreaChangeEvent_){
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_AREA_CHANGE);
+    hasAreaChangeEvent_ = false ; 
+  }      
 }
 
 } // namespace native

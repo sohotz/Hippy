@@ -34,6 +34,7 @@ public:
   virtual void OnClick() {}
   virtual void OnAppear() {}
   virtual void OnDisappear() {}
+  virtual void OnAreaChange(ArkUI_NumberValue* data) {}  
 };
 
 class StackNode : public ArkUINode {

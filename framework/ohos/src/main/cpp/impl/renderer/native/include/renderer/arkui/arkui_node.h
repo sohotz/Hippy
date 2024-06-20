@@ -99,18 +99,20 @@ public:
   virtual ArkUINode &SetBorderRadius(float topLeft, float topRight, float bottomLeft, float bottomRight);
   virtual ArkUINode &SetBorderStyle(ArkUI_BorderStyle top, ArkUI_BorderStyle right, ArkUI_BorderStyle bottom, ArkUI_BorderStyle left);
   virtual ArkUINode &SetShadow(const HRShadow &shadow);
+  virtual ArkUINode &SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk  
   virtual HRSize GetSize() const;
   virtual uint32_t GetTotalChildCount() const;
 
   virtual void OnNodeEvent(ArkUI_NodeEvent *event) {}
-
+    
   void RegisterClickEvent();
   void UnregisterClickEvent();
   void RegisterAppearEvent();
   void UnregisterAppearEvent();
   void RegisterDisappearEvent();
   void UnregisterDisappearEvent();
-
+  void RegisterAreaChangeEvent();
+  void UnregisterAreaChangeEvent();
 protected:
   void MaybeThrow(int32_t status) {
     if (status != 0) {
@@ -125,6 +127,7 @@ protected:
   bool hasClickEvent_ = false;
   bool hasAppearEvent_ = false;
   bool hasDisappearEvent_ = false;
+  bool hasAreaChangeEvent_ = false;  
 };
 
 } // namespace native

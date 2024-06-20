@@ -91,6 +91,7 @@ set(SOURCE_SET
   src/arkui/text_node.cc
   src/arkui/water_flow_node.cc
   src/arkui/web_node.cc
+  src/arkui/dialog_controller.cc
   src/components/hippy_render_view_creator.cc
   src/components/base_view.cc
   src/components/custom_ts_view.cc
