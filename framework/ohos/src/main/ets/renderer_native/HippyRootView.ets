@@ -58,6 +58,12 @@ export class HippyRootView {
     this.pagerName = pagerName
     this.pagerData = pagerData
     this.renderExceptionListener = renderExceptionListener
+    this.initRenderView()
+  }
+
+  onDestroy() {
+    this.renderView?.onDestroy()
+    this.renderView = null
   }
 
   setRenderExceptionListener(listener: IHippyRenderExceptionListener) {
@@ -67,14 +73,13 @@ export class HippyRootView {
     }
   }
 
-  private initRenderViewIfNeed() {
-    if (!this.renderView && this.renderViewSize.width) {
-      this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea, this.renderExceptionListener)
-      this.performAllRenderViewTasks()
+  private initRenderView() {
+    this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea, this.renderExceptionListener)
+    this.performAllRenderViewTasks()
 
-      // TODO(hot): for c api
-      //this.ctx.getNativeRender().attachToRootView(this.renderView.tag)
-    }
+    // TODO(hot): for c api
+    //this.ctx.getNativeRender().attachToRootView(this.renderView.tag)
+
     this.fireDidCreateRenderViewCallbackIfNeed()
   }
 
@@ -87,9 +92,7 @@ export class HippyRootView {
       return
     }
     this.renderViewSize = size
-    let hasRenderView = this.renderView !== null
-    this.initRenderViewIfNeed()
-    if (hasRenderView && this.renderView) {
+    if (this.renderView) {
       this.renderView.onSizeChanged(size.width, size.height)
     }
   }
@@ -116,10 +119,6 @@ export class HippyRootView {
         this.renderView.pageDidDisappear()
       }
     })
-  }
-
-  onDestroy() {
-
   }
 
   private performRenderViewTask(task: () => void) {
@@ -164,7 +163,7 @@ export struct HippyRoot {
   hippyEngine: HippyEngine | null = null
   pagerName: string = ""
   pagerData: HippyRecord = {}
-  initViewSize: HRSize = HRConvertUtil.screenSize()
+  initViewSize: HRSize = new HRSize(0, 0)
   onRenderException: ((exception: HippyException) => void) | null = null
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private static sRootIdCounter = 0
@@ -201,7 +200,7 @@ export struct HippyRoot {
       this.rootView = new HippyRootView(this.renderInstanceId, this.rootId, customRenderViewCreatorMap, nativeRender,
                                         this.wrappedCustomRenderViewBuilder,
                                         this.pagerName, this.pagerData, this.renderExceptionListener)
-      if (this.initViewSize && this.rootView) {
+      if (this.initViewSize.width > 0) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
       if (this.onRootViewCreated) {
@@ -223,6 +222,7 @@ export struct HippyRoot {
   aboutToDisappear(): void {
     if (this.rootView) {
       this.rootView.onDestroy()
+      this.rootView = null
       if (this.hippyEngine) {
         let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
         libHippy.NativeRenderProvider_DestroyRoot(this.renderInstanceId, this.rootId)

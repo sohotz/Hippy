@@ -35,6 +35,15 @@ export class HRManager {
     rootView.ctx.getNativeRender().attachToRootView(rootId)
   }
 
+  destroyViewManager(rootId: number) {
+    let viewManager = this.getViewManager(rootId)
+    if (viewManager) {
+      viewManager.getRootRenderView()?.ctx.getNativeRender().destroyRoot(rootId)
+    }
+    this.removeViewManager(rootId)
+    this.removeVirtualNodeManager(rootId)
+  }
+
   addViewManager(rootId: number, viewManager: HRViewManager) {
     this.viewManagerMap.set(rootId, viewManager)
   }

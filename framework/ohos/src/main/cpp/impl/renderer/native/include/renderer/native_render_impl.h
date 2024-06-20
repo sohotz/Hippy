@@ -42,6 +42,7 @@ public:
   uint32_t GetInstanceId() { return instance_id_; }
   
   void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id);
+  void RegisterCustomTsRenderViews(uint32_t root_id, const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env);
   
   void DestroyRoot(uint32_t root_id);
 

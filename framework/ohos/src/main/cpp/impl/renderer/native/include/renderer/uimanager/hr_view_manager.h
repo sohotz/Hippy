@@ -41,7 +41,7 @@ public:
   ~HRViewManager() = default;
   
   void AttachToNativeXComponent(OH_NativeXComponent* nativeXComponent);
-  void RegisterCustomTsRenderViews(const std::set<std::string> &views, napi_ref builderCallbackRef, napi_env env);
+  void RegisterCustomTsRenderViews(const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env);
 
   int GetRootTag() {
     return (int)root_id_;

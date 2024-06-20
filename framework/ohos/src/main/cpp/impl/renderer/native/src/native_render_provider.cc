@@ -43,6 +43,10 @@ void NativeRenderProvider::RegisterNativeXComponentHandle(OH_NativeXComponent *n
   });
 }
 
+void NativeRenderProvider::RegisterCustomTsRenderViews(uint32_t root_id, const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env) {
+  render_impl_->RegisterCustomTsRenderViews(root_id, views, builder_callback_ref, env);
+}
+
 void NativeRenderProvider::DestroyRoot(uint32_t root_id) {
   render_impl_->DestroyRoot(root_id);
 }

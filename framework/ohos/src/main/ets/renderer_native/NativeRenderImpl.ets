@@ -105,6 +105,12 @@ export class NativeRenderImpl implements NativeRender {
     }
   }
 
+  destroyRoot(rootId: number): void {
+    if (this.frameworkProxy) {
+      this.frameworkProxy.destroyRoot(rootId)
+    }
+  }
+
   getRenderManager(): HRManager {
     return this.renderManager
   }
@@ -166,10 +172,6 @@ export class NativeRenderImpl implements NativeRender {
     if (this.frameworkProxy) {
       this.frameworkProxy.handleNativeException(exception)
     }
-  }
-
-  destroyRoot(rootId: number) {
-
   }
 
   createNode(rootId: number, nodeList: Array<HippyAny>) {

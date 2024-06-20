@@ -53,6 +53,11 @@ export class HippyRenderView extends HippyRenderBaseView {
     renderManger.initViewManager(this)
   }
 
+  onDestroy(): void {
+    let renderManger = this.ctx.getNativeRender().getRenderManager()
+    renderManger.destroyViewManager(this.ctx.getRootId())
+  }
+
   setProp(propKey: string, propValue: HippyAny): boolean {
     if (propKey != null && typeof propValue == 'boolean') {
       this.handleRootEvent(propKey, propValue)
@@ -73,10 +78,6 @@ export class HippyRenderView extends HippyRenderBaseView {
   }
 
   onSizeChanged(width: number, height: number) {
-    if (this.renderViewSize.width == width && this.renderViewSize.height == height) {
-      return
-    }
-
     let nativeRender = this.ctx.getNativeRender()
     nativeRender.updateDimension(width, height, false, false)
     nativeRender.onSizeChanged(this.tag, width, height, this.renderViewSize.width, this.renderViewSize.height)

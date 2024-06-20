@@ -142,6 +142,10 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     this.mJsDriver.attachToRoot(rootId)
   }
 
+  destroyRoot(rootId: number): void {
+    this.mDomManager.destroyRootNode(rootId)
+  }
+
   getDomManagerId(): number {
     return this.mDomManager.getDomManagerId();
   }

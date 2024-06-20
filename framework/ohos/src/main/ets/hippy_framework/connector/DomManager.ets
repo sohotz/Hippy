@@ -54,6 +54,7 @@ export class DomManager {
   destroyRootNode(
     rootId: number,
   ) {
+    this.libHippy?.DomManager_ReleaseRootResources(rootId)
     this.libHippy?.DomManager_DestroyRoot(rootId)
   }
 

@@ -1123,11 +1123,21 @@ bool NativeRenderManager::IsCustomMeasureNode(const std::string &name) {
 }
 
 void NativeRenderManager::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id) {
-  c_render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id);
+  if (enable_ark_c_api_) {
+    c_render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id);
+  }
+}
+
+void NativeRenderManager::RegisterCustomTsRenderViews(uint32_t root_id, const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->RegisterCustomTsRenderViews(root_id, views, builder_callback_ref, env);
+  }
 }
 
 void NativeRenderManager::DestroyRoot(uint32_t root_id) {
-  c_render_provider_->DestroyRoot(root_id);
+  if (enable_ark_c_api_) {
+    c_render_provider_->DestroyRoot(root_id);
+  }
 }
 
 }  // namespace native

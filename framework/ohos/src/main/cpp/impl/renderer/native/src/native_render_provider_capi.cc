@@ -238,7 +238,36 @@ REGISTER_OH_NAPI_ONLOAD(hippy::OhNapi_OnLoad)
 
 static napi_value RegisterCustomTsRenderViews(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
-  // const std::set<std::string> &views, napi_ref builderCallbackRef, napi_env env
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  
+  std::set<std::string> custom_ts_views;
+  auto ts_array = args[2];
+  if (arkTs.IsArray(ts_array)) {
+    auto length = arkTs.GetArrayLength(ts_array);
+    if (length > 0) {
+      for (uint32_t i = 0; i < length; i ++) {
+        auto ts_view = arkTs.GetArrayElement(ts_array, i);
+        auto view_name = arkTs.GetString(ts_view);
+        if (view_name.length() > 0) {
+          custom_ts_views.insert(view_name);
+        }
+      }
+    }
+  }
+  
+  auto callback_ref = arkTs.CreateReference(args[3]);
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "RegisterCustomTsRenderViews: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+  
+  render_manager->RegisterCustomTsRenderViews(root_id, custom_ts_views, callback_ref, env);
   
   return arkTs.GetUndefined();
 }
