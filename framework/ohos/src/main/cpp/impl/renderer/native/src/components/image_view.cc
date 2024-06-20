@@ -32,7 +32,7 @@ inline namespace native {
 
 static const std::string BASE64_IMAGE_PREFIX = "data:image";
 static const std::string RAW_IMAGE_PREFIX = "hpfile://";
-static const std::string ASSETS_PREFIX = "assets://";
+static const std::string ASSET_PREFIX = "asset:/";
 static const std::string INTERNET_IMAGE_PREFIX = "http";
 
 ImageView::ImageView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
@@ -61,8 +61,12 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
     return true;
   } else if (propKey == "defaultSource") {
     auto value = HRValueUtils::GetString(propValue);
-    GetLocalRootArkUINode().SetAlt(value);
-    return true;
+    if (!value.empty()) {
+      auto sourceUrl = HRUrlUtils::convertAssetImageUrl(value);
+      GetLocalRootArkUINode().SetAlt(sourceUrl);
+      return true;
+    }
+    return false;
   } else if (propKey == "tintColor") {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     GetLocalRootArkUINode().SetTintColor(value);
@@ -108,9 +112,11 @@ void ImageView::fetchImage(const std::string &imageUrl) {
 		} else if (HRUrlUtils::isWebUrl(imageUrl)) {
 			GetLocalRootArkUINode().SetSources(imageUrl);
       return;
+		} else if (imageUrl.find(ASSET_PREFIX) == 0) {
+      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(imageUrl);
+      GetLocalRootArkUINode().SetSources(resourceStr);
 		}
-    
-    // TODO(hot):
+		// TODO(hot):
 	}
 }
 
