@@ -31,7 +31,6 @@ inline namespace native {
 static constexpr ArkUI_NodeEventType IMAGE_NODE_EVENT_TYPES[] = {NODE_IMAGE_ON_COMPLETE, NODE_IMAGE_ON_ERROR};
 
 using namespace std::literals;
-constexpr std::string_view ASSET_PREFIX = "asset://";
 
 ImageNode::ImageNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_IMAGE)) {
@@ -69,13 +68,7 @@ void ImageNode::OnNodeEvent(ArkUI_NodeEvent *event) {
 ImageNode &ImageNode::SetSources(std::string const &src) {
   ArkUI_AttributeItem item;
   uri_ = src;
-  if (uri_.rfind(ASSET_PREFIX, 0) == 0) {
-    std::string resourceStr = std::string("resource://RAWFILE/") + "assets/";
-    resourceStr += uri_.substr(ASSET_PREFIX.size());
-    item = {.string = resourceStr.c_str()};
-  } else {
-    item = {.string = uri_.c_str()};
-  }
+  item = {.string = uri_.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_SRC, &item));
   return *this;
 }
@@ -279,10 +272,7 @@ ImageNode &ImageNode::SetResizeMethod(std::string const &resizeMethod) {
 
 ImageNode &ImageNode::SetAlt(std::string const &src) {
   if (!src.empty()) {
-    auto uri = src;
-    std::string resourceStr = std::string("resource://RAWFILE/") + "assets/";
-    resourceStr += uri.substr(ASSET_PREFIX.size());
-    ArkUI_AttributeItem item = {.string = resourceStr.c_str()};
+    ArkUI_AttributeItem item = {.string = src.c_str()};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_ALT, &item));
   }
   return *this;
