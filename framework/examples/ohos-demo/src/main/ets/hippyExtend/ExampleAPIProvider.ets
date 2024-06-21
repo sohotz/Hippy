@@ -53,4 +53,8 @@ export class ExampleAPIProvider implements HippyAPIProvider {
     return ["ExampleCustomViewB"]
   }
 
+  getCustomMappingRenderViewMap(): Map<string, string> | null {
+    return null
+  }
+
 }

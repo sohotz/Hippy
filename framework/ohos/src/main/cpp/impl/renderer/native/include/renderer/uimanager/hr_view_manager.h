@@ -39,7 +39,8 @@ using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 class HRViewManager {
 public:
   HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
-    napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views);
+    napi_env ts_env, napi_ref ts_render_provider_ref,
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
   ~HRViewManager() = default;
   
   void AttachToNativeXComponent(OH_NativeXComponent* nativeXComponent, uint32_t node_id);
@@ -94,6 +95,7 @@ private:
   
   std::shared_ptr<footstone::value::Serializer> serializer_;
   
+  std::map<std::string, std::string> mapping_render_views_;
   std::set<std::string> custom_ts_render_views_;
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;

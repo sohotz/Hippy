@@ -36,7 +36,8 @@ inline namespace render {
 inline namespace native {
 
 HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
-    napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views)
+    napi_env ts_env, napi_ref ts_render_provider_ref,
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views)
   : serializer_(std::make_shared<footstone::value::Serializer>()) {
   root_id_ = root_id;
   ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id, native_render);
@@ -46,6 +47,7 @@ HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared
   root_view_->SetViewType(root_view_type);
   view_registry_[root_id] = root_view_;
   
+  mapping_render_views_ = mapping_views;
   custom_ts_render_views_ = custom_views;
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
@@ -144,10 +146,12 @@ std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::str
   }
   
   // build-in view
-  auto view = HippyCreateRenderView(view_name, is_parent_text, ctx_);
+  auto it = mapping_render_views_.find(view_name);
+  auto real_view_name = it != mapping_render_views_.end() ? it->second : view_name;
+  auto view = HippyCreateRenderView(real_view_name, is_parent_text, ctx_);
   if (view) {
     view->SetTag(tag);
-    view->SetViewType(view_name);
+    view->SetViewType(real_view_name);
     view_registry_[tag] = view;
     return view;
   } else {

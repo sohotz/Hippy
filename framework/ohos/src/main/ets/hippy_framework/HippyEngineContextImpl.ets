@@ -65,11 +65,13 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     let customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null = null;
     let customRenderViews: Array<string> | null = null;
     let customMeasureRenderViews: Array<string> | null = null;
+    let mappingRenderViews: Array<string> | null = null;
     let customNativeModules: Map<string, HippyNativeModuleCreator> | null = null;
     if (this.providers) {
       customRenderViewCreatorMap = new Map();
       customRenderViews = new Array();
       customMeasureRenderViews = new Array();
+      mappingRenderViews = new Array();
       customNativeModules = new Map();
       for (let provider of this.providers) {
         let apiProviderRenderMap = provider.getCustomRenderViewCreatorMap()
@@ -85,6 +87,13 @@ export class HippyEngineContextImpl implements HippyEngineContext {
             customMeasureRenderViews?.push(value)
           })
         }
+        let apiProviderRenderMappingMap = provider.getCustomMappingRenderViewMap()
+        if (apiProviderRenderMappingMap) {
+          apiProviderRenderMappingMap.forEach((value, key) => {
+            mappingRenderViews?.push(key)
+            mappingRenderViews?.push(value)
+          })
+        }
         let apiProviderNativeModules = provider.getCustomNativeModuleCreatorMap();
         if (apiProviderNativeModules) {
           apiProviderNativeModules.forEach((value, key) => {
@@ -96,7 +105,8 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     // Render注册
     this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, customRenderViewCreatorMap, customMeasureRenderViews)
     let enableArkCApi = globalConfigs.enableArkCApi()
-    this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider, customRenderViews, customMeasureRenderViews)
+    this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider,
+      customRenderViews, customMeasureRenderViews, mappingRenderViews)
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)

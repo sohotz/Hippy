@@ -30,6 +30,10 @@ export class ExampleAPIProvider implements HippyAPIProvider {
   getCustomMeasureRenderViews(): Array<string> | null {
     return null
   }
+
+  getCustomMappingRenderViewMap(): Map<string, string> | null {
+    return null
+  }
 }
 
 @Builder

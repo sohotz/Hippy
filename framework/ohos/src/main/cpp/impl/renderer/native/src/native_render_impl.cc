@@ -43,8 +43,8 @@ void NativeRenderImpl::RegisterNativeXComponentHandle(OH_NativeXComponent *nativ
   view_manager->AttachToNativeXComponent(nativeXComponent, node_id);
 }
 
-void NativeRenderImpl::RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views) {
-  hr_manager_->RegisterCustomTsRenderViews(ts_env, ts_render_provider_ref, custom_views);
+void NativeRenderImpl::RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views) {
+  hr_manager_->RegisterCustomTsRenderViews(ts_env, ts_render_provider_ref, custom_views, mapping_views);
 }
 
 void NativeRenderImpl::DestroyRoot(uint32_t root_id) {

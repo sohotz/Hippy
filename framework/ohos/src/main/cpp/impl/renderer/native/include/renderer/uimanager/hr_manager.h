@@ -36,7 +36,7 @@ public:
   HRManager(uint32_t instance_id, std::shared_ptr<NativeRender> &native_render);
   ~HRManager() = default;
   
-  void RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views);
+  void RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
   
 //   void InitViewManager(uint32_t root_id);
   std::shared_ptr<HRViewManager> GetViewManager(uint32_t root_id);
@@ -54,6 +54,7 @@ private:
   std::map<uint32_t, std::shared_ptr<HRViewManager>> view_manager_map_;
   std::map<uint32_t, std::shared_ptr<HRVirtualViewManager>> virtual_view_manager_map_;
   
+  std::map<std::string, std::string> mapping_render_views_;
   std::set<std::string> custom_ts_render_views_;
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
