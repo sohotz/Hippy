@@ -46,10 +46,6 @@ ModalView::~ModalView() {
 StackNode &ModalView::GetLocalRootArkUINode() { return stackNode_; }
 
 bool ModalView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  if(propKey == "animationType")
-    FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" propkey = "<<propKey<<" value = "<<HRValueUtils::GetString(propValue);    
-  else  
-    FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" propkey = "<<propKey<<" value = "<<HRValueUtils::GetBool(propValue, true);
   if(propKey == "transparent"){
     this->transparent = HRValueUtils::GetBool(propValue, true);
   } else if(propKey == "animationType"){
@@ -83,7 +79,6 @@ void ModalView::OnChildRemoved(std::shared_ptr<BaseView> const &childView){
 }
 
 void ModalView:: OnAppear(){
-  FOOTSTONE_DLOG(INFO)<<__FUNCTION__ ;
   if(this->transparent)
     dialog_.SetBackgroundColor(0x00000000);
   dialog_.EnableCustomAnimation(false);//TODO will add custom animation 
@@ -115,7 +110,7 @@ void ModalView::OnAreaChange(ArkUI_NumberValue* data) {
   float_t width = data[6].f32;
   float_t height = data[7].f32;  
   auto render = NativeRenderProvider(GetCtx()->GetInstanceId());
-  render.OnSize2(GetCtx()->GetRootId(), GetTag(), width, height, true);
+  render.OnSize2(GetCtx()->GetRootId(), GetTag(), width, height, false);
 }
 
 } // namespace native
