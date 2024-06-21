@@ -35,8 +35,7 @@ public:
   CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_NodeHandle nodeHandle);
   ~CustomTsView();
 
-  CustomTsNode &GetLocalRootArkUINode() override;
-  StackNode &GetContainerArkUINode() { return containerNode_; }
+  StackNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
 
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
@@ -45,8 +44,9 @@ public:
   void OnClick() override;
   
 private:
-  CustomTsNode tsNode_;
   StackNode containerNode_;
+  CustomTsNode tsNode_;
+  StackNode subContainerNode_;
 };
 
 } // namespace native

@@ -79,8 +79,7 @@ void HRViewManager::MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, b
     if (isRoot) {
       OH_NativeXComponent_AttachNativeRootNode(nativeXComponent, view->GetLocalRootArkUINode().GetArkUINodeHandle());
     } else {
-      auto customTsView = std::static_pointer_cast<CustomTsView>(view);
-      OH_NativeXComponent_AttachNativeRootNode(nativeXComponent, customTsView->GetContainerArkUINode().GetArkUINodeHandle());
+      // Nothing to do
     }
   }
 }
