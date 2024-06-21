@@ -28,13 +28,14 @@
 namespace hippy {
 inline namespace render {
 inline namespace native {
-//const int DURATION = 200;
+const int DURATION = 200;
 
 ModalView::ModalView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   GetLocalRootArkUINode().SetStackNodeDelegate(this);
   GetLocalRootArkUINode().RegisterAppearEvent();
   GetLocalRootArkUINode().RegisterDisappearEvent();
   GetLocalRootArkUINode().RegisterAreaChangeEvent();
+  GetLocalRootArkUINode().ResetNodeAttribute(ArkUI_NodeAttributeType::NODE_OPACITY_TRANSITION);
 }
 
 ModalView::~ModalView() {
@@ -57,6 +58,14 @@ bool ModalView::SetProp(const std::string &propKey, const HippyValue &propValue)
 }
 
 void ModalView::OnSetPropsEnd(){
+  if(this->animationType == "fade"){
+    GetLocalRootArkUINode().SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
+  }else if(this->animationType == "slide"){
+    GetLocalRootArkUINode().SetTransitionTranslate(0, 836, 0, ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
+  }else if(this->animationType == "slide_fade"){
+    GetLocalRootArkUINode().SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
+    GetLocalRootArkUINode().SetTransitionTranslate(0, 836, 0, ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);    
+  }
   BaseView::OnSetPropsEnd();
 }
 
@@ -81,7 +90,7 @@ void ModalView::OnChildRemoved(std::shared_ptr<BaseView> const &childView){
 void ModalView:: OnAppear(){
   if(this->transparent)
     dialog_.SetBackgroundColor(0x00000000);
-  dialog_.EnableCustomAnimation(false);//TODO will add custom animation 
+  dialog_.EnableCustomAnimation(true);//TODO will add custom animation
   dialog_.EnableCustomStyle(true);
   dialog_.SetAutoCancel(true);
   dialog_.SetContentAlignment(ArkUI_Alignment::ARKUI_ALIGNMENT_TOP_START, 0, 0);
@@ -94,7 +103,7 @@ void ModalView:: OnAppear(){
   if(this->transparent)
     GetLocalRootArkUINode().SetBackgroundColor(0x00000000);
   GetLocalRootArkUINode().SetSizePercent(HRSize(1.f,1.f));
-  GetLocalRootArkUINode().SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk  
+  GetLocalRootArkUINode().SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk
 }
 
 void ModalView::OnDisappear(){

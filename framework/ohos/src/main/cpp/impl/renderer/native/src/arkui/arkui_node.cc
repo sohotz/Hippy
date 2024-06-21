@@ -422,6 +422,32 @@ ArkUINode &ArkUINode::SetExpandSafeArea(){
   return *this;    
 }
 
+ArkUINode &ArkUINode::SetTransitionMove(const ArkUI_TransitionEdge edgeType){
+  ArkUI_NumberValue value[] = {{.i32 = edgeType}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MOVE_TRANSITION, &item));
+  return *this;    
+}
+
+ArkUINode &ArkUINode::SetTransitionOpacity(const ArkUI_AnimationCurve curveType,int32_t duration){
+  ArkUI_NumberValue value[] = {{.f32 = 0},{.i32 = duration},{.i32 = curveType}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_OPACITY_TRANSITION, &item));  
+  return *this;     
+}
+
+ArkUINode &ArkUINode::SetTransitionTranslate(float distanceX,float distanceY,float distanceZ,ArkUI_AnimationCurve curveType,int32_t duration)
+{
+  ArkUI_NumberValue value[] = {{.f32 = distanceX},{.f32 = distanceY},{.f32 = distanceZ},{.i32 = duration},{.i32 = curveType}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TRANSLATE_TRANSITION, &item));      
+  return *this;   
+}
+
+void ArkUINode::ResetNodeAttribute(ArkUI_NodeAttributeType type){
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, type));
+}
+
 void ArkUINode::RegisterClickEvent() {
   if (!hasClickEvent_) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));
