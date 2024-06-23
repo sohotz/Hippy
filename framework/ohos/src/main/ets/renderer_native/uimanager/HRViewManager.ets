@@ -306,6 +306,16 @@ export class HRViewManager {
   }
 
   // for c-api
+  updatePropsForCApi(tag: number, props: HippyMap, deleteProps: Array<string>): void {
+    this.updateProps(tag, props, deleteProps)
+  }
+
+  // for c-api
+  updateEventListenerForCApi(tag: number, props: HippyMap): void {
+    this.updateEventListener(tag, props)
+  }
+
+  // for c-api
   setRenderViewFrameForCApi(tag: number, frame: HRRect, padding: HRPadding | null): void {
     let renderView = this.viewRegistry.get(tag)
     if (renderView) {

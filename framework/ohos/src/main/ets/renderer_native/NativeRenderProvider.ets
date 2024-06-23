@@ -26,7 +26,7 @@ import { NativeRenderProviderManager } from './NativeRenderProviderManager';
 import { HREventType } from './utils/HREventUtils';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
-import { HippyAny } from '../support/common/HippyTypes';
+import { HippyAny, HippyMap } from '../support/common/HippyTypes';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import { CreateRenderViewParamsForCApi,
   SetRenderViewFrameParamsForCApi,
@@ -231,11 +231,21 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
 
   // for c-api
   updatePropsForCApi(params: UpdatePropsParamsForCApi): void {
+    let binaryReader = new BinaryReader(new Uint8Array(params.props as ArrayBuffer))
+    let deserializer = new NativeRenderDeserializer(binaryReader, null)
+    deserializer.readHeader()
+    let propsObj = deserializer.readValue() as HippyMap
+    params.props = (propsObj instanceof Map) ? propsObj : new Map()
     this.renderImpl.updatePropsForCApi(params)
   }
 
   // for c-api
   updateEventListenerForCApi(params: UpdateEventListenerParamsForCApi): void {
+    let binaryReader = new BinaryReader(new Uint8Array(params.props as ArrayBuffer))
+    let deserializer = new NativeRenderDeserializer(binaryReader, null)
+    deserializer.readHeader()
+    let propsObj = deserializer.readValue() as HippyMap
+    params.props = (propsObj instanceof Map) ? propsObj : new Map()
     this.renderImpl.updateEventListenerForCApi(params)
   }
 

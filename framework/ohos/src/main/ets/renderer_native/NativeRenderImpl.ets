@@ -615,12 +615,20 @@ key1               value1
 
   // for c-api
   updatePropsForCApi(params: UpdatePropsParamsForCApi): void {
-    // TODO(hot):
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.updatePropsForCApi(params.tag, params.props as HippyMap, params.deleteProps)
   }
 
   // for c-api
   updateEventListenerForCApi(params: UpdateEventListenerParamsForCApi): void {
-    // TODO(hot):
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.updateEventListenerForCApi(params.tag, params.props as HippyMap)
   }
 
   // for c-api

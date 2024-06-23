@@ -401,9 +401,16 @@ void HRViewManager::UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const H
 
 void HRViewManager::UpdateCustomTsEventListener(uint32_t tag, HippyValueObjectType &props) {
   ArkTS arkTs(ts_env_);
+    
+  serializer_->Release();
+  serializer_->WriteHeader();
+  serializer_->WriteValue(HippyValue(props));
+  std::pair<uint8_t *, size_t> props_buffer_pair = serializer_->Release();
+  
   auto params_builder = arkTs.CreateObjectBuilder();
   params_builder.AddProperty("rootTag", ctx_->GetRootId());
   params_builder.AddProperty("tag", tag);
+  params_builder.AddProperty("props", arkTs.CreateExternalArrayBuffer(props_buffer_pair.first, props_buffer_pair.second));
   
   std::vector<napi_value> args = {
     params_builder.Build()
