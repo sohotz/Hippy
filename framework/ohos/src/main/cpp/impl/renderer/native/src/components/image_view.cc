@@ -55,8 +55,17 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
     }
     return true;
   } else if (propKey == "resizeMode") {
-    auto value = HRValueUtils::GetInt32(propValue);
-    const HRImageResizeMode mode = (HRImageResizeMode)value;
+    HRImageResizeMode mode = HRImageResizeMode::Contain;
+    auto value = HRValueUtils::GetString(propValue);
+    if (value == "center") {
+      mode = HRImageResizeMode::Center;
+    } else if (value == "contain") {
+      mode = HRImageResizeMode::Contain;
+    } else if (value == "cover") {
+      mode = HRImageResizeMode::Cover;
+		} else if (value == "stretch") {
+			mode = HRImageResizeMode::FitXY;
+		}
     GetLocalRootArkUINode().SetResizeMode(mode);
     return true;
   } else if (propKey == "defaultSource") {
