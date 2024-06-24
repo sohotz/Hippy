@@ -422,8 +422,8 @@ ArkUINode &ArkUINode::SetExpandSafeArea(){
   return *this;    
 }
 
-ArkUINode &ArkUINode::SetTransitionMove(const ArkUI_TransitionEdge edgeType){
-  ArkUI_NumberValue value[] = {{.i32 = edgeType}};
+ArkUINode &ArkUINode::SetTransitionMove(const ArkUI_TransitionEdge edgeType,int32_t duration,ArkUI_AnimationCurve curveType){
+  ArkUI_NumberValue value[] = {{.i32 = edgeType}, {.i32 = duration}, {.i32 = curveType}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MOVE_TRANSITION, &item));
   return *this;    

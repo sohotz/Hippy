@@ -61,16 +61,16 @@ void ModalView::OnSetPropsEnd(){
   if(this->animationType == "fade"){
     GetLocalRootArkUINode().SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
   }else if(this->animationType == "slide"){
-    GetLocalRootArkUINode().SetTransitionTranslate(0, 836, 0, ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
+    GetLocalRootArkUINode().SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);
   }else if(this->animationType == "slide_fade"){
     GetLocalRootArkUINode().SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
-    GetLocalRootArkUINode().SetTransitionTranslate(0, 836, 0, ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);    
+    GetLocalRootArkUINode().SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);   
   }
   BaseView::OnSetPropsEnd();
 }
 
 void ModalView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding){
-//  BaseView::UpdateRenderViewFrame(frame, padding); size will change in OnAreaChange
+//should overwrite this function ,but do nothing, size will change in OnAreaChange
   FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" frame("<<(int)frame.x<<","<<(int)frame.y<<","<<(int)frame.width<<","<<(int)frame.height<<")";
 }
 
@@ -90,7 +90,7 @@ void ModalView::OnChildRemoved(std::shared_ptr<BaseView> const &childView){
 void ModalView:: OnAppear(){
   if(this->transparent)
     dialog_.SetBackgroundColor(0x00000000);
-  dialog_.EnableCustomAnimation(true);//TODO will add custom animation
+  dialog_.EnableCustomAnimation(true);
   dialog_.EnableCustomStyle(true);
   dialog_.SetAutoCancel(true);
   dialog_.SetContentAlignment(ArkUI_Alignment::ARKUI_ALIGNMENT_TOP_START, 0, 0);
