@@ -117,8 +117,8 @@ void ModalView::OnAreaChange(ArkUI_NumberValue* data) {
     return;       
   }
   float_t width = data[6].f32;
-  float_t height = data[7].f32;  
-  auto render = NativeRenderProvider(GetCtx()->GetInstanceId());
+  float_t height = data[7].f32;
+  auto render = NativeRenderProvider(GetCtx()->GetInstanceId(), ""); // TODO(hot): to fix
   render.OnSize2(GetCtx()->GetRootId(), GetTag(), width, height, false);
 }
 

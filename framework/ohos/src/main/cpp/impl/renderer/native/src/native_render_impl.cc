@@ -27,7 +27,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-NativeRenderImpl::NativeRenderImpl(uint32_t instance_id) : instance_id_(instance_id) {}
+NativeRenderImpl::NativeRenderImpl(uint32_t instance_id, const std::string &bundle_path) : instance_id_(instance_id), bundle_path_(bundle_path) {}
 
 void NativeRenderImpl::InitRenderManager() {
   auto native_render = std::static_pointer_cast<NativeRender>(shared_from_this());
@@ -193,6 +193,10 @@ void NativeRenderImpl::SpanPosition(uint32_t root_id, uint32_t node_id, float x,
   m->top_ = y;
   auto tm = std::static_pointer_cast<HRMutation>(m);
   view_manager->AddMutations(tm);
+}
+
+std::string NativeRenderImpl::GetBundlePath() {
+  return bundle_path_;
 }
 
 uint64_t NativeRenderImpl::AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) {

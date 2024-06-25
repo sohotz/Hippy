@@ -30,8 +30,8 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-NativeRenderProvider::NativeRenderProvider(uint32_t instance_id) : instance_id_(instance_id) {
-  render_impl_ = std::make_shared<NativeRenderImpl>(instance_id);
+NativeRenderProvider::NativeRenderProvider(uint32_t instance_id, const std::string &bundle_path) : instance_id_(instance_id) {
+  render_impl_ = std::make_shared<NativeRenderImpl>(instance_id, bundle_path);
   render_impl_->InitRenderManager();
 }
 

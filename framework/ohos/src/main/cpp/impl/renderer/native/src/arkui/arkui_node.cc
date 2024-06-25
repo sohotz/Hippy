@@ -315,8 +315,7 @@ ArkUINode &ArkUINode::SetEnabled(bool enabled) {
 }
 
 ArkUINode &ArkUINode::SetBackgroundImage(const std::string &uri) {
-  ArkUI_NumberValue value[] = {{.i32 = ARKUI_IMAGE_REPEAT_NONE}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), uri.c_str(), nullptr};
+  ArkUI_AttributeItem item = {.string = uri.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BACKGROUND_IMAGE, &item));
   return *this;
 }
