@@ -26,6 +26,7 @@
 #include <js_native_api.h>
 #include <js_native_api_types.h>
 #include <map>
+#include "footstone/serializer.h"
 #include "renderer/components/root_view.h"
 #include "renderer/uimanager/hr_mutation.h"
 
@@ -37,11 +38,12 @@ using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
 class HRViewManager {
 public:
-  HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render);
+  HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
+    napi_env ts_env, napi_ref ts_render_provider_ref,
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
   ~HRViewManager() = default;
   
-  void AttachToNativeXComponent(OH_NativeXComponent* nativeXComponent);
-  void RegisterCustomTsRenderViews(const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env);
+  void AttachToNativeXComponent(OH_NativeXComponent* nativeXComponent, uint32_t node_id);
 
   int GetRootTag() {
     return (int)root_id_;
@@ -72,25 +74,33 @@ public:
   void NotifyEndBatchCallbacks();
 
 private:
-  void MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, std::shared_ptr<RootView> &rootView);
-  void MaybeDetachRootNode(OH_NativeXComponent *nativeXComponent, std::shared_ptr<RootView> &rootView);
+  void MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, bool isRoot, std::shared_ptr<BaseView> &view);
+  void MaybeDetachRootNode(OH_NativeXComponent *nativeXComponent, bool isRoot, std::shared_ptr<BaseView> &view);
   
   std::shared_ptr<BaseView> CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
-  std::shared_ptr<BaseView> CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   void UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
+  void UpdateCustomTsEventListener(uint32_t tag, HippyValueObjectType &props);
+  void SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding);
+  
+  std::shared_ptr<BaseView> CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t root_id_;
-  OH_NativeXComponent *nativeXComponent_;
+  std::unordered_map<uint32_t, OH_NativeXComponent *> nativeXComponentMap_;
   std::shared_ptr<RootView> root_view_;
   std::map<uint32_t, std::shared_ptr<BaseView>> view_registry_;
   std::vector<std::shared_ptr<HRMutation>> mutations_;
   uint64_t end_batch_callback_id_count_ = 0;
   std::map<uint64_t, EndBatchCallback> end_batch_callback_map_;
   
+  std::shared_ptr<footstone::value::Serializer> serializer_;
+  
+  std::map<std::string, std::string> mapping_render_views_;
   std::set<std::string> custom_ts_render_views_;
-  napi_ref ts_custom_builder_callback_ref_ = nullptr;
   napi_env ts_env_ = nullptr;
+  napi_ref ts_render_provider_ref_ = nullptr;
+  
+  std::set<std::string> custom_render_views_;
 };
 
 } // namespace native

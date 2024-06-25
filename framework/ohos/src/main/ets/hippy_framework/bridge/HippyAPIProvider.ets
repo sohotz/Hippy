@@ -28,4 +28,6 @@ export interface HippyAPIProvider {
   getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null
 
   getCustomMeasureRenderViews(): Array<string> | null
+
+  getCustomMappingRenderViewMap(): Map<string, string> | null
 }

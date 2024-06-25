@@ -177,7 +177,8 @@ NativeRenderManager::~NativeRenderManager() {
   }
 }
 
-void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_api, napi_ref ts_render_provider_ref, std::set<std::string> &custom_measure_views) {
+void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_api, napi_ref ts_render_provider_ref,
+    std::set<std::string> &custom_views, std::set<std::string> &custom_measure_views, std::map<std::string, std::string> &mapping_views) {
   persistent_map_.Insert(id_, shared_from_this());
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
@@ -189,6 +190,7 @@ void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_a
     c_render_provider_ = std::make_shared<NativeRenderProvider>(id_);
     c_render_provider_->SetTsEnv(ts_env);
     NativeRenderProviderManager::AddRenderProvider(id_, c_render_provider_);
+    c_render_provider_->RegisterCustomTsRenderViews(ts_env, ts_render_provider_ref, custom_views, mapping_views);
   }
   
   NativeRenderManager::GetStyleFilter();
@@ -1122,15 +1124,9 @@ bool NativeRenderManager::IsCustomMeasureNode(const std::string &name) {
   return false;
 }
 
-void NativeRenderManager::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id) {
+void NativeRenderManager::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id, uint32_t node_id) {
   if (enable_ark_c_api_) {
-    c_render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id);
-  }
-}
-
-void NativeRenderManager::RegisterCustomTsRenderViews(uint32_t root_id, const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env) {
-  if (enable_ark_c_api_) {
-    c_render_provider_->RegisterCustomTsRenderViews(root_id, views, builder_callback_ref, env);
+    c_render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id, node_id);
   }
 }
 

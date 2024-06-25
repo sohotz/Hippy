@@ -31,6 +31,13 @@ HRManager::HRManager(uint32_t instance_id, std::shared_ptr<NativeRender> &native
   
 }
 
+void HRManager::RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views) {
+  mapping_render_views_ = mapping_views;
+  custom_ts_render_views_ = custom_views;
+  ts_env_ = ts_env;
+  ts_render_provider_ref_ = ts_render_provider_ref;
+}
+
 // void HRManager::InitViewManager(uint32_t root_id) {
 //   auto view_manager = std::make_shared<HRViewManager>();
 //   AddViewManager(root_id, view_manager);
@@ -42,7 +49,8 @@ std::shared_ptr<HRViewManager> HRManager::GetViewManager(uint32_t root_id) {
   auto it = view_manager_map_.find(root_id);
   if (it == view_manager_map_.end()) {
     auto native_render = native_render_.lock();
-    auto view_manager = std::make_shared<HRViewManager>(instance_id_, root_id, native_render);
+    auto view_manager = std::make_shared<HRViewManager>(instance_id_, root_id, native_render,
+      ts_env_, ts_render_provider_ref_, custom_ts_render_views_, mapping_render_views_);
     AddViewManager(root_id, view_manager);
     return view_manager;
   }

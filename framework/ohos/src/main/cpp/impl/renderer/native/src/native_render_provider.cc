@@ -35,16 +35,16 @@ NativeRenderProvider::NativeRenderProvider(uint32_t instance_id) : instance_id_(
   render_impl_->InitRenderManager();
 }
 
-void NativeRenderProvider::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id) {
+void NativeRenderProvider::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id, uint32_t node_id) {
   // 说明：虽然该注册方法来自主线程调用，但也需要异步，否则 rootView 不能 attach 到 xcomponent 上。
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
-  taskRunner->RunAsyncTask([render_impl = render_impl_, nativeXComponent = nativeXComponent, root_id = root_id]() {
-    render_impl->RegisterNativeXComponentHandle(nativeXComponent, root_id);
+  taskRunner->RunAsyncTask([render_impl = render_impl_, nativeXComponent, root_id, node_id]() {
+    render_impl->RegisterNativeXComponentHandle(nativeXComponent, root_id, node_id);
   });
 }
 
-void NativeRenderProvider::RegisterCustomTsRenderViews(uint32_t root_id, const std::set<std::string> &views, napi_ref builder_callback_ref, napi_env env) {
-  render_impl_->RegisterCustomTsRenderViews(root_id, views, builder_callback_ref, env);
+void NativeRenderProvider::RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views) {
+  render_impl_->RegisterCustomTsRenderViews(ts_env_, ts_render_provider_ref, custom_views, mapping_views);
 }
 
 void NativeRenderProvider::DestroyRoot(uint32_t root_id) {

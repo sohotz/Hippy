@@ -49,9 +49,24 @@ static napi_value CreateNativeRenderManager(napi_env env, napi_callback_info inf
   auto args = arkTs.GetCallbackArgs(info);
   auto enable_ark_c_api = arkTs.GetBoolean(args[0]);
   auto ts_render_provider_ref = arkTs.CreateReference(args[1]);
+  
+  std::set<std::string> custom_views;
+  auto ts_array = args[2];
+  if (arkTs.IsArray(ts_array)) {
+    auto length = arkTs.GetArrayLength(ts_array);
+    if (length > 0) {
+      for (uint32_t i = 0; i < length; i ++) {
+        auto ts_view = arkTs.GetArrayElement(ts_array, i);
+        auto view_name = arkTs.GetString(ts_view);
+        if (view_name.length() > 0) {
+          custom_views.insert(view_name);
+        }
+      }
+    }
+  }
 
   std::set<std::string> custom_measure_views;
-  auto ts_array = args[2];
+  ts_array = args[3];
   if (arkTs.IsArray(ts_array)) {
     auto length = arkTs.GetArrayLength(ts_array);
     if (length > 0) {
@@ -64,11 +79,30 @@ static napi_value CreateNativeRenderManager(napi_env env, napi_callback_info inf
       }
     }
   }
+  
+  std::map<std::string, std::string> mapping_views;
+  ts_array = args[4];
+  if (arkTs.IsArray(ts_array)) {
+    auto length = arkTs.GetArrayLength(ts_array);
+    if (length > 0) {
+      for (uint32_t i = 0; i < length; i += 2) {
+        auto ts_view = arkTs.GetArrayElement(ts_array, i);
+        auto view_name = arkTs.GetString(ts_view);
+        if (view_name.length() > 0 && i + 1 < length) {
+          auto ts_mapped_view = arkTs.GetArrayElement(ts_array, i + 1);
+          auto mapped_view_name = arkTs.GetString(ts_mapped_view);
+          if (mapped_view_name.length() > 0) {
+            mapping_views[view_name] = mapped_view_name;
+          }
+        }
+      }
+    }
+  }
 
-  auto density = arkTs.GetDouble(args[3]);
+  auto density = arkTs.GetDouble(args[5]);
   auto render_manager = std::make_shared<NativeRenderManager>();
 
-  render_manager->SetRenderDelegate(env, enable_ark_c_api, ts_render_provider_ref, custom_measure_views);
+  render_manager->SetRenderDelegate(env, enable_ark_c_api, ts_render_provider_ref, custom_views, custom_measure_views, mapping_views);
   render_manager->InitDensity(density);
   auto render_id = hippy::global_data_holder_key.fetch_add(1);
   auto flag = hippy::global_data_holder.Insert(render_id,

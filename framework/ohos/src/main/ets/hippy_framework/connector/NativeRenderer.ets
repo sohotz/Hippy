@@ -27,14 +27,19 @@ export class NativeRenderer {
   private renderProvider: NativeRenderProvider
   public instanceId: number = 0
 
-  constructor(libHippy: HippyLibrary, enableArkCApi: boolean, renderProvider: NativeRenderProvider, customMeasureRenderViews: Array<string> | null) {
+  constructor(libHippy: HippyLibrary, enableArkCApi: boolean, renderProvider: NativeRenderProvider,
+              customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null,
+              mappingRenderViews: Array<string> | null) {
     this.libHippy = libHippy
     this.renderProvider = renderProvider
-    this.instanceId = this.createNativeRenderManager(enableArkCApi, renderProvider, customMeasureRenderViews)
+    this.instanceId = this.createNativeRenderManager(enableArkCApi, renderProvider, customRenderViews, customMeasureRenderViews, mappingRenderViews)
   }
 
-  createNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider, customMeasureRenderViews: Array<string> | null): number {
-    return this.libHippy?.NativeRenderer_CreateNativeRenderManager(enableArkCApi, renderProvider, customMeasureRenderViews, PixelUtil.getDensity())
+  createNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider,
+                            customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null,
+                            mappingRenderViews: Array<string> | null): number {
+    return this.libHippy?.NativeRenderer_CreateNativeRenderManager(enableArkCApi, renderProvider,
+      customRenderViews, customMeasureRenderViews, mappingRenderViews, PixelUtil.getDensity())
   }
 
   destroyNativeRenderManager() {

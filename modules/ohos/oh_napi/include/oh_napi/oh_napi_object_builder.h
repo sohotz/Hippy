@@ -38,6 +38,10 @@ class OhNapiObjectBuilder {
   OhNapiObjectBuilder &AddProperty(const char *name, bool value);
 
   OhNapiObjectBuilder &AddProperty(const char *name, int value);
+  
+  OhNapiObjectBuilder &AddProperty(const char *name, uint32_t value);
+  
+  OhNapiObjectBuilder &AddProperty(const char *name, float value);
 
   OhNapiObjectBuilder &AddProperty(const char *name, char const *value);
 

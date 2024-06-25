@@ -46,6 +46,16 @@ OhNapiObjectBuilder &OhNapiObjectBuilder::AddProperty(const char *name, int valu
     return *this;
 }
 
+OhNapiObjectBuilder &OhNapiObjectBuilder::AddProperty(const char *name, uint32_t value) {
+    napi_set_named_property(env_, object_, name, arkTs_.CreateUint32(value));
+    return *this;
+}
+
+OhNapiObjectBuilder &OhNapiObjectBuilder::AddProperty(const char *name, float value) {
+    napi_set_named_property(env_, object_, name, arkTs_.CreateDouble(value));
+    return *this;
+}
+
 OhNapiObjectBuilder &OhNapiObjectBuilder::AddProperty(const char *name, char const *value) {
     napi_set_named_property(env_, object_, name, arkTs_.CreateString(value));
     return *this;

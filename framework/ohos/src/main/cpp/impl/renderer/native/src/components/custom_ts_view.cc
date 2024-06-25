@@ -29,19 +29,23 @@ inline namespace native {
 
 CustomTsView::CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_NodeHandle nodeHandle) : BaseView(ctx), tsNode_(nodeHandle) {
   tsNode_.SetCustomTsNodeDelegate(this);
+  containerNode_.AddChild(tsNode_);
+  containerNode_.AddChild(subContainerNode_);
 }
 
 CustomTsView::~CustomTsView() {
   if (!children_.empty()) {
     for (const auto &child : children_) {
-      tsNode_.RemoveChild(child->GetLocalRootArkUINode());
+      subContainerNode_.RemoveChild(child->GetLocalRootArkUINode());
     }
     children_.clear();
   }
+  containerNode_.RemoveChild(tsNode_);
+  containerNode_.RemoveChild(subContainerNode_);
 }
 
-CustomTsNode &CustomTsView::GetLocalRootArkUINode() {
-  return tsNode_;
+StackNode &CustomTsView::GetLocalRootArkUINode() {
+  return containerNode_;
 }
 
 bool CustomTsView::SetProp(const std::string &propKey, const HippyValue &propValue) {
@@ -50,12 +54,12 @@ bool CustomTsView::SetProp(const std::string &propKey, const HippyValue &propVal
 
 void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
-  tsNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+  subContainerNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
 void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
-  tsNode_.RemoveChild(childView->GetLocalRootArkUINode());
+  subContainerNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 void CustomTsView::OnClick() {

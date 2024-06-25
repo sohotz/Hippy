@@ -24,6 +24,12 @@ import { HippyExecutor } from '../support/common/HippyExecutor'
 import { HippyAny, HippyMap, HippyValue, HippyRenderCallback } from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
 import { VfsManager } from '../vfs/VfsManager'
+import {
+  buildHippyRenderViewForCApi,
+  CreateRenderViewParamsForCApi,
+  SetRenderViewFrameParamsForCApi,
+  UpdateEventListenerParamsForCApi,
+  UpdatePropsParamsForCApi } from './NativeRenderBuilderForCApi'
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap'
 import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter'
 import { ImageLoader } from './components/image/ImageLoader'
@@ -48,8 +54,10 @@ import { HRCreateMutation,
 import { HippyEndBatchCallback } from './uimanager/HRViewManager'
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
 import { HRMeasureResult } from './utils/HRMeasure'
-import { HRSize } from './utils/HRTypes'
+import { HRRect, HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
+import { BuilderNode, FrameNode } from '@kit.ArkUI'
+import HippyRenderBaseView from './components/base/HippyRenderBaseView'
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -577,4 +585,61 @@ key1               value1
     return (BigInt(result.width) << BigInt(32)) | BigInt(result.height)
   }
 
+  // for c-api
+  createRenderViewForCApi(params: CreateRenderViewParamsForCApi): FrameNode | null {
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return null
+    }
+
+    if (!AppStorage.has('UIContext')) {
+      LogUtils.e("", "AppStorage has no UIContext.");
+      return null
+    }
+
+    let context = AppStorage.get<UIContext>('UIContext');
+
+    let view = viewManager.createRenderViewForCApi(params.tag, params.viewName)
+    if (!view) {
+      return null
+    }
+
+    let builderNode = new BuilderNode<[HippyRenderBaseView]>(context!);
+    builderNode.build(wrapBuilder(buildHippyRenderViewForCApi), view);
+
+    // TODO(hot): save BuilderNode
+    // builderNodeMap.set(params.tag, builderNode);
+
+    return builderNode.getFrameNode()!;
+  }
+
+  // for c-api
+  updatePropsForCApi(params: UpdatePropsParamsForCApi): void {
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.updatePropsForCApi(params.tag, params.props as HippyMap, params.deleteProps)
+  }
+
+  // for c-api
+  updateEventListenerForCApi(params: UpdateEventListenerParamsForCApi): void {
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.updateEventListenerForCApi(params.tag, params.props as HippyMap)
+  }
+
+  // for c-api
+  setRenderViewFrameForCApi(params: SetRenderViewFrameParamsForCApi): void {
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.setRenderViewFrameForCApi(params.tag, new HRRect(params.left, params.top, params.width, params.height), null)
+  }
+
 }
+
+

@@ -285,4 +285,42 @@ export class HRViewManager {
     })
   }
 
+  // for c-api
+  createRenderViewForCApi(tag: number, viewName: string): HippyRenderBaseView | null {
+    let customCreatorMap = this.ctx.getCustomRenderViewCreatorMap()
+    if (customCreatorMap && customCreatorMap.size > 0) {
+      let creator = customCreatorMap.get(viewName)
+      if (creator) {
+        let renderView = creator(this.ctx)
+        if (renderView) {
+          renderView.tag = tag
+          renderView.viewType = viewName
+          this.viewRegistry.set(tag, renderView)
+          return renderView
+        } else {
+          LogUtils.d(this.TAG, "createRenderViewForCApi: failed:  " + viewName)
+        }
+      }
+    }
+    return null
+  }
+
+  // for c-api
+  updatePropsForCApi(tag: number, props: HippyMap, deleteProps: Array<string>): void {
+    this.updateProps(tag, props, deleteProps)
+  }
+
+  // for c-api
+  updateEventListenerForCApi(tag: number, props: HippyMap): void {
+    this.updateEventListener(tag, props)
+  }
+
+  // for c-api
+  setRenderViewFrameForCApi(tag: number, frame: HRRect, padding: HRPadding | null): void {
+    let renderView = this.viewRegistry.get(tag)
+    if (renderView) {
+      renderView.setRenderViewFrame(frame, padding)
+    }
+  }
+
 }

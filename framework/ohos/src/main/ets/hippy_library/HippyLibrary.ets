@@ -26,7 +26,6 @@ import { FetchResourceCallback } from '../vfs/FetchResourceCallback';
 import { ResourceDataHolder } from '../vfs/ResourceDataHolder';
 import { VfsManager } from '../vfs/VfsManager';
 import { FrameNode } from '@kit.ArkUI';
-import { HippyRenderViewForCApiParams } from '../renderer_native/capi/HippyRenderViewBuilderCApi';
 
 export interface HippyLibrary {
   DomManager_SetRenderManager(instanceId: number, renderId: number): void;
@@ -75,7 +74,8 @@ export interface HippyLibrary {
     errorMsg: string): void;
   JsDriver_CallFunction(instanceId: number, action: string, callback: NativeCallback, buffer: ArrayBuffer): void;
 
-  NativeRenderer_CreateNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider, customMeasureRenderViews: Array<string> | null, density: number): number;
+  NativeRenderer_CreateNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider,
+    customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null, mappingRenderViews: Array<string> | null, density: number): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
   NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
 
@@ -85,7 +85,6 @@ export interface HippyLibrary {
   NativeRenderProvider_DoCallBack(instanceId: number, result: number, functionName: string, rootId: number, nodeId: number, callbackId: number, buffer: ArrayBuffer | null): void;
   NativeRenderProvider_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
 
-  NativeRenderProvider_RegisterCustomTsRenderViews(instanceId: number, rootId: number, customTsRenderViews: Array<string> | null, builderCallback: (params: HippyRenderViewForCApiParams) => FrameNode): void;
   NativeRenderProvider_DestroyRoot(instanceId: number, rootId: number): void;
 
   VfsManager_CreateVfs(vfsDelegate: VfsManager): number;

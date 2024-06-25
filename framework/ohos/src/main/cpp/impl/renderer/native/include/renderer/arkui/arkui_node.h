@@ -122,7 +122,8 @@ protected:
     if (status != 0) {
       auto message = std::string("ArkUINode operation failed with status: ") + std::to_string(status);
       FOOTSTONE_LOG(ERROR) << message;
-      throw std::runtime_error(std::move(message));
+      // TODO(hot):
+      //throw std::runtime_error(std::move(message));
     }
   }
 

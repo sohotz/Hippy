@@ -16,6 +16,17 @@ bool HRUrlUtils::isWebUrl(std::string url) {
   return std::regex_search(url, regex);
 }
 
+std::string HRUrlUtils::convertAssetImageUrl(const std::string &assetUrl) {
+  const std::string assetPrefix = "asset:/";
+  if (assetUrl.find(assetPrefix) == 0) {
+    std::string resourceStr = std::string("resource://RAWFILE/");
+    resourceStr += assetUrl.substr(assetPrefix.size());
+    return resourceStr;
+  } else {
+    return assetUrl;
+  }
+}
+
 }
 }
 }
