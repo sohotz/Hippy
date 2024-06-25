@@ -48,6 +48,10 @@ void StackNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     stackNodeDelegate_->OnAppear();
   } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
     stackNodeDelegate_->OnDisappear();
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_AREA_CHANGE) {
+    auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
+    ArkUI_NumberValue* data = nodeComponentEvent->data;   
+    stackNodeDelegate_->OnAreaChange(data);    
   }
 }
 

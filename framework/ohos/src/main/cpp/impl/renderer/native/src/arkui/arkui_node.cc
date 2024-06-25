@@ -416,6 +416,38 @@ ArkUINode &ArkUINode::SetShadow(const HRShadow &shadow) {
   return *this;
 }
 
+ArkUINode &ArkUINode::SetExpandSafeArea(){
+//TODO  NODE_EXPAND_SAFE_AREA not define in devEco 5.0.0.400 will add in later
+//  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_EXPAND_SAFE_AREA,nullptr ));
+  return *this;    
+}
+
+ArkUINode &ArkUINode::SetTransitionMove(const ArkUI_TransitionEdge edgeType,int32_t duration,ArkUI_AnimationCurve curveType){
+  ArkUI_NumberValue value[] = {{.i32 = edgeType}, {.i32 = duration}, {.i32 = curveType}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MOVE_TRANSITION, &item));
+  return *this;    
+}
+
+ArkUINode &ArkUINode::SetTransitionOpacity(const ArkUI_AnimationCurve curveType,int32_t duration){
+  ArkUI_NumberValue value[] = {{.f32 = 0},{.i32 = duration},{.i32 = curveType}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_OPACITY_TRANSITION, &item));  
+  return *this;     
+}
+
+ArkUINode &ArkUINode::SetTransitionTranslate(float distanceX,float distanceY,float distanceZ,ArkUI_AnimationCurve curveType,int32_t duration)
+{
+  ArkUI_NumberValue value[] = {{.f32 = distanceX},{.f32 = distanceY},{.f32 = distanceZ},{.i32 = duration},{.i32 = curveType}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TRANSLATE_TRANSITION, &item));      
+  return *this;   
+}
+
+void ArkUINode::ResetNodeAttribute(ArkUI_NodeAttributeType type){
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, type));
+}
+
 void ArkUINode::RegisterClickEvent() {
   if (!hasClickEvent_) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));
@@ -456,6 +488,20 @@ void ArkUINode::UnregisterDisappearEvent() {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_DISAPPEAR);
     hasDisappearEvent_ = false;
   }
+}
+
+void ArkUINode::RegisterAreaChangeEvent(){
+  if (!hasAreaChangeEvent_){
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_EVENT_ON_AREA_CHANGE, 0, nullptr));
+    hasAreaChangeEvent_ = true ; 
+  }  
+}
+
+void ArkUINode::UnregisterAreaChangeEvent(){
+  if (hasAreaChangeEvent_){
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_AREA_CHANGE);
+    hasAreaChangeEvent_ = false ; 
+  }      
 }
 
 } // namespace native
