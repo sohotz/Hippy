@@ -297,6 +297,7 @@ void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const 
   if (renderView) {
     // custom ts view
     if (custom_ts_render_views_.find(renderView->GetViewType()) != custom_ts_render_views_.end()) {
+      renderView->SetRenderViewFrame(frame, padding);
       SetCustomTsRenderViewFrame(tag, frame, padding);
       return;
     }
