@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 import {
-  Hippy2Map,
   HippyAny,
   HippyArray,
   HippyMap,
@@ -215,7 +214,7 @@ export struct HRScroll {
     layoutMeasurement.set("width", this.renderView.cssWidth);
     layoutMeasurement.set("height", this.renderView.cssHeight);
 
-    let params = new Map<string, HippyMap>() as Hippy2Map;
+    let params = new Map<string, HippyMap>() as HippyMap;
     params.set("contentInset", contentInset);
     params.set("contentOffset", contentOffset);
     params.set("contentSize", contentSize);

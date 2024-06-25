@@ -17,12 +17,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Hippy2Map, HippyMap } from '../../../support/common/HippyTypes';
+import { HippyMap } from '../../../support/common/HippyTypes';
 import { DimensionsUtil } from '../../../support/utils/DimensionsUtil';
 import { HippyDeviceAdapter } from './HippyDeviceAdapter';
 
 export class DefaultDeviceAdapter implements HippyDeviceAdapter {
-  getDimensions(ww: number, wh: number, context: Context, shouldUseScreenDisplay: boolean): Promise<Hippy2Map> {
+  getDimensions(ww: number, wh: number, context: Context, shouldUseScreenDisplay: boolean): Promise<HippyMap> {
     return DimensionsUtil.getDimensions(ww, wh, context, shouldUseScreenDisplay)
   }
 

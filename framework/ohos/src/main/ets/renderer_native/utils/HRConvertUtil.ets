@@ -69,7 +69,7 @@ export class HRConvertUtil {
       if (!transformObj || (transformObj as HippyMap).size == 0) {
         continue
       }
-      transformObj.forEach((value: HippyValue, key: string) => {
+      transformObj.forEach((value: HippyAny, key: string) => {
         if ("matrix" == key && value instanceof Array) {
           if (value.length < 16) {
             return
@@ -100,7 +100,7 @@ export class HRConvertUtil {
           transform.rotate.x = 1
           transform.rotate.y = 0
           transform.rotate.z = 0
-          transform.rotate.angle = HRConvertUtil.toDegrees(value)
+          transform.rotate.angle = HRConvertUtil.toDegrees(value as HippyValue)
         } else if ("rotateY" == key) {
           if (!transform.rotate) {
             transform.rotate = { angle: 0 }
@@ -108,7 +108,7 @@ export class HRConvertUtil {
           transform.rotate.x = 0
           transform.rotate.y = 1
           transform.rotate.z = 0
-          transform.rotate.angle = HRConvertUtil.toDegrees(value)
+          transform.rotate.angle = HRConvertUtil.toDegrees(value as HippyValue)
         } else if ("rotate" == key || "rotateZ" == key) {
           if (!transform.rotate) {
             transform.rotate = { angle: 0 }
@@ -116,7 +116,7 @@ export class HRConvertUtil {
           transform.rotate.x = 0
           transform.rotate.y = 0
           transform.rotate.z = 1
-          transform.rotate.angle = HRConvertUtil.toDegrees(value)
+          transform.rotate.angle = HRConvertUtil.toDegrees(value as HippyValue)
         } else if ("scale" == key && typeof value == 'number') {
           if (!transform.scale) {
             transform.scale = {}

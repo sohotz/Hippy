@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
-import { Hippy2Map, HippyAny,
+import { HippyAny,
   HippyArray,
   HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { ArgumentUtils } from '../../support/utils/ArgumentUtils';
@@ -272,7 +272,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   async getGlobalConfigsString(): Promise<string> {
     let context = this.mContext.getGlobalConfigs().getContext();
     if (context == null) return ""
-    let globalParams = new Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>()
+    let globalParams = new Map<string, HippyAny>()
     let dimensionMap = await DimensionsUtil.getDimensions(-1, -1, context, true);
     if (this.mContext.getGlobalConfigs() != null
       && this.mContext.getGlobalConfigs().getDeviceAdapter() != null) {
@@ -291,7 +291,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
     // TODO support ThirdAdapter inject
 
-    let platformParams = new Map<string, HippyValue | Map<string, HippyValue>>()
+    let platformParams = new Map<string, HippyAny>()
     platformParams.set("OS", "ohos")
     platformParams.set("PackageName", (packageName == null) ? "" : packageName)
     platformParams.set("VersionName", (versionName == null) ? "" : versionName)
@@ -309,7 +309,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
     // TODO(etkamo): isSupportDev
 
-    let host = new Map<string, HippyValue | Map<string, HippyValue>>()
+    let host = new Map<string, HippyAny>()
     host.set("url", (pageUrl == null) ? "" : pageUrl)
     host.set("appName", (packageName == null) ? "" : packageName)
     host.set("appVersion", (versionName == null) ? "" : versionName)

@@ -227,7 +227,7 @@ export class NativeRenderImpl implements NativeRender {
 
       let vNode = virtualNodeManager.getVirtualNode(node.get('id') as number)
       if (vNode && vNode.props) {
-        (node.get('props') as HippyMap).forEach((value: HippyValue, key: string) => {
+        (node.get('props') as HippyMap).forEach((value: HippyAny, key: string) => {
           if (vNode && vNode.props && key) {
             if(value) {
               vNode.props.set(key, value)
@@ -440,7 +440,7 @@ export class NativeRenderImpl implements NativeRender {
   measureAddTextPropsToStream(stream:string[], props:HippyMap) {
     let count=0;
     let tmpStr:string[] = [];
-    props.forEach((value: HippyValue, key: string) => {
+    props.forEach((value: HippyAny, key: string) => {
       if (key && value && this.textPropsOnly.indexOf(key)<0 && this.textMarginProps.indexOf(key)<0 && this.spanDropProps.indexOf(key)<0) {
         count++;
         tmpStr.push(key);

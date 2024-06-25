@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import systemDateTime from '@ohos.systemDateTime';
-import { HippyMap, Hippy2Map } from '../../../support/common/HippyTypes';
+import { HippyMap } from '../../../support/common/HippyTypes';
 import HippyRenderBaseView, {
   HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX } from '../base/HippyRenderBaseView';
@@ -155,7 +155,7 @@ export struct HRList {
     layoutMeasurement.set("width", this.renderView.cssWidth);
     layoutMeasurement.set("height", this.renderView.cssHeight);
 
-    let params = new Map<string, HippyMap>() as Hippy2Map;
+    let params = new Map<string, HippyMap>() as HippyMap;
     params.set("contentInset", contentInset);
     params.set("contentOffset", contentOffset);
     params.set("contentSize", contentSize);

@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Hippy2Map, HippyMap, HippyValue } from '../common/HippyTypes';
+import { HippyMap, HippyValue } from '../common/HippyTypes';
 import deviceinfo from '@ohos.deviceInfo';
 import { TextUtils } from './TextUtils';
 import { display } from '@kit.ArkUI';
@@ -33,7 +33,7 @@ export class DimensionsUtil {
   private static NAVIGATE_BAR_HEIGHT = 0;
 
   static async getDimensions(ww: number, wh: number, context: Context,
-                             shouldUseScreenDisplay: boolean): Promise<Hippy2Map> {
+                             shouldUseScreenDisplay: boolean): Promise<HippyMap> {
     let displayClass: display.Display = display.getDefaultDisplaySync();
     await DimensionsUtil.getStatusBarHeight(displayClass);
     let dimensionMap = new Map<string, HippyValue | Map<string, HippyValue>>()
@@ -83,7 +83,7 @@ export class DimensionsUtil {
     return DimensionsUtil.STATUS_BAR_HEIGHT
   }
 
-  public static convertDimensionsToDp(dimensionMap: Hippy2Map) {
+  public static convertDimensionsToDp(dimensionMap: HippyMap) {
     if (dimensionMap != null) {
       DimensionsUtil.convertPhysicalPixelsToDp(dimensionMap.get("windowPhysicalPixels") as HippyMap);
       DimensionsUtil.convertPhysicalPixelsToDp(dimensionMap.get("screenPhysicalPixels") as HippyMap);
