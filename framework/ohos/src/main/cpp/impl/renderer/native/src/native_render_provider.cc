@@ -47,6 +47,10 @@ void NativeRenderProvider::RegisterCustomTsRenderViews(napi_env ts_env, napi_ref
   render_impl_->RegisterCustomTsRenderViews(ts_env_, ts_render_provider_ref, custom_views, mapping_views);
 }
 
+void NativeRenderProvider::RegisterCustomRenderViews(CustomViewBuilderFunction &custom_view_builder) {
+  render_impl_->RegisterCustomRenderViews(custom_view_builder);
+}
+
 void NativeRenderProvider::DestroyRoot(uint32_t root_id) {
   render_impl_->DestroyRoot(root_id);
 }

@@ -29,6 +29,8 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+using CustomViewBuilderFunction = std::function<std::shared_ptr<BaseView>(std::string &view_name)>;
+
 class CustomView : public BaseView, public StackNodeDelegate {
 public:
   CustomView(std::shared_ptr<NativeRenderContext> &ctx);

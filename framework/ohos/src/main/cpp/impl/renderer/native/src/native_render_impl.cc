@@ -47,6 +47,10 @@ void NativeRenderImpl::RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_
   hr_manager_->RegisterCustomTsRenderViews(ts_env, ts_render_provider_ref, custom_views, mapping_views);
 }
 
+void NativeRenderImpl::RegisterCustomRenderViews(CustomViewBuilderFunction &custom_view_builder) {
+  hr_manager_->RegisterCustomRenderViews(custom_view_builder);
+}
+
 void NativeRenderImpl::DestroyRoot(uint32_t root_id) {
   hr_manager_->RemoveViewManager(root_id);
   hr_manager_->RemoveVirtualNodeManager(root_id);

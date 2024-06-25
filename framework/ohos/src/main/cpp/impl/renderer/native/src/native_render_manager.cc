@@ -201,6 +201,12 @@ void NativeRenderManager::InitDensity(double density) {
   density_ = static_cast<float>(density);
 }
 
+void NativeRenderManager::RegisterCustomRenderViews(CustomViewBuilderFunction &custom_view_builder) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->RegisterCustomRenderViews(custom_view_builder);
+  }
+}
+
 void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
                                            std::vector<std::shared_ptr<hippy::dom::DomNode>>&& nodes) {
   if (enable_ark_c_api_) {

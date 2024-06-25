@@ -27,6 +27,7 @@
 #include <js_native_api_types.h>
 #include <map>
 #include "footstone/serializer.h"
+#include "renderer/components/custom_view.h"
 #include "renderer/components/root_view.h"
 #include "renderer/uimanager/hr_mutation.h"
 
@@ -40,7 +41,8 @@ class HRViewManager {
 public:
   HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
     napi_env ts_env, napi_ref ts_render_provider_ref,
-    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views,
+    CustomViewBuilderFunction &custom_view_builder);
   ~HRViewManager() = default;
   
   void AttachToNativeXComponent(OH_NativeXComponent* nativeXComponent, uint32_t node_id);
@@ -100,7 +102,7 @@ private:
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
   
-  std::set<std::string> custom_render_views_;
+  CustomViewBuilderFunction custom_render_views_builder_;
 };
 
 } // namespace native

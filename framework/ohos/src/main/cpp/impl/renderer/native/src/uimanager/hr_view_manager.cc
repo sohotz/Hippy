@@ -37,7 +37,8 @@ inline namespace native {
 
 HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
     napi_env ts_env, napi_ref ts_render_provider_ref,
-    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views)
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views,
+    CustomViewBuilderFunction &custom_view_builder)
   : serializer_(std::make_shared<footstone::value::Serializer>()) {
   root_id_ = root_id;
   ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id, native_render);
@@ -51,6 +52,8 @@ HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared
   custom_ts_render_views_ = custom_views;
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
+  
+  custom_render_views_builder_ = custom_view_builder;
 }
 
 void HRViewManager::AttachToNativeXComponent(OH_NativeXComponent *nativeXComponent, uint32_t node_id) {
@@ -141,8 +144,9 @@ std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::str
   }
   
   // custom cpp view
-  if (custom_render_views_.find(view_name) != custom_render_views_.end()) {
-    return CreateCustomRenderView(tag, view_name, is_parent_text);
+  auto custom_view = CreateCustomRenderView(tag, view_name, is_parent_text);
+  if (custom_view) {
+    return custom_view;
   }
   
   // build-in view
@@ -440,6 +444,15 @@ void HRViewManager::SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  if (custom_render_views_builder_) {
+    auto view = custom_render_views_builder_(view_name);
+    if (view) {
+      view->SetTag(tag);
+      view->SetViewType(view_name);
+      view_registry_[tag] = view;
+      return view;
+    }
+  }
   return nullptr;
 }
 
