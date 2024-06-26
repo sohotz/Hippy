@@ -26,7 +26,7 @@ import { DriverSetting } from './DriverSetting'
 import { RendererSetting } from './RendererSetting'
 import { image } from '@kit.ImageKit'
 import { HippyValue } from 'hippy/src/main/ets/support/common/HippyTypes'
-import { ExampleAPIProvider } from '../hippyExtend/ExampleAPIProvider'
+import { ExampleAPIProvider } from '../hippy_extend/ExampleAPIProvider'
 import { HippyLibrary } from 'hippy/src/main/ets/hippy_library/HippyLibrary'
 
 export enum DriverMode {

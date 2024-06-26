@@ -20,8 +20,8 @@ add_library(hippy SHARED
 target_link_libraries(hippy PUBLIC hippy_impl)
 
 set(SOURCE_SET
-  hippyExtend/src/example_view_a.cc
-  hippyExtend/src/example_view_b.cc
+  hippy_extend/src/example_view_a.cc
+  hippy_extend/src/example_view_b.cc
   )
 set(PUBLIC_SOURCE_SET
   )
