@@ -120,6 +120,7 @@ set(SOURCE_SET
 set(PUBLIC_SOURCE_SET
   src/native_render_provider_capi.cc
   src/native_render_provider_napi.cc
+  src/api/hippy_view_provider.cc
   )
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_SET} PUBLIC ${PUBLIC_SOURCE_SET})
 # endregion

@@ -70,8 +70,6 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
                          std::string &bundle_path);
   void InitDensity(double density);
   
-  void RegisterCustomRenderViews(CustomViewBuilderFunction &custom_view_builder);
-  
   void CreateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
   void UpdateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
   void DeleteRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;

@@ -25,6 +25,7 @@
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_napi_object.h"
 #include "oh_napi/oh_napi_object_builder.h"
+#include "renderer/api/hippy_view_provider.h"
 #include "renderer/components/custom_ts_view.h"
 #include "renderer/components/custom_view.h"
 #include "renderer/components/hippy_render_view_creator.h"
@@ -37,8 +38,7 @@ inline namespace native {
 
 HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
     napi_env ts_env, napi_ref ts_render_provider_ref,
-    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views,
-    CustomViewBuilderFunction &custom_view_builder)
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views)
   : serializer_(std::make_shared<footstone::value::Serializer>()) {
   root_id_ = root_id;
   ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id, native_render);
@@ -52,8 +52,6 @@ HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared
   custom_ts_render_views_ = custom_views;
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
-  
-  custom_render_views_builder_ = custom_view_builder;
 }
 
 void HRViewManager::AttachToNativeXComponent(OH_NativeXComponent *nativeXComponent, uint32_t node_id) {
@@ -444,8 +442,10 @@ void HRViewManager::SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
-  if (custom_render_views_builder_) {
-    auto view = custom_render_views_builder_(view_name);
+  auto creator_map = GetHippyCustomViewCreatorMap();
+  auto it = creator_map.find(view_name);
+  if (it != creator_map.end()) {
+    auto view = it->second(ctx_);
     if (view) {
       view->SetTag(tag);
       view->SetViewType(view_name);

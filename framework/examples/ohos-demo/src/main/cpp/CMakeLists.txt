@@ -24,6 +24,7 @@ set(SOURCE_SET
   hippy_extend/src/example_view_b.cc
   )
 set(PUBLIC_SOURCE_SET
+  hippy_extend/src/example_view_provider.cc
   )
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_SET} PUBLIC ${PUBLIC_SOURCE_SET})
 

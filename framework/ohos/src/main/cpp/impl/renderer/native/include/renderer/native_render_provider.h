@@ -46,7 +46,6 @@ public:
 
   void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id, uint32_t node_id);
   void RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
-  void RegisterCustomRenderViews(CustomViewBuilderFunction &custom_view_builder);
   
   void DestroyRoot(uint32_t root_id);
 
