@@ -22,13 +22,13 @@ import {  HippyEngine, HippyException, HippyRoot } from 'hippy'
 import { HippyLibrary } from 'hippy/src/main/ets/hippy_library/HippyLibrary'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
-import { ExampleCustomComponentA,
-  ExampleCustomComponentViewA } from '../hippyExtend/ExampleCustomComponentViewA'
+import { ExampleComponentA,
+  ExampleViewA } from '../hippyExtend/ExampleViewA'
 import { DriverMode, HippyInfo } from './PageConfiguration'
 import { image } from '@kit.ImageKit'
 import {
-  ExampleCustomComponentB,
-  ExampleCustomComponentViewB } from '../hippyExtend/ExampleCustomComponentViewB'
+  ExampleComponentB,
+  ExampleViewB } from '../hippyExtend/ExampleViewB'
 
 //dimens.xml
 const page_index_item_margin:number = 16
@@ -256,10 +256,10 @@ struct PageManagement {
 
 @Builder
 function buildCustomRenderView($$: HippyRenderBaseView) {
-  if ($$ instanceof ExampleCustomComponentViewA) {
-    ExampleCustomComponentA({ renderView: $$ as ExampleCustomComponentViewA, children: $$.children })
-  } else if ($$ instanceof ExampleCustomComponentViewB) {
-    ExampleCustomComponentB({ renderView: $$ as ExampleCustomComponentViewB, children: $$.children })
+  if ($$ instanceof ExampleViewA) {
+    ExampleComponentA({ renderView: $$ as ExampleViewA, children: $$.children })
+  } else if ($$ instanceof ExampleViewB) {
+    ExampleComponentB({ renderView: $$ as ExampleViewB, children: $$.children })
   }
 }
 

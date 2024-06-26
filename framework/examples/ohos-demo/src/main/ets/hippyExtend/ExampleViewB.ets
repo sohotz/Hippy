@@ -22,12 +22,12 @@ import HippyRenderBaseView, {
   HIPPY_COMPONENT_KEY_PREFIX
 }  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
 import { HippyCustomComponentView } from 'hippy/src/main/ets/renderer_native/components/custom/HippyCustomComponentView'
-import { buildHippyRenderView } from 'hippy/src/main/ets/renderer_native/HippyRenderViewBuilder'
 import { NativeRenderContext } from 'hippy/src/main/ets/renderer_native/NativeRenderContext'
+import { HRMeasureMode, HRMeasureResult } from 'hippy/src/main/ets/renderer_native/utils/HRMeasure'
 import { HippyAny, HippyRenderCallback } from 'hippy/src/main/ets/support/common/HippyTypes'
 
 @Observed
-export class ExampleCustomComponentViewA extends HippyCustomComponentView {
+export class ExampleViewB extends HippyCustomComponentView {
   constructor(ctx: NativeRenderContext) {
     super(ctx)
   }
@@ -39,11 +39,15 @@ export class ExampleCustomComponentViewA extends HippyCustomComponentView {
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
 
   }
+
+  customMeasure(width: number, widthMode: HRMeasureMode, height: number, heightMode: HRMeasureMode): HRMeasureResult {
+    return new HRMeasureResult(100, 100)
+  }
 }
 
 @Component
-export struct ExampleCustomComponentA {
-  @ObjectLink renderView: ExampleCustomComponentViewA
+export struct ExampleComponentB {
+  @ObjectLink renderView: ExampleViewB
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
 
   aboutToAppear() {
@@ -56,10 +60,7 @@ export struct ExampleCustomComponentA {
 
   build() {
     Stack() {
-      Text("This is a custom component A.")
-      ForEach(this.children, (item: HippyRenderBaseView) => {
-        buildHippyRenderView(item, null)
-      }, (item: HippyRenderBaseView) => item.tag + '')
+      Text("This is a custom component B.")
     }
     .applyRenderViewBaseAttr(this.renderView)
   }
