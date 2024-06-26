@@ -29,6 +29,9 @@ inline namespace native {
 static std::map<std::string, CustomViewCreatorFunction> *sHippyCustomViewCreatorMapPtr = nullptr;
 static std::set<std::string> *sHippyCustomMeasureViewSetPtr = nullptr;
 
+static std::map<std::string, CustomViewCreatorFunction> sHippyEmptyCustomViewCreatorMap;
+static std::set<std::string> sHippyEmptyCustomMeasureViewSet;
+
 void HippyViewProvider::RegisterCustomViewCreator(const std::string &view_name, const CustomViewCreatorFunction &custom_view_creator) {
   static std::map<std::string, CustomViewCreatorFunction> sHippyCustomViewCreatorMap;
   sHippyCustomViewCreatorMapPtr = &sHippyCustomViewCreatorMap;
@@ -47,11 +50,11 @@ void HippyViewProvider::RegisterCustomMeasureViews(const std::vector<std::string
 }
 
 std::map<std::string, CustomViewCreatorFunction> &HippyViewProvider::GetCustomViewCreatorMap() {
-  return *sHippyCustomViewCreatorMapPtr;
+  return sHippyCustomViewCreatorMapPtr ? *sHippyCustomViewCreatorMapPtr : sHippyEmptyCustomViewCreatorMap;
 }
 
 std::set<std::string> &HippyViewProvider::GetCustomMeasureViews() {
-  return *sHippyCustomMeasureViewSetPtr;
+  return sHippyCustomMeasureViewSetPtr ? *sHippyCustomMeasureViewSetPtr : sHippyEmptyCustomMeasureViewSet;
 }
 
 } // namespace native
