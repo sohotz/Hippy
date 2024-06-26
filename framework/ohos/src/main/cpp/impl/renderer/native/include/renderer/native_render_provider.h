@@ -61,6 +61,10 @@ public:
   
   void CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, const std::string &func_name, const std::vector<HippyValue> &params);
 
+  LayoutSize CustomMeasure(uint32_t root_id, uint32_t node_id,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode);
+  
   void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
   
   void OnSize(uint32_t root_id, float width, float height);

@@ -27,8 +27,10 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-ExampleViewB::ExampleViewB(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+ExampleViewB::ExampleViewB(std::shared_ptr<NativeRenderContext> &ctx) : CustomView(ctx) {
   stackNode_.SetStackNodeDelegate(this);
+  stackNode_.AddChild(textNode_);
+  textNode_.SetTextContent("This is a custom component B.");
 }
 
 ExampleViewB::~ExampleViewB() {

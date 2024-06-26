@@ -27,8 +27,9 @@ inline namespace render {
 inline namespace native {
 
 static std::map<std::string, CustomViewCreatorFunction> *sHippyCustomViewCreatorMapPtr = nullptr;
+static std::set<std::string> *sHippyCustomMeasureViewSetPtr = nullptr;
 
-void HippyRegisterCustomViewCreator(const std::string &view_name, const CustomViewCreatorFunction &custom_view_creator) {
+void HippyViewProvider::RegisterCustomViewCreator(const std::string &view_name, const CustomViewCreatorFunction &custom_view_creator) {
   static std::map<std::string, CustomViewCreatorFunction> sHippyCustomViewCreatorMap;
   sHippyCustomViewCreatorMapPtr = &sHippyCustomViewCreatorMap;
   if (view_name.length() == 0) {
@@ -37,8 +38,20 @@ void HippyRegisterCustomViewCreator(const std::string &view_name, const CustomVi
   sHippyCustomViewCreatorMap[view_name] = custom_view_creator;
 }
 
-std::map<std::string, CustomViewCreatorFunction> &GetHippyCustomViewCreatorMap() {
+void HippyViewProvider::RegisterCustomMeasureViews(const std::vector<std::string> &view_names) {
+  static std::set<std::string> sHippyCustomMeasureViewSet;
+  sHippyCustomMeasureViewSetPtr = &sHippyCustomMeasureViewSet;
+  for (auto name : view_names) {
+    sHippyCustomMeasureViewSet.insert(name);
+  }
+}
+
+std::map<std::string, CustomViewCreatorFunction> &HippyViewProvider::GetCustomViewCreatorMap() {
   return *sHippyCustomViewCreatorMapPtr;
+}
+
+std::set<std::string> &HippyViewProvider::GetCustomMeasureViews() {
+  return *sHippyCustomMeasureViewSetPtr;
 }
 
 } // namespace native

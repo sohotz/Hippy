@@ -29,12 +29,13 @@ inline namespace render {
 inline namespace native {
 
 auto RegisterCustomViewCreatorsOnLoad = []() {
-  HippyRegisterCustomViewCreator("ExampleViewA", [](std::shared_ptr<NativeRenderContext> &ctx) -> std::shared_ptr<BaseView> {
+  HippyViewProvider::RegisterCustomViewCreator("ExampleViewA", [](std::shared_ptr<NativeRenderContext> &ctx) -> std::shared_ptr<BaseView> {
     return std::make_shared<ExampleViewA>(ctx);
   });
-  HippyRegisterCustomViewCreator("ExampleViewB", [](std::shared_ptr<NativeRenderContext> &ctx) -> std::shared_ptr<BaseView> {
+  HippyViewProvider::RegisterCustomViewCreator("ExampleViewB", [](std::shared_ptr<NativeRenderContext> &ctx) -> std::shared_ptr<BaseView> {
     return std::make_shared<ExampleViewB>(ctx);
   });
+  HippyViewProvider::RegisterCustomMeasureViews({"ExampleViewB"});
   return 0;
 }();
 

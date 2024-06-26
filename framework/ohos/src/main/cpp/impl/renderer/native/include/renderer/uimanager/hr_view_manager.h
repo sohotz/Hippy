@@ -69,6 +69,10 @@ public:
 
   void CallViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
                       std::function<void(const HippyValue &result)> callback);
+  
+  LayoutSize CallCustomMeasure(uint32_t tag,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode);
 
   uint64_t AddEndBatchCallback(const EndBatchCallback &cb);
   void RemoveEndBatchCallback(uint64_t cbId);

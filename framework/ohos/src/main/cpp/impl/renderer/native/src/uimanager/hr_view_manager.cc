@@ -318,6 +318,18 @@ void HRViewManager::CallViewMethod(uint32_t tag, const std::string &method, cons
   }
 }
 
+LayoutSize HRViewManager::CallCustomMeasure(uint32_t tag,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode) {
+  auto it = view_registry_.find(tag);
+  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  if (renderView) {
+    auto customView = std::static_pointer_cast<CustomView>(renderView);
+    return customView->CustomMeasure(width, width_measure_mode, height, height_measure_mode);
+  }
+  return {0, 0};
+}
+
 uint64_t HRViewManager::AddEndBatchCallback(const EndBatchCallback &cb) {
   ++end_batch_callback_id_count_;
   end_batch_callback_map_[end_batch_callback_id_count_] = std::move(cb);
@@ -442,7 +454,7 @@ void HRViewManager::SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
-  auto creator_map = GetHippyCustomViewCreatorMap();
+  auto creator_map = HippyViewProvider::GetCustomViewCreatorMap();
   auto it = creator_map.find(view_name);
   if (it != creator_map.end()) {
     auto view = it->second(ctx_);

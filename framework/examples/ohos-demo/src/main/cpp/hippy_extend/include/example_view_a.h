@@ -22,14 +22,15 @@
 
 #pragma once
 
-#include "renderer/components/base_view.h"
+#include "renderer/arkui/text_node.h"
 #include "renderer/arkui/stack_node.h"
+#include "renderer/components/custom_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ExampleViewA : public BaseView, public StackNodeDelegate {
+class ExampleViewA : public CustomView, public StackNodeDelegate {
 public:
   ExampleViewA(std::shared_ptr<NativeRenderContext> &ctx);
   virtual ~ExampleViewA();
@@ -44,6 +45,7 @@ public:
   
 private:
   StackNode stackNode_;
+  TextNode textNode_;
 };
 
 } // namespace native

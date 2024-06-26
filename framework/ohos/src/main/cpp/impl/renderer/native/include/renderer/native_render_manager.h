@@ -132,6 +132,7 @@ private:
                      const float height, const int32_t height_mode, int64_t &result);
   
   bool IsCustomMeasureNode(const std::string &name);
+  bool IsCustomMeasureCNode(const std::string &name);
 
   struct ListenerOp {
     bool add;
@@ -171,6 +172,9 @@ private:
                             const std::string &method_name);
   void HandleListenerOps_C(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>> &ops,
                            const std::string &method_name);
+  LayoutSize CallNativeCustomMeasureMethod_C(uint32_t root_id, uint32_t node_id,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode);
   
 private:
   uint32_t id_;

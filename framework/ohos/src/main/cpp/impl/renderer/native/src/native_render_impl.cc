@@ -181,6 +181,16 @@ void NativeRenderImpl::CallUIFunction(uint32_t root_id, uint32_t node_id, const 
   view_manager->CallViewMethod(node_id, functionName, params, callback);
 }
 
+LayoutSize NativeRenderImpl::CustomMeasure(uint32_t root_id, uint32_t node_id,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode) {
+    auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return {0, 0};
+  }
+  return view_manager->CallCustomMeasure(node_id, width, width_measure_mode, height, height_measure_mode);
+}
+
 void NativeRenderImpl::SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {

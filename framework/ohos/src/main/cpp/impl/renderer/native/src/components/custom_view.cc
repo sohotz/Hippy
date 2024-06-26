@@ -28,40 +28,9 @@ inline namespace render {
 inline namespace native {
 
 CustomView::CustomView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  stackNode_.SetStackNodeDelegate(this);
 }
 
 CustomView::~CustomView() {
-  if (!children_.empty()) {
-    for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
-    }
-    children_.clear();
-  }
-}
-
-StackNode &CustomView::GetLocalRootArkUINode() {
-  return stackNode_;
-}
-
-bool CustomView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  return BaseView::SetProp(propKey, propValue);
-}
-
-void CustomView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
-}
-
-void CustomView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
-}
-
-void CustomView::OnClick() {
-  if (eventClick_) {
-    eventClick_();
-  }
 }
 
 } // namespace native

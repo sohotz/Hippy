@@ -23,6 +23,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include "renderer/components/custom_view.h"
 
 namespace hippy {
@@ -31,9 +32,15 @@ inline namespace native {
 
 using CustomViewCreatorFunction = std::function<std::shared_ptr<BaseView>(std::shared_ptr<NativeRenderContext> &ctx)>;
 
-extern void HippyRegisterCustomViewCreator(const std::string &view_name, const CustomViewCreatorFunction &custom_view_creator);
+class HippyViewProvider {
+public:
+  static void RegisterCustomViewCreator(const std::string &view_name, const CustomViewCreatorFunction &custom_view_creator);
+  static void RegisterCustomMeasureViews(const std::vector<std::string> &view_names);
 
-extern std::map<std::string, CustomViewCreatorFunction> &GetHippyCustomViewCreatorMap();
+  static std::map<std::string, CustomViewCreatorFunction> &GetCustomViewCreatorMap();
+  static std::set<std::string> &GetCustomMeasureViews();
+
+};
 
 } // namespace native
 } // namespace render
