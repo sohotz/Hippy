@@ -111,6 +111,7 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
   }
   // auto vfs_id = arkTs.GetInteger(args[9]);
   // auto devtools_id = arkTs.GetInteger(args[10]);
+  auto is_reload = false; // TODO:
 
   FOOTSTONE_LOG(INFO) << "CreateJsDriver begin, enable_v8_serialization = " << static_cast<uint32_t>(enable_v8_serialization)
                       << ", is_dev_module = " << static_cast<uint32_t>(is_dev_module)
@@ -180,7 +181,7 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
     }
   };
   auto engine = JsDriverUtils::CreateEngineAndAsyncInitialize(
-      dom_task_runner, param, group_id);
+      dom_task_runner, param, group_id, is_reload);
   {
     std::lock_guard<std::mutex> lock(holder_mutex);
     engine_holder[engine.get()] = engine;
