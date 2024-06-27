@@ -45,10 +45,10 @@ public:
   StackNode();
   ~StackNode() override;
 
+  StackNode &SetStackAlignContent(ArkUI_Alignment align);
+  
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate);
-  StackNode &SetMargin(float left, float top, float right, float bottom);
-  StackNode &SetAlign(int32_t align);
 };
 
 } // namespace native

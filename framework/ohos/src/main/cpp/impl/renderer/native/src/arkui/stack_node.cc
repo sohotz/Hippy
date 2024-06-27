@@ -30,9 +30,17 @@ inline namespace native {
 StackNode::StackNode() 
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_STACK)),
       stackNodeDelegate_(nullptr) {
+  SetStackAlignContent(ARKUI_ALIGNMENT_TOP_START);
 }
 
 StackNode::~StackNode() {}
+
+StackNode &StackNode::SetStackAlignContent(ArkUI_Alignment align) {
+  ArkUI_NumberValue value[] = {{.i32 = align}};
+  ArkUI_AttributeItem item = {.value = value, .size = 1};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_STACK_ALIGN_CONTENT, &item));
+  return *this;
+}
 
 void StackNode::SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate) { stackNodeDelegate_ = stackNodeDelegate; }
 
@@ -55,19 +63,6 @@ void StackNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   }
 }
 
-StackNode &StackNode::SetMargin(float left, float top, float right, float bottom) {
-  ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MARGIN, &item));
-  return *this;
-}
-
-StackNode &StackNode::SetAlign(int32_t align) {
-  ArkUI_NumberValue value[] = {{.i32 = align}};
-  ArkUI_AttributeItem item = {.value = value, .size = 1};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_STACK_ALIGN_CONTENT, &item));
-  return *this;
-}
 
 } // namespace native
 } // namespace render

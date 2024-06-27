@@ -415,6 +415,13 @@ ArkUINode &ArkUINode::SetShadow(const HRShadow &shadow) {
   return *this;
 }
 
+ArkUINode &ArkUINode::SetMargin(float left, float top, float right, float bottom) {
+  ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MARGIN, &item));
+  return *this;
+}
+
 ArkUINode &ArkUINode::SetExpandSafeArea(){
 //TODO  NODE_EXPAND_SAFE_AREA not define in devEco 5.0.0.400 will add in later
 //  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_EXPAND_SAFE_AREA,nullptr ));
