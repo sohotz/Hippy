@@ -29,6 +29,7 @@ import { image } from '@kit.ImageKit'
 import {
   ExampleComponentB,
   ExampleViewB } from '../hippy_extend/ExampleViewB'
+import { LogUtils } from 'hippy/src/main/ets/support/utils/LogUtils'
 
 //dimens.xml
 const page_index_item_margin:number = 16
@@ -157,6 +158,14 @@ struct PageManagement {
                   .width(30)
                   .height(28)
                   .onClick(() => {
+                    let item  = this.pageitems[index];
+                    // hippyEngine 销毁实例
+                    LogUtils.i('hippy demo', 'destroyModule');
+                    item.hippyEngine?.destroyModule(item.rootViewId, () => {
+                      LogUtils.i('hippy demo', 'destroyModule success');
+                      item.hippyEngine?.destroyEngine();
+                      LogUtils.i('hippy demo', 'destroyEngine success');
+                    });
                     this.pageitems?.splice(index, 1)
                   })
                 }

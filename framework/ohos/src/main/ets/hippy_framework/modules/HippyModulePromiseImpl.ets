@@ -58,7 +58,6 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
 
   isCallback(): boolean {
     return !TextUtils.equals(this.mCallId, HippyModulePromiseImpl.CALL_ID_NO_CALLBACK);
-    ;
   }
 
   getCallId(): string {

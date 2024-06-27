@@ -52,7 +52,7 @@ export class HippyInfo {
   debugServerHost:string = DEFAULT_DEBUG_SERVER_HOST
   hippyEngine:HippyEngine | null = null
   snapShot:image.PixelMap | null = null
-
+  rootViewId:number = 0
   createTime:number = 0
 }
 
@@ -137,7 +137,7 @@ struct PageConfiguration {
           "msgFromNative",
           "Hi js developer, I come from ohos native code!"
         )
-        hippyEngine?.loadModule(
+        info.rootViewId = hippyEngine?.loadModule(
           loadParams,
           (statusCode: ModuleLoadStatus, msg: string) => {
 

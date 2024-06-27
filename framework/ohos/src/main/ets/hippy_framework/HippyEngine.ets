@@ -20,7 +20,7 @@
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { HippyMap } from '../support/common/HippyTypes';
+import { HippyAny, HippyMap } from '../support/common/HippyTypes';
 import { DefaultDeviceAdapter } from './adapter/device/DefaultDeviceAdapter';
 import { HippyDeviceAdapter } from './adapter/device/HippyDeviceAdapter';
 import { DefaultExceptionHandler } from './adapter/exception/DefaultExceptionHandler';
@@ -52,7 +52,7 @@ import { LogUtils } from '../support/utils/LogUtils';
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
 
-  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): void
+  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): number
 
   destroyModule(rootId: number, destroyCallback: HippyModuleDestroyCallback): void
 
@@ -63,6 +63,8 @@ export interface HippyEngine {
   onBackPressed(handler: BackPressHandler): boolean
 
   getHippyEngineContext(): HippyEngineContext | null
+
+  sendEvent(event: string, params: HippyAny): void;
 }
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {

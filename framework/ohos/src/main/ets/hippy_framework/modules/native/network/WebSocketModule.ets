@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { HippyAny, HippyMap } from '../../../../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyValue } from '../../../../support/common/HippyTypes'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
 import { webSocket } from '@kit.NetworkKit'
@@ -27,6 +27,7 @@ import { TextUtils } from '../../../../support/utils/TextUtils'
 import { HippyJsException } from '../../../common/HippyJsException'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { HippyModulePromise } from '../../HippyModulePromise'
+import { EventDispatcher } from '../../javascript/EventDispatcher'
 
 const WEBSOCKET_MODULE_TAG = "WebSocketModule";
 
@@ -40,6 +41,11 @@ export class WebSocketModule extends HippyNativeModuleBase {
   private static PARAM_KEY_HEADERS = "headers";
   private static PARAM_KEY_TYPE = "type";
   private static PARAM_KEY_DATA = "data";
+  private static EVENT_TYPE_ON_OPEN = "onOpen";
+  private static EVENT_TYPE_ON_CLOSE = "onClose";
+  private static EVENT_TYPE_ON_ERROR = "onError";
+  private static EVENT_TYPE_ON_MESSAGE = "onMessage";
+  private static WEB_SOCKET_EVENT_NAME = "hippyWebsocketEvents";
   private mWebSocketConnections: HashMap<Number, webSocket.WebSocket>
   private sWebSocketIds = 0
 
@@ -115,6 +121,7 @@ export class WebSocketModule extends HippyNativeModuleBase {
       returnValue.set(WebSocketModule.PARAM_KEY_REASON, "");
       returnValue.set(WebSocketModule.PARAM_KEY_SOCKET_ID, webSocketId);
       promise.resolve(returnValue);
+      this.onConnect(webSocketId);
     }).catch((err: HippyJsException) => {
       LogUtils.e(WEBSOCKET_MODULE_TAG, "connect fail, error:" + JSON.stringify(err))
     });
@@ -156,8 +163,10 @@ export class WebSocketModule extends HippyNativeModuleBase {
         // todo textData数据类型支持string|ArrayBuffer
         socketClient.send(textData.toString(), (err, value) => {
           if (!err) {
+            this.onMessage(textData?.toString() ?? '', socketId as number)
             LogUtils.d(WEBSOCKET_MODULE_TAG, "send success");
           } else {
+            this.onError("send fail, err:" + JSON.stringify(err), socketId as number)
             LogUtils.d(WEBSOCKET_MODULE_TAG, "send fail, err:" + JSON.stringify(err));
           }
         });
@@ -166,12 +175,50 @@ export class WebSocketModule extends HippyNativeModuleBase {
         //if (value === 'bye') {
         socketClient.close((err, value) => {
           if (!err) {
+            this.onDisconnect(0, 'closed', socketId as number)
             LogUtils.d(WEBSOCKET_MODULE_TAG, "close success");
           } else {
+            this.onDisconnect(0, "close fail, err is " + JSON.stringify(err), socketId as number)
             LogUtils.d(WEBSOCKET_MODULE_TAG, "close fail, err is " + JSON.stringify(err));
           }
         });
       }
+    }
+  }
+
+  public onConnect(socketId: number) {
+    const params: HippyMap = new Map<string, HippyValue>();
+    this.sendWebSocketEvent(WebSocketModule.EVENT_TYPE_ON_OPEN, params, socketId);
+  }
+
+  public onMessage(message: string, socketId: number) {
+    const params: HippyMap = new Map<string, HippyValue>();
+    params.set(WebSocketModule.PARAM_KEY_DATA, message);
+    params.set(WebSocketModule.PARAM_KEY_TYPE, "text");
+    this.sendWebSocketEvent(WebSocketModule.EVENT_TYPE_ON_MESSAGE, params, socketId);
+  }
+
+  public onDisconnect(code: number, reason: string, socketId: number) {
+    const map: HippyMap = new Map<string, HippyValue>();
+    map.set(WebSocketModule.PARAM_KEY_CODE, code);
+    map.set(WebSocketModule.PARAM_KEY_REASON, reason);
+    this.sendWebSocketEvent(WebSocketModule.EVENT_TYPE_ON_CLOSE, map, socketId);
+  }
+
+  public onError(error: string, socketId: number) {
+    const map: HippyMap = new Map<string, HippyValue>();
+    map.set(WebSocketModule.PARAM_KEY_REASON, error);
+    this.sendWebSocketEvent(WebSocketModule.EVENT_TYPE_ON_ERROR, map, socketId);
+  }
+
+  public sendWebSocketEvent(eventType: string, data: HippyMap, socketId: number) {
+    const eventParams: HippyMap = new Map<string, HippyAny>();
+    eventParams.set(WebSocketModule.PARAM_KEY_SOCKET_ID, socketId);
+    eventParams.set(WebSocketModule.PARAM_KEY_TYPE, eventType);
+    eventParams.set(WebSocketModule.PARAM_KEY_DATA, data);
+    const eventDispatcher = this.ctx.getModuleManager()?.getJavaScriptModule(EventDispatcher.MODULE_NAME);
+    if (eventDispatcher instanceof EventDispatcher) {
+      eventDispatcher.receiveNativeEvent(WebSocketModule.WEB_SOCKET_EVENT_NAME, eventParams);
     }
   }
 

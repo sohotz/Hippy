@@ -29,8 +29,8 @@ import { LogUtils } from '../../support/utils/LogUtils';
 export class HippyBridgeImpl implements HippyBridge {
 
   public static TAG: string = "HippyBridgeImpl";
-  private mEngineContext: HippyEngineContext;
-  private mBridgeCallback: BridgeCallback;
+  private mEngineContext: HippyEngineContext | null;
+  private mBridgeCallback: BridgeCallback | null;
   private mEnableV8Serialization: boolean;
   private mIsDevModule: boolean;
   private mDebugServerHost: string;
@@ -70,7 +70,10 @@ export class HippyBridgeImpl implements HippyBridge {
   }
 
   initJSEngine(globalConfig: string, callback: NativeCallback, groupId: number) {
-    this.mEngineContext.getMonitor()
+    if (!this.mEngineContext) {
+      return;
+    }
+    this.mEngineContext?.getMonitor()
       .startPoint(MonitorGroupType.ENGINE_INITIALIZE, TimeMonitor.MONITOR_POINT_INIT_JS_ENGINE);
     // TODO 多线程问题
     this.mJsDriver.initialize(
@@ -82,9 +85,9 @@ export class HippyBridgeImpl implements HippyBridge {
   }
 
   runScriptFromUri(uri: string, canUseCodeCache: boolean, codeCacheTag: string, callback: NativeCallback): boolean {
-    //  if (!mInit) {
-    //     return false;
-    // }
+    if (!this.mEngineContext) {
+      return false;
+    }
     const context = this.mEngineContext.getGlobalConfigs().getContext();
     if (context === null) {
       return false;
@@ -107,24 +110,24 @@ export class HippyBridgeImpl implements HippyBridge {
   }
 
   onDestroy(): void {
-    throw new Error('Method not implemented.');
+    this.mEngineContext = null;
+    this.mBridgeCallback = null;
   }
 
   destroy(callback: NativeCallback, isReload: boolean): void {
-    throw new Error('Method not implemented.');
+    this.mJsDriver.onDestroy(false, isReload, callback);
   }
 
   getV8RuntimeId(): number {
-    throw new Error('Method not implemented.');
+    return this.mJsDriver.getInstanceId();
   }
 
   callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array) {
     const functionName = this.getCallFunctionName(functionId)
     if (functionId == HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE) {
-      // TODO loadInstance 参数序列化
       this.mJsDriver.loadInstance(buffer, callback);
     } else if (functionId == HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE) {
-      // mJsDriver.unloadInstance(buffer, 0, length);
+      this.mJsDriver.unloadInstance(buffer);
     } else {
       this.mJsDriver.callFunction(functionName, callback, buffer);
     }

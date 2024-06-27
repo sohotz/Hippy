@@ -51,7 +51,7 @@ export interface HippyLibrary {
   ): number;
   JsDriver_DestroyJsDriver(instanceId: number, useLowMemoryMode: boolean, isReload: boolean, callback: NativeCallback): void;
   JsDriver_LoadInstance(instanceId: number, buffer: ArrayBuffer): void;
-  JsDriver_UnloadInstance(instanceId: number,str: string): void;
+  JsDriver_UnloadInstance(instanceId: number,buffer: ArrayBuffer): void;
   JsDriver_RunScriptFromUri(
     instanceId: number,
     uri: string,
