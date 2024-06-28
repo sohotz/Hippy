@@ -56,6 +56,10 @@ bool CustomTsView::SetProp(const std::string &propKey, const HippyValue &propVal
   return BaseView::SetProp(propKey, propValue);
 }
 
+void CustomTsView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrame(frame, padding);
+}
+
 void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
   subContainerNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
