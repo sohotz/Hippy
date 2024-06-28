@@ -59,7 +59,8 @@ void ListNode::RemoveAllChildren() {
   for (int32_t i = static_cast<int32_t>(count) - 1; i >= 0; i--) {
     ArkUI_NodeHandle childHandle = NativeNodeApi::GetInstance()->getChildAt(nodeHandle_, i);
     if (childHandle) {
-      MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, childHandle));
+      // TODO(hot): to fix later
+      // MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, childHandle));
     }
   }
 }
