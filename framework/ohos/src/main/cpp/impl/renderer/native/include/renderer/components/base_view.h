@@ -47,7 +47,7 @@ public:
   std::vector<std::shared_ptr<BaseView>> &GetChildren() { return children_; }
   std::weak_ptr<BaseView> &GetParent() { return parent_; }
   
-  void SetTag(uint32_t tag) { tag_ = tag; }
+  void SetTag(uint32_t tag);
   void SetViewType(std::string &type) { view_type_ = type; }
   void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
 

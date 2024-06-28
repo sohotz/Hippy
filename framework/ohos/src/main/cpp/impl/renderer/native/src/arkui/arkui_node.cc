@@ -84,6 +84,13 @@ void ArkUINode::RemoveChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
 }
 
+ArkUINode &ArkUINode::SetId(const std::string &id) {
+  ArkUI_AttributeItem item;
+  item = {.string = id.c_str()};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ID, &item));
+  return *this;
+}
+
 ArkUINode &ArkUINode::SetPosition(const HRPosition &position) {
   ArkUI_NumberValue value[] = {{position.x}, {position.y}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};

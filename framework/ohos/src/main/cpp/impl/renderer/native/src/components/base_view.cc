@@ -49,6 +49,12 @@ BaseView::~BaseView() {
 #endif
 }
 
+void BaseView::SetTag(uint32_t tag) {
+  tag_ = tag;
+  std::string id_str = "HippyId" + std::to_string(tag);
+  GetLocalRootArkUINode().SetId(id_str);
+}
+
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::VISIBILITY) {
     auto value = HRValueUtils::GetString(propValue);

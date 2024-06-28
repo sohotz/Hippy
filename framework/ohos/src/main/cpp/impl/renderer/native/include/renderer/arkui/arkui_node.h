@@ -67,6 +67,7 @@ public:
   void InsertChild(ArkUINode &child, int32_t index);
   void RemoveChild(ArkUINode &child);
 
+  virtual ArkUINode &SetId(const std::string &id);
   virtual ArkUINode &SetPosition(const HRPosition &position);
   virtual ArkUINode &SetSize(const HRSize &size);
   virtual ArkUINode &SetWidth(float width);
