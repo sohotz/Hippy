@@ -676,15 +676,19 @@ void BaseView::OnClick() {
     eventClick_();
   }
 }
-  
+
 void BaseView::OnAppear() {
-  
+  if (eventAttachedToWindow_) {
+    eventAttachedToWindow_();
+  }
 }
-  
+
 void BaseView::OnDisappear() {
-  
+  if (eventDetachedFromWindow_) {
+    eventDetachedFromWindow_();
+  }
 }
-  
+
 void BaseView::OnAreaChange(ArkUI_NumberValue* data) {
   
 }
