@@ -381,6 +381,7 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   napi_close_handle_scope(ts_env_, scope);
   
   auto view = std::make_shared<CustomTsView>(ctx_, nodeHandle);
+  view->Init();
   view->SetTag(tag);
   view->SetViewType(view_name);
   view_registry_[tag] = view;
@@ -459,6 +460,7 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, st
   if (it != creator_map.end()) {
     auto view = it->second(ctx_);
     if (view) {
+      view->Init();
       view->SetTag(tag);
       view->SetViewType(view_name);
       view_registry_[tag] = view;

@@ -29,7 +29,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RichTextView : public BaseView, public TextNodeDelegate {
+class RichTextView : public BaseView {
 public:
   RichTextView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RichTextView();
@@ -41,8 +41,6 @@ public:
   
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
-  
-  void OnClick() override;
   
 private:
   TextNode textNode_;

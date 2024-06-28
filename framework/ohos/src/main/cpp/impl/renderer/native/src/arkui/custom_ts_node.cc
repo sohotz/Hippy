@@ -28,29 +28,10 @@ inline namespace render {
 inline namespace native {
 
 CustomTsNode::CustomTsNode(ArkUI_NodeHandle nodeHandle) 
-    : ArkUINode(nodeHandle),
-      tsNodeDelegate_(nullptr) {
+    : ArkUINode(nodeHandle) {
 }
 
 CustomTsNode::~CustomTsNode() {}
-
-void CustomTsNode::SetCustomTsNodeDelegate(CustomTsNodeDelegate *tsNodeDelegate) { tsNodeDelegate_ = tsNodeDelegate; }
-
-void CustomTsNode::OnNodeEvent(ArkUI_NodeEvent *event) {
-  if (tsNodeDelegate_ == nullptr) {
-    return;
-  }
-  
-  auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
-  if (eventType == ArkUI_NodeEventType::NODE_ON_CLICK) {
-    tsNodeDelegate_->OnClick();
-  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_APPEAR) {
-    tsNodeDelegate_->OnAppear();
-  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
-    tsNodeDelegate_->OnDisappear();
-  }
-}
-
 
 } // namespace native
 } // namespace render

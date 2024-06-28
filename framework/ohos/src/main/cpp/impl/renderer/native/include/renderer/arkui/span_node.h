@@ -28,23 +28,13 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class SpanNodeDelegate {
-public:
-  virtual ~SpanNodeDelegate() = default;
-  virtual void OnClick() {}
-};
-
 class SpanNode : public ArkUINode {
 protected:
-  SpanNodeDelegate *spanNodeDelegate_ = nullptr;
-  
+
 public:
   SpanNode();
   ~SpanNode();
   
-  void OnNodeEvent(ArkUI_NodeEvent *event) override;
-  void SetSpanNodeDelegate(SpanNodeDelegate *spanNodeDelegate_);
-
   SpanNode &SetSpanContent(const std::string &text);
   SpanNode &SetFontColor(uint32_t fontColor);
   SpanNode &SetFontSize(float fontSize);

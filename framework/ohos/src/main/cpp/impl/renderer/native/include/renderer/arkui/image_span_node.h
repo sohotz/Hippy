@@ -28,15 +28,8 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ImageSpanNodeDelegate {
-public:
-  virtual ~ImageSpanNodeDelegate() = default;
-  virtual void OnClick() {}
-};
-
 class ImageSpanNode : public ArkUINode {
 protected:
-  ImageSpanNodeDelegate *imageSpanNodeDelegate_ = nullptr;
   std::string uri_;
   
 public:
@@ -46,9 +39,6 @@ public:
   ImageSpanNode &SetSources(std::string const &src);
   ImageSpanNode &SetAlt(std::string const &src);
   ImageSpanNode &SetImageObjectFit(ArkUI_ObjectFit fit);
-  
-  void OnNodeEvent(ArkUI_NodeEvent *event) override;
-  void SetSpanNodeDelegate(ImageSpanNodeDelegate *imageSpanNodeDelegate);
   
 };
 

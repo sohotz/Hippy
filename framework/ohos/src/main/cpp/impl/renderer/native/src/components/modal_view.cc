@@ -31,7 +31,6 @@ inline namespace native {
 const int DURATION = 200;
 
 ModalView::ModalView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  GetLocalRootArkUINode().SetStackNodeDelegate(this);
   GetLocalRootArkUINode().RegisterAppearEvent();
   GetLocalRootArkUINode().RegisterDisappearEvent();
   GetLocalRootArkUINode().RegisterAreaChangeEvent();

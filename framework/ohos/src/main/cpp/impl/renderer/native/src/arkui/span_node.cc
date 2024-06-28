@@ -33,18 +33,6 @@ SpanNode::SpanNode()
 
 SpanNode::~SpanNode() {}
 
-void SpanNode::SetSpanNodeDelegate(SpanNodeDelegate *spanNodeDelegate) { spanNodeDelegate_ = spanNodeDelegate; }
-
-void SpanNode::OnNodeEvent(ArkUI_NodeEvent *event) {
-  if (spanNodeDelegate_ == nullptr) {
-    return;
-  }
-  
-  if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_ON_CLICK) {
-    spanNodeDelegate_->OnClick();
-  }
-}
-
 SpanNode &SpanNode::SetSpanContent(const std::string &text) {
   ArkUI_AttributeItem item = {.string = text.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SPAN_CONTENT, &item));

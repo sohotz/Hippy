@@ -30,7 +30,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ModalView : public BaseView ,public StackNodeDelegate{
+class ModalView : public BaseView {
 public:
   ModalView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ModalView();

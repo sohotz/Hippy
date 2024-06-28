@@ -30,7 +30,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class CustomTsView : public BaseView, public CustomTsNodeDelegate {
+class CustomTsView : public BaseView {
 public:
   CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_NodeHandle nodeHandle);
   ~CustomTsView();
@@ -41,8 +41,6 @@ public:
 
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
-
-  void OnClick() override;
   
 private:
   StackNode containerNode_;

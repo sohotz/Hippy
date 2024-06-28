@@ -28,7 +28,6 @@ inline namespace render {
 inline namespace native {
 
 ExampleViewB::ExampleViewB(std::shared_ptr<NativeRenderContext> &ctx) : CustomView(ctx) {
-  stackNode_.SetStackNodeDelegate(this);
   stackNode_.AddChild(textNode_);
   textNode_.SetTextContent("This is a custom component B.");
 }
@@ -58,12 +57,6 @@ void ExampleViewB::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
 void ExampleViewB::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
   stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
-}
-
-void ExampleViewB::OnClick() {
-  if (eventClick_) {
-    eventClick_();
-  }
 }
 
 } // namespace native

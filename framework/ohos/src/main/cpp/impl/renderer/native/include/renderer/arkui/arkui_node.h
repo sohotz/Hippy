@@ -45,6 +45,15 @@ enum class ArkUIHitTestMode : int32_t {
   NONE,
 };
 
+class ArkUINodeDelegate {
+public:
+  virtual ~ArkUINodeDelegate() = default;
+  virtual void OnClick() {}
+  virtual void OnAppear() {}
+  virtual void OnDisappear() {}
+  virtual void OnAreaChange(ArkUI_NumberValue* data) {}  
+};
+
 class ArkUINode {
 protected:
   ArkUINode(const ArkUINode &other) = delete;
@@ -108,9 +117,10 @@ public:
   virtual void ResetNodeAttribute(ArkUI_NodeAttributeType type);
   virtual HRSize GetSize() const;
   virtual uint32_t GetTotalChildCount() const;
-
-  virtual void OnNodeEvent(ArkUI_NodeEvent *event) {}
-    
+  
+  void SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate);
+  virtual void OnNodeEvent(ArkUI_NodeEvent *event);
+  
   void RegisterClickEvent();
   void UnregisterClickEvent();
   void RegisterAppearEvent();
@@ -130,6 +140,8 @@ protected:
   }
 
   ArkUI_NodeHandle nodeHandle_;
+  
+  ArkUINodeDelegate *arkUINodeDelegate_ = nullptr;
   
   bool hasClickEvent_ = false;
   bool hasAppearEvent_ = false;

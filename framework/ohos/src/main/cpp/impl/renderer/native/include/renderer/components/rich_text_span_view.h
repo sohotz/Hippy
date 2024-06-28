@@ -29,7 +29,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RichTextSpanView : public BaseView, public SpanNodeDelegate {
+class RichTextSpanView : public BaseView {
 public:
   RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RichTextSpanView();
@@ -38,8 +38,6 @@ public:
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
   void OnSetPropsEnd() override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
-
-  void OnClick() override;
   
 private:
   SpanNode spanNode_;

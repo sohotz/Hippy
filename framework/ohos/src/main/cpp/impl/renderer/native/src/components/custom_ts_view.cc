@@ -28,7 +28,6 @@ inline namespace render {
 inline namespace native {
 
 CustomTsView::CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_NodeHandle nodeHandle) : BaseView(ctx), tsNode_(nodeHandle) {
-  tsNode_.SetCustomTsNodeDelegate(this);
   containerNode_.AddChild(tsNode_);
   containerNode_.AddChild(subContainerNode_);
   tsNode_.SetWidthPercent(1.f);
@@ -68,12 +67,6 @@ void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
 void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
   subContainerNode_.RemoveChild(childView->GetLocalRootArkUINode());
-}
-
-void CustomTsView::OnClick() {
-  if (eventClick_) {
-    eventClick_();
-  }
 }
 
 } // namespace native

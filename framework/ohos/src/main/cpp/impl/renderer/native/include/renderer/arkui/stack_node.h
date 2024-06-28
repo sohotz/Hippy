@@ -28,27 +28,15 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class StackNodeDelegate {
-public:
-  virtual ~StackNodeDelegate() = default;
-  virtual void OnClick() {}
-  virtual void OnAppear() {}
-  virtual void OnDisappear() {}
-  virtual void OnAreaChange(ArkUI_NumberValue* data) {}  
-};
-
 class StackNode : public ArkUINode {
 protected:
-  StackNodeDelegate *stackNodeDelegate_;
 
 public:
   StackNode();
   ~StackNode() override;
 
   StackNode &SetStackAlignContent(ArkUI_Alignment align);
-  
-  void OnNodeEvent(ArkUI_NodeEvent *event) override;
-  void SetStackNodeDelegate(StackNodeDelegate *stackNodeDelegate);
+
 };
 
 } // namespace native

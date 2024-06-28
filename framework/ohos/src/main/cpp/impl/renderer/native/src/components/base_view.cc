@@ -49,6 +49,10 @@ BaseView::~BaseView() {
 #endif
 }
 
+void BaseView::Init() {
+  GetLocalRootArkUINode().SetArkUINodeDelegate(this);
+}
+
 void BaseView::SetTag(uint32_t tag) {
   tag_ = tag;
   std::string id_str = "HippyId" + std::to_string(tag);
@@ -665,6 +669,24 @@ bool BaseView::CheckRegisteredEvent(std::string &eventName) {
     }
   }
   return false;
+}
+
+void BaseView::OnClick() {
+  if (eventClick_) {
+    eventClick_();
+  }
+}
+  
+void BaseView::OnAppear() {
+  
+}
+  
+void BaseView::OnDisappear() {
+  
+}
+  
+void BaseView::OnAreaChange(ArkUI_NumberValue* data) {
+  
 }
 
 // TODO(hot):

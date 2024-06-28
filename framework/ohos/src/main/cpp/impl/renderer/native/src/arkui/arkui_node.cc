@@ -461,6 +461,29 @@ void ArkUINode::ResetNodeAttribute(ArkUI_NodeAttributeType type){
   MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, type));
 }
 
+void ArkUINode::SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate) {
+  arkUINodeDelegate_ = arkUINodeDelegate;
+}
+
+void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {
+    if (arkUINodeDelegate_ == nullptr) {
+    return;
+  }
+  
+  auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
+  if (eventType == ArkUI_NodeEventType::NODE_ON_CLICK) {
+    arkUINodeDelegate_->OnClick();
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_APPEAR) {
+    arkUINodeDelegate_->OnAppear();
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
+    arkUINodeDelegate_->OnDisappear();
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_AREA_CHANGE) {
+    auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
+    ArkUI_NumberValue* data = nodeComponentEvent->data;   
+    arkUINodeDelegate_->OnAreaChange(data);    
+  }
+}
+
 void ArkUINode::RegisterClickEvent() {
   if (!hasClickEvent_) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_ON_CLICK, 0, nullptr));

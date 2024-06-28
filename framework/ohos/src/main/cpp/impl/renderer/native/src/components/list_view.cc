@@ -49,6 +49,7 @@ ListView::~ListView() {
 }
 
 void ListView::Init() {
+  BaseView::Init();
   auto weak_view = weak_from_this();
   end_batch_callback_id_ = ctx_->GetNativeRender().lock()->AddEndBatchCallback(ctx_->GetRootId(), [weak_view]() {
     auto view = weak_view.lock();

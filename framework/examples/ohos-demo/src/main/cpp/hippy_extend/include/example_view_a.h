@@ -30,7 +30,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ExampleViewA : public CustomView, public StackNodeDelegate {
+class ExampleViewA : public CustomView {
 public:
   ExampleViewA(std::shared_ptr<NativeRenderContext> &ctx);
   virtual ~ExampleViewA();
@@ -40,8 +40,6 @@ public:
 
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
-
-  void OnClick() override;
   
 private:
   StackNode stackNode_;

@@ -48,15 +48,15 @@ ImageNode::~ImageNode() {
 void ImageNode::SetNodeDelegate(ImageNodeDelegate *imageNodeDelegate) { imageNodeDelegate_ = imageNodeDelegate; }
 
 void ImageNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  ArkUINode::OnNodeEvent(event);
+  
   if (imageNodeDelegate_ == nullptr) {
     return;
   }
 
   auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
   auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
-  if (eventType == ArkUI_NodeEventType::NODE_ON_CLICK) {
-    imageNodeDelegate_->OnClick();
-  } else if (eventType == ArkUI_NodeEventType::NODE_IMAGE_ON_COMPLETE) {
+  if (eventType == ArkUI_NodeEventType::NODE_IMAGE_ON_COMPLETE) {
     if (nodeComponentEvent->data[0].i32 == 1) {
       imageNodeDelegate_->OnComplete(nodeComponentEvent->data[1].f32, nodeComponentEvent->data[2].f32);
     }
