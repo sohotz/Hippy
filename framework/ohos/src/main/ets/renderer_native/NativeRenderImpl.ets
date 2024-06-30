@@ -126,12 +126,6 @@ export class NativeRenderImpl implements NativeRender {
     return rootView
   }
 
-  attachToRootView(rootId: number): void {
-    if (this.frameworkProxy) {
-      this.frameworkProxy.attachToRootView(rootId)
-    }
-  }
-
   destroyRoot(rootId: number): void {
     if (this.frameworkProxy) {
       this.frameworkProxy.destroyRoot(rootId)

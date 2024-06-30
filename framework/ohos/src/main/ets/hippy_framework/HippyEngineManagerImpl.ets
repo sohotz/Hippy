@@ -78,10 +78,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   public nativeParams: HippyMap | null = null;
   public mEngineContext: HippyEngineContextImpl | null = null;
 
-  private isAttachedToRootView: boolean = false;
-  private cachedLoadParams: ModuleLoadParams | null = null;
-  private cachedLoadCallback: HippyModuleLoadCallback | null = null;
-  private cachedRootId: number = 0;
   private destroyCallback: Function | null = null;
 
   constructor(params: EngineInitParams) {
@@ -224,14 +220,9 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     this.mJsBundleLoader = coreBundleLoader;
 
     let rootView = this.nativeRenderProvider!.getNativeRenderImpl().createRootView(loadParams.componentName, {}, loadParams.wrappedCustomRenderViewBuilder)
-
-    if (this.isAttachedToRootView) { // TODO(hotxxx):
-      this.mEngineContext!.attachJsToRootView(this.cachedRootId)
-      this.loadJsModule(loadParams, this.cachedRootId, loadCallback)
-    } else {
-      this.cachedLoadParams = loadParams
-      this.cachedLoadCallback = loadCallback
-    }
+    this.mEngineContext!.attachDomToRootView(rootView.getRootId())
+    this.mEngineContext!.attachJsToRootView(rootView.getRootId())
+    this.loadJsModule(loadParams, rootView.getRootId(), loadCallback)
     return rootView;
   }
 
@@ -251,19 +242,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   onDestroyEngine(): void {
     if (this.mEngineContext != null) {
       this.mEngineContext.destroy(false);
-    }
-  }
-
-  attachToRootView(rootId: number): void {
-    this.mEngineContext!.attachDomToRootView(rootId)
-    this.isAttachedToRootView = true
-    if (this.cachedLoadParams && this.cachedLoadCallback) {
-      this.mEngineContext!.attachJsToRootView(rootId)
-      this.loadJsModule(this.cachedLoadParams, rootId, this.cachedLoadCallback)
-      this.cachedLoadParams = null
-      this.cachedLoadCallback = null
-    } else {
-      this.cachedRootId = rootId
     }
   }
 

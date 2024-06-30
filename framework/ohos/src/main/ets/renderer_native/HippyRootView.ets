@@ -61,9 +61,6 @@ export class HippyRootView {
   private initRenderView() {
     this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea)
     this.performAllRenderViewTasks()
-
-    // TODO(hot): for c api
-    //this.ctx.getNativeRender().attachToRootView(this.renderView.tag)
   }
 
   getRootId(): number {
