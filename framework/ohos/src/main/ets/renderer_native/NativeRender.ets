@@ -17,17 +17,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyRootView } from '.';
 import { HippyException } from '../support/common/HippyException';
 import { HippyExecutor } from '../support/common/HippyExecutor';
+import { HippyRecord } from '../support/common/HippyTypes';
 import { VfsManager } from '../vfs/VfsManager';
 import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter';
 import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
 import { FrameworkProxy } from './FrameworkProxy'
+import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder';
 import { HRManager } from './uimanager/HRManager';
 import { HippyEndBatchCallback } from './uimanager/HRViewManager';
 
 export interface NativeRender {
+  createRootView(pageName: string, pageData: HippyRecord, wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null): HippyRootView
+
   attachToRootView(rootId: number): void
 
   destroyRoot(rootId: number): void

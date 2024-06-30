@@ -51,6 +51,7 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
 
   setInstanceId(instanceId: number) {
     this.instanceId = instanceId
+    this.renderImpl.setInstanceId(instanceId)
     NativeRenderProviderManager.addRenderProvider(instanceId, this)
   }
 

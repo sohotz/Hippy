@@ -48,11 +48,13 @@ import { HippyEngineContext } from './HippyEngineContext'
 import { HippyFileAdapter } from './adapter/file/HippyFileAdapter';
 import { FileRequestAdapter } from './adapter/file/FileRequestAdapter';
 import { LogUtils } from '../support/utils/LogUtils';
+import { HippyRootView } from '../renderer_native';
+import { WrappedHippyCustomRenderViewBuilder } from '../renderer_native/HippyRenderViewBuilder';
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
 
-  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): number
+  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): HippyRootView | null
 
   destroyModule(rootId: number, destroyCallback: HippyModuleDestroyCallback): void
 
@@ -219,6 +221,8 @@ export class ModuleLoadParams {
   // 可选参数 code cache的名字，如果设置为空，则不启用code cache，默认为 ""
   public codeCacheTag = "";
   public bundleLoader: HippyBundleLoader | null = null;
+
+  public wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null = null;
 
   public constructor(
     jsAssetsPath = '',

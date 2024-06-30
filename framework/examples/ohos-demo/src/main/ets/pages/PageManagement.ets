@@ -161,7 +161,7 @@ struct PageManagement {
                     let item  = this.pageitems[index];
                     // hippyEngine 销毁实例
                     LogUtils.i('hippy demo', 'destroyModule');
-                    item.hippyEngine?.destroyModule(item.rootViewId, () => {
+                    item.hippyEngine?.destroyModule(item.rootViewWrapper!.getRootView()!.getRootId(), () => {
                       LogUtils.i('hippy demo', 'destroyModule success');
                       item.hippyEngine?.destroyEngine();
                       LogUtils.i('hippy demo', 'destroyEngine success');
@@ -263,15 +263,6 @@ struct PageManagement {
   }
 }
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-  if ($$ instanceof ExampleViewA) {
-    ExampleComponentA({ renderView: $$ as ExampleViewA, children: $$.children })
-  } else if ($$ instanceof ExampleViewB) {
-    ExampleComponentB({ renderView: $$ as ExampleViewB, children: $$.children })
-  }
-}
-
 @Component
 struct HippyFrame {
   @StorageLink('pageManagementItems') pageitems:HippyInfo[]  = [] //AppStorage.get('pageManagementItems') as InitParams[]
@@ -286,9 +277,7 @@ struct HippyFrame {
     Column() {
       HippyRoot({
         hippyEngine: this.hippyEngine,
-        pagerName: 'demo',
-        pagerData: {},
-        wrappedCustomRenderViewBuilder: wrapBuilder(buildCustomRenderView),
+        rootViewWrapper: this.itemInfo?.rootViewWrapper,
         onRenderException: (exception: HippyException) => {
           this.exception = `${exception.message}\n${exception.stack}`
         },

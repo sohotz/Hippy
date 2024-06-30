@@ -27,8 +27,8 @@ import HippyRenderBaseView
 import {
   HRRenderViewCreator
 } from 'hippy/src/main/ets/renderer_native/components/HippyRenderRegisterMap'
-import { ExampleViewA } from './ExampleViewA'
-import { ExampleViewB } from './ExampleViewB'
+import { ExampleComponentA, ExampleViewA } from './ExampleViewA'
+import { ExampleComponentB, ExampleViewB } from './ExampleViewB'
 import { ExampleNativeModule } from './ExampleNativeModule'
 
 export class ExampleAPIProvider implements HippyAPIProvider {
@@ -57,4 +57,14 @@ export class ExampleAPIProvider implements HippyAPIProvider {
     return null
   }
 
+}
+
+
+@Builder
+export function buildCustomRenderView($$: HippyRenderBaseView) {
+  if ($$ instanceof ExampleViewA) {
+    ExampleComponentA({ renderView: $$ as ExampleViewA, children: $$.children })
+  } else if ($$ instanceof ExampleViewB) {
+    ExampleComponentB({ renderView: $$ as ExampleViewB, children: $$.children })
+  }
 }

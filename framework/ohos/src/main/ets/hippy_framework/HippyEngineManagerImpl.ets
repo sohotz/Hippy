@@ -53,6 +53,7 @@ import { LogUtils } from '../support/utils/LogUtils';
 import { HippyAny, HippyMap } from '../support/common/HippyTypes';
 import { DeviceEventModule } from './modules/native';
 import { EventDispatcher } from './modules/javascript/EventDispatcher';
+import { HippyRootView } from '../renderer_native';
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
   private libHippy: HippyLibrary
@@ -207,10 +208,10 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     this.restartEngine(initCallback);
   }
 
-  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): number {
+  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): HippyRootView | null {
     const jsDriver = this.mEngineContext?.getJsDriver();
     if (!jsDriver || !this.getVfsManager() || !this.resourceManager) {
-      return 0;
+      return null;
     }
     let coreBundleLoader: HippyBundleLoader | null = null;
     if (!TextUtils.isEmpty(loadParams.jsAssetsPath)) {
@@ -222,14 +223,16 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy {
     }
     this.mJsBundleLoader = coreBundleLoader;
 
-    if (this.isAttachedToRootView) {
+    let rootView = this.nativeRenderProvider!.getNativeRenderImpl().createRootView(loadParams.componentName, {}, loadParams.wrappedCustomRenderViewBuilder)
+
+    if (this.isAttachedToRootView) { // TODO(hotxxx):
       this.mEngineContext!.attachJsToRootView(this.cachedRootId)
       this.loadJsModule(loadParams, this.cachedRootId, loadCallback)
     } else {
       this.cachedLoadParams = loadParams
       this.cachedLoadCallback = loadCallback
     }
-    return this.cachedRootId;
+    return rootView;
   }
 
   destroyModule(rootId: number, destroyCallback: HippyModuleDestroyCallback): void {

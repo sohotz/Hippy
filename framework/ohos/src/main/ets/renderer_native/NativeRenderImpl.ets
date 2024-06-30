@@ -21,7 +21,8 @@ import TextMeasurer from "@ohos.measure"
 import { HippyLibrary } from '../hippy_library/HippyLibrary'
 import { HippyException } from '../support/common/HippyException'
 import { HippyExecutor } from '../support/common/HippyExecutor'
-import { HippyAny, HippyMap, HippyValue, HippyRenderCallback } from '../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyValue, HippyRenderCallback,
+  HippyRecord } from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
 import { VfsManager } from '../vfs/VfsManager'
 import {
@@ -58,6 +59,8 @@ import { HRRect, HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
 import { BuilderNode, FrameNode } from '@kit.ArkUI'
 import HippyRenderBaseView from './components/base/HippyRenderBaseView'
+import { HippyRootView } from '.'
+import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -79,6 +82,10 @@ export interface NativeRenderEventHandler {
 export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
   private readonly INVALID_NODE_ID = -1
+  private readonly ROOT_VIEW_ID_INCREMENT = 10
+  private static sRootIdCounter = 0
+
+  private instanceId: number = 0
 
   private eventHandler: NativeRenderEventHandler
 
@@ -99,12 +106,24 @@ export class NativeRenderImpl implements NativeRender {
     this.renderManager = new HRManager()
   }
 
+  setInstanceId(instanceId: number) {
+    this.instanceId = instanceId
+  }
+
   getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
     return this.customRenderViewCreatorMap
   }
 
   setFrameworkProxy(proxy: FrameworkProxy) {
     this.frameworkProxy = proxy
+  }
+
+  createRootView(pageName: string, pageData: HippyRecord, wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null): HippyRootView {
+    NativeRenderImpl.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
+    let rootId = NativeRenderImpl.sRootIdCounter
+    let rootView = new HippyRootView(this.instanceId, rootId, this.customRenderViewCreatorMap, this,
+      wrappedCustomRenderViewBuilder, pageName, pageData)
+    return rootView
   }
 
   attachToRootView(rootId: number): void {
