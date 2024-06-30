@@ -39,7 +39,6 @@
 #include "renderer/components/text_input_view.h"
 #include "renderer/components/waterfall_item_view.h"
 #include "renderer/components/waterfall_view.h"
-#include "renderer/components/web_view.h"
 
 namespace hippy {
 inline namespace render {
@@ -90,10 +89,6 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_
     auto view = std::make_shared<TextInputView>(ctx);
     view->Init();
     return view;
-  } else if (view_name == "WebView") {
-    auto view = std::make_shared<WebView>(ctx);
-    view->Init();
-    return view;
   } else if (view_name == "ViewPager") {
     auto view = std::make_shared<PagerView>(ctx);
     view->Init();
@@ -127,6 +122,8 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_
     view->Init();
     return view;
   }
+  
+  // no WebView, for no c-api for WebView, so use ts WebView
   
   return nullptr;
 }

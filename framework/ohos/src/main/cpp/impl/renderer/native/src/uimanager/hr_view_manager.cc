@@ -137,7 +137,7 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
 
 std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
   // custom ts view
-  if (custom_ts_render_views_.find(view_name) != custom_ts_render_views_.end()) {
+  if (IsCustomTsRenderView(view_name)) {
     return CreateCustomTsRenderView(tag, view_name, is_parent_text);
   }
   
@@ -236,7 +236,7 @@ void HRViewManager::Move2RenderView(std::vector<uint32_t> tags, uint32_t newPare
 void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
   if (view) {
     // custom ts view
-    if (custom_ts_render_views_.find(view->GetViewType()) != custom_ts_render_views_.end()) {
+    if (IsCustomTsRenderView(view->GetViewType())) {
       UpdateCustomTsProps(view, props, deleteProps);
       return;
     }
@@ -274,7 +274,7 @@ void HRViewManager::UpdateEventListener(uint32_t tag, HippyValueObjectType &prop
   std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
   if (renderView) {
     // custom ts view
-    if (custom_ts_render_views_.find(renderView->GetViewType()) != custom_ts_render_views_.end()) {
+    if (IsCustomTsRenderView(renderView->GetViewType())) {
       UpdateCustomTsEventListener(tag, props);
       return;
     }
@@ -298,7 +298,7 @@ void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const 
   std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
   if (renderView) {
     // custom ts view
-    if (custom_ts_render_views_.find(renderView->GetViewType()) != custom_ts_render_views_.end()) {
+    if (IsCustomTsRenderView(renderView->GetViewType())) {
       renderView->SetRenderViewFrame(frame, padding);
       SetCustomTsRenderViewFrame(tag, frame, padding);
       return;
@@ -345,6 +345,11 @@ void HRViewManager::NotifyEndBatchCallbacks() {
     auto &cb = callback.second;
     cb();
   }
+}
+
+bool HRViewManager::IsCustomTsRenderView(std::string &view_name) {
+  // custom ts view or WebView (no c-api for WebView)
+  return custom_ts_render_views_.find(view_name) != custom_ts_render_views_.end() || view_name == "WebView";
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {

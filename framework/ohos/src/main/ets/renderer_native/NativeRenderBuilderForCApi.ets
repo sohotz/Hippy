@@ -52,7 +52,6 @@ export interface SetRenderViewFrameParamsForCApi {
 @Builder
 export function buildHippyRenderViewForCApi($$: HippyRenderBaseView) {
   if ($$ instanceof HRWebView) {
-    // TODO(hot):
     HRWeb({
       renderView: $$ as HRWebView,
       children: $$.children,
