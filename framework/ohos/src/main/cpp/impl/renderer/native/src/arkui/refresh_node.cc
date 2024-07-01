@@ -33,6 +33,26 @@ RefreshNode::RefreshNode()
 
 RefreshNode::~RefreshNode() {}
 
+void RefreshNode::SetNodeDelegate(RefreshNodeDelegate *refreshNodeDelegate){
+   refreshNodeDelegate_ =  refreshNodeDelegate;
+}
+
+void RefreshNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  if (!refreshNodeDelegate_) {
+    return;
+  }
+  auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
+  auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
+  if (eventType == ArkUI_NodeEventType::NODE_REFRESH_STATE_CHANGE) {
+    int32_t state = nodeComponentEvent->data[0].i32;    
+    refreshNodeDelegate_->OnStateChange(state);
+  } else if(eventType == ArkUI_NodeEventType::NODE_REFRESH_ON_REFRESH){
+    refreshNodeDelegate_->OnRefreshing();    
+  } else if(eventType == ArkUI_NodeEventType::NODE_REFRESH_ON_OFFSET_CHANGE){
+    float offset = nodeComponentEvent->data[0].f32;    
+    refreshNodeDelegate_->OnOffsetChange(offset);
+  }
+}
 
 } // namespace native
 } // namespace render
