@@ -28,12 +28,22 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class RefreshNodeDelegate {
+public:
+  virtual ~RefreshNodeDelegate() = default;
+  virtual void OnRefreshing() {}
+  virtual void OnStateChange(int32_t state) {}
+  virtual void OnOffsetChange(float_t offset) {}
+};
+
 class RefreshNode : public ArkUINode {
 protected:
+  RefreshNodeDelegate *refreshNodeDelegate_ = nullptr;  
 public:
   RefreshNode();
   ~RefreshNode();
-
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;
+  void SetNodeDelegate(RefreshNodeDelegate *refreshNodeDelegate);    
 };
 
 } // namespace native
