@@ -29,8 +29,14 @@
 #import "HippyLog.h"
 #import "HippyParserUtils.h"
 #import "HippyUtils.h"
-
 #include <objc/message.h>
+
+static NSString *const kHippyPromise = @"HippyPromise";
+static NSString *const kHippyResponseSenderBlock = @"HippyResponseSenderBlock";
+static NSString *const kHippyResponseErrorBlock = @"HippyResponseErrorBlock";
+static NSString *const kHippyPromiseResolveBlock = @"HippyPromiseResolveBlock";
+static NSString *const kHippyPromiseRejectBlock = @"HippyPromiseRejectBlock";
+
 
 typedef BOOL (^HippyArgumentBlock)(HippyBridge *, NSUInteger, id);
 
@@ -292,39 +298,55 @@ static void enqueueBlockCallback(HippyBridge *bridge, HippyModuleMethod *moduleM
                     }
                 }
             }
-        } else if ([typeName isEqualToString:@"HippyResponseSenderBlock"]) {
-            HIPPY_ARG_BLOCK(if (HIPPY_DEBUG && json && ![json isKindOfClass:[NSNumber class]]) {
-                HippyLogArgumentError(weakSelf, index, json, "should be a function");
-                return NO;
-            }
-            __weak HippyBridge *weakBridge = bridge;
-            Hippy_BLOCK_ARGUMENT(^(NSArray *args) {
-                enqueueBlockCallback(weakBridge, weakSelf, json, args);
-            });)
-        } else if ([typeName isEqualToString:@"HippyResponseErrorBlock"]) {
-            HIPPY_ARG_BLOCK(if (HIPPY_DEBUG && json && ![json isKindOfClass:[NSNumber class]]) {
-                HippyLogArgumentError(weakSelf, index, json, "should be a function");
-                return NO;
-            }
-            __weak HippyBridge *weakBridge = bridge;
-            Hippy_BLOCK_ARGUMENT(^(NSError *error) {
-                NSArray *errorArgs = @[HippyJSErrorFromNSError(error)];
-                enqueueBlockCallback(weakBridge, weakSelf, json, errorArgs);
-            });)
-        } else if ([typeName isEqualToString:@"HippyPromiseResolveBlock"]) {
-            if (i != numberOfArguments - 2) {
-                HippyLogWarn(@"HippyPromiseResolveBlock should be the second to last parameter in -[%@ %@]", _moduleClass, _methodSignature);
-            }
+        } else if ([typeName isEqualToString:kHippyResponseSenderBlock]) {
+            isNullableType = YES;
             HIPPY_ARG_BLOCK(
-                if (!json) {
-                    HippyLogArgumentError(weakSelf, index, json, "should be a promise resolver function");
-                    return NO;
-                }
                 id blockArg = nil;
                 if (![json isKindOfClass:[NSNumber class]]) {
                     // In Hippy3.0, Dom Nodes call function by method name directly,
                     // so it is not a Number anymore.
                     // See NativeRenderManager::CallFunction() for more.
+                    // TODO: add more type check for safe
+                    blockArg = json;
+                } else {
+                    __weak HippyBridge *weakBridge = bridge;
+                    blockArg = ^(NSArray *args){
+                        enqueueBlockCallback(weakBridge, weakSelf, json, args);
+                    };
+                }
+                Hippy_BLOCK_ARGUMENT(blockArg);
+            )
+        } else if ([typeName isEqualToString:kHippyResponseErrorBlock]) {
+            isNullableType = YES;
+            HIPPY_ARG_BLOCK(
+                id blockArg = nil;
+                if (![json isKindOfClass:[NSNumber class]]) {
+                    // In Hippy3.0, Dom Nodes call function by method name directly,
+                    // so it is not a Number anymore.
+                    // See NativeRenderManager::CallFunction() for more.
+                    // TODO: add more type check for safe
+                    blockArg = json;
+                } else {
+                    __weak HippyBridge *weakBridge = bridge;
+                    blockArg = ^(NSError *error) {
+                        NSArray *errorArgs = @[HippyJSErrorFromNSError(error)];
+                        enqueueBlockCallback(weakBridge, weakSelf, json, errorArgs);
+                    };
+                }
+                Hippy_BLOCK_ARGUMENT(blockArg);
+            )
+        } else if ([typeName isEqualToString:kHippyPromiseResolveBlock]) {
+            isNullableType = YES;
+            if (i != numberOfArguments - 2) {
+                HippyLogWarn(@"HippyPromiseResolveBlock should be the second to last parameter in -[%@ %@]", _moduleClass, _methodSignature);
+            }
+            HIPPY_ARG_BLOCK(
+                id blockArg = nil;
+                if (![json isKindOfClass:[NSNumber class]]) {
+                    // In Hippy3.0, Dom Nodes call function by method name directly,
+                    // so it is not a Number anymore.
+                    // See NativeRenderManager::CallFunction() for more.
+                    // TODO: add more type check for safe
                     blockArg = json;
                 } else {
                     __weak HippyBridge *weakBridge = bridge;
@@ -335,20 +357,27 @@ static void enqueueBlockCallback(HippyBridge *bridge, HippyModuleMethod *moduleM
                 }
                 Hippy_BLOCK_ARGUMENT(blockArg);
             )
-        } else if ([typeName isEqualToString:@"HippyPromiseRejectBlock"]) {
+        } else if ([typeName isEqualToString:kHippyPromiseRejectBlock]) {
+            isNullableType = YES;
             HippyAssert(i == numberOfArguments - 1,
                         @"HippyPromiseRejectBlock must be the last parameter in -[%@ %@]", _moduleClass, _methodSignature);
             HIPPY_ARG_BLOCK(
-                if (HIPPY_DEBUG && ![json isKindOfClass:[NSNumber class]]) {
-                    HippyLogArgumentError(weakSelf, index, json, "should be a promise rejecter function");
-                    return NO;
+                id blockArg = nil;
+                if (![json isKindOfClass:[NSNumber class]]) {
+                    // In Hippy3.0, Dom Nodes call function by method name directly,
+                    // so it is not a Number anymore.
+                    // See NativeRenderManager::CallFunction() for more.
+                    // TODO: add more type check for safe
+                    blockArg = json;
+                } else {
+                    __weak HippyBridge *weakBridge = bridge;
+                    blockArg = ^(NSString *code, NSString *message, NSError *error) {
+                        NSDictionary *errorJSON = HippyJSErrorFromCodeMessageAndNSError(code, message, error);
+                        NSArray *args = @[errorJSON];
+                        enqueueBlockCallback(weakBridge, weakSelf, json, args);
+                    };
                 }
-                __weak HippyBridge *weakBridge = bridge;
-                Hippy_BLOCK_ARGUMENT(^(NSString *code, NSString *message, NSError *error) {
-                    NSDictionary *errorJSON = HippyJSErrorFromCodeMessageAndNSError(code, message, error);
-                    NSArray *args = @[errorJSON];
-                    enqueueBlockCallback(weakBridge, weakSelf, json, args);
-                });
+                Hippy_BLOCK_ARGUMENT(blockArg);
             )
         } else if ([HippyTurboModuleManager isTurboModule:typeName]) {
             [argumentBlocks addObject:^(__unused HippyBridge * bridge, NSUInteger index, id json) {
@@ -406,9 +435,11 @@ static void enqueueBlockCallback(HippyBridge *bridge, HippyModuleMethod *moduleM
                             }
                         }
                         return YES;
+                    } else if (!isNullableType){
+                        HippyLogArgumentError(weakSelf, index, typeName, "must not be null");
+                        return NO;
                     }
-                    HippyLogArgumentError(weakSelf, index, typeName, "must not be null");
-                    return NO;
+                    return YES;
                 };
             }
         }
@@ -443,13 +474,11 @@ static void enqueueBlockCallback(HippyBridge *bridge, HippyModuleMethod *moduleM
 }
 
 - (HippyFunctionType)functionType {
-    if ([_methodSignature rangeOfString:@"HippyPromise"].length) {
+    if ([_methodSignature rangeOfString:kHippyPromise].length) {
         return HippyFunctionTypePromise;
-    }
-    else if ([_methodSignature rangeOfString:@"HippyResponseSenderBlock"].length) {
+    } else if ([_methodSignature rangeOfString:kHippyResponseSenderBlock].length) {
         return HippyFunctionTypeCallback;
-    }
-    else {
+    } else {
         return HippyFunctionTypeNormal;
     }
 }
@@ -464,41 +493,42 @@ static void enqueueBlockCallback(HippyBridge *bridge, HippyModuleMethod *moduleM
                   %@ on a module of class %@", [self methodName], [module class]);
 
         // Safety check
-        if (arguments.count != _argumentBlocks.count) {
-            NSInteger actualCount = arguments.count;
-            NSInteger expectedCount = _argumentBlocks.count;
-
-            // Subtract the implicit Promise resolver and rejecter functions for implementations of async functions
-            if (self.functionType == HippyFunctionTypePromise) {
-                actualCount -= 2;
-                expectedCount -= 2;
+        NSInteger actualCount = arguments.count;
+        NSInteger expectedCount = _argumentBlocks.count;
+        BOOL isArgumentsMismatch = NO;
+        if (actualCount > expectedCount) {
+            isArgumentsMismatch = YES;
+        } else if (self.functionType == HippyFunctionTypePromise && actualCount < expectedCount - 2) {
+            for (NSInteger index = actualCount; index < expectedCount - 2; index++) {
+                id<HippyBridgeArgument> arg = self.arguments[index];
+                if (arg.nullability != HippyNullable) {
+                    isArgumentsMismatch = YES;
+                }
             }
-
-            HippyLogError(@"%@.%@ was called with %ld arguments, but expects %ld. \
-                        If you haven\'t changed this method "
-                          @"yourself, this usually means that \
-                        your versions of the native code and JavaScript code are out "
-                          @"of sync. \
-                        Updating both should make this error go away.",
-                HippyBridgeModuleNameForClass(_moduleClass), self.JSMethodName, (long)actualCount, (long)expectedCount);
+        }
+        if (isArgumentsMismatch) {
+            HippyLogError(@"%@.%@ was called with %lld arguments but expects %lld arguments. "
+                          @"If you haven\'t changed this method yourself, this usually means that "
+                          @"your versions of the native code and JavaScript code are out of sync. "
+                          @"Updating both should make this error go away.",
+                          HippyBridgeModuleNameForClass(_moduleClass),
+                          self.JSMethodName,
+                          (long long)actualCount,
+                          (long long)expectedCount);
         }
     }
 
     // Set arguments
-    NSUInteger index = 0;
-    for (id json in arguments) {
-        // release模式下，如果前端给的参数多于终端所需参数，那会造成数组越界，引起整个逻辑return。
-        //这里做个修改，如果前端给的参数过多，那忽略多余的参数。
-        if ([_argumentBlocks count] <= index) {
-            break;
-        }
+    // If front-end gives too few arguments, nil is added.
+    // If front-end provides too many parameters, ignore the redundant parameters.
+    for (NSUInteger index = 0; index < [_argumentBlocks count]; index++) {
+        id json = (index < arguments.count) ? arguments[index] : (id)kCFNull;
         HippyArgumentBlock block = _argumentBlocks[index];
         if (!block(bridge, index, HippyNilIfNull(json))) {
             // Invalid argument, abort
             HippyLogArgumentError(self, index, json, "could not be processed. Aborting method call.");
             return nil;
         }
-        index++;
     }
 
     // Invoke method
@@ -509,7 +539,7 @@ static void enqueueBlockCallback(HippyBridge *bridge, HippyModuleMethod *moduleM
          "type encoding (%s) has to be added below.",
         @encode(HippyArgumentBlock));
 
-    index = 2;
+    NSUInteger index = 2;
     for (NSUInteger length = _invocation.methodSignature.numberOfArguments; index < length; index++) {
         if ([_invocation.methodSignature getArgumentTypeAtIndex:index][0] == _C_ID) {
             __unsafe_unretained id value;

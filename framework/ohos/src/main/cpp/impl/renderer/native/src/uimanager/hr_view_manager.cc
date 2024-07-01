@@ -25,6 +25,7 @@
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_napi_object.h"
 #include "oh_napi/oh_napi_object_builder.h"
+#include "renderer/api/hippy_view_provider.h"
 #include "renderer/components/custom_ts_view.h"
 #include "renderer/components/custom_view.h"
 #include "renderer/components/hippy_render_view_creator.h"
@@ -136,13 +137,14 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
 
 std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
   // custom ts view
-  if (custom_ts_render_views_.find(view_name) != custom_ts_render_views_.end()) {
+  if (IsCustomTsRenderView(view_name)) {
     return CreateCustomTsRenderView(tag, view_name, is_parent_text);
   }
   
   // custom cpp view
-  if (custom_render_views_.find(view_name) != custom_render_views_.end()) {
-    return CreateCustomRenderView(tag, view_name, is_parent_text);
+  auto custom_view = CreateCustomRenderView(tag, view_name, is_parent_text);
+  if (custom_view) {
+    return custom_view;
   }
   
   // build-in view
@@ -234,7 +236,7 @@ void HRViewManager::Move2RenderView(std::vector<uint32_t> tags, uint32_t newPare
 void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
   if (view) {
     // custom ts view
-    if (custom_ts_render_views_.find(view->GetViewType()) != custom_ts_render_views_.end()) {
+    if (IsCustomTsRenderView(view->GetViewType())) {
       UpdateCustomTsProps(view, props, deleteProps);
       return;
     }
@@ -272,7 +274,7 @@ void HRViewManager::UpdateEventListener(uint32_t tag, HippyValueObjectType &prop
   std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
   if (renderView) {
     // custom ts view
-    if (custom_ts_render_views_.find(renderView->GetViewType()) != custom_ts_render_views_.end()) {
+    if (IsCustomTsRenderView(renderView->GetViewType())) {
       UpdateCustomTsEventListener(tag, props);
       return;
     }
@@ -296,7 +298,8 @@ void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const 
   std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
   if (renderView) {
     // custom ts view
-    if (custom_ts_render_views_.find(renderView->GetViewType()) != custom_ts_render_views_.end()) {
+    if (IsCustomTsRenderView(renderView->GetViewType())) {
+      renderView->SetRenderViewFrame(frame, padding);
       SetCustomTsRenderViewFrame(tag, frame, padding);
       return;
     }
@@ -315,6 +318,18 @@ void HRViewManager::CallViewMethod(uint32_t tag, const std::string &method, cons
   }
 }
 
+LayoutSize HRViewManager::CallCustomMeasure(uint32_t tag,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode) {
+  auto it = view_registry_.find(tag);
+  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  if (renderView) {
+    auto customView = std::static_pointer_cast<CustomView>(renderView);
+    return customView->CustomMeasure(width, width_measure_mode, height, height_measure_mode);
+  }
+  return {0, 0};
+}
+
 uint64_t HRViewManager::AddEndBatchCallback(const EndBatchCallback &cb) {
   ++end_batch_callback_id_count_;
   end_batch_callback_map_[end_batch_callback_id_count_] = std::move(cb);
@@ -330,6 +345,11 @@ void HRViewManager::NotifyEndBatchCallbacks() {
     auto &cb = callback.second;
     cb();
   }
+}
+
+bool HRViewManager::IsCustomTsRenderView(std::string &view_name) {
+  // custom ts view or WebView (no c-api for WebView)
+  return custom_ts_render_views_.find(view_name) != custom_ts_render_views_.end() || view_name == "WebView";
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
@@ -366,6 +386,7 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   napi_close_handle_scope(ts_env_, scope);
   
   auto view = std::make_shared<CustomTsView>(ctx_, nodeHandle);
+  view->Init();
   view->SetTag(tag);
   view->SetViewType(view_name);
   view_registry_[tag] = view;
@@ -439,6 +460,18 @@ void HRViewManager::SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  auto creator_map = HippyViewProvider::GetCustomViewCreatorMap();
+  auto it = creator_map.find(view_name);
+  if (it != creator_map.end()) {
+    auto view = it->second(ctx_);
+    if (view) {
+      view->Init();
+      view->SetTag(tag);
+      view->SetViewType(view_name);
+      view_registry_[tag] = view;
+      return view;
+    }
+  }
   return nullptr;
 }
 

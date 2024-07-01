@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Hippy2Map,
+import {
   HippyAny,
   HippyArray, HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { TextUtils } from '../../support/utils/TextUtils';
@@ -58,7 +58,6 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
 
   isCallback(): boolean {
     return !TextUtils.equals(this.mCallId, HippyModulePromiseImpl.CALL_ID_NO_CALLBACK);
-    ;
   }
 
   getCallId(): string {

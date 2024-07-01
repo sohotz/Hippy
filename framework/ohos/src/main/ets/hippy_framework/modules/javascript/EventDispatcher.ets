@@ -28,19 +28,19 @@ export class EventDispatcher extends HippyJavaScriptModuleBase {
     this.callJs(EventDispatcher.MODULE_NAME, EventDispatcher.METHOD_RECEIVE_NATIVE_GESTURE, param, null);
   }
 
-  public receiveUIComponentEvent(tagId: number, eventName: string, eventParam: HippyMap | null): void {
-    let param = new Map<string,  HippyMap | HippyValue>();
+  public receiveUIComponentEvent(tagId: number, eventName: string, eventParam: HippyAny): void {
+    let param = new Map<string,  HippyAny>();
     param.set('tagId', tagId);
     param.set('eventName', eventName);
     param.set('param', eventParam ?? '');
     this.callJs(EventDispatcher.MODULE_NAME, EventDispatcher.METHOD_RECEIVE_UI_COMPONENT_EVENT, param, null);
   }
 
-  public receiveNativeEvent(eventName: string, eventParam: HippyMap | null): void {
-    let param = new Map<string,  HippyMap | HippyValue>();
+  public receiveNativeEvent(eventName: string, eventParam: HippyAny): void {
+    let param = new Map<string,  HippyAny>();
     param.set('eventName', eventName);
     param.set('param', eventParam ?? '');
-    this.callJs(EventDispatcher.MODULE_NAME, EventDispatcher.METHOD_RECEIVE_UI_COMPONENT_EVENT, param, null);
+    this.callJs(EventDispatcher.MODULE_NAME, EventDispatcher.METHOD_RECEIVE_NATIVE_EVENT, param, null);
   }
 }
 

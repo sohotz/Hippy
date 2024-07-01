@@ -79,11 +79,22 @@
 #include "devtools/devtools_data_source.h"
 #endif
 
+
+NSString *const _HippySDKVersion = @HIPPY_STR(HIPPY_VERSION);
 NSString *const HippyReloadNotification = @"HippyReloadNotification";
+NSString *const HippyJavaScriptWillStartLoadingNotification = @"HippyJavaScriptWillStartLoadingNotification";
+NSString *const HippyJavaScripDidLoadSourceCodeNotification = @"HippyJavaScripDidLoadSourceCodeNotification";
 NSString *const HippyJavaScriptDidLoadNotification = @"HippyJavaScriptDidLoadNotification";
 NSString *const HippyJavaScriptDidFailToLoadNotification = @"HippyJavaScriptDidFailToLoadNotification";
 NSString *const HippyDidInitializeModuleNotification = @"HippyDidInitializeModuleNotification";
-NSString *const _HippySDKVersion = @HIPPY_STR(HIPPY_VERSION);
+
+NSString *const kHippyNotiBridgeKey = @"bridge";
+NSString *const kHippyNotiBundleUrlKey = @"bundleURL";
+NSString *const kHippyNotiBundleTypeKey = @"bundleType";
+NSString *const kHippyNotiErrorKey = @"error";
+
+const NSUInteger HippyBridgeBundleTypeVendor = 1;
+const NSUInteger HippyBridgeBundleTypeBusiness = 2;
 
 
 static NSString *const HippyNativeGlobalKeyOS = @"OS";
@@ -133,7 +144,6 @@ static inline void registerLogDelegateToHippyCore() {
 
 
 @interface HippyBridge() {
-    NSMutableArray<Class<HippyImageProviderProtocol>> *_imageProviders;
     __weak id<HippyMethodInterceptorProtocol> _methodInterceptor;
     HippyModulesSetup *_moduleSetup;
     __weak NSOperation *_lastOperation;
@@ -176,6 +186,7 @@ static inline void registerLogDelegateToHippyCore() {
 
 @synthesize renderManager = _renderManager;
 @synthesize imageLoader = _imageLoader;
+@synthesize imageProviders = _imageProviders;
 
 dispatch_queue_t HippyJSThread;
 
@@ -230,10 +241,7 @@ dispatch_queue_t HippyBridgeQueue() {
         _startTime = footstone::TimePoint::SystemNow();
         HippyLogInfo(@"HippyBridge init begin, self:%p", self);
         registerLogDelegateToHippyCore();
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(rootViewContentDidAppear:)
-                                                     name:HippyContentDidAppearNotification object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onFirstContentfulPaintEnd:)
-                                                     name:HippyFirstContentfulPaintEndNotification object:nil];
+
         HippyExecuteOnMainThread(^{
             self->_isOSNightMode = [HippyDeviceBaseInfo isUIScreenInOSDarkMode];
             self.cachedDimensionsInfo = hippyExportedDimensions(self);
@@ -254,53 +262,6 @@ dispatch_queue_t HippyBridgeQueue() {
         HippyLogInfo(@"HippyBridge init end, self:%p", self);
     }
     return self;
-}
-
-- (void)rootViewContentDidAppear:(NSNotification *)noti {
-    UIView *rootView = [noti object];
-    if (rootView) {
-        auto viewRenderManager = [rootView renderManager];
-        if (_renderManager && _renderManager == viewRenderManager.lock()) {
-            std::shared_ptr<hippy::Scope> scope = _javaScriptExecutor.pScope;
-            if (!scope) {
-                return;
-            }
-            auto domManager = scope->GetDomManager().lock();
-            auto performance = scope->GetPerformance();
-            if (domManager && performance) {
-                auto entry = performance->PerformanceNavigation(hippy::kPerfNavigationHippyInit);
-                if (!entry) {
-                    return;
-                }
-                entry->SetHippyDomStart(domManager->GetDomStartTimePoint());
-                entry->SetHippyDomEnd(domManager->GetDomEndTimePoint());
-                entry->SetHippyFirstFrameStart(domManager->GetDomEndTimePoint());
-                entry->SetHippyFirstFrameEnd(footstone::TimePoint::SystemNow());
-            }
-        }
-    }
-}
-
-- (void)onFirstContentfulPaintEnd:(NSNotification *)noti {
-    UIView *fcpView = [noti object];
-    if (fcpView) {
-        auto viewRenderManager = [fcpView renderManager];
-        if (_renderManager && _renderManager == viewRenderManager.lock()) {
-            std::shared_ptr<hippy::Scope> scope = _javaScriptExecutor.pScope;
-            if (!scope) {
-                return;
-            }
-            auto domManager = scope->GetDomManager().lock();
-            auto performance = scope->GetPerformance();
-            if (domManager && performance) {
-                auto entry = performance->PerformanceNavigation(hippy::kPerfNavigationHippyInit);
-                if (!entry) {
-                    return;
-                }
-                entry->SetHippyFirstContentfulPaintEnd(footstone::TimePoint::SystemNow());
-            }
-        }
-    }
 }
 
 - (void)dealloc {
@@ -371,25 +332,6 @@ dispatch_queue_t HippyBridgeQueue() {
     return nil;
 }
 
-- (void)addImageProviderClass:(Class<HippyImageProviderProtocol>)cls {
-    HippyAssertParam(cls);
-    @synchronized (self) {
-        if (!_imageProviders) {
-            _imageProviders = [NSMutableArray array];
-        }
-        [_imageProviders addObject:cls];
-    }
-}
-
-- (NSArray<Class<HippyImageProviderProtocol>> *)imageProviderClasses {
-    @synchronized (self) {
-        if (!_imageProviders) {
-            _imageProviders = [NSMutableArray array];
-        }
-        return [_imageProviders copy];
-    }
-}
-
 - (NSArray *)modulesConformingToProtocol:(Protocol *)protocol {
     NSMutableArray *modules = [NSMutableArray new];
     for (Class moduleClass in self.moduleClasses) {
@@ -432,26 +374,38 @@ dispatch_queue_t HippyBridgeQueue() {
     }
 }
 
+- (NSArray<Class<HippyImageProviderProtocol>> *)imageProviders {
+    @synchronized (self) {
+        if (!_imageProviders) {
+            NSMutableArray *moduleClasses = [NSMutableArray new];
+            for (Class moduleClass in self.moduleClasses) {
+                if ([moduleClass conformsToProtocol:@protocol(HippyImageProviderProtocol)]) {
+                    [moduleClasses addObject:moduleClass];
+                }
+            }
+            _imageProviders = moduleClasses;
+        }
+        return [_imageProviders copy];
+    }
+}
 
-#pragma mark - Debug Reload
+- (void)addImageProviderClass:(Class<HippyImageProviderProtocol>)cls {
+    HippyAssertParam(cls);
+    @synchronized (self) {
+        _imageProviders = [self.imageProviders arrayByAddingObject:cls];
+    }
+}
 
-- (void)reload {
-    if ([self.delegate respondsToSelector:@selector(reload:)]) {
+#pragma mark - Reload
+
+- (void)requestReload {
+    [[NSNotificationCenter defaultCenter] postNotificationName:HippyReloadNotification object:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
         self.invalidateReason = HippyInvalidateReasonReload;
         [self invalidate];
         [self setUp];
-        [self.delegate reload:self];
-        self.invalidateReason = HippyInvalidateReasonDealloc;
-    }
+    });
 }
-
-- (void)requestReload {
-    if (_debugMode) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:HippyReloadNotification object:nil];
-        [self reload];
-    }
-}
-
 
 #pragma mark - Bridge SetUp
 
@@ -479,7 +433,7 @@ dispatch_queue_t HippyBridgeQueue() {
             _javaScriptExecutor.contextName = _contextName;
         }
         _displayLink = [[HippyDisplayLink alloc] init];
-
+        
         // Setup all extra and internal modules
         [_moduleSetup setupModulesWithCompletionBlock:^{
             HippyBridge *strongSelf = weakSelf;
@@ -501,36 +455,73 @@ dispatch_queue_t HippyBridgeQueue() {
 /// 加载初始化bridge时传入的Bundle URL
 - (void)loadPendingVendorBundleURLIfNeeded {
     if (self.pendingLoadingVendorBundleURL) {
-        [self loadBundleURL:self.pendingLoadingVendorBundleURL completion:^(NSURL * _Nullable url, NSError * _Nullable error) {
+        [self loadBundleURL:self.pendingLoadingVendorBundleURL 
+                 bundleType:HippyBridgeBundleTypeVendor
+                 completion:^(NSURL * _Nullable bundleURL, NSError * _Nullable error) {
             if (error) {
-                HippyLogError(@"[Hippy_OC_Log][HippyBridge], bundle loaded error:%@, %@", url, error.description);
+                HippyLogError(@"[Hippy_OC_Log][HippyBridge], bundle loaded error:%@, %@", bundleURL, error.description);
             } else {
-                HippyLogInfo(@"[Hippy_OC_Log][HippyBridge], bundle loaded success:%@", url);
+                HippyLogInfo(@"[Hippy_OC_Log][HippyBridge], bundle loaded success:%@", bundleURL);
             }
         }];
     }
 }
 
+#define BUNDLE_LOAD_NOTI_SUCCESS_USER_INFO \
+    @{ kHippyNotiBridgeKey: strongSelf, \
+       kHippyNotiBundleUrlKey: bundleURL, \
+       kHippyNotiBundleTypeKey : @(bundleType) }
+
+#define BUNDLE_LOAD_NOTI_ERROR_USER_INFO \
+    @{ kHippyNotiBridgeKey: strongSelf, \
+       kHippyNotiBundleUrlKey: bundleURL, \
+       kHippyNotiBundleTypeKey : @(bundleType), \
+       kHippyNotiErrorKey : error }
 
 - (void)loadBundleURL:(NSURL *)bundleURL
-           completion:(void (^_Nullable)(NSURL  * _Nullable, NSError * _Nullable))completion {
+           bundleType:(HippyBridgeBundleType)bundleType
+           completion:(nonnull HippyBridgeBundleLoadCompletionBlock)completion {
     if (!bundleURL) {
         if (completion) {
             static NSString *bundleError = @"bundle url is nil";
-            NSError *error = [NSError errorWithDomain:@"Bridge Bundle Loading Domain" code:1 userInfo:@{NSLocalizedFailureReasonErrorKey: bundleError}];
+            NSError *error = [NSError errorWithDomain:@"Bridge Bundle Loading Domain" 
+                                                 code:1
+                                             userInfo:@{NSLocalizedFailureReasonErrorKey: bundleError}];
             completion(nil, error);
         }
         return;
     }
-    HippyLogInfo(@"[HP PERF] Begin loading bundle(%s) at %s", HP_CSTR_NOT_NULL(bundleURL.absoluteString.lastPathComponent.UTF8String), HP_CSTR_NOT_NULL(bundleURL.absoluteString.UTF8String));
+    
+    // bundleURL checking
+    NSURLComponents *components = [NSURLComponents componentsWithURL:bundleURL resolvingAgainstBaseURL:NO];
+    if (components.scheme == nil) {
+        // If a given url has no scheme, it is considered a file url by default.
+        components.scheme = @"file";
+        bundleURL = components.URL;
+    }
+    
+    HippyLogInfo(@"[HP PERF] Begin loading bundle(%s) at %s",
+                 HP_CSTR_NOT_NULL(bundleURL.absoluteString.lastPathComponent.UTF8String),
+                 HP_CSTR_NOT_NULL(bundleURL.absoluteString.UTF8String));
     [_bundleURLs addObject:bundleURL];
+    
+    __weak __typeof(self)weakSelf = self;
     dispatch_async(HippyBridgeQueue(), ^{
-        [self beginLoadingBundle:bundleURL completion:completion];
+        __strong __typeof(weakSelf)strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+        NSDictionary *userInfo = BUNDLE_LOAD_NOTI_SUCCESS_USER_INFO;
+        [[NSNotificationCenter defaultCenter] postNotificationName:HippyJavaScriptWillStartLoadingNotification
+                                                            object:strongSelf
+                                                          userInfo:userInfo];
+        [strongSelf beginLoadingBundle:bundleURL bundleType:bundleType completion:completion];
     });
 }
 
 - (void)beginLoadingBundle:(NSURL *)bundleURL
-                completion:(void (^)(NSURL  * _Nullable, NSError * _Nullable))completion {
+                bundleType:(HippyBridgeBundleType)bundleType
+                completion:(HippyBridgeBundleLoadCompletionBlock)completion {
     dispatch_group_t group = dispatch_group_create();
     __weak HippyBridge *weakSelf = self;
     __block NSData *script = nil;
@@ -543,23 +534,35 @@ dispatch_queue_t HippyBridgeQueue() {
                                                                                bundleURL:bundleURL
                                                                                    queue:bundleQueue];
     fetchOp.onLoad = ^(NSData *source, NSError *error) {
+        __strong __typeof(weakSelf)strongSelf = weakSelf;
+        if (!strongSelf) {
+            dispatch_group_leave(group);
+            return;
+        }
+        NSDictionary *userInfo;
         if (error) {
             HippyBridgeFatal(error, weakSelf);
+            userInfo = BUNDLE_LOAD_NOTI_ERROR_USER_INFO;
         } else {
             script = source;
+            userInfo = BUNDLE_LOAD_NOTI_SUCCESS_USER_INFO;
         }
+        [[NSNotificationCenter defaultCenter] postNotificationName:HippyJavaScripDidLoadSourceCodeNotification
+                                                            object:strongSelf
+                                                          userInfo:userInfo];
         dispatch_group_leave(group);
     };
     
     dispatch_group_enter(group);
     HippyBundleExecutionOperation *executeOp = [[HippyBundleExecutionOperation alloc] initWithBlock:^{
-        HippyBridge *strongSelf = weakSelf;
+        __strong __typeof(weakSelf)strongSelf = weakSelf;
         if (!strongSelf || !strongSelf.valid) {
             dispatch_group_leave(group);
             return;
         }
         __weak __typeof(strongSelf)weakSelf = strongSelf;
         [strongSelf executeJSCode:script sourceURL:bundleURL onCompletion:^(id result, NSError *error) {
+            __strong __typeof(weakSelf)strongSelf = weakSelf;
             HippyLogInfo(@"End loading bundle(%s) at %s",
                          HP_CSTR_NOT_NULL(bundleURL.absoluteString.lastPathComponent.UTF8String),
                          HP_CSTR_NOT_NULL(bundleURL.absoluteString.UTF8String));
@@ -567,7 +570,6 @@ dispatch_queue_t HippyBridgeQueue() {
             if (completion) {
                 completion(bundleURL, error);
             }
-            HippyBridge *strongSelf = weakSelf;
             if (!strongSelf || !strongSelf.valid) {
                 dispatch_group_leave(group);
                 return;
@@ -575,6 +577,25 @@ dispatch_queue_t HippyBridgeQueue() {
             if (error) {
                 HippyBridgeFatal(error, strongSelf);
             }
+            __weak __typeof(self)weakSelf = strongSelf;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                __strong __typeof(weakSelf)strongSelf = weakSelf;
+                if (!strongSelf) {
+                    return;
+                }
+                NSNotificationName notiName;
+                NSDictionary *userInfo;
+                if (error) {
+                    notiName = HippyJavaScriptDidFailToLoadNotification;
+                    userInfo = BUNDLE_LOAD_NOTI_ERROR_USER_INFO;
+                } else {
+                    notiName = HippyJavaScriptDidLoadNotification;
+                    userInfo = BUNDLE_LOAD_NOTI_SUCCESS_USER_INFO;
+                }
+                [[NSNotificationCenter defaultCenter] postNotificationName:notiName
+                                                                    object:strongSelf
+                                                                  userInfo:userInfo];
+            });
             dispatch_group_leave(group);
         }];
     } queue:bundleQueue];
@@ -602,8 +623,9 @@ dispatch_queue_t HippyBridgeQueue() {
         NSDictionary *param = @{@"id": rootTag};
         footstone::value::HippyValue value = [param toHippyValue];
         std::shared_ptr<footstone::value::HippyValue> domValue = std::make_shared<footstone::value::HippyValue>(value);
-        self.javaScriptExecutor.pScope->UnloadInstance(domValue);
-        
+        if (auto scope = self.javaScriptExecutor.pScope) {
+            scope->UnloadInstance(domValue);
+        }
         _renderManager->UnregisterRootView([rootTag intValue]);
         if (_rootNode) {
             _rootNode->ReleaseResources();
@@ -630,7 +652,7 @@ dispatch_queue_t HippyBridgeQueue() {
     HippyLogInfo(@"[HP PERF] End loading instance for HippyBridge(%p)", self);
 }
 
-- (void)rootViewSizeChangedEvent:(NSNumber *)tag params:(NSDictionary *)params {
+- (void)sendRootSizeChangedEvent:(NSNumber *)tag params:(NSDictionary *)params {
     NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:params];
     [dic setObject:tag forKey:@"rootViewId"];
     [self sendEvent:@"onSizeChanged" params:dic];
@@ -658,6 +680,10 @@ dispatch_queue_t HippyBridgeQueue() {
     [self.javaScriptExecutor setInspecable:isInspectable];
 }
 
+
+#pragma mark - Private
+
+/// Execute JS Bundle
 - (void)executeJSCode:(NSData *)script
             sourceURL:(NSURL *)sourceURL
          onCompletion:(HippyJavaScriptCallback)completion {
@@ -680,14 +706,6 @@ dispatch_queue_t HippyBridgeQueue() {
         if (error) {
             [strongSelf stopLoadingWithError:error scriptSourceURL:sourceURL];
         }
-        else {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                NSDictionary *userInfo = @{@"bridge": self, sourceURL: sourceURL};
-                [[NSNotificationCenter defaultCenter] postNotificationName:HippyJavaScriptDidLoadNotification
-                                                                    object:self
-                                                                  userInfo:userInfo];
-            });
-        }
         completion(result, error);
     }];
 }
@@ -706,10 +724,6 @@ dispatch_queue_t HippyBridgeQueue() {
             }
         }
     }];
-    NSDictionary *userInfo = @{@"bridge": self, @"error": error, @"sourceURL": sourceURL};
-    [[NSNotificationCenter defaultCenter] postNotificationName:HippyJavaScriptDidFailToLoadNotification
-                                                        object:self
-                                                      userInfo:userInfo];
     if ([error userInfo][HippyJSStackTraceKey]) {
         [self.redBox showErrorMessage:[error localizedDescription] withStack:[error userInfo][HippyJSStackTraceKey]];
     }
@@ -1048,7 +1062,6 @@ dispatch_queue_t HippyBridgeQueue() {
     id jsExecutor = _javaScriptExecutor;
     id moduleSetup = _moduleSetup;
     _displayLink = nil;
-    _javaScriptExecutor = nil;
     _moduleSetup = nil;
     _startTime = footstone::TimePoint::SystemNow();
     self.moduleSemaphore = nil;
@@ -1281,7 +1294,7 @@ static NSString *const hippyOnNightModeChangedParam2 = @"RootViewTag";
     auto cb = [weakBridge](int32_t tag, NSDictionary *params){
         HippyBridge *strongBridge = weakBridge;
         if (strongBridge) {
-            [strongBridge rootViewSizeChangedEvent:@(tag) params:params];
+            [strongBridge sendRootSizeChangedEvent:@(tag) params:params];
         }
     };
     _renderManager->SetRootViewSizeChangedEvent(cb);

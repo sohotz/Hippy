@@ -51,7 +51,7 @@ export interface HippyLibrary {
   ): number;
   JsDriver_DestroyJsDriver(instanceId: number, useLowMemoryMode: boolean, isReload: boolean, callback: NativeCallback): void;
   JsDriver_LoadInstance(instanceId: number, buffer: ArrayBuffer): void;
-  JsDriver_UnloadInstance(instanceId: number,str: string): void;
+  JsDriver_UnloadInstance(instanceId: number,buffer: ArrayBuffer): void;
   JsDriver_RunScriptFromUri(
     instanceId: number,
     uri: string,
@@ -75,7 +75,7 @@ export interface HippyLibrary {
   JsDriver_CallFunction(instanceId: number, action: string, callback: NativeCallback, buffer: ArrayBuffer): void;
 
   NativeRenderer_CreateNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider,
-    customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null, mappingRenderViews: Array<string> | null, density: number): number;
+    customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null, mappingRenderViews: Array<string> | null, bundlePath: string, density: number): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
   NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
 

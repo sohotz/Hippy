@@ -129,12 +129,6 @@ void ImageView::fetchImage(const std::string &imageUrl) {
 	}
 }
 
-void ImageView::OnClick() {
-  if (eventClick_) {
-    eventClick_();
-  }
-}
-
 void ImageView::OnComplete(float width, float height) {
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_IMAGE_ON_LOAD, nullptr);
   HippyValueObjectType paramsObj;

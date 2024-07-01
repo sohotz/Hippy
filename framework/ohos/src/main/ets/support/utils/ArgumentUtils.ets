@@ -125,14 +125,14 @@ export class ArgumentUtils {
     }
   }
 
-  public static mapToRecord(map: Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>) {
+  public static mapToRecord(map: Map<string, HippyAny>) {
     let record: Record<string, Object> = {};
     map.forEach((value, key) => {
       if (key != undefined && key != null) {
         if (value instanceof Map) {
           record[key] = ArgumentUtils.mapToRecord(value);
         } else {
-          record[key] = value;
+          record[key] = value as Object;
         }
       }
     })

@@ -53,6 +53,7 @@ TextInputNode::~TextInputNode() {
 }
 
 void TextInputNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  ArkUINode::OnNodeEvent(event);
   if (textInputNodeDelegate_ == nullptr) {
     return;
   }

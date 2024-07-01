@@ -59,7 +59,8 @@ void ListNode::RemoveAllChildren() {
   for (int32_t i = static_cast<int32_t>(count) - 1; i >= 0; i--) {
     ArkUI_NodeHandle childHandle = NativeNodeApi::GetInstance()->getChildAt(nodeHandle_, i);
     if (childHandle) {
-      MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, childHandle));
+      // TODO(hot): to fix later
+      // MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, childHandle));
     }
   }
 }
@@ -127,17 +128,15 @@ void ListNode::SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode) {
 }
 
 void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  ArkUINode::OnNodeEvent(event);
+  
   if (listNodeDelegate_ == nullptr) {
     return;
   }
 
   auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
   auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
-  if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_APPEAR) {
-    listNodeDelegate_->OnAppear();
-  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
-    listNodeDelegate_->OnDisappear();
-  } else if (eventType == ArkUI_NodeEventType::NODE_LIST_ON_SCROLL_INDEX) {
+  if (eventType == ArkUI_NodeEventType::NODE_LIST_ON_SCROLL_INDEX) {
     int32_t firstIndex = nodeComponentEvent->data[0].i32;
     int32_t lastIndex = nodeComponentEvent->data[1].i32;
     int32_t centerIndex = nodeComponentEvent->data[2].i32;

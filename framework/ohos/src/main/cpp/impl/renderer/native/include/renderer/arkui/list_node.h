@@ -32,8 +32,6 @@ inline namespace native {
 class ListNodeDelegate {
 public:
   virtual ~ListNodeDelegate() = default;
-  virtual void OnAppear() {}
-  virtual void OnDisappear() {}
   virtual void OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) {}
   virtual void OnScroll(float scrollOffsetX, float scrollOffsetY) {}
   virtual void OnScrollStart() {}

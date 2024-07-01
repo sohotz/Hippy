@@ -32,6 +32,8 @@ class NativeRender : public std::enable_shared_from_this<NativeRender> {
 public:
   NativeRender() {}
   virtual ~NativeRender() = default;
+  
+  virtual std::string GetBundlePath() = 0;
 
   virtual uint64_t AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) = 0;
   virtual void RemoveEndBatchCallback(uint32_t root_id, uint64_t cbId) = 0;

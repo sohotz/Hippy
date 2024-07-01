@@ -50,7 +50,7 @@ HIPPY_EXPORT_MODULE(View);
     return [[HippyView alloc] init];
 }
 
-- (HippyShadowView *)hippyShadowView {
+- (HippyShadowView *)shadowView {
     return [[HippyShadowView alloc] init];
 }
 
@@ -198,6 +198,20 @@ HIPPY_EXPORT_METHOD(getLocationOnScreen:(nonnull NSNumber *)componentTag
     }];
 }
 
+HIPPY_EXPORT_METHOD(addFrameCallback:(nonnull NSNumber *)hippyTag 
+                    params:(NSDictionary *__nonnull)params
+                    callback:(HippyPromiseResolveBlock)callback) {
+    // For devtools
+    // Leave the implementation empty for now.
+}
+
+HIPPY_EXPORT_METHOD(removeFrameCallback:(nonnull NSNumber *)hippyTag
+                    params:(NSDictionary *__nonnull)params
+                    callback:(HippyPromiseResolveBlock)callback) {
+    // For devtools
+    // Leave the implementation empty for now.
+}
+
 #pragma mark - View properties
 
 HIPPY_EXPORT_VIEW_PROPERTY(accessibilityLabel, NSString)
@@ -298,7 +312,7 @@ static NSOperationQueue *imageLoadOperationQueue(void) {
             HippyBridge *bridge = strongSelf.bridge;
             if (bridge) {
                 id<HippyImageProviderProtocol> imageProvider = nil;
-                for (Class<HippyImageProviderProtocol> cls in [bridge imageProviderClasses]) {
+                for (Class<HippyImageProviderProtocol> cls in [bridge imageProviders]) {
                     if ([cls canHandleData:data]) {
                         imageProvider = [[(Class)cls alloc] init];
                         break;

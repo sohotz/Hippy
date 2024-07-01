@@ -34,7 +34,7 @@ inline namespace native {
 
 class NativeRenderImpl : public NativeRender {
 public:
-  NativeRenderImpl(uint32_t instance_id);
+  NativeRenderImpl(uint32_t instance_id, const std::string &bundle_path);
   ~NativeRenderImpl() = default;
 
   void InitRenderManager();
@@ -60,13 +60,19 @@ public:
   void CallUIFunction(uint32_t root_id, uint32_t node_id, const std::string &functionName,
                       const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback);
 
+  LayoutSize CustomMeasure(uint32_t root_id, uint32_t node_id,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode);
+  
   void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
   
+  std::string GetBundlePath() override;
   uint64_t AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) override;
   void RemoveEndBatchCallback(uint32_t root_id, uint64_t cbId) override;
 
 private:
   uint32_t instance_id_;
+  std::string bundle_path_;
   std::shared_ptr<HRManager> hr_manager_;
 };
 

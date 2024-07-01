@@ -158,7 +158,7 @@ HippyEventMethod(OnTouchEnd, onTouchEnd, OnTouchEventHandler)
     }
 }
 
-- (void)insertHippySubview:(UIView *)subview atIndex:(NSInteger)atIndex {
+- (void)insertHippySubview:(UIView *)subview atIndex:(NSUInteger)atIndex {
     // We access the associated object directly here in case someone overrides
     // the `subcomponents` getter method and returns an immutable array.
     if (nil == subview) {
@@ -172,24 +172,17 @@ HippyEventMethod(OnTouchEnd, onTouchEnd, OnTouchEventHandler)
 
     if (atIndex <= [subviews count]) {
         [subviews insertObject:subview atIndex:atIndex];
-    }
-    else {
+    } else {
         [subviews addObject:subview];
     }
     subview.parent = self;
 }
 
-- (void)moveHippySubview:(UIView *)subview toIndex:(NSInteger)atIndex {
+- (void)moveHippySubview:(UIView *)subview toIndex:(NSUInteger)atIndex {
     if (nil == subview) {
         return;
     }
-    NSMutableArray *subviews = objc_getAssociatedObject(self, @selector(subcomponents));
-    if (!subviews) {
-        return;
-    }
-    if ([subviews containsObject:subview]) {
-        [subviews removeObject:subview];
-    }
+    [self removeHippySubview:subview];
     [self insertHippySubview:subview atIndex:atIndex];
 }
 

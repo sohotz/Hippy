@@ -53,7 +53,6 @@ enum class ImageTintColorBlendMode : int32_t {
 class ImageNodeDelegate {
 public:
   virtual ~ImageNodeDelegate() = default;
-  virtual void OnClick() {}
   virtual void OnComplete(float width, float height) {}
   virtual void OnError(int32_t errorCode) {}
 };

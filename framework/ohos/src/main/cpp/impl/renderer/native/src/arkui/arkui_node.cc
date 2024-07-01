@@ -84,6 +84,13 @@ void ArkUINode::RemoveChild(ArkUINode &child) {
   MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
 }
 
+ArkUINode &ArkUINode::SetId(const std::string &id) {
+  ArkUI_AttributeItem item;
+  item = {.string = id.c_str()};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ID, &item));
+  return *this;
+}
+
 ArkUINode &ArkUINode::SetPosition(const HRPosition &position) {
   ArkUI_NumberValue value[] = {{position.x}, {position.y}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
@@ -315,8 +322,7 @@ ArkUINode &ArkUINode::SetEnabled(bool enabled) {
 }
 
 ArkUINode &ArkUINode::SetBackgroundImage(const std::string &uri) {
-  ArkUI_NumberValue value[] = {{.i32 = ARKUI_IMAGE_REPEAT_NONE}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), uri.c_str(), nullptr};
+  ArkUI_AttributeItem item = {.string = uri.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BACKGROUND_IMAGE, &item));
   return *this;
 }
@@ -416,6 +422,13 @@ ArkUINode &ArkUINode::SetShadow(const HRShadow &shadow) {
   return *this;
 }
 
+ArkUINode &ArkUINode::SetMargin(float left, float top, float right, float bottom) {
+  ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MARGIN, &item));
+  return *this;
+}
+
 ArkUINode &ArkUINode::SetExpandSafeArea(){
 //TODO  NODE_EXPAND_SAFE_AREA not define in devEco 5.0.0.400 will add in later
 //  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_EXPAND_SAFE_AREA,nullptr ));
@@ -446,6 +459,29 @@ ArkUINode &ArkUINode::SetTransitionTranslate(float distanceX,float distanceY,flo
 
 void ArkUINode::ResetNodeAttribute(ArkUI_NodeAttributeType type){
   MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, type));
+}
+
+void ArkUINode::SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate) {
+  arkUINodeDelegate_ = arkUINodeDelegate;
+}
+
+void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {
+    if (arkUINodeDelegate_ == nullptr) {
+    return;
+  }
+  
+  auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
+  if (eventType == ArkUI_NodeEventType::NODE_ON_CLICK) {
+    arkUINodeDelegate_->OnClick();
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_APPEAR) {
+    arkUINodeDelegate_->OnAppear();
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
+    arkUINodeDelegate_->OnDisappear();
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_AREA_CHANGE) {
+    auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
+    ArkUI_NumberValue* data = nodeComponentEvent->data;   
+    arkUINodeDelegate_->OnAreaChange(data);    
+  }
 }
 
 void ArkUINode::RegisterClickEvent() {

@@ -66,9 +66,10 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   inline uint32_t GetId() { return id_; }
   
   void SetRenderDelegate(napi_env ts_env, bool enable_ark_c_api, napi_ref ts_render_provider_ref,
-                         std::set<std::string> &custom_views, std::set<std::string> &custom_measure_views, std::map<std::string, std::string> &mapping_views);
-
+                         std::set<std::string> &custom_views, std::set<std::string> &custom_measure_views, std::map<std::string, std::string> &mapping_views,
+                         std::string &bundle_path);
   void InitDensity(double density);
+  
   void CreateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
   void UpdateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
   void DeleteRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
@@ -131,6 +132,7 @@ private:
                      const float height, const int32_t height_mode, int64_t &result);
   
   bool IsCustomMeasureNode(const std::string &name);
+  bool IsCustomMeasureCNode(const std::string &name);
 
   struct ListenerOp {
     bool add;
@@ -170,6 +172,9 @@ private:
                             const std::string &method_name);
   void HandleListenerOps_C(std::weak_ptr<RootNode> root_node, std::map<uint32_t, std::vector<ListenerOp>> &ops,
                            const std::string &method_name);
+  LayoutSize CallNativeCustomMeasureMethod_C(uint32_t root_id, uint32_t node_id,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode);
   
 private:
   uint32_t id_;

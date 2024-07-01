@@ -36,10 +36,12 @@ using HippyValue = footstone::HippyValue;
 using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 using HippyValueArrayType = footstone::value::HippyValue::HippyValueArrayType;
 
-class BaseView : public std::enable_shared_from_this<BaseView> {
+class BaseView : public ArkUINodeDelegate, public std::enable_shared_from_this<BaseView> {
 public:
   BaseView(std::shared_ptr<NativeRenderContext> &ctx);
   virtual ~BaseView();
+  
+  virtual void Init();
   
   std::shared_ptr<NativeRenderContext> &GetCtx() { return ctx_; }
   uint32_t GetTag() { return tag_; }
@@ -47,7 +49,7 @@ public:
   std::vector<std::shared_ptr<BaseView>> &GetChildren() { return children_; }
   std::weak_ptr<BaseView> &GetParent() { return parent_; }
   
-  void SetTag(uint32_t tag) { tag_ = tag; }
+  void SetTag(uint32_t tag);
   void SetViewType(std::string &type) { view_type_ = type; }
   void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
 
@@ -64,6 +66,11 @@ public:
   void SetRenderViewFrame(const HRRect &frame, const HRPadding &padding = HRPadding(0, 0, 0, 0));
   void UpdateEventListener(HippyValueObjectType &newEvents);
   bool CheckRegisteredEvent(std::string &eventName);
+  
+  virtual void OnClick() override;
+  virtual void OnAppear() override;
+  virtual void OnDisappear() override;
+  virtual void OnAreaChange(ArkUI_NumberValue* data) override;
   
 protected:
   virtual void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {}

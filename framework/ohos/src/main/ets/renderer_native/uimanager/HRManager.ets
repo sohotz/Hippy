@@ -32,7 +32,6 @@ export class HRManager {
     this.addViewManager(rootId, viewManager)
     let nodeManager = new HRVirtualNodeManager()
     this.addVirtualNodeManager(rootId, nodeManager)
-    rootView.ctx.getNativeRender().attachToRootView(rootId)
   }
 
   destroyViewManager(rootId: number) {

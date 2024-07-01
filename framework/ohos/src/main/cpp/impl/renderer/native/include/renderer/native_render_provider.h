@@ -35,7 +35,7 @@ inline namespace native {
 
 class NativeRenderProvider : public std::enable_shared_from_this<NativeRenderProvider>{
 public:
-  NativeRenderProvider(uint32_t instance_id);
+  NativeRenderProvider(uint32_t instance_id, const std::string &bundle_path);
   ~NativeRenderProvider() = default;
   
   uint32_t GetInstanceId() { return instance_id_; }
@@ -61,6 +61,10 @@ public:
   
   void CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, const std::string &func_name, const std::vector<HippyValue> &params);
 
+  LayoutSize CustomMeasure(uint32_t root_id, uint32_t node_id,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode);
+  
   void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
   
   void OnSize(uint32_t root_id, float width, float height);

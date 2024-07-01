@@ -24,6 +24,7 @@ import { LogUtils } from '../../support/utils/LogUtils'
 import HippyRenderBaseView from '../components/base/HippyRenderBaseView'
 import { HippyCustomComponentView } from '../components/custom/HippyCustomComponentView'
 import { HRRenderViewCreator } from '../components/HippyRenderRegisterMap'
+import { HRWebView } from '../components/web/HRWebView'
 import { HippyRenderView } from '../HippyRenderView'
 import { NativeRenderContext } from '../NativeRenderContext'
 import { HRMeasureMode, HRMeasureResult } from '../utils/HRMeasure'
@@ -191,7 +192,7 @@ export class HRViewManager {
     if (renderView) {
       let theView = renderView as HippyRenderBaseView
       if (props.size > 0) {
-        props.forEach((value: HippyValue, key: string) => {
+        props.forEach((value: HippyAny, key: string) => {
           // value maybe empty string / false / 0
           if (key && value != null && value != undefined) {
             theView.setProp(key, value)
@@ -287,21 +288,28 @@ export class HRViewManager {
 
   // for c-api
   createRenderViewForCApi(tag: number, viewName: string): HippyRenderBaseView | null {
-    let customCreatorMap = this.ctx.getCustomRenderViewCreatorMap()
-    if (customCreatorMap && customCreatorMap.size > 0) {
-      let creator = customCreatorMap.get(viewName)
-      if (creator) {
-        let renderView = creator(this.ctx)
-        if (renderView) {
-          renderView.tag = tag
-          renderView.viewType = viewName
-          this.viewRegistry.set(tag, renderView)
-          return renderView
-        } else {
-          LogUtils.d(this.TAG, "createRenderViewForCApi: failed:  " + viewName)
+    let renderView: HippyRenderBaseView | null = null
+    if (viewName == "WebView") {
+      renderView = new HRWebView(this.ctx);
+    } else {
+      let customCreatorMap = this.ctx.getCustomRenderViewCreatorMap()
+      if (customCreatorMap && customCreatorMap.size > 0) {
+        let creator = customCreatorMap.get(viewName)
+        if (creator) {
+          renderView = creator(this.ctx)
         }
       }
     }
+
+    if (renderView) {
+      renderView.tag = tag
+      renderView.viewType = viewName
+      this.viewRegistry.set(tag, renderView)
+      return renderView
+    } else {
+      LogUtils.d(this.TAG, "createRenderViewForCApi: failed:  " + viewName)
+    }
+
     return null
   }
 

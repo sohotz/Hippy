@@ -26,6 +26,7 @@
 #import "UIView+Hippy.h"
 #import "HippyInvalidating.h"
 #import "HippyBridge.h"
+#import "Hippybridge+PerformanceAPI.h"
 #import "HippyUIManager.h"
 #import "HippyDeviceBaseInfo.h"
 #import "HippyTouchHandler.h"
@@ -40,6 +41,7 @@ NSString *const HippyContentDidAppearNotification = @"HippyContentDidAppearNotif
 // For compatibility, hippy3 retains this notice and its actual meaning.
 NSString *const HippySecondaryBundleDidLoadNotification = @"HippySecondaryBundleDidLoadNotification";
 
+
 NSNumber *AllocRootViewTag(void) {
     static NSString * const token = @"allocateRootTag";
     @synchronized (token) {
@@ -51,22 +53,34 @@ NSNumber *AllocRootViewTag(void) {
 
 @interface HippyRootContentView : HippyView <HippyInvalidating>
 
+/// Whether content has appeared
 @property (nonatomic, readonly) BOOL contentHasAppeared;
+/// The Touch handler of RootView
 @property (nonatomic, strong) HippyTouchHandler *touchHandler;
+/// timestamp of start
 @property (nonatomic, assign) int64_t startTimpStamp;
 
+/// Init Method
+/// - Parameters:
+///   - frame: frame
+///   - bridge: hippy bridge
+///   - hippyTag: root tag
+///   - sizeFlexibility: size flexibility for auto resize
 - (instancetype)initWithFrame:(CGRect)frame
                        bridge:(HippyBridge *)bridge
                      hippyTag:(NSNumber *)hippyTag
                sizeFlexiblity:(HippyRootViewSizeFlexibility)sizeFlexibility NS_DESIGNATED_INITIALIZER;
 
-@end
+/// Unvaliable, use designated initializer.
+- (instancetype)init NS_UNAVAILABLE;
+/// Unvaliable, use designated initializer.
++ (instancetype)new NS_UNAVAILABLE;
 
+@end
 
 #pragma mark - HippyRootView
 
 @interface HippyRootView () {
-    BOOL _contentHasAppeared;
     BOOL _hasBusinessBundleToLoad;
 }
 
@@ -156,7 +170,9 @@ HIPPY_NOT_IMPLEMENTED(-(instancetype)initWithCoder : (NSCoder *)aDecoder)
             }
         } else {
             __weak __typeof(self)weakSelf = self;
-            [bridge loadBundleURL:businessURL completion:^(NSURL * _Nullable url, NSError * _Nullable error) {
+            [bridge loadBundleURL:businessURL
+                       bundleType:HippyBridgeBundleTypeBusiness
+                       completion:^(NSURL * _Nullable url, NSError * _Nullable error) {
                 // Execute loadInstance first and then do call back, maintain compatibility with hippy2
                 dispatch_async(dispatch_get_main_queue(), ^{
                     __strong __typeof(weakSelf)strongSelf = weakSelf;
@@ -166,12 +182,16 @@ HIPPY_NOT_IMPLEMENTED(-(instancetype)initWithCoder : (NSCoder *)aDecoder)
                     if (!error && !strongSelf.disableAutoRunApplication) {
                         [strongSelf runHippyApplication];
                     }
-                    // 抛出业务包(BusinessBundle aka SecondaryBundle)加载完成通知, for hippy2兼容
-                    NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] initWithDictionary:@{ @"url": url,
-                                                                                                       @"bridge": strongSelf.bridge }];
-                    if (error) [userInfo setObject:error forKey:@"error"];
+                    
+                    // 抛出业务包(BusinessBundle aka SecondaryBundle)加载完成通知，for hippy2兼容
+                    NSMutableDictionary *userInfo = @{ kHippyNotiBundleUrlKey: url,
+                                                       kHippyNotiBridgeKey: strongSelf.bridge }.mutableCopy;
+                    if (error) { [userInfo setObject:error forKey:kHippyNotiErrorKey]; }
+                    HIPPY_IGNORE_WARNING_BEGIN(-Wdeprecated)
                     [[NSNotificationCenter defaultCenter] postNotificationName:HippySecondaryBundleDidLoadNotification
-                                                                        object:strongSelf.bridge userInfo:userInfo];
+                                                                        object:strongSelf.bridge 
+                                                                      userInfo:userInfo];
+                    HIPPY_IGNORE_WARNING_END
                     
                     if ([delegate respondsToSelector:@selector(rootView:didLoadFinish:)]) {
                         [delegate rootView:strongSelf didLoadFinish:(error == nil)];
@@ -285,15 +305,15 @@ HIPPY_NOT_IMPLEMENTED(-(instancetype)initWithCoder : (NSCoder *)aDecoder)
     
     // Use the bridge that's sent in the notification payload
     // Call runHippyApplication only if the RootView is initialized without a business bundle.
-    HippyBridge *bridge = notification.userInfo[@"bridge"];
+    HippyBridge *bridge = notification.userInfo[kHippyNotiBridgeKey];
     if (!self.disableAutoRunApplication && bridge == self.bridge && !_hasBusinessBundleToLoad) {
         [self runHippyApplication];
     }
 }
 
 - (void)javaScriptDidFailToLoad:(NSNotification *)notification {
-    HippyBridge *bridge = notification.userInfo[@"bridge"];
-    NSError *error = notification.userInfo[@"error"];
+    HippyBridge *bridge = notification.userInfo[kHippyNotiBridgeKey];
+    NSError *error = notification.userInfo[kHippyNotiErrorKey];
     if (bridge == self.bridge && error) {
         NSError *retError = HippyErrorFromErrorAndModuleName(error, self.bridge.moduleName);
         HippyFatal(retError);
@@ -402,17 +422,17 @@ HIPPY_NOT_IMPLEMENTED(-(instancetype)initWithCoder : (nonnull NSCoder *)aDecoder
 
 - (void)insertHippySubview:(UIView *)subview atIndex:(NSInteger)atIndex {
     [super insertHippySubview:subview atIndex:atIndex];
-    // [_bridge.performanceLogger markStopForTag:HippyPLTTI];
     
     __weak __typeof(self)weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         __strong __typeof(weakSelf)strongSelf = weakSelf;
         if (strongSelf && !strongSelf->_contentHasAppeared) {
             strongSelf->_contentHasAppeared = YES;
-            // int64_t cost = [strongSelf.bridge.performanceLogger durationForTag:HippyPLTTI];
+            static NSString *const kHippyContentAppearCostKey = @"cost";
+            [[(HippyRootView *)strongSelf.superview bridge] updatePerfRecordsOnRootContentDidAppear];
             [[NSNotificationCenter defaultCenter] postNotificationName:HippyContentDidAppearNotification
                                                                 object:self.superview userInfo:@{
-                // @"cost": @(cost)
+                kHippyContentAppearCostKey : @(CACurrentMediaTime() * 1000 - strongSelf.startTimpStamp)
             }];
         }
     });

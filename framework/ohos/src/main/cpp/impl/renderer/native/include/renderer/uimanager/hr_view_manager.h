@@ -27,6 +27,7 @@
 #include <js_native_api_types.h>
 #include <map>
 #include "footstone/serializer.h"
+#include "renderer/components/custom_view.h"
 #include "renderer/components/root_view.h"
 #include "renderer/uimanager/hr_mutation.h"
 
@@ -68,6 +69,10 @@ public:
 
   void CallViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
                       std::function<void(const HippyValue &result)> callback);
+  
+  LayoutSize CallCustomMeasure(uint32_t tag,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode);
 
   uint64_t AddEndBatchCallback(const EndBatchCallback &cb);
   void RemoveEndBatchCallback(uint64_t cbId);
@@ -77,6 +82,7 @@ private:
   void MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, bool isRoot, std::shared_ptr<BaseView> &view);
   void MaybeDetachRootNode(OH_NativeXComponent *nativeXComponent, bool isRoot, std::shared_ptr<BaseView> &view);
   
+  bool IsCustomTsRenderView(std::string &view_name);
   std::shared_ptr<BaseView> CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   void UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
   void UpdateCustomTsEventListener(uint32_t tag, HippyValueObjectType &props);
@@ -99,8 +105,6 @@ private:
   std::set<std::string> custom_ts_render_views_;
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
-  
-  std::set<std::string> custom_render_views_;
 };
 
 } // namespace native

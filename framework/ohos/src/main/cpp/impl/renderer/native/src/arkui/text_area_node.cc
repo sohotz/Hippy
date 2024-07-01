@@ -45,6 +45,7 @@ TextAreaNode::~TextAreaNode() {
 }
 
 void TextAreaNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  ArkUINode::OnNodeEvent(event);
   if (textAreaNodeDelegate_ == nullptr) {
     return;
   }

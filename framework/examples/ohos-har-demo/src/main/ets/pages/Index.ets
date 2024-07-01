@@ -1,4 +1,4 @@
-import { EngineInitParams } from 'hippy';
+import { EngineInitParams, HippyRootViewWrapper } from 'hippy';
 import { HippyAPIProvider } from 'hippy';
 import { createHippyEngine } from 'hippy';
 import { ModuleLoadParams } from 'hippy';
@@ -48,6 +48,7 @@ struct Index {
   @StorageLink('abilityContext') private abilityContext: Context | null = null
   @State exception: string = ""
   private hippyEngine: HippyEngine | null = null
+  private rootViewWrapper: HippyRootViewWrapper = new HippyRootViewWrapper()
 
   aboutToAppear(): void {
     let params = new EngineInitParams(this.libHippy!, this.abilityContext!)
@@ -73,11 +74,15 @@ struct Index {
           "msgFromNative",
           "Hi js developer, I come from ohos native code!"
         )
-        this.hippyEngine?.loadModule(
+        loadParams.wrappedCustomRenderViewBuilder = wrapBuilder(buildCustomRenderView)
+        let rootView = this.hippyEngine?.loadModule(
           loadParams,
           (statusCode: ModuleLoadStatus, msg: string) => {
 
           })
+        if (rootView) {
+          this.rootViewWrapper.setRootView(rootView)
+        }
       }
     })
   }
@@ -86,9 +91,7 @@ struct Index {
     Column() {
       HippyRoot({
         hippyEngine: this.hippyEngine,
-        pagerName: 'har demo',
-        pagerData: {},
-        wrappedCustomRenderViewBuilder: wrapBuilder(buildCustomRenderView),
+        rootViewWrapper: this.rootViewWrapper,
         onRenderException: (exception: HippyException) => {
           this.exception = `${exception.message}\n${exception.stack}`
         },

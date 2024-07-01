@@ -47,6 +47,8 @@ ListItemNode::~ListItemNode() {
 }
 
 void ListItemNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  ArkUINode::OnNodeEvent(event);
+  
   if (listItemNodeDelegate_ == nullptr) {
     return;
   }

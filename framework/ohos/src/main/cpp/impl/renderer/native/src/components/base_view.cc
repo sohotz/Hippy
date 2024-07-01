@@ -22,6 +22,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/dom_node/hr_node_props.h"
+#include "renderer/utils/hr_url_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 #include "renderer/utils/hr_convert_utils.h"
 #include "renderer/uimanager/hr_gesture_dispatcher.h"
@@ -46,6 +47,16 @@ BaseView::~BaseView() {
   ++sCount;
   FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, view, del: " << this << ", type: " << view_type_ << ", count: " << sCount;
 #endif
+}
+
+void BaseView::Init() {
+  GetLocalRootArkUINode().SetArkUINodeDelegate(this);
+}
+
+void BaseView::SetTag(uint32_t tag) {
+  tag_ = tag;
+  std::string id_str = "HippyId" + std::to_string(tag);
+  GetLocalRootArkUINode().SetId(id_str);
 }
 
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
@@ -660,8 +671,49 @@ bool BaseView::CheckRegisteredEvent(std::string &eventName) {
   return false;
 }
 
+void BaseView::OnClick() {
+  if (eventClick_) {
+    eventClick_();
+  }
+}
+
+void BaseView::OnAppear() {
+  if (eventAttachedToWindow_) {
+    eventAttachedToWindow_();
+  }
+}
+
+void BaseView::OnDisappear() {
+  if (eventDetachedFromWindow_) {
+    eventDetachedFromWindow_();
+  }
+}
+
+void BaseView::OnAreaChange(ArkUI_NumberValue* data) {
+  
+}
+
+// TODO(hot):
 std::string BaseView::ConvertToLocalPathIfNeeded(const std::string &uri) {
-  // TODO(hot):
+  // hpfile://./assets/defaultSource.jpg
+  if (uri.find("hpfile://") == 0) {
+    std::string prefix = "hpfile://./";
+    auto pos = uri.find(prefix);
+    if (pos == 0) {
+      auto relativePath = uri.substr(prefix.length());
+      auto bundlePath = ctx_->GetNativeRender().lock()->GetBundlePath();
+      auto lastPos = bundlePath.rfind("/");
+      if (lastPos != std::string::npos) {
+        bundlePath = bundlePath.substr(0, lastPos + 1);
+      }
+      auto fullPath = bundlePath + relativePath;
+      auto localPath = HRUrlUtils::convertAssetImageUrl(fullPath);
+      return localPath;
+    }
+  } else if (uri.find("asset:/") == 0) {
+    auto localPath = HRUrlUtils::convertAssetImageUrl(uri);
+    return localPath;
+  }
   return uri;
 }
 

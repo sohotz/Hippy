@@ -17,13 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type HippyValue = number | string | boolean | Uint8Array | bigint| ArrayBuffer
-export type HippyMap = Map<string, HippyValue>
-export type Hippy2Map = Map<string, HippyValue | Map<string, HippyValue>>
-export type Hippy3Map = Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>
+export type HippyValue = number | string | boolean | Uint8Array | bigint | ArrayBuffer
 export type HippyRecord = Record<string, HippyValue>
-export type HippyArray = Array<HippyValue | HippyArray>
-export type HippyAny = HippyValue | HippyMap | Hippy2Map | Hippy3Map | HippyRecord | HippyArray | null | undefined
+export type HippyArray = Array<HippyAny>
+export type HippyMap = Map<string, HippyAny>
+export type HippyAny = HippyValue | HippyMap | HippyRecord | HippyArray | null | undefined
 
 export type HippyRenderCallback = (result: HippyAny) => void
 export type HippyModuleCallback = (result: HippyAny) => void

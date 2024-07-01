@@ -21,7 +21,8 @@ import TextMeasurer from "@ohos.measure"
 import { HippyLibrary } from '../hippy_library/HippyLibrary'
 import { HippyException } from '../support/common/HippyException'
 import { HippyExecutor } from '../support/common/HippyExecutor'
-import { HippyAny, HippyMap, HippyValue, HippyRenderCallback } from '../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyValue, HippyRenderCallback,
+  HippyRecord } from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
 import { VfsManager } from '../vfs/VfsManager'
 import {
@@ -58,6 +59,8 @@ import { HRRect, HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
 import { BuilderNode, FrameNode } from '@kit.ArkUI'
 import HippyRenderBaseView from './components/base/HippyRenderBaseView'
+import { HippyRootView } from '.'
+import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -79,6 +82,10 @@ export interface NativeRenderEventHandler {
 export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
   private readonly INVALID_NODE_ID = -1
+  private readonly ROOT_VIEW_ID_INCREMENT = 10
+  private static sRootIdCounter = 0
+
+  private instanceId: number = 0
 
   private eventHandler: NativeRenderEventHandler
 
@@ -99,6 +106,10 @@ export class NativeRenderImpl implements NativeRender {
     this.renderManager = new HRManager()
   }
 
+  setInstanceId(instanceId: number) {
+    this.instanceId = instanceId
+  }
+
   getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
     return this.customRenderViewCreatorMap
   }
@@ -107,10 +118,12 @@ export class NativeRenderImpl implements NativeRender {
     this.frameworkProxy = proxy
   }
 
-  attachToRootView(rootId: number): void {
-    if (this.frameworkProxy) {
-      this.frameworkProxy.attachToRootView(rootId)
-    }
+  createRootView(pageName: string, pageData: HippyRecord, wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null): HippyRootView {
+    NativeRenderImpl.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
+    let rootId = NativeRenderImpl.sRootIdCounter
+    let rootView = new HippyRootView(this.instanceId, rootId, this.customRenderViewCreatorMap, this,
+      wrappedCustomRenderViewBuilder, pageName, pageData)
+    return rootView
   }
 
   destroyRoot(rootId: number): void {
@@ -227,7 +240,7 @@ export class NativeRenderImpl implements NativeRender {
 
       let vNode = virtualNodeManager.getVirtualNode(node.get('id') as number)
       if (vNode && vNode.props) {
-        (node.get('props') as HippyMap).forEach((value: HippyValue, key: string) => {
+        (node.get('props') as HippyMap).forEach((value: HippyAny, key: string) => {
           if (vNode && vNode.props && key) {
             if(value) {
               vNode.props.set(key, value)
@@ -440,7 +453,7 @@ export class NativeRenderImpl implements NativeRender {
   measureAddTextPropsToStream(stream:string[], props:HippyMap) {
     let count=0;
     let tmpStr:string[] = [];
-    props.forEach((value: HippyValue, key: string) => {
+    props.forEach((value: HippyAny, key: string) => {
       if (key && value && this.textPropsOnly.indexOf(key)<0 && this.textMarginProps.indexOf(key)<0 && this.spanDropProps.indexOf(key)<0) {
         count++;
         tmpStr.push(key);

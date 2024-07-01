@@ -30,8 +30,8 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-NativeRenderProvider::NativeRenderProvider(uint32_t instance_id) : instance_id_(instance_id) {
-  render_impl_ = std::make_shared<NativeRenderImpl>(instance_id);
+NativeRenderProvider::NativeRenderProvider(uint32_t instance_id, const std::string &bundle_path) : instance_id_(instance_id) {
+  render_impl_ = std::make_shared<NativeRenderImpl>(instance_id, bundle_path);
   render_impl_->InitRenderManager();
 }
 
@@ -120,6 +120,12 @@ void NativeRenderProvider::CallUIFunction(uint32_t root_id, uint32_t node_id, ui
     };
     render_impl->CallUIFunction(root_id, node_id, func_name, params, (cb_id == 0) ? nullptr : cb);
   });
+}
+
+LayoutSize NativeRenderProvider::CustomMeasure(uint32_t root_id, uint32_t node_id,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode) {
+  return render_impl_->CustomMeasure(root_id, node_id, width, width_measure_mode, height, height_measure_mode);
 }
 
 void NativeRenderProvider::SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y) {

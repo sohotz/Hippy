@@ -11,7 +11,8 @@
 #include <native_drawing/drawing_text_typography.h>
 #include <native_drawing/drawing_register_font.h>
 
-#define MEASURE_TEXT_CHECK_PROP
+// Note: Do not open normally, it impacts performance.
+// #define MEASURE_TEXT_CHECK_PROP
 
 struct OhImageSpanHolder {
     double width;

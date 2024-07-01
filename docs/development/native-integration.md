@@ -341,9 +341,7 @@ Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目�
  ```TypeScript
   HippyRoot({
       hippyEngine: this.hippyEngine,
-      pagerName: 'demo',
-      pagerData: {},
-      wrappedCustomRenderViewBuilder: wrapBuilder(buildCustomRenderView),
+      rootViewWrapper: this.rootViewWrapper,
       onRenderException: (exception: HippyException) => {
         this.exception = `${exception.message}\n${exception.stack}`
       },
@@ -394,9 +392,7 @@ Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目�
  ```TypeScript
   HippyRoot({
       hippyEngine: this.hippyEngine,
-      pagerName: 'demo',
-      pagerData: {},
-      wrappedCustomRenderViewBuilder: wrapBuilder(buildCustomRenderView),
+      rootViewWrapper: this.rootViewWrapper,
       onRenderException: (exception: HippyException) => {
         this.exception = `${exception.message}\n${exception.stack}`
       },

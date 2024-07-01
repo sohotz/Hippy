@@ -27,8 +27,8 @@ import HippyRenderBaseView
 import {
   HRRenderViewCreator
 } from 'hippy/src/main/ets/renderer_native/components/HippyRenderRegisterMap'
-import { ExampleCustomComponentViewA } from './ExampleCustomComponentViewA'
-import { ExampleCustomComponentViewB } from './ExampleCustomComponentViewB'
+import { ExampleComponentA, ExampleViewA } from './ExampleViewA'
+import { ExampleComponentB, ExampleViewB } from './ExampleViewB'
 import { ExampleNativeModule } from './ExampleNativeModule'
 
 export class ExampleAPIProvider implements HippyAPIProvider {
@@ -44,17 +44,27 @@ export class ExampleAPIProvider implements HippyAPIProvider {
 
   getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
     let registerMap: Map<string, HRRenderViewCreator> = new Map()
-    registerMap.set("ExampleCustomViewA", (ctx): HippyRenderBaseView => new ExampleCustomComponentViewA(ctx))
-    registerMap.set("ExampleCustomViewB", (ctx): HippyRenderBaseView => new ExampleCustomComponentViewB(ctx))
+    registerMap.set("ExampleViewA", (ctx): HippyRenderBaseView => new ExampleViewA(ctx))
+    registerMap.set("ExampleViewB", (ctx): HippyRenderBaseView => new ExampleViewB(ctx))
     return registerMap
   }
 
   getCustomMeasureRenderViews(): Array<string> | null {
-    return ["ExampleCustomViewB"]
+    return ["ExampleViewB"]
   }
 
   getCustomMappingRenderViewMap(): Map<string, string> | null {
     return null
   }
 
+}
+
+
+@Builder
+export function buildCustomRenderView($$: HippyRenderBaseView) {
+  if ($$ instanceof ExampleViewA) {
+    ExampleComponentA({ renderView: $$ as ExampleViewA, children: $$.children })
+  } else if ($$ instanceof ExampleViewB) {
+    ExampleComponentB({ renderView: $$ as ExampleViewB, children: $$.children })
+  }
 }

@@ -52,13 +52,13 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
             textAlign = TEXT_ALIGN_JUSTIFY;
         }
     }
-    OH_Drawing_SetTypographyTextAlign(typoStyle_, textAlign); // ok8        textAlign
+    OH_Drawing_SetTypographyTextAlign(typoStyle_, textAlign);
 
     int maxLines = 100000;
-    if (HasProp(propMap, "numberOfLines")) {
+    if (HasProp(propMap, "numberOfLines") && propMap["numberOfLines"].size() > 0) {
         maxLines = std::stoi(propMap["numberOfLines"]);
     }
-    OH_Drawing_SetTypographyTextMaxLines(typoStyle_, maxLines); // okA        maxLines
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle_, maxLines);
 
     if (HasProp(propMap, "breakStrategy")) {
         OH_Drawing_BreakStrategy bs = BREAK_STRATEGY_GREEDY;
@@ -82,26 +82,28 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
 
     fontCollection_ = OH_Drawing_CreateFontCollection();
     if (HasProp(propMap, "fontFamily")) {
-        if (fontFamilyList_.find(propMap["fontFamily"]) != fontFamilyList_.end()) {
-            uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, propMap["fontFamily"].c_str(),
-                                                   fontFamilyList_[propMap["fontFamily"]].c_str());
-            FOOTSTONE_DLOG(WARNING) << "Measure Text OH_Drawing_RegisterFont(" << propMap["fontFamily"] << ","
-                                    << fontFamilyList_[propMap["fontFamily"]] << ") " << (ret == 0 ? "succ" : "fail");
+        auto fontFamilyName = propMap["fontFamily"];
+        if (fontFamilyList_.find(fontFamilyName) != fontFamilyList_.end()) {
+            uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, fontFamilyName.c_str(),
+                                                   fontFamilyList_[fontFamilyName].c_str());
+            FOOTSTONE_DLOG(WARNING) << "Measure Text OH_Drawing_RegisterFont(" << fontFamilyName << ","
+                                    << fontFamilyList_[fontFamilyName] << ") " << (ret == 0 ? "succ" : "fail");
         }
     }
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
-
-    // TODO(hot): temporary fix crash, to review later
+  
     if (HasProp(propMap, "lineHeight") && propMap["lineHeight"].size() > 0) {
         lineHeight_ = std::stod(propMap["lineHeight"]);
     }
-    if (HasProp(propMap, "paddingVertical")) {
-        paddingTop_ = std::stod(propMap["paddingVertical"]);
-        paddingBottom_ = std::stod(propMap["paddingVertical"]);
+    if (HasProp(propMap, "paddingVertical") && propMap["paddingVertical"].size() > 0) {
+        auto paddingValue = std::stod(propMap["paddingVertical"]);
+        paddingTop_ = paddingValue;
+        paddingBottom_ = paddingValue;
     }
-    if (HasProp(propMap, "paddingHorizontal")) {
-        paddingLeft_ = std::stod(propMap["paddingHorizontal"]);
-        paddingRight_ = std::stod(propMap["paddingHorizontal"]);
+    if (HasProp(propMap, "paddingHorizontal") && propMap["paddingHorizontal"].size() > 0) {
+        auto paddingValue = std::stod(propMap["paddingHorizontal"]);
+        paddingLeft_ = paddingValue;
+        paddingRight_ = paddingValue;
     }
 
 #ifdef MEASURE_TEXT_CHECK_PROP
@@ -121,21 +123,21 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     StartCollectProp();
 #endif
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
-    if (HasProp(propMap, "color")) {
+    if (HasProp(propMap, "color") && propMap["color"].size() > 0) {
         unsigned long color = std::stoul(propMap["color"]);
         OH_Drawing_SetTextStyleColor(txtStyle, (uint32_t)color);
     }
     double fontSize = 14; // 默认的fontSize是14，是否从系统读取？
-    if (HasProp(propMap, "fontSize")) {
+    if (HasProp(propMap, "fontSize") && propMap["fontSize"].size() > 0) {
         fontSize = std::stod(propMap["fontSize"]);
     }
-    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize); // ok3 fontSize
+    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
     if (HasProp(propMap, "fontWeight")) {
-        int fontWeight = FONT_WEIGHT_400;
+        int fontWeight = FONT_WEIGHT_400; // TODO(hot):
         if (propMap["fontWeight"] == "bold") {
             fontWeight = FONT_WEIGHT_700;
-        }                                                        // todo...
-        OH_Drawing_SetTextStyleFontWeight(txtStyle, fontWeight); // ok5 fontWeight
+        }
+        OH_Drawing_SetTextStyleFontWeight(txtStyle, fontWeight);
     }
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC); // todoC baselineOffset
 
@@ -150,7 +152,7 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
         }
         OH_Drawing_SetTextStyleDecoration(txtStyle, td);
     }
-    if (HasProp(propMap, "textDecorationColor")) {
+    if (HasProp(propMap, "textDecorationColor") && propMap["textDecorationColor"].size() > 0) {
         unsigned long color = std::stoul(propMap["textDecorationColor"]);
         OH_Drawing_SetTextStyleDecorationColor(txtStyle, (uint32_t)color);
     }
@@ -173,17 +175,17 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
 
     if (HasProp(propMap, "fontFamily")) {
         const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
-        OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies); // ok6 fontFamily
+        OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     }
     int fontStyle = FONT_STYLE_NORMAL;
     if (HasProp(propMap, "fontStyle") && propMap["fontStyle"] == "italic") {
         fontStyle = FONT_STYLE_ITALIC;
     }
-    OH_Drawing_SetTextStyleFontStyle(txtStyle, fontStyle); // ok4 fontStyle
+    OH_Drawing_SetTextStyleFontStyle(txtStyle, fontStyle);
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
     // OH_Drawing_SetTextStyleDecorationStyle(txtStyle, );
     // OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, );
-    if (HasProp(propMap, "letterSpacing")) {
+    if (HasProp(propMap, "letterSpacing") && propMap["letterSpacing"].size() > 0) {
         double letterSpacing = std::stod(propMap["letterSpacing"]);
         OH_Drawing_SetTextStyleLetterSpacing(txtStyle, letterSpacing);
     }
@@ -194,7 +196,7 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     // 将文本样式对象加入到handler中
     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle);
     if (HasProp(propMap, "text")) {
-        OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str()); // ok1 textContent
+        OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str());
     }
     OH_Drawing_TypographyHandlerPopTextStyle(handler_);
     OH_Drawing_DestroyTextStyle(txtStyle);
@@ -217,10 +219,10 @@ void OhMeasureText::AddImage(std::map<std::string, std::string> &propMap) {
     StartCollectProp();
 #endif
     OH_Drawing_PlaceholderSpan span;
-    if (HasProp(propMap, "width")) {
+    if (HasProp(propMap, "width") && propMap["width"].size() > 0) {
         span.width = std::stod(propMap["width"]);
     }
-    if (HasProp(propMap, "height")) {
+    if (HasProp(propMap, "height") && propMap["height"].size() > 0) {
         span.height = std::stod(propMap["height"]);
     }
     span.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
@@ -259,11 +261,11 @@ void OhMeasureText::AddImage(std::map<std::string, std::string> &propMap) {
         // }
         spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_ABOVE_BASELINE;
     }
-    if (HasProp(propMap, "margin")) {
+    if (HasProp(propMap, "margin") && propMap["margin"].size() > 0) {
         spanH.marginTop = std::stod(propMap["margin"]);
         spanH.marginBottom = std::stod(propMap["margin"]);
     }
-    if (HasProp(propMap, "top")) {
+    if (HasProp(propMap, "top") && propMap["top"].size() > 0) {
         spanH.top = std::stod(propMap["top"]);
     }
 

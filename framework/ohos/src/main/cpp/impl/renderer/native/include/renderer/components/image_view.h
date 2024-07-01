@@ -38,7 +38,6 @@ public:
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
   
-  void OnClick() override;
   void OnComplete(float width, float height) override;
   void OnError(int32_t errorCode) override;
   

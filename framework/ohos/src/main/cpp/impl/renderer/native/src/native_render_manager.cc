@@ -23,6 +23,7 @@
 #include "renderer/native_render_manager.h"
 #include "renderer/native_render_provider_napi.h"
 #include "renderer/native_render_provider_manager.h"
+#include "renderer/api/hippy_view_provider.h"
 #include <cstdint>
 #include <iostream>
 #include <utility>
@@ -178,7 +179,8 @@ NativeRenderManager::~NativeRenderManager() {
 }
 
 void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_api, napi_ref ts_render_provider_ref,
-    std::set<std::string> &custom_views, std::set<std::string> &custom_measure_views, std::map<std::string, std::string> &mapping_views) {
+    std::set<std::string> &custom_views, std::set<std::string> &custom_measure_views, std::map<std::string, std::string> &mapping_views,
+    std::string &bundle_path) {
   persistent_map_.Insert(id_, shared_from_this());
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
@@ -187,7 +189,7 @@ void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_a
   
   enable_ark_c_api_ = enable_ark_c_api;
   if (enable_ark_c_api) {
-    c_render_provider_ = std::make_shared<NativeRenderProvider>(id_);
+    c_render_provider_ = std::make_shared<NativeRenderProvider>(id_, bundle_path);
     c_render_provider_->SetTsEnv(ts_env);
     NativeRenderProviderManager::AddRenderProvider(id_, c_render_provider_);
     c_render_provider_->RegisterCustomTsRenderViews(ts_env, ts_render_provider_ref, custom_views, mapping_views);
@@ -349,6 +351,37 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
         LayoutSize layout_result;
         layout_result.width = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32))));
         layout_result.height = self->PxToDp(static_cast<float>((int32_t)(0xFFFFFFFF & result)));
+        return layout_result;
+      };
+      nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
+    } else if (IsCustomMeasureNode(nodes[i]->GetViewName())) {
+      int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
+      MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,
+                                                                  float height, LayoutMeasureMode height_measure_mode,
+                                                                  void *layoutContext) -> LayoutSize {
+        DEFINE_SELF(NativeRenderManager)
+        if (!self) {
+          return LayoutSize{0, 0};
+        }
+        int64_t result;
+        self->CallNativeCustomMeasureMethod(root_id, id, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
+                                            self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
+        LayoutSize layout_result;
+        layout_result.width = static_cast<float>((int32_t)(0xFFFFFFFF & (result >> 32)));
+        layout_result.height = static_cast<float>((int32_t)(0xFFFFFFFF & result));
+        return layout_result;
+      };
+      nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
+    } else if (IsCustomMeasureCNode(nodes[i]->GetViewName())) {
+      int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
+      MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,
+                                                                  float height, LayoutMeasureMode height_measure_mode,
+                                                                  void *layoutContext) -> LayoutSize {
+        DEFINE_SELF(NativeRenderManager)
+        if (!self) {
+          return LayoutSize{0, 0};
+        }
+        LayoutSize layout_result = self->CallNativeCustomMeasureMethod_C(root_id, static_cast<uint32_t>(id), width, width_measure_mode, height, height_measure_mode);
         return layout_result;
       };
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
@@ -884,6 +917,12 @@ void NativeRenderManager::CallNativeCustomMeasureMethod(const uint32_t root_id, 
                                   width, width_mode, height, height_mode, result);
 }
 
+LayoutSize NativeRenderManager::CallNativeCustomMeasureMethod_C(uint32_t root_id, uint32_t node_id,
+    float width, LayoutMeasureMode width_measure_mode,
+    float height, LayoutMeasureMode height_measure_mode) {
+  return c_render_provider_->CustomMeasure(root_id, node_id, width, width_measure_mode, height, height_measure_mode);
+}
+
 std::string HippyValueToString(const HippyValue &value) {
   std::string sv;
   if (value.IsString()) {
@@ -1119,6 +1158,14 @@ void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, 
 
 bool NativeRenderManager::IsCustomMeasureNode(const std::string &name) {
   if (custom_measure_views_.find(name) != custom_measure_views_.end()) {
+    return true;
+  }
+  return false;
+}
+
+bool NativeRenderManager::IsCustomMeasureCNode(const std::string &name) {
+  auto custom_measure_c_views = HippyViewProvider::GetCustomMeasureViews();
+  if (custom_measure_c_views.find(name) != custom_measure_c_views.end()) {
     return true;
   }
   return false;

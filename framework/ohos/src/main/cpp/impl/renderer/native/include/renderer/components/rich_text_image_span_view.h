@@ -29,7 +29,7 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RichTextImageSpanView : public BaseView, public ImageSpanNodeDelegate {
+class RichTextImageSpanView : public BaseView {
 public:
   RichTextImageSpanView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RichTextImageSpanView();
@@ -37,8 +37,6 @@ public:
   ImageSpanNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
-
-  void OnClick() override;
   
 private:
   void fetchImage(const std::string &imageUrl);

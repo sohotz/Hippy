@@ -22,13 +22,14 @@ import {  HippyEngine, HippyException, HippyRoot } from 'hippy'
 import { HippyLibrary } from 'hippy/src/main/ets/hippy_library/HippyLibrary'
 import HippyRenderBaseView
   from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
-import { ExampleCustomComponentA,
-  ExampleCustomComponentViewA } from '../hippyExtend/ExampleCustomComponentViewA'
+import { ExampleComponentA,
+  ExampleViewA } from '../hippy_extend/ExampleViewA'
 import { DriverMode, HippyInfo } from './PageConfiguration'
 import { image } from '@kit.ImageKit'
 import {
-  ExampleCustomComponentB,
-  ExampleCustomComponentViewB } from '../hippyExtend/ExampleCustomComponentViewB'
+  ExampleComponentB,
+  ExampleViewB } from '../hippy_extend/ExampleViewB'
+import { LogUtils } from 'hippy/src/main/ets/support/utils/LogUtils'
 
 //dimens.xml
 const page_index_item_margin:number = 16
@@ -157,6 +158,14 @@ struct PageManagement {
                   .width(30)
                   .height(28)
                   .onClick(() => {
+                    let item  = this.pageitems[index];
+                    // hippyEngine 销毁实例
+                    LogUtils.i('hippy demo', 'destroyModule');
+                    item.hippyEngine?.destroyModule(item.rootViewWrapper!.getRootView()!.getRootId(), () => {
+                      LogUtils.i('hippy demo', 'destroyModule success');
+                      item.hippyEngine?.destroyEngine();
+                      LogUtils.i('hippy demo', 'destroyEngine success');
+                    });
                     this.pageitems?.splice(index, 1)
                   })
                 }
@@ -254,15 +263,6 @@ struct PageManagement {
   }
 }
 
-@Builder
-function buildCustomRenderView($$: HippyRenderBaseView) {
-  if ($$ instanceof ExampleCustomComponentViewA) {
-    ExampleCustomComponentA({ renderView: $$ as ExampleCustomComponentViewA, children: $$.children })
-  } else if ($$ instanceof ExampleCustomComponentViewB) {
-    ExampleCustomComponentB({ renderView: $$ as ExampleCustomComponentViewB, children: $$.children })
-  }
-}
-
 @Component
 struct HippyFrame {
   @StorageLink('pageManagementItems') pageitems:HippyInfo[]  = [] //AppStorage.get('pageManagementItems') as InitParams[]
@@ -277,9 +277,7 @@ struct HippyFrame {
     Column() {
       HippyRoot({
         hippyEngine: this.hippyEngine,
-        pagerName: 'demo',
-        pagerData: {},
-        wrappedCustomRenderViewBuilder: wrapBuilder(buildCustomRenderView),
+        rootViewWrapper: this.itemInfo?.rootViewWrapper,
         onRenderException: (exception: HippyException) => {
           this.exception = `${exception.message}\n${exception.stack}`
         },

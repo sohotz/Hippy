@@ -22,26 +22,20 @@ import { HippyEngine } from '../hippy_framework';
 import { HippyException } from '../support/common/HippyException';
 import { HippyRecord } from '../support/common/HippyTypes';
 import { LogUtils } from '../support/utils/LogUtils';
-import HippyRenderBaseView from './components/base/HippyRenderBaseView';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
-import { FrameworkProxy } from './FrameworkProxy';
 import { HippyRender, HippyRenderView } from './HippyRenderView';
 import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder';
 import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
 import { NativeRender } from './NativeRender';
 import { NativeRenderContext } from './NativeRenderContext';
-import { NativeRenderProvider } from './NativeRenderProvider';
-import { HRConvertUtil } from './utils/HRConvertUtil';
 import { HRSize } from './utils/HRTypes';
 
 export class HippyRootView {
   renderView: HippyRenderView | null = null
   pagerName: string
   pagerData: HippyRecord
-  renderExceptionListener: IHippyRenderExceptionListener | null = null
   private ctx: NativeRenderContext
   private avoidArea: window.AvoidArea | null = null
-  private renderViewDidCreateCallback: (() => void) | null = null
   private renderViewSize: HRSize = new HRSize(0, 0)
   private lazyRenderViewTasks: Array<() => void> = []
 
@@ -52,12 +46,10 @@ export class HippyRootView {
               wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null,
               pagerName: string,
               pagerData: HippyRecord,
-              renderExceptionListener: IHippyRenderExceptionListener
   ) {
     this.ctx = new NativeRenderContext(instanceId, rootId, customRenderViewCreatorMap, nativeRender, wrappedCustomRenderViewBuilder)
     this.pagerName = pagerName
     this.pagerData = pagerData
-    this.renderExceptionListener = renderExceptionListener
     this.initRenderView()
   }
 
@@ -66,21 +58,13 @@ export class HippyRootView {
     this.renderView = null
   }
 
-  setRenderExceptionListener(listener: IHippyRenderExceptionListener) {
-    this.renderExceptionListener = listener
-    if (this.renderView) {
-      this.renderView.setRenderExceptionListener(listener)
-    }
+  private initRenderView() {
+    this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea)
+    this.performAllRenderViewTasks()
   }
 
-  private initRenderView() {
-    this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea, this.renderExceptionListener)
-    this.performAllRenderViewTasks()
-
-    // TODO(hot): for c api
-    //this.ctx.getNativeRender().attachToRootView(this.renderView.tag)
-
-    this.fireDidCreateRenderViewCallbackIfNeed()
+  getRootId(): number {
+    return this.ctx.getRootId()
   }
 
   setAvoidArea(avoidArea: window.AvoidArea) {
@@ -94,14 +78,6 @@ export class HippyRootView {
     this.renderViewSize = size
     if (this.renderView) {
       this.renderView.onSizeChanged(size.width, size.height)
-    }
-  }
-
-  setDidCreateRenderViewCallback(callback: () => void) {
-    if (this.renderView) {
-      callback()
-    } else {
-      this.renderViewDidCreateCallback = callback
     }
   }
 
@@ -137,21 +113,39 @@ export class HippyRootView {
     this.lazyRenderViewTasks = []
   }
 
-  private fireDidCreateRenderViewCallbackIfNeed() {
-    if (this.renderViewDidCreateCallback && this.renderView) {
-      this.renderViewDidCreateCallback()
-      this.renderViewDidCreateCallback = null
+}
+
+export class HippyRootViewWrapper {
+  private rootView: HippyRootView | null = null
+  private rootViewDidCreateCallback: ((rootView: HippyRootView) => void) | null = null
+
+  setRootView(rootView: HippyRootView): void {
+    this.rootView = rootView
+    if (this.rootViewDidCreateCallback) {
+      this.rootViewDidCreateCallback(this.rootView)
+    }
+  }
+
+  getRootView(): HippyRootView | null {
+    return this.rootView
+  }
+
+  setRootViewDidCreateCallback(callback: (rootView: HippyRootView) => void) {
+    if (this.rootView) {
+      callback(this.rootView)
+    } else {
+      this.rootViewDidCreateCallback = callback
     }
   }
 }
 
 class HippyRenderExceptionListener implements IHippyRenderExceptionListener {
-  listener: ((exception: HippyException) => void) | null = null
+  uiListener: ((exception: HippyException) => void) | null = null
   nativeRender: NativeRender | null = null
 
   onRenderException(exception: HippyException): void {
     exception = HippyException.safeBuild(exception)
-    this.listener?.(exception)
+    this.uiListener?.(exception)
     if (this.nativeRender) {
       this.nativeRender.handleRenderException(exception)
     }
@@ -161,20 +155,15 @@ class HippyRenderExceptionListener implements IHippyRenderExceptionListener {
 @Component
 export struct HippyRoot {
   hippyEngine: HippyEngine | null = null
-  pagerName: string = ""
-  pagerData: HippyRecord = {}
+  rootViewWrapper: HippyRootViewWrapper | null = null
   initViewSize: HRSize = new HRSize(0, 0)
   onRenderException: ((exception: HippyException) => void) | null = null
-  private readonly ROOT_VIEW_ID_INCREMENT = 10
-  private static sRootIdCounter = 0
-  private rootId: number = -1
+
+  @State rootView: HippyRootView | null = null
+
   private renderInstanceId: number = -1
   private renderExceptionListener = new HippyRenderExceptionListener()
-  private wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null = null
-  @State showRenderView: boolean = false
-  private rootView: HippyRootView | null = null
   private enableArkCApi: boolean = false
-  onRootViewCreated: ((rootId: number) => void) | null = null
 
   aboutToAppear(): void {
     if (!this.hippyEngine || !this.hippyEngine.getNativeRenderProvider()) {
@@ -182,69 +171,58 @@ export struct HippyRoot {
       return
     }
 
-    this.enableArkCApi = this.hippyEngine.getHippyEngineContext()!.getGlobalConfigs().enableArkCApi()
-    if (this.enableArkCApi) {
-      let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
-      // TODO(hot):
+    if (!this.rootViewWrapper) {
+      this.onRenderException?.(new HippyException("Error, rootViewWrapper is null."))
+      return
     }
 
-    if (!this.rootView) {
-      this.renderExceptionListener.listener = this.onRenderException
-      this.renderExceptionListener.nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
+    this.renderInstanceId = this.hippyEngine.getNativeRenderProvider()!.getInstanceId()
+    this.enableArkCApi = this.hippyEngine.getHippyEngineContext()!.getGlobalConfigs().enableArkCApi()
 
-      HippyRoot.sRootIdCounter += this.ROOT_VIEW_ID_INCREMENT
-      this.rootId = HippyRoot.sRootIdCounter
-      this.renderInstanceId = this.hippyEngine.getNativeRenderProvider()!.getInstanceId()
-      let nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
-      let customRenderViewCreatorMap = nativeRender.getCustomRenderViewCreatorMap()
-      this.rootView = new HippyRootView(this.renderInstanceId, this.rootId, customRenderViewCreatorMap, nativeRender,
-                                        this.wrappedCustomRenderViewBuilder,
-                                        this.pagerName, this.pagerData, this.renderExceptionListener)
+    this.renderExceptionListener.uiListener = this.onRenderException
+    this.renderExceptionListener.nativeRender = this.hippyEngine.getNativeRenderProvider()!.getNativeRenderImpl()
+
+    this.rootViewWrapper.setRootViewDidCreateCallback((rootView: HippyRootView) => {
+      this.rootView = rootView
       if (this.initViewSize.width > 0) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
-      if (this.onRootViewCreated) {
-        this.onRootViewCreated(this.rootId)
-      }
-      this.rootView.setDidCreateRenderViewCallback(() => {
-        this.showRenderView = true
-      })
-
       window.getLastWindow(getContext(this), (error, data) => {
         if (this.rootView && data) {
           let avoidArea = data.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM)
           this.rootView.setAvoidArea(avoidArea)
         }
       })
-    }
+    })
   }
 
   aboutToDisappear(): void {
     if (this.rootView) {
+      let rootId = this.rootView.getRootId()
       this.rootView.onDestroy()
       this.rootView = null
       if (this.hippyEngine) {
         let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
-        libHippy.NativeRenderProvider_DestroyRoot(this.renderInstanceId, this.rootId)
+        libHippy.NativeRenderProvider_DestroyRoot(this.renderInstanceId, rootId)
       }
     }
   }
 
   build() {
     Column() {
-      if (this.enableArkCApi) {
-        XComponent({
-          id: this.renderInstanceId + "_" + this.rootId,
-          type: "node",
-          libraryname: 'hippy'
-        })
-          .width("100%")
-          .height("100%")
-      } else {
-        if (this.showRenderView && this.rootView && this.rootView.renderView) {
+      if (this.rootView) {
+        if (this.enableArkCApi) {
+          XComponent({
+            id: this.renderInstanceId + "_" + this.rootView.getRootId(),
+            type: "node",
+            libraryname: 'hippy'
+          })
+            .width("100%")
+            .height("100%")
+        } else {
           HippyRender({
-            renderView: this.rootView.renderView,
-            children: this.rootView.renderView.children,
+            renderView: this.rootView.renderView!,
+            children: this.rootView.renderView!.children,
           })
             .width('100%')
             .height('100%')
@@ -257,8 +235,11 @@ export struct HippyRoot {
     .width('100%')
     .height('100%')
     .onAreaChange((oldValue: Area, newValue: Area) => {
+      let size = new HRSize(newValue.width as number, newValue.height as number)
       if (this.rootView) {
-        this.rootView.onViewSizeChanged(new HRSize(newValue.width as number, newValue.height as number))
+        this.rootView.onViewSizeChanged(size)
+      } else {
+        this.initViewSize = size
       }
     })
   }

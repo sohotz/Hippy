@@ -28,6 +28,10 @@ export class DomManager {
     this.instanceId = this.createDomManager();
   }
 
+  destroy() {
+    this.destroyDomManager(this.instanceId);
+  }
+
   attachToRenderer(
     renderId: number
   ) {

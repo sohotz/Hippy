@@ -28,9 +28,12 @@ inline namespace render {
 inline namespace native {
 
 CustomTsView::CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_NodeHandle nodeHandle) : BaseView(ctx), tsNode_(nodeHandle) {
-  tsNode_.SetCustomTsNodeDelegate(this);
   containerNode_.AddChild(tsNode_);
   containerNode_.AddChild(subContainerNode_);
+  tsNode_.SetWidthPercent(1.f);
+  tsNode_.SetHeightPercent(1.f);
+  subContainerNode_.SetWidthPercent(1.f);
+  subContainerNode_.SetHeightPercent(1.f);
 }
 
 CustomTsView::~CustomTsView() {
@@ -52,6 +55,10 @@ bool CustomTsView::SetProp(const std::string &propKey, const HippyValue &propVal
   return BaseView::SetProp(propKey, propValue);
 }
 
+void CustomTsView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrame(frame, padding);
+}
+
 void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
   subContainerNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
@@ -60,12 +67,6 @@ void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
 void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
   BaseView::OnChildRemoved(childView);
   subContainerNode_.RemoveChild(childView->GetLocalRootArkUINode());
-}
-
-void CustomTsView::OnClick() {
-  if (eventClick_) {
-    eventClick_();
-  }
 }
 
 } // namespace native

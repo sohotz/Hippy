@@ -1,8 +1,10 @@
-/*
+/*!
+ * iOS SDK
+ *
  * Tencent is pleased to support the open source community by making
  * Hippy available.
  *
- * Copyright (C) 2022 THL A29 Limited, a Tencent company.
+ * Copyright (C) 2019 THL A29 Limited, a Tencent company.
  * All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +21,19 @@
  */
 
 #import "HippyBridge.h"
-#import "HippyDemoLoader.h"
-#import "HippyFileHandler.h"
-#import "NativeRenderManager.h"
+#import "HippyBridge+PerformanceAPI.h"
+
+NS_ASSUME_NONNULL_BEGIN
+
+/// Performance API Category of HippyBridge
+@interface HippyBridge (PerformanceAPI)
+
+/// Update perf records of FP, DOM_START/DOM_END etc.
+- (void)updatePerfRecordsOnRootContentDidAppear;
+
+/// Update FCP perf record.
+- (void)updatePerfRecordOnFirstContentfulPaintEnd;
+
+@end
+
+NS_ASSUME_NONNULL_END

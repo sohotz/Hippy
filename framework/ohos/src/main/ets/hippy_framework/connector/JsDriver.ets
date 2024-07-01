@@ -110,6 +110,11 @@ export class JsDriver {
     )
   }
 
+  getInstanceId(): number {
+    return this.instanceId;
+  }
+
+
   setBridgeCallback(bridgeCallback: BridgeCallback) {
     this.bridgeCallback = bridgeCallback
   }
@@ -122,9 +127,9 @@ export class JsDriver {
   }
 
   unloadInstance(
-    str: string
+    buffer: Uint8Array
   ) {
-    this.libHippy?.JsDriver_UnloadInstance(this.instanceId, str)
+    this.libHippy?.JsDriver_UnloadInstance(this.instanceId, buffer.buffer as ArrayBuffer)
   }
 
   runScriptFromUri(

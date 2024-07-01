@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { HippyNativeModule } from '../../../../support/annotation/HippyNativeModule'
-import { Hippy2Map, HippyAny, HippyMap, HippyValue } from '../../../../support/common/HippyTypes'
+import { HippyAny, HippyMap, HippyValue } from '../../../../support/common/HippyTypes'
 import { VfsManager } from '../../../../vfs/VfsManager'
 import { ResourceDataHolder, UriType } from '../../../../vfs/ResourceDataHolder'
 import { HippyEngineContext } from '../../../HippyEngineContext'
@@ -97,7 +97,7 @@ export class NetworkModule extends HippyNativeModuleBase {
     return null;
   }
 
-  private fetch(request: Hippy2Map, promise: HippyModulePromise) {
+  private fetch(request: HippyMap, promise: HippyModulePromise) {
     let vfsManager: VfsManager = this.ctx.getVfsManager()
     const uri: string = request.get(HippyHttpRequest.HTTP_URL) as string;
     const requestHeaders = request.get(HippyHttpRequest.HTTP_HEADERS) as Map<string, string>;
@@ -112,7 +112,7 @@ export class NetworkModule extends HippyNativeModuleBase {
     vfsManager.fetchResourceAsync(uri, UriType.NORMAL, requestHeaders, requestParams, new FetchResCallback(this.ctx, promise));
   }
 
-  private normalizeRequestParams(request: Hippy2Map): Map<string, string> {
+  private normalizeRequestParams(request: HippyMap): Map<string, string> {
     let requestParams = request.get(HippyHttpRequest.HTTP_BODY) as Map<string, string> | string;
     if (requestParams instanceof Map) {
       return requestParams;

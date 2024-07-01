@@ -71,7 +71,7 @@ inline namespace driver {
 REGISTER_JNI("com/openhippy/connector/JsDriver", // NOLINT(cert-err58-cpp)
              "onCreate",
              "([BZZZLcom/openhippy/connector/NativeCallback;"
-             "JILcom/openhippy/connector/JsDriver$V8InitParams;II)I",
+             "JILcom/openhippy/connector/JsDriver$V8InitParams;IIZ)I",
              CreateJsDriver)
 
 REGISTER_JNI("com/openhippy/connector/JsDriver", // NOLINT(cert-err58-cpp)
@@ -170,7 +170,14 @@ std::shared_ptr<Scope> GetScope(jint j_scope_id) {
 
 void OnNativeInitEnd(JNIEnv* j_env, jobject j_object, jint j_scope_id, jlong startTime, jlong endTime) {
   auto scope = GetScope(j_scope_id);
-  auto runner = scope->GetEngine().lock()->GetJsTaskRunner();
+  if (!scope) {
+    return;
+  }
+  auto engine = scope->GetEngine().lock();
+  if (!engine) {
+    return;
+  }
+  auto runner = engine->GetJsTaskRunner();
   if (runner) {
     std::weak_ptr<Scope> weak_scope = scope;
     auto task = [weak_scope, startTime, endTime]() {
@@ -187,7 +194,14 @@ void OnNativeInitEnd(JNIEnv* j_env, jobject j_object, jint j_scope_id, jlong sta
 
 void OnFirstPaintEnd(JNIEnv* j_env, jobject j_object, jint j_scope_id, jlong time) {
   auto scope = GetScope(j_scope_id);
-  auto runner = scope->GetEngine().lock()->GetJsTaskRunner();
+  if (!scope) {
+    return;
+  }
+  auto engine = scope->GetEngine().lock();
+  if (!engine) {
+    return;
+  }
+  auto runner = engine->GetJsTaskRunner();
   if (runner) {
     std::weak_ptr<Scope> weak_scope = scope;
     auto task = [weak_scope, time]() {
@@ -211,7 +225,14 @@ void OnFirstPaintEnd(JNIEnv* j_env, jobject j_object, jint j_scope_id, jlong tim
 
 void OnFirstContentfulPaintEnd(JNIEnv* j_env, jobject j_object, jint j_scope_id, jlong time) {
   auto scope = GetScope(j_scope_id);
-  auto runner = scope->GetEngine().lock()->GetJsTaskRunner();
+  if (!scope) {
+    return;
+  }
+  auto engine = scope->GetEngine().lock();
+  if (!engine) {
+    return;
+  }
+  auto runner = engine->GetJsTaskRunner();
   if (runner) {
     std::weak_ptr<Scope> weak_scope = scope;
     auto task = [weak_scope, time]() {
@@ -235,7 +256,14 @@ void OnResourceLoadEnd(JNIEnv* j_env, jobject j_object, jint j_scope_id, jstring
   auto ret_code = static_cast<int32_t>(j_ret_code);
   auto error_msg = j_error_msg ? JniUtils::ToStrView(j_env, j_error_msg) : string_view("");
   auto scope = GetScope(j_scope_id);
-  auto runner = scope->GetEngine().lock()->GetJsTaskRunner();
+  if (!scope) {
+    return;
+  }
+  auto engine = scope->GetEngine().lock();
+  if (!engine) {
+    return;
+  }
+  auto runner = engine->GetJsTaskRunner();
   if (runner) {
     std::weak_ptr<Scope> weak_scope = scope;
     auto task = [weak_scope, uri, j_start_time, j_end_time, ret_code, error_msg]() {
@@ -266,7 +294,8 @@ jint CreateJsDriver(JNIEnv* j_env,
                     jint j_dom_manager_id,
                     jobject j_vm_init_param,
                     jint j_vfs_id,
-                    jint j_devtools_id) {
+                    jint j_devtools_id,
+                    jboolean j_is_reload) {
   FOOTSTONE_LOG(INFO) << "CreateJsDriver begin, j_single_thread_mode = "
                       << static_cast<uint32_t>(j_single_thread_mode)
                       << ", j_bridge_param_json = "
@@ -343,7 +372,7 @@ jint CreateJsDriver(JNIEnv* j_env,
     }
   };
   auto engine = JsDriverUtils::CreateEngineAndAsyncInitialize(
-      dom_task_runner, param, static_cast<int64_t>(j_group_id));
+      dom_task_runner, param, static_cast<int64_t>(j_group_id), static_cast<bool>(j_is_reload));
   {
     std::lock_guard<std::mutex> lock(holder_mutex);
     engine_holder[engine.get()] = engine;

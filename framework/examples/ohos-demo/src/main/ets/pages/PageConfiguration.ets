@@ -21,12 +21,15 @@ import { router } from '@kit.ArkUI'
 import {
   createHippyEngine,
   EngineInitParams,
-  EngineInitStatus, HippyEngine, ModuleLoadParams, ModuleLoadStatus } from 'hippy'
+  EngineInitStatus, HippyEngine,
+  HippyRootView,
+  HippyRootViewWrapper,
+  ModuleLoadParams, ModuleLoadStatus } from 'hippy'
 import { DriverSetting } from './DriverSetting'
 import { RendererSetting } from './RendererSetting'
 import { image } from '@kit.ImageKit'
 import { HippyValue } from 'hippy/src/main/ets/support/common/HippyTypes'
-import { ExampleAPIProvider } from '../hippyExtend/ExampleAPIProvider'
+import { buildCustomRenderView, ExampleAPIProvider } from '../hippy_extend/ExampleAPIProvider'
 import { HippyLibrary } from 'hippy/src/main/ets/hippy_library/HippyLibrary'
 
 export enum DriverMode {
@@ -52,7 +55,7 @@ export class HippyInfo {
   debugServerHost:string = DEFAULT_DEBUG_SERVER_HOST
   hippyEngine:HippyEngine | null = null
   snapShot:image.PixelMap | null = null
-
+  rootViewWrapper:HippyRootViewWrapper = new HippyRootViewWrapper()
   createTime:number = 0
 }
 
@@ -137,11 +140,15 @@ struct PageConfiguration {
           "msgFromNative",
           "Hi js developer, I come from ohos native code!"
         )
-        hippyEngine?.loadModule(
+        loadParams.wrappedCustomRenderViewBuilder = wrapBuilder(buildCustomRenderView)
+        let rootView = hippyEngine?.loadModule(
           loadParams,
           (statusCode: ModuleLoadStatus, msg: string) => {
 
           })
+        if (rootView) {
+          info.rootViewWrapper?.setRootView(rootView)
+        }
       }
     })
 

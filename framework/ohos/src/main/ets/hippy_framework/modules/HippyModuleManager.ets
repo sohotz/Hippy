@@ -33,12 +33,6 @@ export interface HippyModuleManager {
 
   getJavaScriptModule(name: string): HippyJavaScriptModuleBase | null;
 
-  // <T extends HippyJavaScriptModule> T getJavaScriptModule(Class<T> cls);
-  //
-  // <T extends HippyNativeModuleBase> T getNativeModule(Class<T> cls);
-  //
-  // <T extends HippyNativeModuleBase> void addNativeModule(Class<T> cls, Provider<T> provider);
-
   /**
    * Add native modules and java script modules defined in {@link HippyAPIProvider}.
    *

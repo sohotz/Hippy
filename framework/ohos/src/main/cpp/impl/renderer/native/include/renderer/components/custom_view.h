@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "dom/layout_node.h"
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/stack_node.h"
 
@@ -29,21 +30,16 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class CustomView : public BaseView, public StackNodeDelegate {
+class CustomView : public BaseView {
 public:
   CustomView(std::shared_ptr<NativeRenderContext> &ctx);
   ~CustomView();
-
-  StackNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
-
-  void OnClick() override;
   
-private:
-  StackNode stackNode_;
+  // 自定义测量方法。只有 HippyViewProvider::RegisterCustomMeasureViews 方法里指定的自定义组件才会调用该方法。
+  virtual LayoutSize CustomMeasure(float width, LayoutMeasureMode width_measure_mode,
+                                   float height, LayoutMeasureMode height_measure_mode) {
+    return {0, 0};
+  }
 };
 
 } // namespace native

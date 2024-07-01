@@ -139,7 +139,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
     BOOL _bLongClick;
 
     __weak UIView *_rootView;
-    __weak UIView *_touchBeganView;
+    NSMutableArray<UIView *> *_touchBeganViews;
 
     CGPoint _startPoint;
     HippyBridge *_bridge;
@@ -154,6 +154,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
         _moveViews = [NSMutableArray new];
         _startPoint = CGPointZero;
         _rootView = view;
+        _touchBeganViews = [NSMutableArray new];
         self.delegate = self;
         self.cancelsTouchesInView = NO;
         _onInterceptTouchEventView = [NSHashTable weakObjectsHashTable];
@@ -179,7 +180,9 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
         UIView *touchView = [touch view];
         CGPoint locationPoint = [touch locationInView:touchView];
         touchView = touchView?:[self.view.window hitTest:locationPoint withEvent:event];
-        _touchBeganView = touchView;
+        if (touchView) {
+            [_touchBeganViews addObject:touchView];
+        }
         NSDictionary *result = [self responseViewForAction:@[@"onPressIn", @"onTouchDown", @"onClick", @"onLongClick"] inView:touchView
                                                    atPoint:locationPoint];
 
@@ -197,8 +200,8 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
                 point = [view convertPoint:point toView:_rootView];
                 if (view.onTouchDown) {
                     if ([self checkViewBelongToTouchHandler:view]) {
-//                        view.onTouchDown(@{ @"page_x": @(point.x), @"page_y": @(point.y) });
                         const char *name = hippy::kTouchStartEvent;
+                        [self willSendGestureEvent:@(name) withPagePoint:point toView:view];
                         view.onTouchDown(point,
                                          [self canCapture:name],
                                          [self canBubble:name],
@@ -243,8 +246,10 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
     }
 
     UITouch *touch = [touches anyObject];
-    {
-        UIView *touchView = [touch view]?:_touchBeganView;
+    for (UIView *beganView in _touchBeganViews) {
+        // The touch processing logic here does not apply to multi-fingered scenarios,
+        // and needs to be further improved in the future.
+        UIView *touchView = beganView;
         CGPoint locationPoint = [touch locationInView:touchView];
         touchView = touchView?:[self.view.window hitTest:locationPoint withEvent:event];
         NSDictionary *result = [self responseViewForAction:@[@"onTouchEnd", @"onPressOut", @"onClick"] inView:touchView
@@ -264,8 +269,8 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
                 point = [view convertPoint:point toView:_rootView];
                 if (view.onTouchEnd) {
                     if ([self checkViewBelongToTouchHandler:view]) {
-//                        view.onTouchEnd(@{ @"page_x": @(point.x), @"page_y": @(point.y) });
                         const char *name = hippy::kTouchEndEvent;
+                        [self willSendGestureEvent:@(name) withPagePoint:point toView:view];
                         view.onTouchEnd(point,
                                         [self canCapture:name],
                                         [self canBubble:name],
@@ -283,8 +288,8 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
                     point = [theView convertPoint:point toView:_rootView];
                     if (theView.onTouchEnd) {
                         if ([self checkViewBelongToTouchHandler:theView]) {
-//                            theView.onTouchEnd(@{ @"page_x": @(point.x), @"page_y": @(point.y) });
                             const char *name = hippy::kTouchEndEvent;
+                            [self willSendGestureEvent:@(name) withPagePoint:point toView:theView];
                             theView.onTouchEnd(point,
                                                [self canCapture:name],
                                                [self canBubble:name],
@@ -301,6 +306,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
             if (pressOutView == _onPressInView && pressOutView.onPressOut) {
                 if ([self checkViewBelongToTouchHandler:pressOutView]) {
                     const char *name = hippy::kPressOut;
+                    [self willSendGestureEvent:@(name) withPagePoint:CGPointZero toView:pressOutView];
                     pressOutView.onPressOut(CGPointZero,
                                             [self canCapture:name],
                                             [self canBubble:name],
@@ -316,6 +322,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
             if (!_bLongClick && clickView.onClick) {
                 if ([self checkViewBelongToTouchHandler:clickView]) {
                     const char *name = hippy::kClickEvent;
+                    [self willSendGestureEvent:@(name) withPagePoint:CGPointZero toView:clickView];
                     clickView.onClick(CGPointZero,
                                       [self canCapture:name],
                                       [self canBubble:name],
@@ -332,6 +339,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
     self.state = UIGestureRecognizerStateEnded;
     [_moveViews removeAllObjects];
     [_moveTouches removeAllObjects];
+    [_touchBeganViews removeAllObjects];
     [_onInterceptTouchEventView removeAllObjects];
     [_onInterceptPullUpEventView removeAllObjects];
 }
@@ -349,8 +357,10 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
     [_moveTouches removeAllObjects];
     
     UITouch *touch = [touches anyObject];
-    {
-        UIView *touchView = [touch view]?:_touchBeganView;
+    for (UIView *beganView in _touchBeganViews) {
+        // The touch processing logic here does not apply to multi-fingered scenarios,
+        // and needs to be further improved in the future.
+        UIView *touchView = beganView;
         CGPoint locationPoint = [touch locationInView:touchView];
         touchView = touchView?:[self.view.window hitTest:locationPoint withEvent:event];
         NSDictionary *result = [self responseViewForAction:@[@"onTouchCancel", @"onPressOut", @"onClick"] inView:touchView
@@ -369,8 +379,8 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
                 point = [view convertPoint:point toView:_rootView];
                 if (view.onTouchCancel) {
                     if ([self checkViewBelongToTouchHandler:view]) {
-//                        view.onTouchCancel(@{ @"page_x": @(point.x), @"page_y": @(point.y) });
                         const char *name = hippy::kTouchCancelEvent;
+                        [self willSendGestureEvent:@(name) withPagePoint:point toView:view];
                         view.onTouchCancel(point,
                                            [self canCapture:name],
                                            [self canBubble:name],
@@ -386,6 +396,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
             if (pressOutView == _onPressInView && pressOutView.onPressOut) {
                 if ([self checkViewBelongToTouchHandler:pressOutView]) {
                     const char *name = hippy::kPressOut;
+                    [self willSendGestureEvent:@(name) withPagePoint:CGPointZero toView:pressOutView];
                     pressOutView.onPressOut(CGPointZero,
                                             [self canCapture:name],
                                             [self canBubble:name],
@@ -398,6 +409,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
     self.state = UIGestureRecognizerStateCancelled;
     self.enabled = NO;
     self.enabled = YES;
+    [_touchBeganViews removeAllObjects];
     [_onInterceptTouchEventView removeAllObjects];
     [_onInterceptPullUpEventView removeAllObjects];
 }
@@ -427,7 +439,11 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
         if (index != NSNotFound) {
             result = _moveViews[index];
         } else {
-            UIView *touchView = [touch view]?:_touchBeganView;
+            // The touch processing logic here does not apply to multi-fingered scenarios,
+            // and needs to be further improved in the future.
+            // To keep things simple and to be compatible with the historical logic,
+            // we only use the first view clicked as a touchView
+            UIView *touchView = [touch view] ?: _touchBeganViews.firstObject;
             CGPoint locationPoint = [touch locationInView:touchView];
             touchView = touchView?:[self.view.window hitTest:locationPoint withEvent:event];
             NSDictionary *result = [self responseViewForAction:@[@"onTouchMove", @"onPressOut", @"onClick"] inView:touchView
@@ -457,8 +473,8 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
                     CGPoint point = [touch locationInView:view];
                     point = [view convertPoint:point toView:_rootView];
                     if ([self checkViewBelongToTouchHandler:view]) {
-//                        view.onTouchMove(@{ @"page_x": @(point.x), @"page_y": @(point.y) });
                         const char *name = hippy::kTouchMoveEvent;
+                        [self willSendGestureEvent:@(name) withPagePoint:point toView:view];
                         view.onTouchMove(point,
                                          [self canCapture:name],
                                          [self canBubble:name],
@@ -504,6 +520,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
         if (_onPressInView && _onPressInView.onPressIn) {
             if ([self checkViewBelongToTouchHandler:_onPressInView]) {
                 const char *name = hippy::kPressIn;
+                [self willSendGestureEvent:@(name) withPagePoint:CGPointZero toView:_onPressInView];
                 _onPressInView.onPressIn(CGPointZero,
                                          [self canCapture:name],
                                          [self canBubble:name],
@@ -513,8 +530,6 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
         }
         _bPressIn = YES;
     }
-
-    //    self.state = UIGestureRecognizerStateEnded;
 }
 
 - (void)longClickTimer:(__unused NSTimer *)timer {
@@ -522,8 +537,8 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
         _bLongClick = YES;
         if (_onLongClickView && _onLongClickView.onLongClick) {
             if ([self checkViewBelongToTouchHandler:_onLongClickView]) {
-//                _onLongClickView.onLongClick(@{});
                 const char *name = hippy::kLongClickEvent;
+                [self willSendGestureEvent:@(name) withPagePoint:CGPointZero toView:_onLongClickView];
                 _onLongClickView.onLongClick(CGPointZero,
                                              [self canCapture:name],
                                              [self canBubble:name],
@@ -681,6 +696,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
         if (_onPressInView.onPressOut) {
             if ([self checkViewBelongToTouchHandler:_onPressInView]) {
                 const char *name = hippy::kPressOut;
+                [self willSendGestureEvent:@(name) withPagePoint:CGPointZero toView:_onPressInView];
                 _onPressInView.onPressOut(CGPointZero,
                                           [self canCapture:name],
                                           [self canBubble:name],
@@ -709,6 +725,7 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
         if (_onPressInView.onPressOut) {
             if ([self checkViewBelongToTouchHandler:_onPressInView]) {
                 const char *name = hippy::kPressOut;
+                [self willSendGestureEvent:@(name) withPagePoint:CGPointZero toView:_onPressInView];
                 _onPressInView.onPressOut(CGPointZero,
                                           [self canCapture:name],
                                           [self canBubble:name],
@@ -717,6 +734,14 @@ static bool isPointInsideView(UIView *view, CGPoint point) {
             }
         }
     }
+    
+    // Final cleanup to prevent abnormal situations where the touch began/end/cancel mismatch
+    if (_touchBeganViews.count != 0) {
+        [_touchBeganViews removeAllObjects];
+        [_moveViews removeAllObjects];
+        [_moveTouches removeAllObjects];
+    }
+    
     [self clearTimer];
     _bLongClick = NO;
     [self clearLongClickTimer];
@@ -807,6 +832,15 @@ static BOOL IsGestureEvent(const char *name) {
 
 - (BOOL)canBePreventInBubbling:(const char *)name {
     return NO;
+}
+
+
+#pragma mark - HippyTouchEventInterceptorProtocol
+
+- (void)willSendGestureEvent:(NSString *)eventName withPagePoint:(CGPoint)point toView:(UIView *)view {
+    if ([_bridge.delegate respondsToSelector:@selector(willSendGestureEvent:withPagePoint:toView:)]) {
+        [_bridge.delegate willSendGestureEvent:eventName withPagePoint:point toView:view];
+    }
 }
 
 

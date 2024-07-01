@@ -30,7 +30,6 @@ inline namespace render {
 inline namespace native {
 
 RichTextSpanView::RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  spanNode_.SetSpanNodeDelegate(this);
 }
 
 RichTextSpanView::~RichTextSpanView() {}
@@ -154,12 +153,6 @@ void RichTextSpanView::OnSetPropsEnd() {
 void RichTextSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
   // Nothing to set for text span.
   // NODE_POSITION / NODE_WIDTH will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
-}
-
-void RichTextSpanView::OnClick() {
-  if (eventClick_) {
-    eventClick_();
-  }
 }
 
 } // namespace native

@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Hippy2Map, HippyAny, HippyArray, HippyMap,
+import { HippyAny, HippyArray, HippyMap,
   HippyValue } from '../../support/common/HippyTypes';
 import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAdapter';
 import { NativeCallback } from '../connector/NativeCallback';
@@ -42,7 +42,7 @@ export interface HippyBridgeManager {
 
   destroy(): void;
 
-  callJavaScriptModule(moduleName: string, methodName: string, params: Hippy2Map): void;
+  callJavaScriptModule(moduleName: string, methodName: string, params: Map<string,  HippyAny>): void;
 
   getThirdPartyAdapter(): HippyThirdPartyAdapter | null;
 }

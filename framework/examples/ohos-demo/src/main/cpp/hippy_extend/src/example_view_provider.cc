@@ -20,21 +20,24 @@
  *
  */
 
-#pragma once
-
-#include "renderer/arkui/arkui_node.h"
+#include "renderer/api/hippy_view_provider.h"
+#include "../include/example_view_a.h"
+#include "../include/example_view_b.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class WebNode : public ArkUINode {
-protected:
-
-public:
-  WebNode();
-  ~WebNode();
-};
+auto RegisterCustomViewCreatorsOnLoad = []() {
+  HippyViewProvider::RegisterCustomViewCreator("ExampleViewA", [](std::shared_ptr<NativeRenderContext> &ctx) -> std::shared_ptr<BaseView> {
+    return std::make_shared<ExampleViewA>(ctx);
+  });
+  HippyViewProvider::RegisterCustomViewCreator("ExampleViewB", [](std::shared_ptr<NativeRenderContext> &ctx) -> std::shared_ptr<BaseView> {
+    return std::make_shared<ExampleViewB>(ctx);
+  });
+  HippyViewProvider::RegisterCustomMeasureViews({"ExampleViewB"});
+  return 0;
+}();
 
 } // namespace native
 } // namespace render

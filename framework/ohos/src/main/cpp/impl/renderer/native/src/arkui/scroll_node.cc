@@ -141,6 +141,7 @@ ScrollNode &ScrollNode::SetScrollMinOffset(float scrollMinOffset) {
 }
 
 void ScrollNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  ArkUINode::OnNodeEvent(event);
   if (!scrollNodeDelegate_) {
     return;
   }

@@ -31,20 +31,6 @@ ImageSpanNode::ImageSpanNode() : ArkUINode(NativeNodeApi::GetInstance()->createN
 
 ImageSpanNode::~ImageSpanNode() {}
 
-void ImageSpanNode::OnNodeEvent(ArkUI_NodeEvent *event) {
-  if (imageSpanNodeDelegate_ == nullptr) {
-    return;
-  }
-  
-  if (OH_ArkUI_NodeEvent_GetEventType(event) == ArkUI_NodeEventType::NODE_ON_CLICK) {
-    imageSpanNodeDelegate_->OnClick();
-  }
-}
-
-void ImageSpanNode::SetSpanNodeDelegate(ImageSpanNodeDelegate *imageSpanNodeDelegate) {
-  imageSpanNodeDelegate_ = imageSpanNodeDelegate; 
-}
-
 ImageSpanNode &ImageSpanNode::SetSources(std::string const &src) {
   ArkUI_AttributeItem item;
   uri_ = src;

@@ -48,7 +48,7 @@ public:
   ListView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ListView();
   
-  void Init();
+  void Init() override;
 
   StackNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;

@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
-import { Hippy2Map, HippyAny,
+import { HippyAny,
   HippyArray,
   HippyMap, HippyValue } from '../../support/common/HippyTypes';
 import { ArgumentUtils } from '../../support/utils/ArgumentUtils';
@@ -27,6 +27,7 @@ import { I18nUtil } from '../../support/utils/I18nUtil';
 import { LogUtils } from '../../support/utils/LogUtils';
 import { MonitorGroupType, TimeMonitor } from '../../support/utils/TimeMonitor';
 import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAdapter';
+import { HippyJsException } from '../common/HippyJsException';
 import { JsDriver } from '../connector/JsDriver';
 import { NativeCallback } from '../connector/NativeCallback';
 import { V8InitParams } from '../HippyEngine';
@@ -37,6 +38,7 @@ import { HippyBundleLoader } from './bundleloader/HippyBundleLoader';
 import { BridgeCallback } from './HippyBridge';
 import { HippyBridgeImpl } from './HippyBridgeImpl';
 import { HippyBridgeManager } from './HippyBridgeManager';
+import { HippyCallNativeParams } from './HippyCallNativeParams';
 
 export enum BridgeState {
   UNINITIALIZED = 0,
@@ -115,48 +117,69 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
   runBundle(id: number, loader: HippyBundleLoader): void {
     loader.load(this.mHippyBridge, (result: number, reason: string) => {
-      this.bundleIndexLoaderCallback(result, reason);
+      this.bundleLoaderCallback(result, reason);
     });
   }
 
-  bundleIndexLoaderCallback = (result: number, reason: string) => {
-    LogUtils.i('hippy bundleIndexLoaderCallback', result + reason)
+  bundleLoaderCallback = (result: number, reason: string) => {
+    LogUtils.i('hippy bundleLoaderCallback', result + reason)
   }
 
   resumeInstance(id: number): void {
-    throw new Error('Method not implemented.');
+    let map = new Map<string, HippyAny>()
+    map.set("id", id)
+    const buffer = this.getSerializerBuffer(map);
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_RESUME_INSTANCE, this.callFunctionCallback, buffer);
   }
 
   pauseInstance(id: number): void {
-    throw new Error('Method not implemented.');
+    let map = new Map<string, HippyAny>()
+    map.set("id", id)
+    const buffer = this.getSerializerBuffer(map);
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_PAUSE_INSTANCE, this.callFunctionCallback, buffer);
   }
 
   destroyInstance(id: number): void {
-    throw new Error('Method not implemented.');
+    let map = new Map<string, HippyAny>()
+    map.set("id", id)
+    const buffer = this.getSerializerBuffer(map);
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE, this.callFunctionCallback, buffer);
+  }
+
+  getSerializerBuffer(params: Map<string, HippyAny>) {
+    let binaryWriter = new BinaryWriter()
+    let serializer = new Serializer(binaryWriter)
+    serializer.writeHeader()
+    serializer.writeValue(params)
+    let buffer = binaryWriter.chunked()
+    return buffer;
   }
 
   execCallback(params: Map<string, HippyAny>): void {
     if (this.mBridgeState == BridgeState.INITIALIZED) {
-      let binaryWriter = new BinaryWriter()
-      let serializer = new Serializer(binaryWriter)
-      serializer.writeHeader()
-      serializer.writeValue(params)
-      let buffer = binaryWriter.chunked()
-
+      const buffer = this.getSerializerBuffer(params);
       this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALLBACK, this.callFunctionCallback, buffer);
     }
   }
 
+  public onBridgeDestroyed(isReload: boolean) {
+    this.mContext.onBridgeDestroyed(isReload);
+  }
+
   public callFunctionCallback = (result: number, reason: string) => {
-    LogUtils.i('hippy execCallback', result + reason)
+    LogUtils.i('hippy execCallback', result + reason);
   }
 
   destroyBridge(isReload: boolean): void {
-    throw new Error('Method not implemented.');
+    this.mHippyBridge.destroy((result: number, reason: string) => {
+      LogUtils.i('hippy destroyBridge', result + reason);
+      this.onBridgeDestroyed(isReload);
+    }, isReload);
+    this.destroy();
   }
 
   destroy(): void {
-    throw new Error('Method not implemented.');
+    this.mBridgeState = BridgeState.DESTROYED;
   }
 
   callJavaScriptModule(moduleName: string, methodName: string, params: HippyMap): void {
@@ -166,30 +189,38 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       map.set("methodName", methodName)
       map.set("params", params)
 
-      let binaryWriter = new BinaryWriter()
-      let serializer = new Serializer(binaryWriter)
-      serializer.writeHeader()
-      serializer.writeValue(params)
-      let buffer = binaryWriter.chunked()
-
+      const buffer = this.getSerializerBuffer(map);
       this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALL_JS_MODULE, this.callJavaScriptModuleCallback, buffer);
     }
   }
 
   public callJavaScriptModuleCallback = (result: number, reason: string) => {
-
+    LogUtils.i('hippy callJavaScriptModuleCallback', result + reason)
   }
 
   getThirdPartyAdapter(): HippyThirdPartyAdapter | null {
     return this.mThirdPartyAdapter;
   }
 
-  callNatives(moduleName: string, moduleFunc: string, callId: string, params: Uint8Array): void {
-    throw new Error('Method not implemented.');
+  callNatives(moduleName: string, moduleFunc: string, callId: string, params: ArrayBuffer): void {
+    if (this.mContext != null) {
+      const moduleManager = this.mContext.getModuleManager();
+      if (moduleManager != null) {
+        LogUtils.i('hippy', 'HippyBridgeManagerImpl callNatives params, '
+          + moduleName + ' - '
+          + moduleFunc + ' - '
+          + callId + ' - '
+          + params);
+        const callNativeParams = new HippyCallNativeParams(moduleName, moduleFunc, callId, params);
+        moduleManager.callNatives(callNativeParams);
+      }
+    }
   }
 
   reportException(message: string, stackTrace: string): void {
-    throw new Error('Method not implemented.');
+    if (this.mContext != null) {
+      this.mContext.handleException(new HippyJsException(message, stackTrace));
+    }
   }
 
   async initBridge(initBridgeCallback: NativeCallback): Promise<void> {
@@ -237,8 +268,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     if (result == 0) {
       this.mBridgeState = BridgeState.INITIALIZED;
     } else {
-      throw new Error("load coreJsBundle failed, check your core jsBundle:"
-        + reason);
+      throw new Error("load coreJsBundle failed, check your core jsBundle:" + reason);
     }
     const timeMonitor = this.mContext.getMonitor();
     timeMonitor.startPoint(
@@ -256,12 +286,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     map.set("id", id)
     map.set("params", params)
 
-    let binaryWriter = new BinaryWriter()
-    let serializer = new Serializer(binaryWriter)
-    serializer.writeHeader()
-    serializer.writeValue(map)
-    let buffer = binaryWriter.chunked()
-
+    const buffer = this.getSerializerBuffer(map);
     this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, buffer)
   }
 
@@ -272,7 +297,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   async getGlobalConfigsString(): Promise<string> {
     let context = this.mContext.getGlobalConfigs().getContext();
     if (context == null) return ""
-    let globalParams = new Map<string, HippyValue | Map<string, HippyValue> | Map<string, HippyValue | Map<string, HippyValue>>>()
+    let globalParams = new Map<string, HippyAny>()
     let dimensionMap = await DimensionsUtil.getDimensions(-1, -1, context, true);
     if (this.mContext.getGlobalConfigs() != null
       && this.mContext.getGlobalConfigs().getDeviceAdapter() != null) {
@@ -291,7 +316,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
     // TODO support ThirdAdapter inject
 
-    let platformParams = new Map<string, HippyValue | Map<string, HippyValue>>()
+    let platformParams = new Map<string, HippyAny>()
     platformParams.set("OS", "ohos")
     platformParams.set("PackageName", (packageName == null) ? "" : packageName)
     platformParams.set("VersionName", (versionName == null) ? "" : versionName)
@@ -309,7 +334,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
     // TODO(etkamo): isSupportDev
 
-    let host = new Map<string, HippyValue | Map<string, HippyValue>>()
+    let host = new Map<string, HippyAny>()
     host.set("url", (pageUrl == null) ? "" : pageUrl)
     host.set("appName", (packageName == null) ? "" : packageName)
     host.set("appVersion", (versionName == null) ? "" : versionName)

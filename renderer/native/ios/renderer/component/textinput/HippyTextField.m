@@ -119,6 +119,10 @@
     HippyUITextField *_textView;
 }
 
+@dynamic lineHeight;
+@dynamic lineSpacing;
+@dynamic lineHeightMultiple;
+
 - (void)keyboardWillShow:(NSNotification *)aNotification {
     [super keyboardWillShow:aNotification];
     NSDictionary *userInfo = [aNotification userInfo];
@@ -355,13 +359,6 @@
     _text = text;
 }
 
-- (void)setFontSize:(NSNumber *)fontSize {
-    _fontSize = fontSize;
-    if ([fontSize floatValue] > 0) {
-        [_textView setFont:[UIFont systemFontOfSize:[fontSize floatValue]]];
-    }
-}
-
 - (void)setValue:(NSString *)value {
     [_textView setText:value];
 }
@@ -432,6 +429,21 @@
         return NO;
     }
     return YES;
+}
+
+
+#pragma mark - LineHeight Related
+
+- (void)setLineHeight:(NSNumber *)lineHeight {
+    // LineHeight does not take effect on single-line input.
+}
+
+- (void)setLineSpacing:(NSNumber *)lineSpacing {
+    // LineSpacing does not take effect on single-line input.
+}
+
+- (void)setLineHeightMultiple:(NSNumber *)lineHeightMultiple {
+    // LineHeightMultiple does not take effect on single-line input.
 }
 
 @end

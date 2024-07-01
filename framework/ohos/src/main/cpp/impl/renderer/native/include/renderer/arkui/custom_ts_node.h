@@ -28,25 +28,13 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class CustomTsNodeDelegate {
-public:
-  virtual ~CustomTsNodeDelegate() = default;
-  virtual void OnClick() {}
-  virtual void OnAppear() {}
-  virtual void OnDisappear() {}
-};
-
 class CustomTsNode : public ArkUINode {
 protected:
-  CustomTsNodeDelegate *tsNodeDelegate_;
-
+  
 public:
   CustomTsNode(ArkUI_NodeHandle nodeHandle);
   ~CustomTsNode() override;
-
-  void OnNodeEvent(ArkUI_NodeEvent *event) override;
-  void SetCustomTsNodeDelegate(CustomTsNodeDelegate *tsNodeDelegate);
-
+  
 };
 
 } // namespace native

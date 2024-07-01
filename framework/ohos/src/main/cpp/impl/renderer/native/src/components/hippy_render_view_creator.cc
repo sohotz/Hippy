@@ -39,7 +39,6 @@
 #include "renderer/components/text_input_view.h"
 #include "renderer/components/waterfall_item_view.h"
 #include "renderer/components/waterfall_view.h"
-#include "renderer/components/web_view.h"
 
 namespace hippy {
 inline namespace render {
@@ -47,50 +46,84 @@ inline namespace native {
 
 std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_parent_text, std::shared_ptr<NativeRenderContext> &ctx) {
   if (view_name == "View") {
-    return std::make_shared<DivView>(ctx);
+    auto view = std::make_shared<DivView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "Image") {
     if (is_parent_text) {
-      return std::make_shared<RichTextImageSpanView>(ctx);
+      auto view = std::make_shared<RichTextImageSpanView>(ctx);
+      view->Init();
+      return view;
     } else {
-      return std::make_shared<ImageView>(ctx);
+      auto view = std::make_shared<ImageView>(ctx);
+      view->Init();
+      return view;
     }
   } else if (view_name == "Text") {
     if (is_parent_text) {
-      return std::make_shared<RichTextSpanView>(ctx);
+      auto view = std::make_shared<RichTextSpanView>(ctx);
+      view->Init();
+      return view;
     } else {
-      return std::make_shared<RichTextView>(ctx);
+      auto view = std::make_shared<RichTextView>(ctx);
+      view->Init();
+      return view;
     }
   } else if (view_name == "Modal") {
-    return std::make_shared<ModalView>(ctx);
+    auto view = std::make_shared<ModalView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "ListView") {
     auto view = std::make_shared<ListView>(ctx);
     view->Init();
     return view;
   } else if (view_name == "ListViewItem") {
-    return std::make_shared<ListItemView>(ctx);
+    auto view = std::make_shared<ListItemView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "ScrollView") {
-    return std::make_shared<ScrollView>(ctx);
+    auto view = std::make_shared<ScrollView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "TextInput") {
-    return std::make_shared<TextInputView>(ctx);
-  } else if (view_name == "WebView") {
-    return std::make_shared<WebView>(ctx);
+    auto view = std::make_shared<TextInputView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "ViewPager") {
-    return std::make_shared<PagerView>(ctx);
+    auto view = std::make_shared<PagerView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "ViewPagerItem") {
-    return std::make_shared<PagerItemView>(ctx);
+    auto view = std::make_shared<PagerItemView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "WaterfallView") {
-    return std::make_shared<WaterfallView>(ctx);
+    auto view = std::make_shared<WaterfallView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "WaterfallItem") {
-    return std::make_shared<WaterfallItemView>(ctx);
+    auto view = std::make_shared<WaterfallItemView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "RefreshWrapper") {
-    return std::make_shared<RefreshWrapperView>(ctx);
+    auto view = std::make_shared<RefreshWrapperView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "RefreshWrapperItemView") {
-    return std::make_shared<RefreshWrapperItemView>(ctx);
+    auto view = std::make_shared<RefreshWrapperItemView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "PullHeaderView") {
-    return std::make_shared<PullHeaderView>(ctx);
+    auto view = std::make_shared<PullHeaderView>(ctx);
+    view->Init();
+    return view;
   } else if (view_name == "PullFooterView") {
-    return std::make_shared<PullFooterView>(ctx);
+    auto view = std::make_shared<PullFooterView>(ctx);
+    view->Init();
+    return view;
   }
+  
+  // no WebView, for no c-api for WebView, so use ts WebView
   
   return nullptr;
 }

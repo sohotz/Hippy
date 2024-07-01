@@ -58,6 +58,7 @@ void SwiperNode::SetNodeDelegate(SwiperNodeDelegate *swiperNodeDelegate) {
 }
 
 void SwiperNode::OnNodeEvent(ArkUI_NodeEvent *event) {
+  ArkUINode::OnNodeEvent(event);
   if (swiperNodeDelegate_ == nullptr) {
     return;
   }
