@@ -21,11 +21,16 @@ import resmgr from "@ohos.resourceManager";
 import { JsDriver } from '../hippy_framework/connector/JsDriver';
 import { NativeCallback } from '../hippy_framework/connector/NativeCallback';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { HippyAny } from '../support/common/HippyTypes';
+import { HippyAny, HippyArray } from '../support/common/HippyTypes';
 import { FetchResourceCallback } from '../vfs/FetchResourceCallback';
 import { ResourceDataHolder } from '../vfs/ResourceDataHolder';
 import { VfsManager } from '../vfs/VfsManager';
 import { FrameNode } from '@kit.ArkUI';
+
+export interface HippyRenderViewInfo {
+  tag: number
+  viewName: string
+}
 
 export interface HippyLibrary {
   DomManager_SetRenderManager(instanceId: number, renderId: number): void;
@@ -86,6 +91,9 @@ export interface HippyLibrary {
   NativeRenderProvider_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
 
   NativeRenderProvider_DestroyRoot(instanceId: number, rootId: number): void;
+  NativeRenderProvider_GetViewParent(instanceId: number, rootId: number, nodeId: number): HippyRenderViewInfo;
+  NativeRenderProvider_GetViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo>;
+  NativeRenderProvider_CallViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray): HippyAny;
 
   VfsManager_CreateVfs(vfsDelegate: VfsManager): number;
   VfsManager_DestroyVfs(instanceId: number): void;

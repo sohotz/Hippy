@@ -20,9 +20,11 @@
 
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include "renderer/native_render_provider_capi.h"
+#include "oh_napi/oh_napi_utils.h"
 #include "renderer/native_render_manager.h"
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_napi_object.h"
+#include "oh_napi/oh_napi_object_builder.h"
 #include "oh_napi/oh_napi_task_runner.h"
 #include "oh_napi/oh_napi_invocation.h"
 #include "oh_napi/oh_napi_register.h"
@@ -258,7 +260,103 @@ static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
+static napi_value GetViewParent(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "GetViewParent: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+  
+  uint32_t parent_id = 0;
+  std::string parent_view_type;
+  ret = render_manager->GetViewParent(root_id, node_id, parent_id, parent_view_type);
+  if (ret) {
+    auto params_builder = arkTs.CreateObjectBuilder();
+    params_builder.AddProperty("tag", parent_id);
+    params_builder.AddProperty("viewName", parent_view_type);
+    return params_builder.Build();
+  }
+  
+  return arkTs.GetUndefined();
+}
+
+static napi_value GetViewChildren(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "GetViewChildren: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+  
+  std::vector<uint32_t> children_ids;
+  std::vector<std::string> children_view_types;
+  ret = render_manager->GetViewChildren(root_id, node_id, children_ids, children_view_types);
+  if (ret) {
+    std::vector<napi_value> children;
+    for (int i = 0; i < (int)children_ids.size(); i++) {
+      auto params_builder = arkTs.CreateObjectBuilder();
+      params_builder.AddProperty("tag", children_ids[(size_t)i]);
+      params_builder.AddProperty("viewName", children_view_types[(size_t)i]);
+      children.push_back(params_builder.Build());
+    }
+    return arkTs.CreateArray(children);
+  }
+
+  return arkTs.GetUndefined();
+}
+
+static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  std::string method = arkTs.GetString(args[3]);
+  
+  std::vector<HippyValue> params;
+  auto ts_params = args[4];
+  if (arkTs.IsArray(ts_params)) {
+    auto length = arkTs.GetArrayLength(ts_params);
+    if (length > 0) {
+      for (uint32_t i = 0; i < length; i ++) {
+        auto ts_param = arkTs.GetArrayElement(ts_params, i);
+        auto param = OhNapiUtils::NapiValue2HippyValue(env, ts_param);
+        params.push_back(param);
+      }
+    }
+  }
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "CallViewMethod: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+  
+  auto result = render_manager->CallViewMethod(root_id, node_id, method, params);
+  return OhNapiUtils::HippyValue2NapiValue(env, result);
+}
+
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DestroyRoot", DestroyRoot)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewParent", GetViewParent)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewChildren", GetViewChildren)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_CallViewMethod", CallViewMethod)
 
 }
 }

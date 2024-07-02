@@ -48,6 +48,7 @@ set(SOURCE_SET
   src/data_holder.cc
   src/oh_napi_register.cc
   src/ark_ts.cc
+  src/oh_napi_utils.cc
   src/oh_napi_object.cc
   src/oh_measure_text.cc
   src/oh_napi_object_builder.cc
