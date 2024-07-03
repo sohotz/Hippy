@@ -272,7 +272,7 @@ static napi_value GetViewParent(napi_env env, napi_callback_info info) {
   bool ret = map.Find(render_manager_id, render_manager);
   if (!ret) {
     FOOTSTONE_DLOG(WARNING) << "GetViewParent: render_manager_id invalid";
-    return arkTs.GetUndefined();
+    return arkTs.GetNull();
   }
   
   uint32_t parent_id = 0;
@@ -285,7 +285,7 @@ static napi_value GetViewParent(napi_env env, napi_callback_info info) {
     return params_builder.Build();
   }
   
-  return arkTs.GetUndefined();
+  return arkTs.GetNull();
 }
 
 static napi_value GetViewChildren(napi_env env, napi_callback_info info) {
@@ -300,7 +300,7 @@ static napi_value GetViewChildren(napi_env env, napi_callback_info info) {
   bool ret = map.Find(render_manager_id, render_manager);
   if (!ret) {
     FOOTSTONE_DLOG(WARNING) << "GetViewChildren: render_manager_id invalid";
-    return arkTs.GetUndefined();
+    return arkTs.GetNull();
   }
   
   std::vector<uint32_t> children_ids;
@@ -317,7 +317,7 @@ static napi_value GetViewChildren(napi_env env, napi_callback_info info) {
     return arkTs.CreateArray(children);
   }
 
-  return arkTs.GetUndefined();
+  return arkTs.GetNull();
 }
 
 static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
@@ -341,6 +341,12 @@ static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
     }
   }
   
+  auto ts_callback = args[5];
+  napi_ref callback_ref = 0;
+  if (arkTs.GetType(ts_callback) == napi_function) {
+    callback_ref = arkTs.CreateReference(ts_callback);
+  }
+  
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -349,8 +355,18 @@ static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
     return arkTs.GetUndefined();
   }
   
-  auto result = render_manager->CallViewMethod(root_id, node_id, method, params);
-  return OhNapiUtils::HippyValue2NapiValue(env, result);
+  std::function<void(const HippyValue &result)> cb = [env, callback_ref](const HippyValue &result) {
+    ArkTS arkTs(env);
+    std::vector<napi_value> args = {
+      OhNapiUtils::HippyValue2NapiValue(env, result)
+    };
+    auto callback = arkTs.GetReferenceValue(callback_ref);
+    arkTs.Call(callback, args);
+    arkTs.DeleteReference(callback_ref);
+  };
+  
+  render_manager->CallViewMethod(root_id, node_id, method, params, callback_ref ? cb : nullptr);
+  return arkTs.GetUndefined();
 }
 
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DestroyRoot", DestroyRoot)

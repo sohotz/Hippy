@@ -176,8 +176,8 @@ bool NativeRenderProvider::GetViewChildren(uint32_t root_id, uint32_t node_id, s
   return render_impl_->GetViewChildren(root_id, node_id, children_ids, children_view_types);
 }
 
-HippyValue NativeRenderProvider::CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params) {
-  return render_impl_->CallViewMethod(root_id, node_id, method, params);
+void NativeRenderProvider::CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback) {
+  render_impl_->CallViewMethod(root_id, node_id, method, params, callback);
 }
 
 } // namespace native

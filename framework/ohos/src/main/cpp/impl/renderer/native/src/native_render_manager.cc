@@ -1197,11 +1197,10 @@ bool NativeRenderManager::GetViewChildren(uint32_t root_id, uint32_t node_id, st
   return false;
 }
 
-HippyValue NativeRenderManager::CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params) {
+void NativeRenderManager::CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback) {
   if (enable_ark_c_api_) {
-    return c_render_provider_->CallViewMethod(root_id, node_id, method, params);
+    c_render_provider_->CallViewMethod(root_id, node_id, method, params, callback);
   }
-  return HippyValue();
 }
 
 }  // namespace native

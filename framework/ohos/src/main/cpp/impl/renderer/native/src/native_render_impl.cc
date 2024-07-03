@@ -241,14 +241,12 @@ bool NativeRenderImpl::GetViewChildren(uint32_t root_id, uint32_t node_id, std::
   return view_manager->GetViewChildren(node_id, children_ids, children_view_types);
 }
 
-HippyValue NativeRenderImpl::CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params) {
+void NativeRenderImpl::CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {
-    return HippyValue();
+    return;
   }
-  
-  // TODO(hotxxx):
-  return HippyValue();
+  view_manager->CallViewMethod(node_id, method, params, callback);
 }
 
 } // namespace native

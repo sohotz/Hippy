@@ -32,6 +32,8 @@ export interface HippyRenderViewInfo {
   viewName: string
 }
 
+export type CallResultCallback = (result: HippyAny) => void
+
 export interface HippyLibrary {
   DomManager_SetRenderManager(instanceId: number, renderId: number): void;
   DomManager_CreateDomManager(): number;
@@ -91,9 +93,9 @@ export interface HippyLibrary {
   NativeRenderProvider_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
 
   NativeRenderProvider_DestroyRoot(instanceId: number, rootId: number): void;
-  NativeRenderProvider_GetViewParent(instanceId: number, rootId: number, nodeId: number): HippyRenderViewInfo;
-  NativeRenderProvider_GetViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo>;
-  NativeRenderProvider_CallViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray): HippyAny;
+  NativeRenderProvider_GetViewParent(instanceId: number, rootId: number, nodeId: number): HippyRenderViewInfo | null;
+  NativeRenderProvider_GetViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null;
+  NativeRenderProvider_CallViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void;
 
   VfsManager_CreateVfs(vfsDelegate: VfsManager): number;
   VfsManager_DestroyVfs(instanceId: number): void;
