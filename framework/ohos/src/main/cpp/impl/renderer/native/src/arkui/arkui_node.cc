@@ -306,7 +306,7 @@ ArkUINode &ArkUINode::SetId(const int32_t &tag) {
   return *this;
 }
 
-ArkUINode &ArkUINode::SetHitTestMode(const ArkUIHitTestMode mode) {
+ArkUINode &ArkUINode::SetHitTestMode(const ArkUI_HitTestMode mode) {
   ArkUI_NumberValue hitTestModeValue[] = {{.i32 = static_cast<int32_t>(mode)}};
   ArkUI_AttributeItem hitTestModeItem = {.value = hitTestModeValue,
                                          .size = sizeof(hitTestModeValue) / sizeof(ArkUI_NumberValue)};

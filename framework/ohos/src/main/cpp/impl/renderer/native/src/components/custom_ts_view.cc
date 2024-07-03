@@ -34,6 +34,7 @@ CustomTsView::CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_Node
   tsNode_.SetHeightPercent(1.f);
   subContainerNode_.SetWidthPercent(1.f);
   subContainerNode_.SetHeightPercent(1.f);
+  subContainerNode_.SetHitTestMode(ARKUI_HIT_TEST_MODE_NONE);
 }
 
 CustomTsView::~CustomTsView() {

@@ -545,7 +545,7 @@ void BaseView::SetInterceptTouch(bool flag) {
   if (HandleGestureBySelf()) {
     return;
   }
-  GetLocalRootArkUINode().SetHitTestMode(flag ? ArkUIHitTestMode::BLOCK : ArkUIHitTestMode::DEFAULT);
+  GetLocalRootArkUINode().SetHitTestMode(flag ? ARKUI_HIT_TEST_MODE_BLOCK : ARKUI_HIT_TEST_MODE_DEFAULT);
 }
 
 void BaseView::SetInterceptPullUp(bool flag) {
