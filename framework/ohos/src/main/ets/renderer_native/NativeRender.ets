@@ -67,8 +67,8 @@ export interface NativeRender {
 
   removeEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void
 
-  getViewParent(instanceId: number, rootId: number, nodeId: number): HippyRenderViewInfo | null
-  getViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null
-  callViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void
+  getViewParent(rootId: number, nodeId: number): HippyRenderViewInfo | null
+  getViewChildren(rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null
+  callViewMethod(rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void
 
 }

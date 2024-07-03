@@ -652,16 +652,16 @@ key1               value1
     viewManager.setRenderViewFrameForCApi(params.tag, new HRRect(params.left, params.top, params.width, params.height), null)
   }
 
-  getViewParent(instanceId: number, rootId: number, nodeId: number): HippyRenderViewInfo | null {
-    return this.libHippy?.NativeRenderProvider_GetViewParent(instanceId, rootId, nodeId)
+  getViewParent(rootId: number, nodeId: number): HippyRenderViewInfo | null {
+    return this.libHippy?.NativeRenderProvider_GetViewParent(this.instanceId, rootId, nodeId)
   }
 
-  getViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null {
-    return this.libHippy?.NativeRenderProvider_GetViewChildren(instanceId, rootId, nodeId)
+  getViewChildren(rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null {
+    return this.libHippy?.NativeRenderProvider_GetViewChildren(this.instanceId, rootId, nodeId)
   }
 
-  callViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void {
-    return this.libHippy?.NativeRenderProvider_CallViewMethod(instanceId, rootId, nodeId, method, params, callback)
+  callViewMethod(rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void {
+    return this.libHippy?.NativeRenderProvider_CallViewMethod(this.instanceId, rootId, nodeId, method, params, callback)
   }
 
 }
