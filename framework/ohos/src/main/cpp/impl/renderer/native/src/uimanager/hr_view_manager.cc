@@ -405,12 +405,16 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   napi_valuetype type = arkTs.GetType(tsNode);
   if (type == napi_null) {
     // TODO(hot): check tsNode not null
+    FOOTSTONE_LOG(ERROR) << "create ts view error, tsNode null";
+    return nullptr;
   }
   
   ArkUI_NodeHandle nodeHandle = nullptr;
   auto status = OH_ArkUI_GetNodeHandleFromNapiValue(ts_env_, tsNode, &nodeHandle);
   if (status != ARKUI_ERROR_CODE_NO_ERROR) {
     // TODO(hot):
+    FOOTSTONE_LOG(ERROR) << "create ts view error, nodeHandle fail, status: " << status << ", nodeHandle: " << nodeHandle;
+    return nullptr;
   }
   
   napi_close_handle_scope(ts_env_, scope);

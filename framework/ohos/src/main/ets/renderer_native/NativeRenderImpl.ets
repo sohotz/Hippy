@@ -78,6 +78,9 @@ export class TextMeasurerConfig {
 
 declare function px2vp(px: number): number
 
+// TODO(hot):
+let builderNodeMap = new Map<number, BuilderNode<[HippyRenderBaseView]>>()
+
 export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
   private readonly INVALID_NODE_ID = -1
@@ -620,7 +623,7 @@ key1               value1
     builderNode.build(wrapBuilder(buildHippyRenderViewForCApi), view);
 
     // TODO(hot): save BuilderNode
-    // builderNodeMap.set(params.tag, builderNode);
+    builderNodeMap.set(params.tag, builderNode);
 
     return builderNode.getFrameNode()!;
   }
