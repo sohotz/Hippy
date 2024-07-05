@@ -35,10 +35,6 @@ export class HRManager {
   }
 
   destroyViewManager(rootId: number) {
-    let viewManager = this.getViewManager(rootId)
-    if (viewManager) {
-      viewManager.getRootRenderView()?.ctx.getNativeRender().destroyRoot(rootId)
-    }
     this.removeViewManager(rootId)
     this.removeVirtualNodeManager(rootId)
   }

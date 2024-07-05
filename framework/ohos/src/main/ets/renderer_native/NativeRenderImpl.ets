@@ -132,6 +132,9 @@ export class NativeRenderImpl implements NativeRender {
     if (this.frameworkProxy) {
       this.frameworkProxy.destroyRoot(rootId)
     }
+
+    this.renderManager.destroyViewManager(rootId)
+    this.libHippy.NativeRenderProvider_DestroyRoot(this.instanceId, rootId)
   }
 
   getRenderManager(): HRManager {

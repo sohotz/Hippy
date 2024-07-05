@@ -51,8 +51,7 @@ export class HippyRenderView extends HippyRenderBaseView {
   }
 
   onDestroy(): void {
-    let renderManger = this.ctx.getNativeRender().getRenderManager()
-    renderManger.destroyViewManager(this.ctx.getRootId())
+
   }
 
   setProp(propKey: string, propValue: HippyAny): boolean {
