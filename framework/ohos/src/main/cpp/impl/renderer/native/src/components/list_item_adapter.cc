@@ -20,29 +20,12 @@
  *
  */
 
-#pragma once
-
-#include "renderer/components/base_view.h"
-#include "renderer/arkui/stack_node.h"
+#include "renderer/components/list_item_adapter.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RefreshWrapperItemView : public BaseView {
-public:
-  RefreshWrapperItemView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~RefreshWrapperItemView();
-
-  StackNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
-private:
-  StackNode stackNode_;
-};
 
 } // namespace native
 } // namespace render

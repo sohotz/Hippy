@@ -74,7 +74,7 @@ public:
   
 protected:
   virtual void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {}
-  virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView) {}
+  virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {}
   virtual void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding);
   virtual bool HandleGestureBySelf() { return false; }
 

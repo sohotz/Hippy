@@ -26,6 +26,7 @@
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/stack_node.h"
 #include "renderer/arkui/list_node.h"
+#include "renderer/components/list_item_adapter.h"
 #include "renderer/components/pull_footer_view.h"
 #include "renderer/components/pull_header_view.h"
 
@@ -56,7 +57,7 @@ public:
                     std::function<void(const HippyValue &result)> callback) override;
   
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
+  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
   
   void ScrollToIndex(int32_t index, bool animated);
@@ -95,6 +96,8 @@ private:
 
   StackNode stackNode_;
   ListNode listNode_;
+  
+  std::shared_ptr<ListItemAdapter> adapter_;
 
   float width_ = 0;
   float height_ = 0;

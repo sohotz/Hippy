@@ -54,8 +54,8 @@ void ExampleViewA::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
   stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void ExampleViewA::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
+void ExampleViewA::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemoved(childView, index);
   stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 

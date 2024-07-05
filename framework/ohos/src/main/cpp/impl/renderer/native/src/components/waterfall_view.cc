@@ -64,8 +64,8 @@ void WaterfallView::OnChildInserted(std::shared_ptr<BaseView> const &childView, 
   colNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void WaterfallView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
+void WaterfallView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemoved(childView, index);
   colNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 

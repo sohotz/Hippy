@@ -65,8 +65,8 @@ void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
   subContainerNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
+void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemoved(childView, index);
   subContainerNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 

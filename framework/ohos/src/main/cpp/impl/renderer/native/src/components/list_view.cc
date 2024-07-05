@@ -35,6 +35,8 @@ ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   listNode_.SetSizePercent(HRSize(1.f, 1.f));
   listNode_.SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
   listNode_.SetListCachedCount(4);
+  adapter_ = std::make_shared<ListItemAdapter>(children_);
+  listNode_.SetLazyAdapter(adapter_->GetHandle());
 }
 
 ListView::~ListView() {
@@ -46,6 +48,7 @@ ListView::~ListView() {
     children_.clear();
   }
   stackNode_.RemoveChild(listNode_);
+  adapter_.reset();
 }
 
 void ListView::Init() {
@@ -154,10 +157,16 @@ void ListView::Call(const std::string &method, const std::vector<HippyValue> par
 
 void ListView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
+  adapter_->InsertItem(index);
+  
+  auto itemView = std::static_pointer_cast<ListItemView>(childView);
+  itemView->GetLocalRootArkUINode().SetNodeDelegate(this);
+  itemView->GetLocalRootArkUINode().SetItemIndex(static_cast<int32_t>(index));
 }
 
-void ListView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
+void ListView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemoved(childView, index);
+  adapter_->RemoveItem(index);
 }
 
 void ListView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
@@ -235,16 +244,6 @@ void ListView::OnItemVisibleAreaChange(int32_t index, bool isVisible, float curr
 }
 
 void ListView::HandleOnChildrenUpdated() {
-  // TODO(hot):
-  listNode_.RemoveAllChildren();
-  for (uint32_t i = 0; i < children_.size(); i++) {
-    listNode_.AddChild(children_[i]->GetLocalRootArkUINode());
-    
-    auto itemView = std::static_pointer_cast<ListItemView>(children_[i]);
-    itemView->GetLocalRootArkUINode().SetNodeDelegate(this);
-    itemView->GetLocalRootArkUINode().SetItemIndex(static_cast<int32_t>(i));
-  }
-  
   auto childrenCount = children_.size();
   if (childrenCount > 0) {
     if (children_[0]->GetViewType() == PULL_HEADER_VIEW_TYPE) {
