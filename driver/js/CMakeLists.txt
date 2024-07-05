@@ -36,7 +36,6 @@ set(CMAKE_CXX_STANDARD 17)
 # 后续hippy产物的独立后，放到hippy模块的build-profile.json5里。
 if (OHOS)
   set(JS_ENGINE "V8")
-  set(ENABLE_INSPECTOR false)
 endif ()
 
 # region library
