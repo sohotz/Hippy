@@ -45,6 +45,7 @@ inline namespace render {
 inline namespace native {
 
 std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_parent_text, std::shared_ptr<NativeRenderContext> &ctx) {
+//  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" view_name = "<<view_name;
   if (view_name == "View") {
     auto view = std::make_shared<DivView>(ctx);
     view->Init();

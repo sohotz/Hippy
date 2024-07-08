@@ -31,6 +31,12 @@ RowNode::RowNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_No
 
 RowNode::~RowNode() {}
 
+void RowNode::SetAlignItem(ArkUI_VerticalAlignment align){
+  ArkUI_NumberValue value[] = {{.i32 = align},};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ROW_ALIGN_ITEMS, &item));
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

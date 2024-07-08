@@ -106,14 +106,19 @@ public:
   virtual ArkUINode &SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk
   virtual ArkUINode &SetTransitionMove(const ArkUI_TransitionEdge edgeType,int32_t duration,ArkUI_AnimationCurve curveType = ARKUI_CURVE_EASE);  
   virtual ArkUINode &SetTransitionOpacity(const ArkUI_AnimationCurve curveType,int32_t duration);
-  virtual ArkUINode &SetTransitionTranslate(float distanceX,float distanceY,float distanceZ,ArkUI_AnimationCurve curveType,int32_t duration);   
+  virtual ArkUINode &SetTransitionTranslate(float distanceX,float distanceY,float distanceZ,ArkUI_AnimationCurve curveType,int32_t duration);
+//  virtual ArkUINode &SetPadding(float top, float right, float bottom, float left);
   virtual void ResetNodeAttribute(ArkUI_NodeAttributeType type);
   virtual HRSize GetSize() const;
   virtual uint32_t GetTotalChildCount() const;
+  virtual HRPosition GetPostion() const;  
   
   void SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate);
   virtual void OnNodeEvent(ArkUI_NodeEvent *event);
-  
+    
+  virtual ArkUI_NodeHandle GetFirstChild() const;
+  virtual ArkUI_NodeHandle GetLastChild() const;
+  virtual ArkUI_NodeHandle GetChildAt(int32_t postion) const;
   void RegisterClickEvent();
   void UnregisterClickEvent();
   void RegisterAppearEvent();

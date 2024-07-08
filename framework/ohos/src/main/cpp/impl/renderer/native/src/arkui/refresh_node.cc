@@ -27,8 +27,17 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+static constexpr ArkUI_NodeEventType REFRESH_NODE_EVENT_TYPES[] = {
+  NODE_REFRESH_STATE_CHANGE,
+  NODE_REFRESH_ON_REFRESH,
+  NODE_REFRESH_ON_OFFSET_CHANGE,
+};
+
 RefreshNode::RefreshNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_REFRESH)) {
+  for (auto eventType : REFRESH_NODE_EVENT_TYPES) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
+  } 
 }
 
 RefreshNode::~RefreshNode() {}
@@ -52,6 +61,12 @@ void RefreshNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     float offset = nodeComponentEvent->data[0].f32;    
     refreshNodeDelegate_->OnOffsetChange(offset);
   }
+}
+
+void RefreshNode::SetRefreshing(bool beRefreshed){
+  ArkUI_NumberValue value[] = {{.i32 = beRefreshed},};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_REFRESHING, &item));
 }
 
 } // namespace native

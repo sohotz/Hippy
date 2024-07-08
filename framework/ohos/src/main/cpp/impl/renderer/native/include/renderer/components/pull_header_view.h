@@ -24,6 +24,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/components/list_item_view.h"
+#include <cstdint>
 
 namespace hippy {
 inline namespace render {
@@ -37,9 +38,10 @@ public:
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
   void Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
-
+  void OnSetPropsEnd() override;
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override ;
 private:
-  void OnHeadRefreshFinish();
+  void OnHeadRefreshFinish(int32_t delay = 0);
   void OnHeaderRefresh();
 };
 

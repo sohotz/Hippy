@@ -33,7 +33,7 @@ protected:
 public:
   ColumnNode();
   ~ColumnNode();
-
+  void SetPadding(float top, float right, float bottom, float left); 
 };
 
 } // namespace native
