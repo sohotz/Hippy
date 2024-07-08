@@ -18,11 +18,14 @@
  * limitations under the License.
  */
 import TextMeasurer from "@ohos.measure"
-import { HippyLibrary } from '../hippy_library/HippyLibrary'
+import {
+  CallResultCallback,
+  HippyLibrary, HippyRenderViewInfo } from '../hippy_library/HippyLibrary'
 import { HippyException } from '../support/common/HippyException'
 import { HippyExecutor } from '../support/common/HippyExecutor'
 import { HippyAny, HippyMap, HippyValue, HippyRenderCallback,
-  HippyRecord } from '../support/common/HippyTypes'
+  HippyRecord,
+  HippyArray} from '../support/common/HippyTypes'
 import { LogUtils } from '../support/utils/LogUtils'
 import { VfsManager } from '../vfs/VfsManager'
 import {
@@ -61,6 +64,7 @@ import { BuilderNode, FrameNode } from '@kit.ArkUI'
 import HippyRenderBaseView from './components/base/HippyRenderBaseView'
 import { HippyRootView } from '.'
 import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
+import call from '@ohos.telephony.call'
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -74,10 +78,8 @@ export class TextMeasurerConfig {
 
 declare function px2vp(px: number): number
 
-export interface NativeRenderEventHandler {
-  onSize(rootId: number, width: number, height: number): void
-  onSize2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void
-}
+// TODO(hot):
+let builderNodeMap = new Map<number, BuilderNode<[HippyRenderBaseView]>>()
 
 export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
@@ -85,9 +87,9 @@ export class NativeRenderImpl implements NativeRender {
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private static sRootIdCounter = 0
 
-  private instanceId: number = 0
+  private libHippy: HippyLibrary
 
-  private eventHandler: NativeRenderEventHandler
+  private instanceId: number = 0
 
   private customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null
   private customMeasureRenderViews: Array<string> | null
@@ -97,10 +99,10 @@ export class NativeRenderImpl implements NativeRender {
 
   private renderManager: HRManager
 
-  constructor(eventHandler: NativeRenderEventHandler,
+  constructor(libHippy: HippyLibrary,
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       customMeasureRenderViews: Array<string> | null) {
-    this.eventHandler = eventHandler
+    this.libHippy = libHippy
     this.customRenderViewCreatorMap = customRenderViewCreatorMap
     this.customMeasureRenderViews = customMeasureRenderViews
     this.renderManager = new HRManager()
@@ -130,6 +132,9 @@ export class NativeRenderImpl implements NativeRender {
     if (this.frameworkProxy) {
       this.frameworkProxy.destroyRoot(rootId)
     }
+
+    this.renderManager.destroyViewManager(rootId)
+    this.libHippy.NativeRenderProvider_DestroyRoot(this.instanceId, rootId)
   }
 
   getRenderManager(): HRManager {
@@ -174,11 +179,11 @@ export class NativeRenderImpl implements NativeRender {
     if (this.frameworkProxy != null) {
       this.frameworkProxy.onSizeChanged(rootId, width, height, oldWidth, oldHeight)
     }
-    this.eventHandler.onSize(rootId, width, height)
+    this.libHippy?.NativeRenderProvider_UpdateRootSize(this.instanceId, rootId, width, height)
   }
 
   onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void {
-    this.eventHandler.onSize2(rootId, nodeId, width, height, isSync)
+    this.libHippy?.NativeRenderProvider_UpdateNodeSize(this.instanceId, rootId, nodeId, width, height, isSync)
   }
 
   updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean) {
@@ -621,7 +626,7 @@ key1               value1
     builderNode.build(wrapBuilder(buildHippyRenderViewForCApi), view);
 
     // TODO(hot): save BuilderNode
-    // builderNodeMap.set(params.tag, builderNode);
+    builderNodeMap.set(params.tag, builderNode);
 
     return builderNode.getFrameNode()!;
   }
@@ -651,6 +656,18 @@ key1               value1
       return
     }
     viewManager.setRenderViewFrameForCApi(params.tag, new HRRect(params.left, params.top, params.width, params.height), null)
+  }
+
+  getViewParent(rootId: number, nodeId: number): HippyRenderViewInfo | null {
+    return this.libHippy?.NativeRenderProvider_GetViewParent(this.instanceId, rootId, nodeId)
+  }
+
+  getViewChildren(rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null {
+    return this.libHippy?.NativeRenderProvider_GetViewChildren(this.instanceId, rootId, nodeId)
+  }
+
+  callViewMethod(rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void {
+    return this.libHippy?.NativeRenderProvider_CallViewMethod(this.instanceId, rootId, nodeId, method, params, callback)
   }
 
 }

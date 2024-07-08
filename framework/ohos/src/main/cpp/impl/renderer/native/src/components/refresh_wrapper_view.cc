@@ -56,8 +56,8 @@ void RefreshWrapperView::OnChildInserted(std::shared_ptr<BaseView> const &childV
   listNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void RefreshWrapperView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
+void RefreshWrapperView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemoved(childView, index);
   listNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 

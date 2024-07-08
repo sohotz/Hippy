@@ -205,8 +205,8 @@ void RichTextView::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
   textNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void RichTextView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
+void RichTextView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemoved(childView, index);
   textNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 

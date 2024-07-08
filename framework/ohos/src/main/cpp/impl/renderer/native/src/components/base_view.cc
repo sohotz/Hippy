@@ -545,7 +545,7 @@ void BaseView::SetInterceptTouch(bool flag) {
   if (HandleGestureBySelf()) {
     return;
   }
-  GetLocalRootArkUINode().SetHitTestMode(flag ? ArkUIHitTestMode::BLOCK : ArkUIHitTestMode::DEFAULT);
+  GetLocalRootArkUINode().SetHitTestMode(flag ? ARKUI_HIT_TEST_MODE_BLOCK : ARKUI_HIT_TEST_MODE_DEFAULT);
 }
 
 void BaseView::SetInterceptPullUp(bool flag) {
@@ -622,18 +622,19 @@ void BaseView::AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t inde
   if (index < 0 || index > (int32_t)children_.size()) {
     index = (int32_t)children_.size();
   }
-  OnChildInserted(subView, index);
   auto it = children_.begin() + index;
   subView->SetParent(shared_from_this());
   children_.insert(it, subView);
+  OnChildInserted(subView, index);
 }
 
 void BaseView::RemoveSubView(std::shared_ptr<BaseView> &subView) {
   auto it = std::find(children_.begin(), children_.end(), subView);
   if (it != children_.end()) {
     auto view = std::move(*it);
+    int32_t index = static_cast<int32_t>(it - children_.begin());
     children_.erase(it);
-    OnChildRemoved(view);
+    OnChildRemoved(view, index);
   }
 }
 

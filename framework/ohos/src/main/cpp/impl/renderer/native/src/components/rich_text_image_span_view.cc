@@ -82,10 +82,12 @@ bool RichTextImageSpanView::SetProp(const std::string &propKey, const HippyValue
       return true;
     }
     return false;
+  } else {
+    bool handled = SetEventProp(propKey, propValue);
+    return handled;
   }
   
   // Not to set some attributes for text span.
-  return false;
 }
 
 void RichTextImageSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {

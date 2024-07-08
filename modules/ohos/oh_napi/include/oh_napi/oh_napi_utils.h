@@ -22,28 +22,13 @@
 
 #pragma once
 
-#include "renderer/components/base_view.h"
-#include "renderer/arkui/stack_node.h"
+#include "footstone/hippy_value.h"
+#include "oh_napi/ark_ts.h"
 
-namespace hippy {
-inline namespace render {
-inline namespace native {
+using HippyValue = footstone::HippyValue;
 
-class RefreshWrapperItemView : public BaseView {
+class OhNapiUtils {
 public:
-  RefreshWrapperItemView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~RefreshWrapperItemView();
-
-  StackNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
-private:
-  StackNode stackNode_;
+  static HippyValue NapiValue2HippyValue(napi_env env, napi_value value);
+  static napi_value HippyValue2NapiValue(napi_env env, const HippyValue &value);
 };
-
-} // namespace native
-} // namespace render
-} // namespace hippy

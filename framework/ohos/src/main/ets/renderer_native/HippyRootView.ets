@@ -197,15 +197,7 @@ export struct HippyRoot {
   }
 
   aboutToDisappear(): void {
-    if (this.rootView) {
-      let rootId = this.rootView.getRootId()
-      this.rootView.onDestroy()
-      this.rootView = null
-      if (this.hippyEngine) {
-        let libHippy = this.hippyEngine.getHippyEngineContext()!.getLibHippy()
-        libHippy.NativeRenderProvider_DestroyRoot(this.renderInstanceId, rootId)
-      }
-    }
+
   }
 
   build() {

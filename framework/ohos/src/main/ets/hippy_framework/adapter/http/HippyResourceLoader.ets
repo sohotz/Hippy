@@ -25,6 +25,7 @@ import { UrlUtils } from '../../../support/utils/UrlUtils';
 import { HippyEngineContext } from '../../HippyEngineContext';
 import { http } from '@kit.NetworkKit';
 import { HippyAssetBundleLoader } from '../../bridge/bundleloader/HippyAssetBundleLoader';
+import { HippyFileBundleLoader } from '../../bridge/bundleloader/HippyFileBundleLoader';
 
 export enum FetchResultCode {
   OK,
@@ -43,8 +44,29 @@ export class HippyResourceLoader implements ResourceLoader {
     this.engineContext = engineContext
   }
 
+  /**
+   * Async Download
+   * @param holder
+   * @param callback
+   */
   fetchResourceAsync(holder: ResourceDataHolder, callback: ProcessorCallback) {
-    if (UrlUtils.isWebUrl(holder.uri)) {
+    if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
+      // ASSET File
+      const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager
+      const rawPath = holder.uri.substring(HippyAssetBundleLoader.ASSETS_STR.length)
+      resManager.getRawFileContent(rawPath).then((value: Uint8Array) => {
+        holder.buffer = value.buffer as ArrayBuffer
+        holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE
+        callback.onHandleCompleted()
+      })
+    }  else if (holder.uri.startsWith(HippyFileBundleLoader.FILE_STR)) {
+      // Other Filer
+      const rawPath = holder.uri.substring(HippyFileBundleLoader.FILE_STR.length)
+      holder.setBufferByFilePath(rawPath);
+      holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE;
+      callback.onHandleCompleted();
+    }  else if (UrlUtils.isWebUrl(holder.uri)) {
+      // Https/http Download: 1. Normal Https/http request，2. File request
       if(holder.uriType === UriType.NORMAL) {
         let httpAdapter = this.engineContext.getGlobalConfigs().getHttpAdapter()
         if (httpAdapter) {
@@ -56,27 +78,36 @@ export class HippyResourceLoader implements ResourceLoader {
           fileAdapter.downloadFile(holder, callback)
         }
       }
-    } else if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
-      const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager
-      const rawPath = holder.uri.substring(HippyAssetBundleLoader.ASSETS_STR.length)
-      resManager.getRawFileContent(rawPath).then((value: Uint8Array) => {
-        holder.buffer = value.buffer as ArrayBuffer
-        holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE
-        callback.onHandleCompleted()
-      })
     }
   }
 
-  fetchResourceSync(holder: ResourceDataHolder): boolean {
-    if (UrlUtils.isWebUrl(holder.uri)) {
-      return false
-    } else if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
+  /**
+   * Sync Download
+   * @param holder
+   * @returns
+   */
+  fetchResourceSync(holder: ResourceDataHolder) {
+    if (holder.uri.startsWith(HippyAssetBundleLoader.ASSETS_STR)) {
+      // ASSET File
       const resManager = this.engineContext.getGlobalConfigs().getContext()!.resourceManager
       const rawPath = holder.uri.substring(HippyAssetBundleLoader.ASSETS_STR.length)
       holder.buffer = resManager.getRawFileContentSync(rawPath)
       holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE
       return true
-    }
+    } else if (holder.uri.startsWith(HippyFileBundleLoader.FILE_STR)) {
+      // Other File
+      const rawPath = holder.uri.substring(HippyFileBundleLoader.FILE_STR.length)
+      holder.setBufferByFilePath(rawPath);
+      holder.resultCode = ResourceDataHolder.RESOURCE_LOAD_SUCCESS_CODE;
+      return true
+    } else if (UrlUtils.isWebUrl(holder.uri)) {
+       // Https/http Download: 1. Normal Https/http request，2. File request
+       if (holder.uriType === UriType.NORMAL) {
+         // TODO
+       } else {
+         // TODO
+       }
+     }
     return false
   }
 }

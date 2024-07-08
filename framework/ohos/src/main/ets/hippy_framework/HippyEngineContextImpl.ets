@@ -10,7 +10,7 @@ import { HippyBridgeManagerImpl } from './bridge/HippyBridgeManagerImpl';
 import { DomManager } from './connector/DomManager';
 import { JsDriver } from './connector/JsDriver';
 import { NativeRenderer } from './connector/NativeRenderer';
-import { EngineInitParams } from './HippyEngine';
+import { EngineInitParams, ModuleLoadParams } from './HippyEngine';
 import { HippyEngineContext } from './HippyEngineContext';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
 import { HippyModuleManagerImpl, HippyNativeModuleCreator } from './modules/HippyModuleManagerImpl';
@@ -20,6 +20,9 @@ import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HippyJsException } from './common/HippyJsException';
 import { DevSupportManager } from './devsupport/DevSupportManager';
+import { DevtoolsManager } from './devsupport/DevtoolsManager';
+import { LogUtils } from '../support/utils/LogUtils';
+import { HippyRootView } from '../renderer_native/HippyRootView';
 
 export class HippyEngineContextImpl implements HippyEngineContext {
   public vfsManager: VfsManager
@@ -36,19 +39,17 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   private providers: Array<HippyAPIProvider> | null = null
   private libHippy: HippyLibrary
   private mJsDriver: JsDriver
-  // TODO
-  private mDevSupportManager: DevSupportManager;
+  private mDevSupportManager: DevSupportManager | null = null;
+  private mDevtoolsManager: DevtoolsManager | null = null;
   private mDebugMode: boolean;
-
-  // private mDevtoolsManager: DevtoolsManager;
-
 
   public constructor(
     params: EngineInitParams,
     domManager: DomManager,
     globalConfigs: HippyGlobalConfigs,
     monitor: TimeMonitor,
-    coreBundleLoader: HippyBundleLoader | null
+    coreBundleLoader: HippyBundleLoader | null,
+    devSupportManager: DevSupportManager| null,
   ) {
     this.mEngineInitParams = params;
     this.libHippy = this.mEngineInitParams.libHippy
@@ -118,7 +119,6 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)
-
     // ModuleManager注册
     this.mModuleManager = new HippyModuleManagerImpl(this);
     this.mModuleManager.addModules(customNativeModules);
@@ -135,15 +135,17 @@ export class HippyEngineContextImpl implements HippyEngineContext {
       params.thirdPartyAdapter,
       params.v8InitParams,
       this.mJsDriver);
-    this.mBridgeManager = bridgeManagerImpl
-    this.mJsDriver.setBridgeCallback(bridgeManagerImpl)
-    this.mDevSupportManager = new DevSupportManager(
-      globalConfigs,
-      params.debugMode,
-      params.debugServerHost,
-      params.debugBundleName,
-      params.remoteServerUrl);
-    // this.mDevSupportManager.setDevCallback(this);
+    this.mBridgeManager = bridgeManagerImpl;
+    this.mJsDriver.setBridgeCallback(bridgeManagerImpl);
+    this.mDevSupportManager = devSupportManager;
+
+    // DevtoolsManager创建
+    this.mDevtoolsManager = new DevtoolsManager(params.libHippy, params.debugMode);
+    if (params.debugMode) {
+      let localCachePath = this.getGlobalConfigs().getContext()?.cacheDir;
+      let debugUrl = this.getDevSupportManager()?.createDebugUrl(params.debugServerHost);
+      this.mDevtoolsManager?.create(localCachePath as string, debugUrl || '');
+    }
   }
 
   onBridgeDestroyed(isReload: boolean): void {
@@ -163,12 +165,27 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     return this.mEngineInitParams.libHippy
   }
 
-  getDevSupportManager(): DevSupportManager {
+  getDevSupportManager(): DevSupportManager | null {
     return this.mDevSupportManager;
   }
 
   onRuntimeInitialized(): void {
     this.mJsDriver.attachToDom(this.mDomManager.instanceId)
+    if (this.mDevtoolsManager != null && this.nativeRenderer != null) {
+      this.mDevtoolsManager.bind(this.mJsDriver, this.mDomManager, this.nativeRenderer);
+    }
+  }
+
+  createRootView(loadParams: ModuleLoadParams) {
+    const rootView = this.nativeRenderProvider!.getNativeRenderImpl().createRootView(loadParams.componentName, {}, loadParams.wrappedCustomRenderViewBuilder)
+    if (rootView != null) {
+      this.attachDomToRootView(rootView.getRootId())
+      this.attachJsToRootView(rootView.getRootId())
+      if (this.mDevtoolsManager != null) {
+        this.mDevtoolsManager.attachToRoot(rootView.getRootId());
+      }
+    }
+    return rootView;
   }
 
   attachDomToRootView(rootId: number): void {
@@ -189,9 +206,9 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   }
 
   destroy(isReload: boolean) {
-    // if (this.mDevtoolsManager != null) {
-    //   this.mDevtoolsManager.destroy(isReload);
-    // }
+    if (this.mDevtoolsManager != null) {
+      this.mDevtoolsManager.destroy(isReload);
+    }
     if (!isReload) {
       this.mDomManager.destroy();
     }
@@ -238,6 +255,10 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
   getNativeParams(): Map<string, Object> {
     return this.nativeParams
+  }
+
+  getDevtoolsId(): number {
+    return this.mDevtoolsManager != null ? this.mDevtoolsManager.getId() : -1;
   }
 
   handleException(error: HippyJsException): void {

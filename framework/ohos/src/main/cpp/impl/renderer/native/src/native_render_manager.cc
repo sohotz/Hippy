@@ -1183,6 +1183,26 @@ void NativeRenderManager::DestroyRoot(uint32_t root_id) {
   }
 }
 
+bool NativeRenderManager::GetViewParent(uint32_t root_id, uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type) {
+  if (enable_ark_c_api_) {
+    return c_render_provider_->GetViewParent(root_id, node_id, parent_id, parent_view_type);
+  }
+  return false;
+}
+
+bool NativeRenderManager::GetViewChildren(uint32_t root_id, uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types) {
+  if (enable_ark_c_api_) {
+    return c_render_provider_->GetViewChildren(root_id, node_id, children_ids, children_view_types);
+  }
+  return false;
+}
+
+void NativeRenderManager::CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->CallViewMethod(root_id, node_id, method, params, callback);
+  }
+}
+
 }  // namespace native
 }  // namespace render
 }  // namespace hippy

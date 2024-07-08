@@ -52,6 +52,9 @@ ListNode::~ListNode() {
   for (auto eventType : LIST_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }
+  if (hasAdapter_) {
+    NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_LIST_NODE_ADAPTER);
+  }
 }
 
 void ListNode::RemoveAllChildren() {
@@ -59,8 +62,7 @@ void ListNode::RemoveAllChildren() {
   for (int32_t i = static_cast<int32_t>(count) - 1; i >= 0; i--) {
     ArkUI_NodeHandle childHandle = NativeNodeApi::GetInstance()->getChildAt(nodeHandle_, i);
     if (childHandle) {
-      // TODO(hot): to fix later
-      // MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, childHandle));
+      MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, childHandle));
     }
   }
 }
@@ -125,6 +127,12 @@ void ListNode::SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode) {
   ArkUI_NumberValue value[] = {{.i32 = mode}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_BAR_DISPLAY_MODE, &item));
+}
+
+void ListNode::SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle) {
+  ArkUI_AttributeItem item{nullptr, 0, nullptr, adapterHandle};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_NODE_ADAPTER, &item));
+  hasAdapter_ = true;
 }
 
 void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {

@@ -44,7 +44,7 @@ public:
   }
 
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
+  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   
 private:
   StackNode stackNode_;

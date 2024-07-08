@@ -80,8 +80,8 @@ void ModalView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int 
   }
 }
 
-void ModalView::OnChildRemoved(std::shared_ptr<BaseView> const &childView){
-  BaseView::OnChildRemoved(childView);
+void ModalView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index){
+  BaseView::OnChildRemoved(childView, index);
   if(childView)
     GetLocalRootArkUINode().RemoveChild(childView->GetLocalRootArkUINode());
 }

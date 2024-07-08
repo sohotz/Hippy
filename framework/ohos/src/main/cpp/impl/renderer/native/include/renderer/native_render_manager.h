@@ -109,6 +109,10 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id, uint32_t node_id);
 
   void DestroyRoot(uint32_t root_id);
+  
+  bool GetViewParent(uint32_t root_id, uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
+  bool GetViewChildren(uint32_t root_id, uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
+  void CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback);
 
 private:
   inline void MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, uint32_t node_id);

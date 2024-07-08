@@ -25,6 +25,7 @@
 #include "connector/exception_handler.h"
 #include <js_native_api.h>
 #include <js_native_api_types.h>
+// #include "devtools/vfs/devtools_handler.h"
 #include "oh_napi/data_holder.h"
 #include "oh_napi/oh_napi_invocation.h"
 #include "oh_napi/oh_napi_register.h"
@@ -39,6 +40,11 @@
 
 #ifdef JS_V8
 #include "driver/vm/v8/v8_vm.h"
+#endif
+
+#ifdef ENABLE_INSPECTOR
+#include "devtools/devtools_data_source.h"
+#include "devtools/vfs/devtools_handler.h"
 #endif
 
 namespace hippy {
@@ -109,8 +115,11 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
   if (arkTs.IsArray(args[vm_param_index]) && arkTs.GetArrayLength(args[vm_param_index]) >= 2) {
     has_vm_init_param = true;
   }
-  // auto vfs_id = arkTs.GetInteger(args[9]);
-  // auto devtools_id = arkTs.GetInteger(args[10]);
+    
+  #ifdef ENABLE_INSPECTOR
+//     auto vfs_id = arkTs.GetInteger(args[9]);
+    auto devtools_id = arkTs.GetInteger(args[10]);
+  #endif  
   auto is_reload = false; // TODO:
 
   FOOTSTONE_LOG(INFO) << "CreateJsDriver begin, enable_v8_serialization = " << static_cast<uint32_t>(enable_v8_serialization)

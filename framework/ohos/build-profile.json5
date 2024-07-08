@@ -11,6 +11,7 @@
     {
       "name": "debug",
       "externalNativeOptions": {
+        "arguments": "-DENABLE_INSPECTOR=true",
         "abiFilters": [
           "arm64-v8a",
         ],
@@ -18,6 +19,12 @@
     },
     {
       "name": "release",
+      "externalNativeOptions": {
+        "arguments": "-DENABLE_INSPECTOR=false",
+        "abiFilters": [
+          "arm64-v8a",
+        ],
+      },
       "arkOptions": {
         "obfuscation": {
           "ruleOptions": {

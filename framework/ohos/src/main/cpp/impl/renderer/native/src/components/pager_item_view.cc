@@ -49,8 +49,8 @@ void PagerItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, 
   stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void PagerItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
+void PagerItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemoved(childView, index);
   stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 

@@ -41,7 +41,7 @@ public:
             std::function<void(const HippyValue &result)> callback) override;
 
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView) override;
+  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
 
   void OnScroll(float xOffset, float yOffset) override;
   void OnScrollStart() override;

@@ -347,6 +347,36 @@ void HRViewManager::NotifyEndBatchCallbacks() {
   }
 }
 
+bool HRViewManager::GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type) {
+  auto viewIt = view_registry_.find(node_id);
+  if (viewIt == view_registry_.end()) {
+    return false;
+  }
+  auto view = viewIt->second;
+  auto parentView = view->GetParent().lock();
+  if (parentView) {
+    parent_id = parentView->GetTag();
+    parent_view_type = parentView->GetViewType();
+    return true;
+  }
+  return false;
+}
+
+bool HRViewManager::GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types) {
+  auto viewIt = view_registry_.find(node_id);
+  if (viewIt == view_registry_.end()) {
+    return false;
+  }
+  auto view = viewIt->second;
+  auto childrenViews = view->GetChildren();
+  for (int i = 0; i < (int)childrenViews.size(); i++) {
+    auto &child = childrenViews[(size_t)i];
+    children_ids.push_back(child->GetTag());
+    children_view_types.push_back(child->GetViewType());
+  }
+  return children_ids.size() > 0;
+}
+
 bool HRViewManager::IsCustomTsRenderView(std::string &view_name) {
   // custom ts view or WebView (no c-api for WebView)
   return custom_ts_render_views_.find(view_name) != custom_ts_render_views_.end() || view_name == "WebView";
@@ -375,12 +405,16 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   napi_valuetype type = arkTs.GetType(tsNode);
   if (type == napi_null) {
     // TODO(hot): check tsNode not null
+    FOOTSTONE_LOG(ERROR) << "create ts view error, tsNode null";
+    return nullptr;
   }
   
   ArkUI_NodeHandle nodeHandle = nullptr;
   auto status = OH_ArkUI_GetNodeHandleFromNapiValue(ts_env_, tsNode, &nodeHandle);
   if (status != ARKUI_ERROR_CODE_NO_ERROR) {
     // TODO(hot):
+    FOOTSTONE_LOG(ERROR) << "create ts view error, nodeHandle fail, status: " << status << ", nodeHandle: " << nodeHandle;
+    return nullptr;
   }
   
   napi_close_handle_scope(ts_env_, scope);

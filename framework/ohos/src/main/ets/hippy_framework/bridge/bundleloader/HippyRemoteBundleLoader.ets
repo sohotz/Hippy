@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LogUtils } from '../../../support/utils/LogUtils';
 import { TextUtils } from '../../../support/utils/TextUtils';
+import { RequestFrom, ResourceDataHolder, UriType } from '../../../vfs/ResourceDataHolder';
+import { ProcessorCallbackImpl } from '../../../vfs/VfsManager';
 import { NativeCallback } from '../../connector/NativeCallback';
 import { HippyBridge } from '../HippyBridge';
 import { HippyBundleLoader } from './HippyBundleLoader';
+import { HippyFileBundleLoader } from './HippyFileBundleLoader';
 
 
 export class HippyRemoteBundleLoader implements HippyBundleLoader {
+  public static readonly FILE_STR = "file://";
   private mUrl: string;
-  private mIsDebugMode = false;
   private mCanUseCodeCache = false;
   private mCodeCacheTag = '';
 
@@ -39,17 +43,19 @@ export class HippyRemoteBundleLoader implements HippyBundleLoader {
     this.mCodeCacheTag = codeCacheTag;
   }
 
-  public setIsDebugMode(debugMode: boolean) {
-    this.mIsDebugMode = debugMode;
-  }
-
   public load(bridge: HippyBridge, callback: NativeCallback) {
     if (TextUtils.isEmpty(this.mUrl)) {
       return;
     }
 
-    // boolean ret = bridge.runScriptFromUri(mUrl, null, mCanUseCodeCache, mCodeCacheTag, callback);
-    // LogUtils.d("HippyRemoteBundleLoader", "load: ret" + ret);
+    const fileDownloadCb = new ProcessorCallbackImpl()
+    fileDownloadCb.onHandleCompleted = () => {
+      const uri = HippyFileBundleLoader.FILE_STR + holder.filePath;
+      let ret = bridge.runScriptFromUri(uri, this.mCanUseCodeCache, this.mCodeCacheTag, callback);
+      LogUtils.d("HippyRemoteBundleLoader", "load: ret" + ret);
+    }
+    const holder = new ResourceDataHolder(this.mUrl, UriType.FILE, null, null, null, RequestFrom.NATIVE, -1)
+    bridge.getHippyEngineContext()?.getGlobalConfigs().getFileAdapter()?.downloadFile(holder, fileDownloadCb);
   }
 
   public getPath(): string {

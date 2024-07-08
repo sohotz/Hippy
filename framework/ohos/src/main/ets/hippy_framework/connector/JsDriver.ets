@@ -46,21 +46,24 @@ export class JsDriver {
   initialize(
     domManagerId: number,
     vfsId: number,
+    isDevModule: boolean,
     callback: NativeCallback,
     globalConfig: string,
-    mEnableV8Serialization: boolean
+    mEnableV8Serialization: boolean,
+    groupId: number,
+    devtoolsId: number,
   ) {
     this.instanceId = this.onCreate(
       globalConfig,
       false, // TODO useLowMemoryMode
       mEnableV8Serialization,
-      false, // TODO isDevModule
+      isDevModule,
       callback,
-      -1, // TODO groupId
+      groupId,
       domManagerId,
       null, // TODO v8InitParams
       vfsId,
-      0 // TODO devtoolsId
+      devtoolsId
     )
   }
 

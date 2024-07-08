@@ -131,11 +131,13 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
     uint32_t value = HRValueUtils::GetUint32(propValue);
     GetLocalRootArkUINode().SetSpanTextBackgroundStyle(value);
     return true;
+  } else {
+    bool handled = SetEventProp(propKey, propValue);
+    return handled;
   }
   
   // Not to set some attributes for text span.
   // For example: NODE_BACKGROUND_COLOR will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
-  return false;
 }
 
 void RichTextSpanView::OnSetPropsEnd() {

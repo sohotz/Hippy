@@ -38,13 +38,6 @@ inline namespace native {
 // ArkUI_NativeModule API ref:
 // https://gitee.com/openharmony/docs/blob/master/zh-cn/application-dev/reference/apis-arkui/_ark_u_i___native_module.md#arkui_nodeattributetype
 
-enum class ArkUIHitTestMode : int32_t {
-  DEFAULT,
-  BLOCK,
-  TRANSPARENT,
-  NONE,
-};
-
 class ArkUINodeDelegate {
 public:
   virtual ~ArkUINodeDelegate() = default;
@@ -99,7 +92,7 @@ public:
   virtual ArkUINode &SetFocusStatus(int32_t focus);
   virtual ArkUINode &SetLinearGradient(const HRLinearGradient &linearGradient);
   virtual ArkUINode &SetId(const int32_t &tag);
-  virtual ArkUINode &SetHitTestMode(const ArkUIHitTestMode mode);
+  virtual ArkUINode &SetHitTestMode(const ArkUI_HitTestMode mode);
   virtual ArkUINode &SetEnabled(bool enabled);
   virtual ArkUINode &SetBackgroundImage(const std::string &uri);
   virtual ArkUINode &SetBackgroundImagePosition(const HRPosition &position);

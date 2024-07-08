@@ -18,24 +18,26 @@
 # limitations under the License.
 #
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.14)
 
-project(oh_napi)
+project("devtools_integration")
 
 get_filename_component(PROJECT_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../" REALPATH)
 
 include("${PROJECT_ROOT_DIR}/buildconfig/cmake/InfraPackagesModule.cmake")
-include("${PROJECT_ROOT_DIR}/buildconfig/cmake/GlobalPackagesModule.cmake")
 include("${PROJECT_ROOT_DIR}/buildconfig/cmake/compiler_toolchain.cmake")
 
 set(CMAKE_CXX_STANDARD 17)
 
 # region library
 add_library(${PROJECT_NAME} STATIC)
-target_include_directories(${PROJECT_NAME}
-  PUBLIC include
-  PRIVATE .)
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILE_OPTIONS})
+# endregion
+
+# region jni
+GlobalPackages_Add_oh_napi()
+target_link_libraries(${PROJECT_NAME} PUBLIC oh_napi)
 # endregion
 
 # region footstone
@@ -43,18 +45,29 @@ GlobalPackages_Add_footstone()
 target_link_libraries(${PROJECT_NAME} PRIVATE footstone)
 # endregion
 
-# region sources
-set(SOURCE_SET
-  src/data_holder.cc
-  src/oh_napi_register.cc
-  src/ark_ts.cc
-  src/oh_napi_utils.cc
-  src/oh_napi_object.cc
-  src/oh_measure_text.cc
-  src/oh_napi_object_builder.cc
-  src/oh_napi_task_runner.cc)
-set(PUBLIC_SOURCE_SET
-  src/oh_napi_invocation.cc)
+# region dom
+GlobalPackages_Add_dom()
+target_link_libraries(${PROJECT_NAME} PRIVATE dom)
+# endregion
 
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_SET} PUBLIC ${PUBLIC_SOURCE_SET})
+# region vfs
+GlobalPackages_Add_vfs()
+target_link_libraries(${PROJECT_NAME} PRIVATE vfs)
+# endregion
+
+# region devtools
+GlobalPackages_Add_devtools_backend()
+target_link_libraries(${PROJECT_NAME} PRIVATE devtools_backend)
+# endregion
+
+# region devtools_integration
+add_subdirectory(${PROJECT_ROOT_DIR}/devtools/devtools-integration/native ${CMAKE_CURRENT_BINARY_DIR}/devtools-integration/native)
+target_link_libraries(${PROJECT_NAME} PUBLIC devtools_integration_native)
+# endregion
+
+# region source set
+set(SOURCE_SET
+    src/devtools_napi.cc)
+
+target_sources(${PROJECT_NAME} PUBLIC ${SOURCE_SET})
 # endregion

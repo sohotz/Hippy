@@ -34,6 +34,7 @@ CustomTsView::CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_Node
   tsNode_.SetHeightPercent(1.f);
   subContainerNode_.SetWidthPercent(1.f);
   subContainerNode_.SetHeightPercent(1.f);
+  subContainerNode_.SetHitTestMode(ARKUI_HIT_TEST_MODE_NONE);
 }
 
 CustomTsView::~CustomTsView() {
@@ -64,8 +65,8 @@ void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
   subContainerNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView) {
-  BaseView::OnChildRemoved(childView);
+void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemoved(childView, index);
   subContainerNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 

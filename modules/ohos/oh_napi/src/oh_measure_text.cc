@@ -5,6 +5,38 @@ OhMeasureText::OhMeasureText() {}
 
 OhMeasureText::~OhMeasureText() {}
 
+OH_Drawing_FontWeight OhMeasureText::FontWeightToDrawing(std::string &str) {
+  if (str.length() == 0 || str == "normal") {
+    return FONT_WEIGHT_400;
+  } else if (str == "bold") {
+    return FONT_WEIGHT_700;
+  } else {
+    auto w = std::atoi(str.c_str());
+    if (std::isnan(w) || w == 0) {
+      return FONT_WEIGHT_400;
+    }
+    if (w < 200) {
+      return FONT_WEIGHT_100;
+    } else if (w < 300) {
+      return FONT_WEIGHT_200;
+    } else if (w < 400) {
+      return FONT_WEIGHT_300;
+    } else if (w < 500) {
+      return FONT_WEIGHT_400;
+    } else if (w < 600) {
+      return FONT_WEIGHT_500;
+    } else if (w < 700) {
+      return FONT_WEIGHT_600;
+    } else if (w < 800) {
+      return FONT_WEIGHT_700;
+    } else if (w < 900) {
+      return FONT_WEIGHT_800;
+    } else {
+      return FONT_WEIGHT_900;
+    }
+  }
+}
+
 bool OhMeasureText::HasProp(std::map<std::string, std::string> &propMap, const char *s) {
     if (propMap.find(s) == propMap.end()) {
         return false;
@@ -21,7 +53,7 @@ void OhMeasureText::StartCollectProp() { usedProp_.clear(); }
 void OhMeasureText::CheckUnusedProp(const char *tag, std::map<std::string, std::string> &propMap) {
     for (auto it = propMap.begin(); it != propMap.end(); ++it) {
         if (std::find(usedProp_.begin(), usedProp_.end(), it->first) == usedProp_.end()) {
-            FOOTSTONE_DLOG(WARNING) << "Measure Text " << tag << " unused prop : " << it->first << " : " << it->second;
+            FOOTSTONE_DLOG(WARNING) << "hippy text - measure " << tag << " unused prop: " << it->first << " : " << it->second;
         }
     }
 }
@@ -123,6 +155,11 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     StartCollectProp();
 #endif
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
+  
+    if (HasProp(propMap, "lineHeight") && propMap["lineHeight"].size() > 0) {
+        lineHeight_ = std::stod(propMap["lineHeight"]);
+    }
+  
     if (HasProp(propMap, "color") && propMap["color"].size() > 0) {
         unsigned long color = std::stoul(propMap["color"]);
         OH_Drawing_SetTextStyleColor(txtStyle, (uint32_t)color);
@@ -133,12 +170,10 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     }
     OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
     if (HasProp(propMap, "fontWeight")) {
-        int fontWeight = FONT_WEIGHT_400; // TODO(hot):
-        if (propMap["fontWeight"] == "bold") {
-            fontWeight = FONT_WEIGHT_700;
-        }
+        int fontWeight = FontWeightToDrawing(propMap["fontWeight"]);
         OH_Drawing_SetTextStyleFontWeight(txtStyle, fontWeight);
     }
+
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC); // todoC baselineOffset
 
     if (HasProp(propMap, "textDecorationLine")) {
@@ -182,8 +217,12 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
         fontStyle = FONT_STYLE_ITALIC;
     }
     OH_Drawing_SetTextStyleFontStyle(txtStyle, fontStyle);
-    OH_Drawing_SetTextStyleLocale(txtStyle, "en");
-    // OH_Drawing_SetTextStyleDecorationStyle(txtStyle, );
+    
+    // use default locale,
+    // If en is set, measure results for Chinese characters will be inaccurate.
+    // OH_Drawing_SetTextStyleLocale(txtStyle, "zh");
+    
+    // OH_Drawing_SetTextStyleDecorationStyle(txtStyle, ); 
     // OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, );
     if (HasProp(propMap, "letterSpacing") && propMap["letterSpacing"].size() > 0) {
         double letterSpacing = std::stod(propMap["letterSpacing"]);
@@ -197,6 +236,11 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle);
     if (HasProp(propMap, "text")) {
         OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str());
+
+#ifdef MEASURE_TEXT_LOG_RESULT
+        logTextContent_ += "[span]";
+        logTextContent_ += propMap["text"];
+#endif
     }
     OH_Drawing_TypographyHandlerPopTextStyle(handler_);
     OH_Drawing_DestroyTextStyle(txtStyle);
@@ -359,26 +403,27 @@ double OhMeasureText::CalcSpanPostion(OH_Drawing_Typography *typography, OhMeasu
 OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, int heightMode, float density) {
     OhMeasureResult ret;
     size_t lineCount;
-    {
-        auto typography = OH_Drawing_CreateTypography(handler_);
-        double maxWidth = float(width) / density;
-        if (maxWidth == 0 || std::isnan(maxWidth)) {
-            // fix text measure width wrong when maxWidth is nan or 0
-            maxWidth = std::numeric_limits<double>::max();
-        }
-        OH_Drawing_TypographyLayout(typography, maxWidth); // todo2 constraintWidth
-
-        // double realWidth = OH_Drawing_TypographyGetLongestLine(typography); // 实际有像素的宽度
-        // ret.width = fmax(realWidth, maxWidth);                   // 宽度
-        ret.width = OH_Drawing_TypographyGetLongestLine(typography);
-        ret.height = OH_Drawing_TypographyGetHeight(typography); // 高度
-        lineCount = OH_Drawing_TypographyGetLineCount(typography);
-
-        double realHeight = CalcSpanPostion(typography, ret);
-        ret.height = fmax(ret.height, realHeight);
-
-        OH_Drawing_DestroyTypography(typography);
+  
+    auto typography = OH_Drawing_CreateTypography(handler_);
+    double maxWidth = double(width) / density;
+    if (maxWidth == 0 || std::isnan(maxWidth)) {
+        // fix text measure width wrong when maxWidth is nan or 0
+        maxWidth = std::numeric_limits<double>::max();
     }
+    
+    OH_Drawing_TypographyLayout(typography, maxWidth); // todo2 constraintWidth
+
+    // double realWidth = OH_Drawing_TypographyGetLongestLine(typography); // 实际有像素的宽度
+    // ret.width = fmax(realWidth, maxWidth);                   // 宽度
+    ret.width = ceil(OH_Drawing_TypographyGetLongestLine(typography));
+    ret.height = OH_Drawing_TypographyGetHeight(typography); // 高度
+    lineCount = OH_Drawing_TypographyGetLineCount(typography);
+
+    double realHeight = CalcSpanPostion(typography, ret);
+    ret.height = fmax(ret.height, realHeight);
+
+    OH_Drawing_DestroyTypography(typography);
+
     OH_Drawing_DestroyTypographyHandler(handler_);
     OH_Drawing_DestroyFontCollection(fontCollection_);
     OH_Drawing_DestroyTypographyStyle(typoStyle_);
@@ -386,11 +431,22 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     if (ret.height < minLineHeight_) {
         ret.height = minLineHeight_;
     }
+  
+#ifdef MEASURE_TEXT_LOG_RESULT
+    FOOTSTONE_DLOG(INFO) << "hippy text - measure result, maxWidth: " << maxWidth
+      << ", result: (" << ret.width << ", " << ret.height << "), "
+      << logTextContent_.c_str() << ", lineCount: " << lineCount;
+#endif
+  
     ret.width *= density;
     ret.height *= density;
     if (lineHeight_ != 0) {
         ret.height = lineHeight_ * density * (double)lineCount;
+    
+#ifdef MEASURE_TEXT_LOG_RESULT
+        FOOTSTONE_DLOG(INFO) << "hippy text - lineHeight fix result, result height: " << lineHeight_ *  (double)lineCount;
+#endif
     }
-
+  
     return ret;
 }

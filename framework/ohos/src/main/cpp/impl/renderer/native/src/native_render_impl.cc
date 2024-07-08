@@ -225,6 +225,30 @@ void NativeRenderImpl::RemoveEndBatchCallback(uint32_t root_id, uint64_t cbId) {
   view_manager->RemoveEndBatchCallback(cbId);
 }
 
+bool NativeRenderImpl::GetViewParent(uint32_t root_id, uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return false;
+  }
+  return view_manager->GetViewParent(node_id, parent_id, parent_view_type);
+}
+
+bool NativeRenderImpl::GetViewChildren(uint32_t root_id, uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return false;
+  }
+  return view_manager->GetViewChildren(node_id, children_ids, children_view_types);
+}
+
+void NativeRenderImpl::CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  view_manager->CallViewMethod(node_id, method, params, callback);
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

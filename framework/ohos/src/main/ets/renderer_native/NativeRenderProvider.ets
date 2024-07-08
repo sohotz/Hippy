@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 import { BinaryReader } from '../serialization/reader/BinaryReader'
-import { NativeRenderEventHandler, NativeRenderImpl } from './NativeRenderImpl';
+import { NativeRenderImpl } from './NativeRenderImpl';
 import { NativeRenderDeserializer } from './serialization/NativeRenderDeserializer'
 import { BinaryWriter } from '../serialization/writer/BinaryWriter';
 import { NativeRenderSerializer } from './serialization/NativeRenderSerializer';
@@ -34,7 +34,7 @@ import { CreateRenderViewParamsForCApi,
   UpdatePropsParamsForCApi} from './NativeRenderBuilderForCApi';
 import { FrameNode } from '@kit.ArkUI';
 
-export class NativeRenderProvider implements NativeRenderEventHandler {
+export class NativeRenderProvider {
   private readonly TAG = "NativeRenderProvider"
   private readonly EVENT_PREFIX = "on"
 
@@ -46,7 +46,7 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       customMeasureRenderViews: Array<string> | null) {
     this.libHippy = libHippy
-    this.renderImpl = new NativeRenderImpl(this, customRenderViewCreatorMap, customMeasureRenderViews)
+    this.renderImpl = new NativeRenderImpl(libHippy, customRenderViewCreatorMap, customMeasureRenderViews)
   }
 
   setInstanceId(instanceId: number) {
@@ -178,14 +178,6 @@ export class NativeRenderProvider implements NativeRenderEventHandler {
 
   spanPosition(rootId: number, nodeId: number, x: number, y: number): void {
     this.renderImpl.spanPosition(rootId, nodeId, x, y);
-  }
-
-  onSize(rootId: number, width: number, height: number) {
-    this.libHippy?.NativeRenderProvider_UpdateRootSize(this.instanceId, rootId, width, height)
-  }
-
-  onSize2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean) {
-    this.libHippy?.NativeRenderProvider_UpdateNodeSize(this.instanceId, rootId, nodeId, width, height, isSync)
   }
 
   dispatchEvent(rootId: number, nodeId: number, eventName: string, params: HippyAny, useCapture: boolean, useBubble: boolean, eventType: HREventType) {
