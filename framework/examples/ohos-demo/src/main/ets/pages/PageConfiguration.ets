@@ -101,7 +101,7 @@ struct PageConfiguration {
     let params = new EngineInitParams(this.libHippy!, this.abilityContext!)
     params.debugServerHost = info.debugServerHost as string
     params.debugMode = info.isDebugMode as boolean
-    //params.enableLog = true
+    // params.enableLog = true
 
     params.providers = new Array(new ExampleAPIProvider())
 

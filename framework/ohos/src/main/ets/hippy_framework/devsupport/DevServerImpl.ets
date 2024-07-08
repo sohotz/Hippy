@@ -58,9 +58,10 @@ export class DevServerImpl implements DevServerInterface, OnReloadListener {
 
   createResourceUrl(resName: string): string {
     if (this.mDebugMode && this.mServerConfig != null) {
-      return this.mFetchHelper.createBundleURL(this.mServerConfig.getServerHost(), resName,
-        this.mServerConfig.enableRemoteDebug(), false, false);
-    } else return "";
+      return this.mFetchHelper.createBundleURL(this.mServerConfig.getServerHost(), resName, this.mServerConfig.enableRemoteDebug(), false, false);
+    } else {
+      return ""
+    };
   }
 
   onLoadResourceFailed(url: string, errorMessage: string): void {
@@ -75,7 +76,13 @@ export class DevServerImpl implements DevServerInterface, OnReloadListener {
   }
 
   createDebugUrl(host: string, componentName: string, debugClientId: string): string {
-    return ""
+    if (this.mDebugMode && this.mServerConfig != undefined) {
+      if (componentName == "") {
+        componentName = this.mServerConfig?.getBundleName();
+      }
+      return this.mFetchHelper.createDebugURL(host, componentName, debugClientId);
+    }
+    return "";
   }
 
   setDevServerCallback(devServerCallback: DevServerCallBack): void {
@@ -83,11 +90,39 @@ export class DevServerImpl implements DevServerInterface, OnReloadListener {
   }
 
   attachToHost(context: Context, rootId: number): void {
-
+    if (!this.mDebugMode) {
+      return;
+    }
+    if (this.mDevButtonMaps == null) {
+      this.mDevButtonMaps = new Map<number, DevFloatButton>();
+    }
+    if (this.mDevButtonMaps.get(rootId) != null) {
+      return;
+    }
+    let devButton: DevFloatButton = new DevFloatButton(context);
+    // devButton.setOnClickListener(this);
+    // if (context instanceof Activity) {
+    //   ViewGroup decorView = (ViewGroup) ((Activity) context).getWindow().getDecorView();
+    //   decorView.addView(devButton);
+    // }
+    this.mDevButtonMaps.set(rootId, devButton);
+    this.mDevButtonStack.push(devButton);
   }
 
   detachFromHost(context: Context, rootId: number): void {
-
+    if (!this.mDebugMode || this.mDevButtonMaps == null) {
+      return;
+    }
+    let button: DevFloatButton | undefined = this.mDevButtonMaps.get(rootId);
+    if (button != undefined) {
+      if (this.mDevButtonStack != null) {
+        this.mDevButtonStack.pop();
+      }
+      // ViewParent parent = button.getParent();
+      // if (parent instanceof ViewGroup) {
+      //   ((ViewGroup) parent).removeView(button);
+      // }
+    }
   }
 
   handleException(throwable: HippyException): void {
@@ -95,9 +130,9 @@ export class DevServerImpl implements DevServerInterface, OnReloadListener {
   }
 
   getDevButton(rootId: number): Object | null {
-    // if (this.mDevButtonMaps != null) {
-    //   return this.mDevButtonMaps.get(rootId) as View;
-    // }
+    if (this.mDevButtonMaps != null) {
+      return this.mDevButtonMaps.get(rootId) as DevFloatButton;
+    }
     return null;
   }
 }

@@ -35,6 +35,11 @@ export interface HippyRenderViewInfo {
 export type CallResultCallback = (result: HippyAny) => void
 
 export interface HippyLibrary {
+  Devtools_OnCreateDevtools(dataDir: string, wsUrl: string): number;
+  Devtools_OnDestroyDevtools(devtoolsId: number, isReload: boolean): void;
+  Devtools_OnBindDevtools(devtoolsId: number, driverId: number, domId: number, renderId: number): void;
+  Devtools_OnAttachToRoot(devtoolsId: number, rootId: number): void;
+
   DomManager_SetRenderManager(instanceId: number, renderId: number): void;
   DomManager_CreateDomManager(): number;
   DomManager_DestroyDomManager(domManagerId: number): void;

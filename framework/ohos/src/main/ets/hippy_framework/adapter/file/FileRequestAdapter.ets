@@ -60,23 +60,19 @@ export class FileRequestAdapter implements HippyFileAdapter {
 
   public downloadFile(mDataHolder: ResourceDataHolder, mCallback: ProcessorCallback) {
     let filePath = this.ctx.filesDir + '/' + this.geFileName(mDataHolder.uri);
-    let res = fs.accessSync(filePath);
-    if (res) {
-      let stat = fs.statSync(filePath);
-      LogUtils.i(FILE_REQ_TAG, "get file info succeed, the size of file is " + stat.size);
-      fs.unlinkSync(filePath);
-      fs.stat(filePath).then((stat: fs.Stat) => {
-        fs.unlink(filePath).then(() => {
-          LogUtils.i(FILE_REQ_TAG, "remove file succeed");
-        }).catch((err: HippyJsException) => {
-          LogUtils.e(FILE_REQ_TAG, "remove file failed with error message: " + err.message);
-        });
-      }).catch((err: HippyJsException) => {
-        LogUtils.e(FILE_REQ_TAG, "getFileInfo failed with error:" + err);
-      });
-    } else {
-      LogUtils.i(FILE_REQ_TAG, "file not exists");
-    }
+
+    try {
+      let res = fs.accessSync(filePath);
+      if (res) {
+        let stat = fs.statSync(filePath);
+        LogUtils.i(FILE_REQ_TAG, "get file info succeed, the size of file is " + stat.size);
+        fs.unlinkSync(filePath);
+      } else {
+        LogUtils.i(FILE_REQ_TAG, "file not exists");
+      }
+    } catch (e) {
+      LogUtils.e(FILE_REQ_TAG, `unlink file Failed. err: ${e}`);
+  }
 
     let downloadTask: request.DownloadTask;
     try {

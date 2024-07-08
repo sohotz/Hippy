@@ -35,7 +35,7 @@ export class DevRemoteServerData {
   }
 
   public isValid(): boolean {
-    return!TextUtils.isEmpty(this.host) && !TextUtils.isEmpty(this.versionId);
+    return !TextUtils.isEmpty(this.host) && !TextUtils.isEmpty(this.versionId);
   }
 
   public getHost(): string {
@@ -77,6 +77,8 @@ export class DevRemoteServerData {
     let index = this.path.indexOf("/");
     if (index >= 0) {
       this.versionId = this.path.substring(0, index);
+    } else {
+      this.versionId = util.generateRandomUUID();
     }
     LogUtils.i("Hippy DevRemoteServerData", util.format("parseUrl host:%s, versionId:%s", this.host, this.versionId));
 

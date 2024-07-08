@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyEngineContext } from '..';
 import { NativeCallback } from '../connector/NativeCallback';
 
 export const URI_SCHEME_ASSETS = "asset:";
@@ -35,6 +36,8 @@ export interface HippyBridge {
   callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array): void;
 
   getV8RuntimeId(): number;
+
+  getHippyEngineContext(): HippyEngineContext | null
 }
 
 export interface BridgeCallback {

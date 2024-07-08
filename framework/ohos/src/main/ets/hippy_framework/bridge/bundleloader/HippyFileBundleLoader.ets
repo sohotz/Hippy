@@ -21,7 +21,7 @@ import { HippyBundleLoader } from './HippyBundleLoader';
 
 
 export class HippyFileBundleLoader implements HippyBundleLoader {
-  private ASSETS_STR = "assets://";
+  public static readonly FILE_STR = "file://";
   private mFilePath: string;
   private mCanUseCodeCache = false;
   private mCodeCacheTag = '';
@@ -53,8 +53,8 @@ export class HippyFileBundleLoader implements HippyBundleLoader {
   }
 
   public getPath(): string {
-    if (this.mFilePath != null && !this.mFilePath.startsWith(this.ASSETS_STR)) {
-      return this.ASSETS_STR + this.mFilePath;
+    if (this.mFilePath != null && !this.mFilePath.startsWith(HippyFileBundleLoader.FILE_STR)) {
+      return HippyFileBundleLoader.FILE_STR + this.mFilePath;
     } else {
       return this.mFilePath;
     }

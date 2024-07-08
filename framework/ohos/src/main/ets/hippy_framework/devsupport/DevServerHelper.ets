@@ -42,10 +42,10 @@ export class DevServerHelper {
                          jsMinify: boolean): string {
     if (this.mRemoteServerData.isValid()) {
       // remote debugging in non usb
-      return util.format("en-US", DevServerHelper.BUNDLE_URL_FORMAT, this.mRemoteServerData.getScheme(), this.mRemoteServerData.getHost(), this.mRemoteServerData.getPath(),
-        devMode, hmr, jsMinify);
+      return util.format(DevServerHelper.BUNDLE_URL_FORMAT, this.mRemoteServerData.getScheme(), this.mRemoteServerData.getHost(), this.mRemoteServerData.getPath(),
+        devMode+'', hmr+'', jsMinify+'');
     }
-    return util.format("en-US", DevServerHelper.BUNDLE_URL_FORMAT, DevServerHelper.DEFAULT_BUNDLE_SCHEME, host, bundleName, devMode, hmr, jsMinify);
+    return util.format(DevServerHelper.BUNDLE_URL_FORMAT, DevServerHelper.DEFAULT_BUNDLE_SCHEME, host, bundleName, devMode+'', hmr+'', jsMinify+'');
   }
 
   public createDebugURL(host: string, componentName: string, clientId: string) {
@@ -56,17 +56,17 @@ export class DevServerHelper {
         // use the remoteServer ws url first
         debugUrl = this.mRemoteServerData.getWsUrl() + (this.mRemoteServerData.getWsUrl()
           .includes("?") ? "&" : "?") + DevServerHelper.DEBUG_URL_APPEND;
-        return util.format("en-US", debugUrl, clientId, this.mRemoteServerData.getVersionId(), componentName);
+        return util.format(debugUrl, clientId, this.mRemoteServerData.getVersionId(), componentName);
       }
-      return util.format("en-US", debugUrl, this.mRemoteServerData.getHost(), clientId,
+      return util.format(debugUrl, this.mRemoteServerData.getHost(), clientId,
         this.mRemoteServerData.getVersionId(), componentName);
     }
-    return util.format("en-US", debugUrl, host, clientId, "", componentName);
+    return util.format(debugUrl, host, clientId, "", componentName);
   }
 
   public getLiveReloadURL(): string {
     let host = this.mServerHost.split(":");
     let newHost = host[0] + ":38999";
-    return util.format("en-US", DevServerHelper.WEBSOCKET_LIVERELOAD_URL_FORMAT, newHost);
+    return util.format(DevServerHelper.WEBSOCKET_LIVERELOAD_URL_FORMAT, newHost);
   }
 }

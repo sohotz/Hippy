@@ -20,14 +20,11 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project("connector")
+project("devtools_integration")
 
-set(CPP_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-set(HIPPY_ROOT_DIR "${CPP_ROOT_DIR}/../../../../../")
-set(PROJECT_ROOT_DIR "${HIPPY_ROOT_DIR}/../../")
+get_filename_component(PROJECT_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../" REALPATH)
 
 include("${PROJECT_ROOT_DIR}/buildconfig/cmake/InfraPackagesModule.cmake")
-include("${PROJECT_ROOT_DIR}/buildconfig/cmake/GlobalPackagesModule.cmake")
 include("${PROJECT_ROOT_DIR}/buildconfig/cmake/compiler_toolchain.cmake")
 
 set(CMAKE_CXX_STANDARD 17)
@@ -38,19 +35,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILE_OPTIONS})
 # endregion
 
+# region jni
+GlobalPackages_Add_oh_napi()
+target_link_libraries(${PROJECT_NAME} PUBLIC oh_napi)
+# endregion
+
 # region footstone
 GlobalPackages_Add_footstone()
 target_link_libraries(${PROJECT_NAME} PRIVATE footstone)
-# endregion
-
-# region napi
-GlobalPackages_Add_oh_napi()
-target_link_libraries(${PROJECT_NAME} PRIVATE oh_napi)
-# endregion
-
-# region vfs
-GlobalPackages_Add_vfs()
-target_link_libraries(${PROJECT_NAME} PRIVATE vfs)
 # endregion
 
 # region dom
@@ -58,31 +50,24 @@ GlobalPackages_Add_dom()
 target_link_libraries(${PROJECT_NAME} PRIVATE dom)
 # endregion
 
-# region js_driver
-add_subdirectory(${PROJECT_ROOT_DIR}/driver/js ${CMAKE_CURRENT_BINARY_DIR}/_deps/driver/js)
-target_link_libraries(${PROJECT_NAME} PUBLIC js_driver)
+# region vfs
+GlobalPackages_Add_vfs()
+target_link_libraries(${PROJECT_NAME} PRIVATE vfs)
 # endregion
 
+# region devtools
 GlobalPackages_Add_devtools_backend()
-target_include_directories(${PROJECT_NAME} PUBLIC $<TARGET_PROPERTY:devtools_backend,INTERFACE_INCLUDE_DIRECTORIES>)
+target_link_libraries(${PROJECT_NAME} PRIVATE devtools_backend)
+# endregion
 
-GlobalPackages_Add_devtools_integration()
-target_include_directories(${PROJECT_NAME} PRIVATE $<TARGET_PROPERTY:devtools_integration,INTERFACE_INCLUDE_DIRECTORIES>)
-
-# region native_renderer
-add_subdirectory(${CPP_ROOT_DIR}/../renderer/native
-  ${CMAKE_CURRENT_BINARY_DIR}/_deps/renderer/native)
-target_link_libraries(${PROJECT_NAME} PUBLIC native_renderer)
+# region devtools_integration
+add_subdirectory(${PROJECT_ROOT_DIR}/devtools/devtools-integration/native ${CMAKE_CURRENT_BINARY_DIR}/devtools-integration/native)
+target_link_libraries(${PROJECT_NAME} PUBLIC devtools_integration_native)
 # endregion
 
 # region source set
-set(PUBLIC_SOURCE_SET
-  src/dom_manager_napi.cc
-  src/js_driver_napi.cc
-  src/ark2js.cc
-  src/js2ark.cc
-  src/exception_handler.cc
-  src/native_renderer_napi.cc
-  )
-target_sources(${PROJECT_NAME} PUBLIC ${PUBLIC_SOURCE_SET})
+set(SOURCE_SET
+    src/devtools_napi.cc)
+
+target_sources(${PROJECT_NAME} PUBLIC ${SOURCE_SET})
 # endregion

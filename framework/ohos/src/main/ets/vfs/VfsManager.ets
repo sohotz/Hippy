@@ -25,7 +25,7 @@ import { ResourceDataHolder, RequestFrom, UriType } from './ResourceDataHolder';
 import { ProcessorCallback } from './ProcessorCallback';
 import { FetchResourceCallback } from './FetchResourceCallback';
 
-class ProcessorCallbackImpl implements ProcessorCallback {
+export class ProcessorCallbackImpl implements ProcessorCallback {
   onHandleCompleted = () => {
   }
   goNext = () => {

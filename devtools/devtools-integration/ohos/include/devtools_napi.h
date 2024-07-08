@@ -17,21 +17,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyException } from '../../../support/common/HippyException';
-import { LogUtils } from '../../../support/utils/LogUtils';
-import { HippyJsException } from '../../common/HippyJsException';
-import { HippyExceptionHandlerAdapter } from './HippyExceptionHandlerAdapter';
 
-export class DefaultExceptionHandler implements HippyExceptionHandlerAdapter {
-  handleJsException(exception: HippyJsException) {
-    LogUtils.e('JsException', `message:${exception.message} stack: ${exception.stack}`)
-  }
+#pragma once
 
-  handleNativeException(exception: HippyException, haveCaught: boolean) {
-    LogUtils.e('NativeException', `message:${exception.message} stack: ${exception.stack}`)
-  }
+#include "footstone/string_view.h"
+#include "footstone/task_runner.h"
+#include <js_native_api.h>
+#include <js_native_api_types.h>
 
-  handleBackgroundTracing(details: string) {
+namespace hippy::devtools {
 
-  }
+
 }
+

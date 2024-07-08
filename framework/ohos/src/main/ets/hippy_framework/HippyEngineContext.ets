@@ -27,6 +27,7 @@ import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HippyJsException } from './common/HippyJsException';
 import { DevSupportManager } from './devsupport/DevSupportManager';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
+import { DevtoolsManager } from './devsupport/DevtoolsManager';
 
 export interface HippyEngineContext {
 
@@ -46,12 +47,9 @@ export interface HippyEngineContext {
 
   getBridgeManager(): HippyBridgeManager
 
-  // TODO
-  getDevSupportManager(): DevSupportManager
+  getDevSupportManager(): DevSupportManager | null
 
   destroyBridge(isReload: boolean): void
-
-  // DevtoolsManager getDevtoolsManager();
 
   // void addEngineLifecycleEventListener(HippyEngineLifecycleEventListener listener);
   //
@@ -65,9 +63,8 @@ export interface HippyEngineContext {
 
   getVfsId(): number;
 
-  //
-  // int getDevtoolsId();
-  //
+  getDevtoolsId(): number;
+
   onRuntimeInitialized(): void;
 
   onBridgeDestroyed(isReload: boolean): void;

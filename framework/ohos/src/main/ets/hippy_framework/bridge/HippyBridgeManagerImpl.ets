@@ -252,7 +252,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       timeMonitor.startPoint(MonitorGroupType.ENGINE_INITIALIZE,
         TimeMonitor.MONITOR_POINT_LOAD_COMMON_JS);
       this.mCoreBundleLoader
-        .load(this.mHippyBridge, () => {
+        .load(this.mHippyBridge, (result: number, reason: string) => {
           this.bundleVendorLoaderCallback(result, reason, initBridgeCallback);
         });
     } else {
