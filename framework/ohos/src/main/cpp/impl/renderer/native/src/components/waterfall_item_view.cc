@@ -32,13 +32,13 @@ WaterfallItemView::WaterfallItemView(std::shared_ptr<NativeRenderContext> &ctx) 
 WaterfallItemView::~WaterfallItemView() {
   if (!children_.empty()) {
     for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+      itemNode_.RemoveChild(child->GetLocalRootArkUINode());
     }
     children_.clear();
   }
 }
 
-StackNode &WaterfallItemView::GetLocalRootArkUINode() { return stackNode_; }
+WaterFlowItemNode &WaterfallItemView::GetLocalRootArkUINode() { return itemNode_; }
 
 bool WaterfallItemView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "type") {
@@ -47,14 +47,22 @@ bool WaterfallItemView::SetProp(const std::string &propKey, const HippyValue &pr
   return BaseView::SetProp(propKey, propValue);
 }
 
+void WaterfallItemView::OnSetPropsEnd(){
+  return BaseView::OnSetPropsEnd();  
+}
+
 void WaterfallItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+  itemNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
 void WaterfallItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+  BaseView::OnChildRemoved(childView, index);;
+  itemNode_.RemoveChild(childView->GetLocalRootArkUINode());
+}
+
+void WaterfallItemView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrame(frame,padding);
 }
 
 } // namespace native

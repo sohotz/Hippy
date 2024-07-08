@@ -42,11 +42,20 @@ bool PullFooterView::SetProp(const std::string &propKey, const HippyValue &propV
   return ListItemView::SetProp(propKey, propValue);
 }
 
+void PullFooterView::OnSetPropsEnd(){
+   return ListItemView::OnSetPropsEnd(); 
+}
+
 void PullFooterView::Call(const std::string &method, const std::vector<HippyValue> params,
                           std::function<void(const HippyValue &result)> callback) {
+//  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
   if (method == "collapsePullFooter") {
     // nothing to do
   }
+}
+
+void PullFooterView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrame(frame, padding);
 }
 
 } // namespace native

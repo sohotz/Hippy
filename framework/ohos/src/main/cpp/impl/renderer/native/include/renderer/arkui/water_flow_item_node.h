@@ -30,23 +30,26 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RefreshNodeDelegate {
+class FlowItemNodeDelegate {
 public:
-  virtual ~RefreshNodeDelegate() = default;
-  virtual void OnRefreshing() {}
-  virtual void OnStateChange(int32_t state) {}
-  virtual void OnOffsetChange(float_t offset) {}
+  virtual ~FlowItemNodeDelegate() = default;
+  virtual void OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) {}
+
 };
 
-class RefreshNode : public ArkUINode {
+class WaterFlowItemNode : public ArkUINode {
 protected:
-  RefreshNodeDelegate *refreshNodeDelegate_ = nullptr;  
+  FlowItemNodeDelegate* flowItemNodeDelegate_= nullptr;
+  int32_t itemIndex_ = -1;
 public:
-  RefreshNode();
-  ~RefreshNode();
-  void OnNodeEvent(ArkUI_NodeEvent *event) override;
-  void SetNodeDelegate(RefreshNodeDelegate *refreshNodeDelegate);  
-  void SetRefreshing(bool beRefreshed);
+  WaterFlowItemNode();
+  ~WaterFlowItemNode();
+
+  void OnNodeEvent(ArkUI_NodeEvent *event) override;  
+  void SetNodeDelegate(FlowItemNodeDelegate* delegate);  
+  void SetConstraintSize(float minWidth,float maxWidth,float minHeight,float maxHeight);
+  void SetItemIndex(int32_t index) { itemIndex_ = index; }
+  void SetPadding(float top, float right, float bottom, float left);  
 };
 
 } // namespace native

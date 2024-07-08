@@ -34,11 +34,21 @@ PullHeaderView::PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx) : List
 PullHeaderView::~PullHeaderView() {}
 
 bool PullHeaderView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+//  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" propKey = "<<propKey; 
   return ListItemView::SetProp(propKey, propValue);
+}
+
+void PullHeaderView::OnSetPropsEnd(){
+  return ListItemView::OnSetPropsEnd();  
+}
+
+void PullHeaderView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrame(frame, padding);
 }
 
 void PullHeaderView::Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) {
+//  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
   if (method == "collapsePullHeader") {
     OnHeadRefreshFinish();
   } else if (method == "collapsePullHeaderWithOptions") {
@@ -48,8 +58,7 @@ void PullHeaderView::Call(const std::string &method, const std::vector<HippyValu
       auto collapseTime = HRValueUtils::GetInt32(map["time"]);
       if (collapseTime > 0) {
         // TODO(hot):
-        FOOTSTONE_DLOG(INFO) << "PullHeaderView collapse delay: " << collapseTime;
-        OnHeadRefreshFinish();
+        OnHeadRefreshFinish(collapseTime);
       } else {
         OnHeadRefreshFinish();
       }
@@ -59,7 +68,7 @@ void PullHeaderView::Call(const std::string &method, const std::vector<HippyValu
   }
 }
 
-void PullHeaderView::OnHeadRefreshFinish() {
+void PullHeaderView::OnHeadRefreshFinish(int32_t delay) {
   auto parentView = parent_.lock();
   if (parentView) {
     if (parentView->GetViewType() == "ListView") {
@@ -68,17 +77,21 @@ void PullHeaderView::OnHeadRefreshFinish() {
     } else if (parentView->GetViewType() == "WaterfallView") {
       auto waterView = std::static_pointer_cast<WaterfallView>(parentView);
       // TODO(hot):
-      //waterView->OnHeadRefreshFinish();
+      waterView->OnHeadRefreshFinish(delay);
     }
   }
 }
 
 void PullHeaderView::OnHeaderRefresh() {
+    FOOTSTONE_DLOG(INFO)<<__FUNCTION__; 
   auto parentView = parent_.lock();
   if (parentView) {
     if (parentView->GetViewType() == "ListView") {
       auto listView = std::static_pointer_cast<ListView>(parentView);
       listView->ScrollToIndex(0, true);
+    } else if (parentView->GetViewType() == "WaterfallView") {
+      auto waterView = std::static_pointer_cast<WaterfallView>(parentView);
+      waterView->OnHeadRefresh();
     }
   }
 }

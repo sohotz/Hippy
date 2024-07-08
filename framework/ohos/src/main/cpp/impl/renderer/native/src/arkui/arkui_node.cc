@@ -98,6 +98,14 @@ ArkUINode &ArkUINode::SetPosition(const HRPosition &position) {
   return *this;
 }
 
+HRPosition ArkUINode::GetPostion() const {
+  auto posValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_POSITION);
+  if (posValue) {
+    return HRPosition(posValue->value[0].f32,posValue->value[1].f32);
+  }
+  return HRPosition{0, 0};    
+}
+
 ArkUINode &ArkUINode::SetSize(const HRSize &size) {
   ArkUI_NumberValue widthValue[] = {{size.width}};
   ArkUI_AttributeItem widthItem = {widthValue, sizeof(widthValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
@@ -140,6 +148,25 @@ HRSize ArkUINode::GetSize() const {
 uint32_t ArkUINode::GetTotalChildCount() const {
   return NativeNodeApi::GetInstance()->getTotalChildCount(nodeHandle_);
 }
+
+ArkUI_NodeHandle ArkUINode::GetFirstChild() const{
+  return NativeNodeApi::GetInstance()->getFirstChild(nodeHandle_);   
+}
+
+ArkUI_NodeHandle ArkUINode::GetLastChild() const{ 
+  return NativeNodeApi::GetInstance()->getLastChild(nodeHandle_);  
+}
+
+ArkUI_NodeHandle ArkUINode::GetChildAt(int32_t postion) const{
+  return NativeNodeApi::GetInstance()->getChildAt(nodeHandle_,postion);  
+}
+
+//ArkUINode &ArkUINode::SetPadding(float top, float right, float bottom, float left){
+//  ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
+//  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+//  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_PADDING, &item));
+//  return *this;
+//}
 
 ArkUINode &ArkUINode::SetSizePercent(const HRSize &size) {
   ArkUI_NumberValue widthValue[] = {{size.width}};

@@ -33,7 +33,7 @@ protected:
 public:
   RowNode();
   ~RowNode();
-
+  void SetAlignItem(ArkUI_VerticalAlignment align);
 };
 
 } // namespace native

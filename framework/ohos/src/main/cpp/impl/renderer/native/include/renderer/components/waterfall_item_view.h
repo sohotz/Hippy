@@ -24,7 +24,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/stack_node.h"
-
+#include "renderer/arkui/water_flow_item_node.h"
 namespace hippy {
 inline namespace render {
 inline namespace native {
@@ -34,14 +34,14 @@ public:
   WaterfallItemView(std::shared_ptr<NativeRenderContext> &ctx);
   ~WaterfallItemView();
 
-  StackNode &GetLocalRootArkUINode() override;
+  WaterFlowItemNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  
+  void OnSetPropsEnd() override;
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
 private:
-  StackNode stackNode_;
+    WaterFlowItemNode itemNode_;
 };
 
 } // namespace native

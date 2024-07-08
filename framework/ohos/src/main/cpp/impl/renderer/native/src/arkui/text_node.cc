@@ -251,7 +251,7 @@ TextNode &TextNode::SetTextEnable(bool enableFlag) {
 
 TextNode &TextNode::SetPadding(float top, float right, float bottom, float left) {
   if (!initFlag_[FLAG_PADDING] || !(top == top_ && right == right_ && bottom == bottom_ && left == left_)) {
-    FOOTSTONE_DLOG(INFO) << "TextNode SetPadding flag = " << initFlag_[FLAG_PADDING];
+//    FOOTSTONE_DLOG(INFO) << "TextNode SetPadding flag = " << initFlag_[FLAG_PADDING];
     ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
     ArkUI_AttributeItem item = {.value = value, .size = 4};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_PADDING, &item));

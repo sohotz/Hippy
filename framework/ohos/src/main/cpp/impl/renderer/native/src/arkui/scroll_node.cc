@@ -140,6 +140,35 @@ ScrollNode &ScrollNode::SetScrollMinOffset(float scrollMinOffset) {
   return *this;
 }
 
+ScrollNode &ScrollNode::SetNestedScroll(ArkUI_ScrollNestedMode forward, ArkUI_ScrollNestedMode backward){
+  ArkUI_NumberValue value[] = {{.i32 = forward},{.i32 = backward}}; 
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_NESTED_SCROLL, &item));
+  return *this;    
+}
+
+ScrollNode &ScrollNode::SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode)
+{
+  ArkUI_NumberValue value[] = {{.i32 = mode},}; 
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_BAR_DISPLAY_MODE, &item));
+  return *this;
+}
+
+ScrollNode &ScrollNode::SetScrollEnableInteraction(bool bEnable){
+  ArkUI_NumberValue value[] = {{.i32 = bEnable},};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_ENABLE_SCROLL_INTERACTION, &item));
+  return *this;  
+}
+
+ScrollNode &ScrollNode::SetScrollEdgeEffect(ArkUI_EdgeEffect effect) {
+  ArkUI_NumberValue value[] = {{.i32 = effect},};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_EDGE_EFFECT, &item));
+  return *this;  
+}
+
 void ScrollNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   ArkUINode::OnNodeEvent(event);
   if (!scrollNodeDelegate_) {
