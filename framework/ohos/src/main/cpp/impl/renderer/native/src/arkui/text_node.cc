@@ -161,7 +161,7 @@ TextNode &TextNode::SetFontFamily(const std::string &fontFamily) {
 
 TextNode &TextNode::SetTextCopyOption(int32_t textCopyOption) {
   if (!initFlag_[FLAG_COPYOPTION] || textCopyOption != textCopyOption_) {
-    FOOTSTONE_DLOG(INFO) << "TextNode SetTextCopyOption flag = " << initFlag_[FLAG_COPYOPTION];
+    // FOOTSTONE_DLOG(INFO) << "TextNode SetTextCopyOption flag = " << initFlag_[FLAG_COPYOPTION];
     ArkUI_NumberValue value[] = {{.i32 = textCopyOption}};
     ArkUI_AttributeItem item = {.value = value, .size = 1};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_COPY_OPTION, &item));
@@ -192,7 +192,7 @@ TextNode &TextNode::SetTextShadow(float textShadowRadius, ArkUI_ShadowType textS
 
 TextNode &TextNode::SetMinFontSize(float minFontSize) {
   if (!initFlag_[FLAG_MINFONTSIZE] || minFontSize != minFontSize_) {
-    FOOTSTONE_DLOG(INFO) << "TextNode SetMinFontSize flag = " << initFlag_[FLAG_MINFONTSIZE];
+    // FOOTSTONE_DLOG(INFO) << "TextNode SetMinFontSize flag = " << initFlag_[FLAG_MINFONTSIZE];
     ArkUI_NumberValue value[] = {{.f32 = minFontSize}};
     ArkUI_AttributeItem item = {.value = value, .size = 1};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_MIN_FONT_SIZE, &item));
@@ -204,7 +204,7 @@ TextNode &TextNode::SetMinFontSize(float minFontSize) {
 
 TextNode &TextNode::SetMaxFontSize(float maxFontSize) {
   if (!initFlag_[FLAG_MAXFONTSIZE] || maxFontSize != maxFontSize_) {
-    FOOTSTONE_DLOG(INFO) << "TextNode SetMaxFontSize flag = " << initFlag_[FLAG_MAXFONTSIZE];
+    // FOOTSTONE_DLOG(INFO) << "TextNode SetMaxFontSize flag = " << initFlag_[FLAG_MAXFONTSIZE];
     ArkUI_NumberValue value[] = {{.f32 = maxFontSize}};
     ArkUI_AttributeItem item = {.value = value, .size = 1};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_MAX_FONT_SIZE, &item));
@@ -239,7 +239,7 @@ TextNode &TextNode::SetTextIndent(float textIndent) {
 
 TextNode &TextNode::SetTextEnable(bool enableFlag) {
   if (!initFlag_[FLAG_ENABLE] || enableFlag != enableFlag_) {
-    FOOTSTONE_DLOG(INFO) << "TextNode SetTextEnable flag = " << initFlag_[FLAG_ENABLE];
+    // FOOTSTONE_DLOG(INFO) << "TextNode SetTextEnable flag = " << initFlag_[FLAG_ENABLE];
     ArkUI_NumberValue value[] = {{.i32 = enableFlag}};
     ArkUI_AttributeItem item = {value, 1, nullptr, nullptr};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ENABLED, &item));
@@ -251,7 +251,7 @@ TextNode &TextNode::SetTextEnable(bool enableFlag) {
 
 TextNode &TextNode::SetPadding(float top, float right, float bottom, float left) {
   if (!initFlag_[FLAG_PADDING] || !(top == top_ && right == right_ && bottom == bottom_ && left == left_)) {
-//    FOOTSTONE_DLOG(INFO) << "TextNode SetPadding flag = " << initFlag_[FLAG_PADDING];
+    // FOOTSTONE_DLOG(INFO) << "TextNode SetPadding flag = " << initFlag_[FLAG_PADDING];
     ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
     ArkUI_AttributeItem item = {.value = value, .size = 4};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_PADDING, &item));

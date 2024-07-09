@@ -37,14 +37,14 @@ napi_env ArkTS::GetEnv() { return env_; }
 napi_value ArkTS::Call(napi_value callback, std::vector<napi_value> args, napi_value this_object) {
   napi_value result;
 
-  FOOTSTONE_DLOG(INFO) << "ArkTS::Call params, env:" << env_
-    << ", obj:" << this_object
-    << ", callback:" << callback
-    << ", args:" << args.size();
+  // FOOTSTONE_DLOG(INFO) << "ArkTS::Call params, env:" << env_
+  //   << ", obj:" << this_object
+  //   << ", callback:" << callback
+  //   << ", args:" << args.size();
 
   auto status = napi_call_function(env_, this_object, callback, args.size(), args.data(), &result);
 
-  FOOTSTONE_DLOG(INFO) << "ArkTS::Call params, status:" << status;
+  // FOOTSTONE_DLOG(INFO) << "ArkTS::Call params, status:" << status;
 
   this->MaybeThrowFromStatus(status, "Couldn't call a callback");
   return result;
