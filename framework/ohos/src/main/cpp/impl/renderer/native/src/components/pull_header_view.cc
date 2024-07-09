@@ -42,10 +42,6 @@ void PullHeaderView::OnSetPropsEnd(){
   return ListItemView::OnSetPropsEnd();  
 }
 
-void PullHeaderView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrame(frame, padding);
-}
-
 void PullHeaderView::Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) {
 //  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 

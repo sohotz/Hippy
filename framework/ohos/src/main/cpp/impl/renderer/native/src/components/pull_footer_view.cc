@@ -54,9 +54,6 @@ void PullFooterView::Call(const std::string &method, const std::vector<HippyValu
   }
 }
 
-void PullFooterView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrame(frame, padding);
-}
 
 } // namespace native
 } // namespace render
