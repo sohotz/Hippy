@@ -52,9 +52,11 @@ public:
   void RemoveAllChildren();
   
   HRPoint GetScrollOffset();
+  
   void ScrollTo(float offsetX, float offsetY, bool animated);
   void ScrollToIndex(int32_t index, bool animated, bool isScrollAlignStart);
   void SetListDirection(bool isVertical);
+  void SetListInitialIndex(int32_t index);
   void SetScrollEdgeEffect(bool hasEffect);
   void SetScrollNestedScroll(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward);
   void SetEnableScrollInteraction(bool enabled);

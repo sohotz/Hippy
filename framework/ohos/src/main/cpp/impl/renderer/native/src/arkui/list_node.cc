@@ -98,6 +98,13 @@ void ListNode::SetListDirection(bool isVertical) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_DIRECTION, &item));
 }
 
+void ListNode::SetListInitialIndex(int32_t index) {
+  // TODO(hot):
+//   ArkUI_NumberValue value[] = {{.i32 = index}};
+//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_INITIAL_INDEX, &item));
+}
+
 void ListNode::SetScrollEdgeEffect(bool hasEffect) {
   ArkUI_NumberValue value[] = {{.i32 = hasEffect ? ARKUI_EDGE_EFFECT_SPRING : ARKUI_EDGE_EFFECT_NONE},
                                {.i32 = hasEffect ? 1 : 0}};

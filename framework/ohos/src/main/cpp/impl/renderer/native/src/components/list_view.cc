@@ -25,6 +25,8 @@
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
+// #define LIST_VIEW_DEBUG_LOG
+
 namespace hippy {
 inline namespace render {
 inline namespace native {
@@ -157,11 +159,16 @@ void ListView::Call(const std::string &method, const std::vector<HippyValue> par
 
 void ListView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
-  adapter_->InsertItem(index);
+
+#ifdef LIST_VIEW_DEBUG_LOG
+  FOOTSTONE_DLOG(INFO) << "hippy ListView - on child inserted: " << index;
+#endif
+
+  if (index == 0 && childView->GetViewType() == PULL_HEADER_VIEW_TYPE) {
+    listNode_.SetListInitialIndex(1);
+  }
   
-  auto itemView = std::static_pointer_cast<ListItemView>(childView);
-  itemView->GetLocalRootArkUINode().SetNodeDelegate(this);
-  itemView->GetLocalRootArkUINode().SetItemIndex(static_cast<int32_t>(index));
+  adapter_->InsertItem(index);
 }
 
 void ListView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
@@ -188,6 +195,9 @@ void ListView::OnDisappear() {
 }
 
 void ListView::OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) {
+#ifdef LIST_VIEW_DEBUG_LOG
+  FOOTSTONE_DLOG(INFO) << "hippy ListView - on scroll index, first: " << firstIndex << ", last: " << lastIndex;
+#endif
   CheckSendReachEndEvent(lastIndex);
 }
 
@@ -197,11 +207,15 @@ void ListView::OnScroll(float scrollOffsetX, float scrollOffsetY) {
 }
 
 void ListView::OnScrollStart() {
-  FOOTSTONE_DLOG(INFO) << "ListView onScroll: onScrollStart=";
+#ifdef LIST_VIEW_DEBUG_LOG
+  FOOTSTONE_DLOG(INFO) << "hippy ListView on scroll start";
+#endif
 }
 
 void ListView::OnScrollStop() {
-  FOOTSTONE_DLOG(INFO) << "ListView onScroll: onScrollStop=";
+#ifdef LIST_VIEW_DEBUG_LOG
+  FOOTSTONE_DLOG(INFO) << "hippy ListView on scroll stop";
+#endif
   if (momentumScrollEndEventEnable_) {
     EmitScrollEvent(HREventUtils::EVENT_SCROLLER_MOMENTUM_END);
   }
@@ -228,6 +242,12 @@ void ListView::OnTouch(int32_t actionType) {
 }
 
 void ListView::OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) {
+#ifdef LIST_VIEW_DEBUG_LOG
+  FOOTSTONE_DLOG(INFO) << "hippy ListView - on item visible area change, index: " << index
+    << ", isVisible: " << isVisible << ", currentRatio: " << currentRatio
+    << ", lastIndex: " << static_cast<int32_t>(children_.size()) - 1;
+#endif
+  
   CheckPullOnItemVisibleAreaChange(index, isVisible, currentRatio);
   if (rowShouldSticky_) {
     CheckStickyOnItemVisibleAreaChange(index, isVisible, currentRatio);
@@ -246,6 +266,13 @@ void ListView::OnItemVisibleAreaChange(int32_t index, bool isVisible, float curr
 void ListView::HandleOnChildrenUpdated() {
   auto childrenCount = children_.size();
   if (childrenCount > 0) {
+    // Index must be recalculated.
+    for (uint32_t i = 0; i < childrenCount; i++) {
+      auto itemView = std::static_pointer_cast<ListItemView>(children_[i]);
+      itemView->GetLocalRootArkUINode().SetNodeDelegate(this);
+      itemView->GetLocalRootArkUINode().SetItemIndex((int32_t)i);
+    }
+    
     if (children_[0]->GetViewType() == PULL_HEADER_VIEW_TYPE) {
       headerView_ = std::static_pointer_cast<PullHeaderView>(children_[0]);
       hasPullHeader_ = true;
@@ -477,12 +504,12 @@ void ListView::CheckInitOffset() {
     initOffsetUsed_ = true;
     
     if (headerView_) {
-      listNode_.ScrollToIndex(1, true, true); // TODO(hot):
+      listNode_.ScrollToIndex(1, false, true); // TODO(hot): delete when NODE_LIST_INITIAL_INDEX is supported
     }
     
     if (initialOffset_ > 0) {
       float y = 0;
-      if (headerView_ != nullptr){
+      if (headerView_ != nullptr) {
         y = headerView_->GetHeight();
       }
       y += initialOffset_;
