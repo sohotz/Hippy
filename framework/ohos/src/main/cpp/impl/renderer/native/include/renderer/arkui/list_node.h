@@ -33,6 +33,7 @@ class ListNodeDelegate {
 public:
   virtual ~ListNodeDelegate() = default;
   virtual void OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) {}
+  virtual void OnWillScroll(float offset, ArkUI_ScrollState state) {}
   virtual void OnScroll(float scrollOffsetX, float scrollOffsetY) {}
   virtual void OnScrollStart() {}
   virtual void OnScrollStop() {}

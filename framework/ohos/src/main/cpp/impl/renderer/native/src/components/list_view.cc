@@ -201,6 +201,14 @@ void ListView::OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t cent
   CheckSendReachEndEvent(lastIndex);
 }
 
+void ListView::OnWillScroll(float offset, ArkUI_ScrollState state) {
+  if (offset > 0) {
+    if (footerView_) {
+      footerView_->Show(true);
+    }
+  }
+}
+
 void ListView::OnScroll(float scrollOffsetX, float scrollOffsetY) {
   CheckSendOnScrollEvent();
   CheckPullOnScroll();
@@ -280,6 +288,7 @@ void ListView::HandleOnChildrenUpdated() {
     }
     if (children_[childrenCount - 1]->GetViewType() == PULL_FOOTER_VIEW_TYPE) {
       footerView_ = std::static_pointer_cast<PullFooterView>(children_[childrenCount - 1]);
+      footerView_->Show(false);
     }
   }
   

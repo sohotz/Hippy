@@ -35,11 +35,15 @@ public:
   ~PullFooterView();
   
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void OnSetPropsEnd() override;
   void Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
-  void OnSetPropsEnd() override;
+  
+  void Show(bool show);
 
 private:
+  bool isVisible_ = true;
+  
   bool sticky_ = false;
 };
 

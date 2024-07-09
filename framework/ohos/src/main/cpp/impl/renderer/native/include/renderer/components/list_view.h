@@ -65,6 +65,7 @@ public:
   void OnAppear() override;
   void OnDisappear() override;
   void OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) override;
+  void OnWillScroll(float offset, ArkUI_ScrollState state) override;
   void OnScroll(float scrollOffsetX, float scrollOffsetY) override;
   void OnScrollStart() override;
   void OnScrollStop() override;

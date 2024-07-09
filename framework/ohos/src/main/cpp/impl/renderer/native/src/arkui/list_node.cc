@@ -29,6 +29,7 @@ inline namespace native {
 
 static constexpr ArkUI_NodeEventType LIST_NODE_EVENT_TYPES[] = {
   NODE_LIST_ON_SCROLL_INDEX,
+  NODE_LIST_ON_WILL_SCROLL,
   NODE_SCROLL_EVENT_ON_SCROLL,
   NODE_SCROLL_EVENT_ON_SCROLL_START,
   NODE_SCROLL_EVENT_ON_SCROLL_STOP,
@@ -156,6 +157,10 @@ void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     int32_t lastIndex = nodeComponentEvent->data[1].i32;
     int32_t centerIndex = nodeComponentEvent->data[2].i32;
     listNodeDelegate_->OnScrollIndex(firstIndex, lastIndex, centerIndex);
+  } else if (eventType == ArkUI_NodeEventType::NODE_LIST_ON_WILL_SCROLL) {
+    float offset = nodeComponentEvent->data[0].f32;
+    ArkUI_ScrollState state = (ArkUI_ScrollState)nodeComponentEvent->data[1].i32;
+    listNodeDelegate_->OnWillScroll(offset, state);
   } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_SCROLL) {
     float x = nodeComponentEvent->data[0].f32;
     float y = nodeComponentEvent->data[1].f32;

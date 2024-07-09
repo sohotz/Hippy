@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/pull_footer_view.h"
+#include "renderer/components/list_view.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -50,7 +51,14 @@ void PullFooterView::Call(const std::string &method, const std::vector<HippyValu
                           std::function<void(const HippyValue &result)> callback) {
 //  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
   if (method == "collapsePullFooter") {
-    // nothing to do
+    Show(false);
+  }
+}
+
+void PullFooterView::Show(bool show) {
+  if (show != isVisible_) {
+    isVisible_ = show;
+    GetLocalRootArkUINode().SetVisibility(show);
   }
 }
 
