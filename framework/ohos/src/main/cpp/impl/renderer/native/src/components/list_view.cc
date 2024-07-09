@@ -37,6 +37,7 @@ ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   listNode_.SetSizePercent(HRSize(1.f, 1.f));
   listNode_.SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
   listNode_.SetListCachedCount(4);
+  listNode_.SetScrollNestedScroll(ARKUI_SCROLL_NESTED_MODE_SELF_FIRST, ARKUI_SCROLL_NESTED_MODE_SELF_FIRST);
   adapter_ = std::make_shared<ListItemAdapter>(children_);
   listNode_.SetLazyAdapter(adapter_->GetHandle());
 }
@@ -184,6 +185,10 @@ void ListView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &paddi
 
 void ListView::ScrollToIndex(int32_t index, bool animated) {
   listNode_.ScrollToIndex(index, animated, true);
+}
+
+void ListView::SetScrollNestedMode(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward) {
+  listNode_.SetScrollNestedScroll(scrollForward, scrollBackward);
 }
 
 void ListView::OnAppear() {

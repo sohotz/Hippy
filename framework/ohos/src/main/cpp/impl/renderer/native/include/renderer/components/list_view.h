@@ -61,6 +61,7 @@ public:
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
   
   void ScrollToIndex(int32_t index, bool animated);
+  void SetScrollNestedMode(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward);
 
   void OnAppear() override;
   void OnDisappear() override;

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "renderer/arkui/list_item_node.h"
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/stack_node.h"
 #include "renderer/arkui/list_node.h"
@@ -34,6 +35,8 @@ class RefreshWrapperView : public BaseView {
 public:
   RefreshWrapperView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RefreshWrapperView();
+  
+  void Init() override;
 
   ListNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
@@ -42,7 +45,12 @@ public:
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   
 private:
+  void CheckInitOffset();
+  
   ListNode listNode_;
+  std::vector<std::shared_ptr<ListItemNode>> listItemNodes_;
+  
+  uint64_t end_batch_callback_id_ = 0;
 };
 
 } // namespace native
