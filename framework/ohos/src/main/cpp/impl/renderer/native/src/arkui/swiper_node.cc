@@ -34,8 +34,7 @@ inline namespace native {
 static constexpr ArkUI_NodeEventType SWIPER_NODE_EVENT_TYPES[] = {
     NODE_SWIPER_EVENT_ON_CHANGE,        
     NODE_SWIPER_EVENT_ON_ANIMATION_START,
-    NODE_SWIPER_EVENT_ON_ANIMATION_END, 
-    NODE_SWIPER_EVENT_ON_CONTENT_DID_SCROLL,
+    NODE_SWIPER_EVENT_ON_ANIMATION_END,
     NODE_SWIPER_EVENT_ON_GESTURE_SWIPE, 
     NODE_TOUCH_EVENT
 };
@@ -77,15 +76,8 @@ void SwiperNode::OnNodeEvent(ArkUI_NodeEvent *event) {
                                           swipeVelocity);
   } else if (eventType == ArkUI_NodeEventType::NODE_SWIPER_EVENT_ON_ANIMATION_END) {
     int32_t currentIndex = nodeComponentEvent->data[0].i32;
-    float_t finalOffset = nodeComponentEvent->data[1].f32;
-    swiperNodeDelegate_->OnAnimationEnd(currentIndex, finalOffset);
-  } else if (eventType == ArkUI_NodeEventType::NODE_SWIPER_EVENT_ON_CONTENT_DID_SCROLL) {
-    int32_t swiperPageIndex = nodeComponentEvent->data[0].i32;
-    int32_t windowPageIndex = nodeComponentEvent->data[1].i32;
-    float_t pageMoveRatio = nodeComponentEvent->data[2].f32;
-    float_t pageAxisSize = nodeComponentEvent->data[3].f32;
-    swiperNodeDelegate_->OnContentDidScroll(swiperPageIndex, windowPageIndex, pageMoveRatio,
-                                            pageAxisSize);
+    float_t currentOffset = nodeComponentEvent->data[1].f32;
+    swiperNodeDelegate_->OnAnimationEnd(currentIndex, currentOffset);
   } else if (eventType == ArkUI_NodeEventType::NODE_SWIPER_EVENT_ON_GESTURE_SWIPE) {
     int32_t swiperPageIndex = nodeComponentEvent->data[0].i32;
     float_t elementOffsetFromStart = nodeComponentEvent->data[1].f32;
@@ -140,6 +132,12 @@ void SwiperNode::SetSwiperLoop(int32_t enable) {
   ArkUI_NumberValue value = {.i32 = enable};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_LOOP, &item));
+}
+
+void SwiperNode::SetSwiperDisableSwipe(int32_t disable) {
+  ArkUI_NumberValue value = {.i32 = disable};
+  ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_DISABLE_SWIPE, &item));
 }
 
 } // namespace native

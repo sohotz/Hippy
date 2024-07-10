@@ -37,12 +37,9 @@ class SwiperNodeDelegate {
   virtual void OnAnimationStart(const int32_t &currentIndex, const int32_t &targetIndex,
                                 const float_t &currentOffset, const float_t &targetOffset,
                                 const float_t &swipeVelocity) {}
-  virtual void OnAnimationEnd(const int32_t &currentIndex, const float_t &finalOffset) {}
-  virtual void OnContentDidScroll(const int32_t &swiperPageIndex, const int32_t &windowPageIndex,
-                                  const float_t &pageMoveRatio, const float_t &pageAxisSize) {}
+  virtual void OnAnimationEnd(const int32_t &currentIndex, const float_t &currentOffset) {}
   virtual void OnGestureSwipe(const int32_t &swiperPageIndex,
                               const float_t &elementOffsetFromStart) {}
-  virtual void OnTouchIntercept(const int32_t &eventEnum) {}
   virtual void OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {}
 };
 
@@ -65,6 +62,7 @@ public:
   void SetSwiperPrevMargin(float fValue);
   void SetSwiperNextMargin(float fValue);
   void SetSwiperLoop(int32_t enable);
+  void SetSwiperDisableSwipe(int32_t disable);
 };
 
 } // namespace native

@@ -36,7 +36,9 @@ public:
 
   SwiperNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-
+  void Call(const std::string &method, const std::vector<HippyValue> params,
+            std::function<void(const HippyValue &result)> callback) override;
+  
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
 
@@ -44,27 +46,29 @@ public:
   void OnAnimationStart(const int32_t &currentIndex, const int32_t &targetIndex,
                         const float_t &currentOffset, const float_t &targetOffset,
                         const float_t &swipeVelocity) override;
-  void OnAnimationEnd(const int32_t &currentIndex, const float_t &finalOffset) override;
-  void OnContentDidScroll(const int32_t &swiperPageIndex, const int32_t &windowPageIndex,
-                          const float_t &pageMoveRatio, const float_t &pageAxisSize) override;
+  void OnAnimationEnd(const int32_t &currentIndex, const float_t &currentOffset) override;
   void OnGestureSwipe(const int32_t &swiperPageIndex,
                       const float_t &elementOffsetFromStart) override;
-  void OnTouchIntercept(const int32_t &eventEnum) override;
   void OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) override;
 
-  void Call(const std::string &method, const std::vector<HippyValue> params,
-            std::function<void(const HippyValue &result)> callback) override;
-
-  int initialPage_ = 0;
-  int index_ = 0;
+private:
+  void SendScrollStateChangeEvent(const std::string &state);
+  
+  constexpr static const char *PAGE_ITEM_POSITION = "position";
+  constexpr static const char *PAGE_ITEM_OFFSET = "offset";
+  constexpr static const char *PAGE_SCROLL_STATE = "pageScrollState";
+  constexpr static const char *SCROLL_STATE_IDLE = "idle";
+  constexpr static const char *SCROLL_STATE_DRAGGING = "dragging";
+  constexpr static const char *SCROLL_STATE_SETTLING = "settling";
+  
+  SwiperNode swiperNode_;
+  
+  int32_t initialPage_ = 0;
+  int32_t index_ = 0;
   float prevMargin_ = 0;
   float nextMargin_ = 0;
-  bool disableSwipe_ = true;
+  bool disableSwipe_ = false;
   bool vertical_ = false;
-
-private:
-  SwiperNode swiperNode_;
-  void SendScrollStateChangeEvent(const std::string &state);
 };
 
 } // namespace native

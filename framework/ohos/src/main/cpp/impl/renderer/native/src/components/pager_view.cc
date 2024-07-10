@@ -33,7 +33,6 @@ PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) 
   swiperNode_.SetNodeDelegate(this);
   GetLocalRootArkUINode().SetShowIndicator(false);
   GetLocalRootArkUINode().SetSwiperLoop(0);
-  FOOTSTONE_DLOG(INFO) << "PagerView initialized.";
 }
 
 PagerView::~PagerView() {
@@ -54,10 +53,9 @@ bool PagerView::SetProp(const std::string &propKey, const HippyValue &propValue)
     GetLocalRootArkUINode().SetSwiperIndex(index_);
     return true;
   } else if (propKey == "scrollEnabled") {
-    bool enable;
-    propValue.ToBoolean(enable);
+    bool enable = HRValueUtils::GetBool(propValue, true);
     disableSwipe_ = !enable;
-    GetLocalRootArkUINode().SetEnabled(enable);
+    GetLocalRootArkUINode().SetSwiperDisableSwipe(disableSwipe_);
     return true;
   } else if (propKey == "direction") {
     std::string directionVal;
@@ -91,11 +89,11 @@ void PagerView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32
 }
 
 void PagerView::OnChange(const int32_t &index) {
-  HippyValueObjectType selectedPayload = {{"position", HippyValue{index}}};
+  HippyValueObjectType selectedPayload = {{PAGE_ITEM_POSITION, HippyValue{index}}};
   std::shared_ptr<HippyValue> selectedParams = std::make_shared<HippyValue>(selectedPayload);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SELECTED, selectedParams);
 
-  HippyValueObjectType changedPayload = {{"pageScrollState", HippyValue{"idle"}}};
+  HippyValueObjectType changedPayload = {{PAGE_SCROLL_STATE, HippyValue{SCROLL_STATE_IDLE}}};
   std::shared_ptr<HippyValue> changedParams = std::make_shared<HippyValue>(changedPayload);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED,
                                    changedParams);
@@ -111,32 +109,21 @@ void PagerView::OnAnimationStart(const int32_t &currentIndex, const int32_t &tar
                        << ", Swipe velocity: " << swipeVelocity;
 }
 
-void PagerView::OnAnimationEnd(const int32_t &currentIndex, const float_t &finalOffset) {
+void PagerView::OnAnimationEnd(const int32_t &currentIndex, const float_t &currentOffset) {
   FOOTSTONE_DLOG(INFO) << "PagerView::OnAnimationEnd - Index: " << currentIndex
-                       << ", Final offset: " << finalOffset;
-}
-
-void PagerView::OnContentDidScroll(const int32_t &swiperPageIndex, const int32_t &windowPageIndex,
-                                   const float_t &pageMoveRatio, const float_t &pageAxisSize) {
-  FOOTSTONE_DLOG(INFO) << "PagerView::OnContentDidScroll - SwiperPageIndex: " << swiperPageIndex
-                       << ", WindowPageIndex: " << windowPageIndex
-                       << ", Move ratio: " << pageMoveRatio << ", Page size: " << pageAxisSize;
+                       << ", Final offset: " << currentOffset;
 }
 
 void PagerView::OnGestureSwipe(const int32_t &swiperPageIndex,
                                const float_t &elementOffsetFromStart) {
-  HippyValueObjectType type = {{"position", HippyValue{swiperPageIndex}},
-                               {"offset", HippyValue{elementOffsetFromStart}}};
+  HippyValueObjectType type = {{PAGE_ITEM_POSITION, HippyValue{swiperPageIndex}},
+                               {PAGE_ITEM_OFFSET, HippyValue{elementOffsetFromStart}}};
   std::shared_ptr<HippyValue> params = std::make_shared<HippyValue>(type);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL, params);
 }
 
-void PagerView::OnTouchIntercept(const int32_t &eventEnum) {
-    //No specific actions required
-}
-
 void PagerView::SendScrollStateChangeEvent(const std::string &state) {
-  HippyValueObjectType payload = {{"pageScrollState", HippyValue{state}}};
+  HippyValueObjectType payload = {{PAGE_SCROLL_STATE, HippyValue{state}}};
   auto params = std::make_shared<HippyValue>(payload);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED,
                                    params);
@@ -149,13 +136,13 @@ void PagerView::OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {
     // No specific action needed for cancel, logging suffices.
     break;
   case UI_TOUCH_EVENT_ACTION_DOWN:
-    SendScrollStateChangeEvent("dragging");
+    SendScrollStateChangeEvent(SCROLL_STATE_DRAGGING);
     break;
   case UI_TOUCH_EVENT_ACTION_MOVE:
     // If needed, handle move action here in the future.
     break;
   case UI_TOUCH_EVENT_ACTION_UP:
-    SendScrollStateChangeEvent("settling");
+    SendScrollStateChangeEvent(SCROLL_STATE_SETTLING);
     break;
   default:
     FOOTSTONE_DLOG(INFO) << "Unknown touch action received: " << touchAction;
@@ -176,7 +163,7 @@ void PagerView::Call(const std::string &method, const std::vector<HippyValue> pa
       return;
     }
     index_ = HRValueUtils::GetInt32(params[0]);
-    GetLocalRootArkUINode().SetSwiperIndex(index_);
+    GetLocalRootArkUINode().SetSwiperSwipeToIndex(index_, 0);
   } else if (method == "next") {
     int32_t total = static_cast<int32_t>(GetLocalRootArkUINode().GetTotalChildCount());
     if (total < 1) {
