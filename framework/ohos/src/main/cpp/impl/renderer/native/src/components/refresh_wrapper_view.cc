@@ -131,7 +131,7 @@ void RefreshWrapperView::OnScrollStart() {
 }
 
 void RefreshWrapperView::OnScrollStop() {
-  FOOTSTONE_DLOG(INFO) << "RefreshWrapperView on scroll stop, needRefresh: " << needRefresh_ << ", visible: " << refreshBarVisible_;
+  // FOOTSTONE_DLOG(INFO) << "RefreshWrapperView on scroll stop, needRefresh: " << needRefresh_ << ", visible: " << refreshBarVisible_;
   if (needRefresh_) {
     StartRefresh();
   } else if (refreshBarVisible_) {
