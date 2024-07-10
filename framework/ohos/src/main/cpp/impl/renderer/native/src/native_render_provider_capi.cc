@@ -19,6 +19,7 @@
  */
 
 #include <ace/xcomponent/native_interface_xcomponent.h>
+#include <arkui/native_node_napi.h>
 #include "renderer/native_render_provider_capi.h"
 #include "oh_napi/oh_napi_utils.h"
 #include "renderer/native_render_manager.h"
@@ -186,60 +187,53 @@ void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result,
   dom_manager->PostTask(Scene(std::move(ops)));
 }
 
-static void RegisterNativeXComponent(napi_env env, napi_value exports) {
-  if ((env == nullptr) || (exports == nullptr)) {
-    FOOTSTONE_LOG(ERROR) << "RegisterNativeXComponent: env or exports is null";
-    return;
+napi_value BindNativeRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  
+  // NodeContent
+  ArkUI_NodeContentHandle contentHandle = nullptr;
+  auto code = OH_ArkUI_GetNodeContentFromNapiValue(env, args[0], &contentHandle);
+  if (code != ARKUI_ERROR_CODE_NO_ERROR || !contentHandle) {
+    return arkTs.GetUndefined();
   }
-
-  napi_value exportInstance = nullptr;
-  if (napi_get_named_property(env, exports, OH_NATIVE_XCOMPONENT_OBJ, &exportInstance) != napi_ok) {
-    FOOTSTONE_LOG(ERROR) << "RegisterNativeXComponent: napi_get_named_property fail";
-    return;
-  }
-
-  OH_NativeXComponent *nativeXComponent = nullptr;
-  if (napi_unwrap(env, exportInstance, reinterpret_cast<void **>(&nativeXComponent)) != napi_ok) {
-    FOOTSTONE_LOG(ERROR) << "RegisterNativeXComponent: napi_get_named_property fail";
-    return;
-  }
-
-  char idStr[OH_XCOMPONENT_ID_LEN_MAX + 1] = {'\0'};
-  uint64_t idSize = OH_XCOMPONENT_ID_LEN_MAX + 1;
-  if (OH_NativeXComponent_GetXComponentId(nativeXComponent, idStr, &idSize) != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
-    FOOTSTONE_LOG(ERROR) << "RegisterNativeXComponent: OH_NativeXComponent_GetXComponentId fail";
-    return;
-  }
-
-  std::string xcomponentStr(idStr);
-  std::stringstream ss(xcomponentStr);
-  std::string instanceId;
-  std::getline(ss, instanceId, '_');
-  std::string rootId;
-  std::getline(ss, rootId, '_');
-  std::string nodeId;
-  std::getline(ss, nodeId, '_');
-  uint32_t render_manager_id = static_cast<uint32_t>(std::stoul(instanceId, nullptr));
-  uint32_t root_id = static_cast<uint32_t>(std::stoul(rootId, nullptr));
-  uint32_t node_id = nodeId.size() > 0 ? static_cast<uint32_t>(std::stoul(nodeId, nullptr)) : 0;
-
+  
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[3]));
+  
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
   if (!ret) {
-    FOOTSTONE_DLOG(WARNING) << "RegisterNativeXComponent: render_manager_id invalid";
-    return;
+    FOOTSTONE_DLOG(WARNING) << "BindRoot: render_manager_id invalid";
+    return arkTs.GetUndefined();
   }
-
-  render_manager->RegisterNativeXComponentHandle(nativeXComponent, root_id, node_id);
+  
+  render_manager->BindNativeRoot(contentHandle, root_id, node_id);
+  
+  return arkTs.GetUndefined();
 }
 
-napi_value OhNapi_OnLoad(napi_env env, napi_value exports) {
-  hippy::RegisterNativeXComponent(env, exports);
-  return exports;
+napi_value UnbindNativeRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "UnbindRoot: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+  
+  render_manager->UnbindNativeRoot(root_id, node_id);
+  
+  return arkTs.GetUndefined();
 }
-
-REGISTER_OH_NAPI_ONLOAD(hippy::OhNapi_OnLoad)
 
 static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
@@ -369,6 +363,8 @@ static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_BindNativeRoot", BindNativeRoot)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_UnbindNativeRoot", UnbindNativeRoot)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DestroyRoot", DestroyRoot)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewParent", GetViewParent)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewChildren", GetViewChildren)

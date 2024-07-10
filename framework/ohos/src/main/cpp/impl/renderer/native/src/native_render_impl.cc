@@ -34,13 +34,22 @@ void NativeRenderImpl::InitRenderManager() {
   hr_manager_ = std::make_shared<HRManager>(instance_id_, native_render);
 }
 
-void NativeRenderImpl::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id, uint32_t node_id) {
+void NativeRenderImpl::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {
     return;
   }
   
-  view_manager->AttachToNativeXComponent(nativeXComponent, node_id);
+  view_manager->BindNativeRoot(contentHandle, node_id);
+}
+
+void NativeRenderImpl::UnbindNativeRoot(uint32_t root_id, uint32_t node_id) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  
+  view_manager->UnbindNativeRoot(node_id);
 }
 
 void NativeRenderImpl::RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views) {

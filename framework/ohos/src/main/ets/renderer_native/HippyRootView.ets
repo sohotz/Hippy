@@ -29,6 +29,7 @@ import { IHippyRenderExceptionListener } from './IHippyRenderExceptionListener';
 import { NativeRender } from './NativeRender';
 import { NativeRenderContext } from './NativeRenderContext';
 import { HRSize } from './utils/HRTypes';
+import { NodeContent } from '@ohos.arkui.node';
 
 export class HippyRootView {
   renderView: HippyRenderView | null = null
@@ -161,6 +162,7 @@ export struct HippyRoot {
 
   @State rootView: HippyRootView | null = null
 
+  private rootSlot = new NodeContent()
   private renderInstanceId: number = -1
   private renderExceptionListener = new HippyRenderExceptionListener()
   private enableArkCApi: boolean = false
@@ -193,24 +195,24 @@ export struct HippyRoot {
           this.rootView.setAvoidArea(avoidArea)
         }
       })
+
+      let libHippy = this.hippyEngine?.getHippyEngineContext()?.getLibHippy()
+      libHippy?.NativeRenderProvider_BindNativeRoot(this.rootSlot, this.renderInstanceId, this.rootView.getRootId(), 0)
     })
   }
 
   aboutToDisappear(): void {
-
+    if (this.rootView) {
+      let libHippy = this.hippyEngine?.getHippyEngineContext()?.getLibHippy()
+      libHippy?.NativeRenderProvider_UnbindNativeRoot(this.renderInstanceId, this.rootView.getRootId(), 0)
+    }
   }
 
   build() {
     Column() {
       if (this.rootView) {
         if (this.enableArkCApi) {
-          XComponent({
-            id: this.renderInstanceId + "_" + this.rootView.getRootId(),
-            type: "node",
-            libraryname: 'hippy'
-          })
-            .width("100%")
-            .height("100%")
+          ContentSlot(this.rootSlot)
         } else {
           HippyRender({
             renderView: this.rootView.renderView!,

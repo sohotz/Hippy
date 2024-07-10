@@ -44,7 +44,8 @@ public:
     std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
   ~HRViewManager() = default;
   
-  void AttachToNativeXComponent(OH_NativeXComponent* nativeXComponent, uint32_t node_id);
+  void BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t node_id);
+  void UnbindNativeRoot(uint32_t node_id);
 
   int GetRootTag() {
     return (int)root_id_;
@@ -82,9 +83,6 @@ public:
   bool GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
 
 private:
-  void MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, bool isRoot, std::shared_ptr<BaseView> &view);
-  void MaybeDetachRootNode(OH_NativeXComponent *nativeXComponent, bool isRoot, std::shared_ptr<BaseView> &view);
-  
   bool IsCustomTsRenderView(std::string &view_name);
   std::shared_ptr<BaseView> CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   void UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
@@ -96,6 +94,7 @@ private:
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t root_id_;
   std::unordered_map<uint32_t, OH_NativeXComponent *> nativeXComponentMap_;
+  std::unordered_map<uint32_t, ArkUI_NodeContentHandle> nodeContentMap_;
   std::shared_ptr<RootView> root_view_;
   std::map<uint32_t, std::shared_ptr<BaseView>> view_registry_;
   std::vector<std::shared_ptr<HRMutation>> mutations_;

@@ -106,7 +106,8 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
     return style_filter;
   }
 
-  void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id, uint32_t node_id);
+  void BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id);
+  void UnbindNativeRoot(uint32_t root_id, uint32_t node_id);
 
   void DestroyRoot(uint32_t root_id);
   

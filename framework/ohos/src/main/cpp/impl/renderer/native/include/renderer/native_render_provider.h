@@ -44,7 +44,8 @@ public:
   
   void SetTsEnv(napi_env ts_env) { ts_env_ = ts_env; }
 
-  void RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id, uint32_t node_id);
+  void BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id);
+  void UnbindNativeRoot(uint32_t root_id, uint32_t node_id);
   void RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
   
   void DestroyRoot(uint32_t root_id);

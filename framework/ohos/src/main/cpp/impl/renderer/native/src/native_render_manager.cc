@@ -1171,9 +1171,15 @@ bool NativeRenderManager::IsCustomMeasureCNode(const std::string &name) {
   return false;
 }
 
-void NativeRenderManager::RegisterNativeXComponentHandle(OH_NativeXComponent *nativeXComponent, uint32_t root_id, uint32_t node_id) {
+void NativeRenderManager::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id) {
   if (enable_ark_c_api_) {
-    c_render_provider_->RegisterNativeXComponentHandle(nativeXComponent, root_id, node_id);
+    c_render_provider_->BindNativeRoot(contentHandle, root_id, node_id);
+  }
+}
+  
+void NativeRenderManager::UnbindNativeRoot(uint32_t root_id, uint32_t node_id) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->UnbindNativeRoot(root_id, node_id);
   }
 }
 

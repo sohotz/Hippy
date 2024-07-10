@@ -54,15 +54,15 @@ HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared
   ts_render_provider_ref_ = ts_render_provider_ref;
 }
 
-void HRViewManager::AttachToNativeXComponent(OH_NativeXComponent *nativeXComponent, uint32_t node_id) {
+void HRViewManager::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t node_id) {
   bool isRoot = (node_id == 0);
   uint32_t current_id = isRoot ? root_id_ : node_id;
-  OH_NativeXComponent *savedComponent = nullptr;
-  auto it = nativeXComponentMap_.find(current_id);
-  if (it != nativeXComponentMap_.end()) {
-    savedComponent = it->second;
+  ArkUI_NodeContentHandle savedHandle = nullptr;
+  auto it = nodeContentMap_.find(current_id);
+  if (it != nodeContentMap_.end()) {
+    savedHandle = it->second;
   }
-  if (nativeXComponent == savedComponent) {
+  if (contentHandle == savedHandle) {
     return;
   }
   
@@ -71,23 +71,27 @@ void HRViewManager::AttachToNativeXComponent(OH_NativeXComponent *nativeXCompone
     return;
   }
   auto view = viewIt->second;
-  MaybeDetachRootNode(savedComponent, isRoot, view);
-  nativeXComponentMap_[current_id] = nativeXComponent;
-  MaybeAttachRootNode(nativeXComponent, isRoot, view);
+  
+  nodeContentMap_[current_id] = contentHandle;
+  OH_ArkUI_NodeContent_RegisterCallback(contentHandle, nullptr);
+  OH_ArkUI_NodeContent_AddNode(contentHandle, view->GetLocalRootArkUINode().GetArkUINodeHandle());
 }
 
-void HRViewManager::MaybeAttachRootNode(OH_NativeXComponent *nativeXComponent, bool isRoot, std::shared_ptr<BaseView> &view) {
-  if (nativeXComponent != nullptr) {
-    FOOTSTONE_DLOG(INFO) << "Attaching view to nativeXComponent with id: " << view->GetTag();
-    if (isRoot) {
-      OH_NativeXComponent_AttachNativeRootNode(nativeXComponent, view->GetLocalRootArkUINode().GetArkUINodeHandle());
-    } else {
-      // Nothing to do
-    }
+void HRViewManager::UnbindNativeRoot(uint32_t node_id) {
+  bool isRoot = (node_id == 0);
+  uint32_t current_id = isRoot ? root_id_ : node_id;
+  auto it = nodeContentMap_.find(current_id);
+  if (it == nodeContentMap_.end()) {
+    return;
   }
-}
-
-void HRViewManager::MaybeDetachRootNode(OH_NativeXComponent *nativeXComponent, bool isRoot, std::shared_ptr<BaseView> &view) {
+  ArkUI_NodeContentHandle savedHandle = it->second;
+  auto viewIt = view_registry_.find(current_id);
+  if (viewIt == view_registry_.end()) {
+    return;
+  }
+  auto view = viewIt->second;
+  OH_ArkUI_NodeContent_RemoveNode(savedHandle, view->GetLocalRootArkUINode().GetArkUINodeHandle());
+  nodeContentMap_.erase(current_id);
 }
 
 void HRViewManager::AddMutations(std::shared_ptr<HRMutation> &m) {

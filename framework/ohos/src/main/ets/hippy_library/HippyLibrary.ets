@@ -26,6 +26,7 @@ import { FetchResourceCallback } from '../vfs/FetchResourceCallback';
 import { ResourceDataHolder } from '../vfs/ResourceDataHolder';
 import { VfsManager } from '../vfs/VfsManager';
 import { FrameNode } from '@kit.ArkUI';
+import { NodeContent } from '@ohos.arkui.node';
 
 export interface HippyRenderViewInfo {
   tag: number
@@ -97,6 +98,8 @@ export interface HippyLibrary {
   NativeRenderProvider_DoCallBack(instanceId: number, result: number, functionName: string, rootId: number, nodeId: number, callbackId: number, buffer: ArrayBuffer | null): void;
   NativeRenderProvider_DoMeasureText(instanceId: number, props:string[] | null, width: number, widthMode: number, height: number, heightMode: number): number[];
 
+  NativeRenderProvider_BindNativeRoot(content: NodeContent, instanceId: number, rootId: number, nodeId: number): void;
+  NativeRenderProvider_UnbindNativeRoot(instanceId: number, rootId: number, nodeId: number): void;
   NativeRenderProvider_DestroyRoot(instanceId: number, rootId: number): void;
   NativeRenderProvider_GetViewParent(instanceId: number, rootId: number, nodeId: number): HippyRenderViewInfo | null;
   NativeRenderProvider_GetViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null;
