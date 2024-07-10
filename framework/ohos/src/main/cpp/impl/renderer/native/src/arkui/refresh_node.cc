@@ -42,8 +42,38 @@ RefreshNode::RefreshNode()
 
 RefreshNode::~RefreshNode() {}
 
-void RefreshNode::SetNodeDelegate(RefreshNodeDelegate *refreshNodeDelegate){
-   refreshNodeDelegate_ =  refreshNodeDelegate;
+void RefreshNode::SetRefreshRefreshing(bool flag) {
+  ArkUI_NumberValue value[] = {{.i32 = flag}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_REFRESHING, &item));
+}
+
+void RefreshNode::SetRefreshContent(ArkUI_NodeHandle nodeHandle) {
+  ArkUI_AttributeItem item = {nullptr, 0, nullptr, nodeHandle};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_CONTENT, &item));
+}
+
+void RefreshNode::SetRefreshPullDownRatio(float ratio) {
+//   ArkUI_NumberValue value[] = {{.f32 = ratio}};
+//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_PULL_DOWN_RATIO, &item));
+}
+
+void RefreshNode::SetRefreshOffset(float offset) {
+  // TODO(hot):
+//   ArkUI_NumberValue value[] = {{.f32 = offset}};
+//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_OFFSET, &item));
+}
+
+void RefreshNode::SetRefreshPullToRefresh(bool flag) {
+//   ArkUI_NumberValue value[] = {{.i32 = flag}};
+//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_PULL_TO_REFRESH, &item));
+}
+
+void RefreshNode::SetNodeDelegate(RefreshNodeDelegate *refreshNodeDelegate) {
+  refreshNodeDelegate_ = refreshNodeDelegate;
 }
 
 void RefreshNode::OnNodeEvent(ArkUI_NodeEvent *event) {
