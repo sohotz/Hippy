@@ -56,9 +56,6 @@ ScrollNode::~ScrollNode() {
 void ScrollNode::SetNodeDelegate(ScrollNodeDelegate *scrollNodeDelegate) { scrollNodeDelegate_ = scrollNodeDelegate; }
 
 ScrollNode &ScrollNode::SetShowScrollIndicator(bool showScrollIndicator) {
-  if (showScrollIndicator_ == showScrollIndicator) {
-    return *this;
-  }
   showScrollIndicator_ = showScrollIndicator;
   ArkUI_ScrollBarDisplayMode displayMode = ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF;
   if (showScrollIndicator) {
