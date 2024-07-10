@@ -66,7 +66,7 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
   } else if (propKey == HRNodeProps::FONT_FAMILY) {
     std::string value = HRValueUtils::GetString(propValue);
     if (!fontFamily_.has_value() || value != fontFamily_) {
-      // TODO(hot):
+      GetLocalRootArkUINode().SetFontFamily(value);
       fontFamily_ = value;
     }
     return true;

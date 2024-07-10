@@ -120,6 +120,8 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
                                                    fontFamilyList_[fontFamilyName].c_str());
             FOOTSTONE_DLOG(WARNING) << "Measure Text OH_Drawing_RegisterFont(" << fontFamilyName << ","
                                     << fontFamilyList_[fontFamilyName] << ") " << (ret == 0 ? "succ" : "fail");
+        } else {
+            FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont not found font:" << fontFamilyName;
         }
     }
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
