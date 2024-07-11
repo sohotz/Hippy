@@ -116,8 +116,23 @@ void PagerView::OnAnimationEnd(const int32_t &currentIndex, const float_t &curre
 
 void PagerView::OnGestureSwipe(const int32_t &swiperPageIndex,
                                const float_t &elementOffsetFromStart) {
-  HippyValueObjectType type = {{PAGE_ITEM_POSITION, HippyValue{swiperPageIndex}},
-                               {PAGE_ITEM_OFFSET, HippyValue{elementOffsetFromStart}}};
+  // position: Position index of the target page.
+  // offset: Value from [-1, 1] indicating the offset from the page at position.
+  auto position = swiperPageIndex;
+  if (elementOffsetFromStart > 0) { // To left page.
+    position -= 1;
+  } else if (elementOffsetFromStart < 0) { // To right page.
+    position += 1;
+  }
+  auto swiperWidth = swiperNode_.GetSize().width;
+  auto offset = swiperWidth > 0 ? - elementOffsetFromStart / swiperWidth : 0;
+  
+  //FOOTSTONE_DLOG(INFO) << "PagerView on gesture swipe, index: " << swiperPageIndex
+  //  << ", position: " << position << ", offset: " << offset
+  //  << ", swiperWidth: " << swiperWidth;
+  
+  HippyValueObjectType type = {{PAGE_ITEM_POSITION, HippyValue{position}},
+                               {PAGE_ITEM_OFFSET, HippyValue{offset}}};
   std::shared_ptr<HippyValue> params = std::make_shared<HippyValue>(type);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL, params);
 }
