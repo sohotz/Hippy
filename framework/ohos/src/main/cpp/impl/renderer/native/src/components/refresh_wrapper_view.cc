@@ -80,6 +80,8 @@ void RefreshWrapperView::Call(const std::string &method, const std::vector<Hippy
     RefreshComplected();
   } else if (method == "startRefresh") {
     StartRefresh();
+  } else {
+    BaseView::Call(method, params, callback);
   }
 }
 

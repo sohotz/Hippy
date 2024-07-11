@@ -189,7 +189,7 @@ void PagerView::Call(const std::string &method, const std::vector<HippyValue> pa
       GetLocalRootArkUINode().SetSwiperSwipeToIndex(index_, animated);
     }
   } else {
-    FOOTSTONE_DLOG(INFO) << "Unknown function name: " << method;
+    BaseView::Call(method, params, callback);
   }
 }
 } // namespace native

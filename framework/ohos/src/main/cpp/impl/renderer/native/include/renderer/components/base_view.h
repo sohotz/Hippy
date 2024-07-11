@@ -58,7 +58,7 @@ public:
   virtual void OnSetPropsEnd();
 
   virtual void Call(const std::string &method, const std::vector<HippyValue> params,
-                    std::function<void(const HippyValue &result)> callback) {}
+                    std::function<void(const HippyValue &result)> callback);
 
   void AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index);
   void RemoveSubView(std::shared_ptr<BaseView> &subView);

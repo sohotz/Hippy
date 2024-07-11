@@ -200,16 +200,18 @@ void WaterfallView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &
 
 void WaterfallView::Call(const std::string &method, const std::vector<HippyValue> params,
               std::function<void(const HippyValue &result)> callback){
-    FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method;  
-    if(method == "scrollToIndex"){
-        int32_t index = HRValueUtils::GetInt32(params[1]);
-        bool animate = HRValueUtils::GetBool(params[2], false);
-        flowNode_.ScrollToIndex(index, animate);
-    } else if (method == "scrollToContentOffset") {
-        
-    } else if (method == "scrollToTop"){
-        
-    }
+  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method;  
+  if(method == "scrollToIndex"){
+    int32_t index = HRValueUtils::GetInt32(params[1]);
+    bool animate = HRValueUtils::GetBool(params[2], false);
+    flowNode_.ScrollToIndex(index, animate);
+  } else if (method == "scrollToContentOffset") {
+      
+  } else if (method == "scrollToTop"){
+      
+  } else {
+    BaseView::Call(method, params, callback);
+  }
 }
 
 void WaterfallView::OnWaterFlowScrollIndex(int32_t firstIndex, int32_t lastIndex){

@@ -618,6 +618,14 @@ void BaseView::OnSetPropsEnd() {
   }
 }
 
+void BaseView::Call(const std::string &method, const std::vector<HippyValue> params,
+                    std::function<void(const HippyValue &result)> callback) {
+  FOOTSTONE_DLOG(INFO) << "BaseView call: method " << method << ", params: " << params.size();
+  if (method == "measureInWindow") {
+
+  }
+}
+
 void BaseView::AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index) {
   if (index < 0 || index > (int32_t)children_.size()) {
     index = (int32_t)children_.size();

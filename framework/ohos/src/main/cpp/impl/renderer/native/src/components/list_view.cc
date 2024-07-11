@@ -155,6 +155,8 @@ void ListView::Call(const std::string &method, const std::vector<HippyValue> par
     listNode_.ScrollTo(xOffset, yOffset, animated);
   } else if (method == "scrollToTop") {
     listNode_.ScrollToIndex(hasPullHeader_ ? 1 : 0, true, true);
+  } else {
+    BaseView::Call(method, params, callback);
   }
 }
 

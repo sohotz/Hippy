@@ -52,6 +52,8 @@ void PullFooterView::Call(const std::string &method, const std::vector<HippyValu
 //  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
   if (method == "collapsePullFooter") {
     Show(false);
+  } else {
+    BaseView::Call(method, params, callback);
   }
 }
 

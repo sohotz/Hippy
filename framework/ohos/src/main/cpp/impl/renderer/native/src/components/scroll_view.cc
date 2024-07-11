@@ -234,6 +234,8 @@ void ScrollView::Call(const std::string &method, const std::vector<HippyValue> p
     } else {
       scrollNode_.ScrollTo(xOffset, yOffset, false);
     }
+  } else {
+    BaseView::Call(method, params, callback);
   }
 }
 

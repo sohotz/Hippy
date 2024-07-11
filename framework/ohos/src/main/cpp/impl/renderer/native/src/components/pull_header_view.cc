@@ -61,6 +61,8 @@ void PullHeaderView::Call(const std::string &method, const std::vector<HippyValu
     }
   } else if (method == "expandPullHeader") {
     OnHeaderRefresh();
+  } else {
+    BaseView::Call(method, params, callback);
   }
 }
 

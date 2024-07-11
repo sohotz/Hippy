@@ -245,6 +245,8 @@ void TextInputView::Call(const std::string &method, const std::vector<HippyValue
     result["value"] = HippyValue(this->focus);
     const HippyValue obj = HippyValue(result);
     callback(obj);
+  } else {
+    BaseView::Call(method, params, callback);
   }
 }
 
