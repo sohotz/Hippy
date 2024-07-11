@@ -25,6 +25,7 @@
 #include "renderer/arkui/arkui_node_registry.h"
 #include "renderer/arkui/native_node_api.h"
 #include "renderer/utils/hr_convert_utils.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -101,9 +102,47 @@ ArkUINode &ArkUINode::SetPosition(const HRPosition &position) {
 HRPosition ArkUINode::GetPostion() const {
   auto posValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_POSITION);
   if (posValue) {
-    return HRPosition(posValue->value[0].f32,posValue->value[1].f32);
+    return HRPosition(posValue->value[0].f32, posValue->value[1].f32);
   }
-  return HRPosition{0, 0};    
+  return HRPosition{0, 0};
+}
+
+HRPosition ArkUINode::GetAbsolutePosition() const {
+  float x = 0;
+  float y = 0;
+  auto posValue = NativeNodeApi::GetInstance()->getAttribute(nodeHandle_, NODE_POSITION);
+  if (posValue) {
+    x = posValue->value[0].f32;
+    y = posValue->value[1].f32;
+  }
+  auto parentHandle = NativeNodeApi::GetInstance()->getParent(nodeHandle_);
+  while (parentHandle) {
+    auto parentPosValue = NativeNodeApi::GetInstance()->getAttribute(parentHandle, NODE_POSITION);
+    if (parentPosValue) {
+      x += parentPosValue->value[0].f32;
+      y += parentPosValue->value[1].f32;
+    }
+    parentHandle = NativeNodeApi::GetInstance()->getParent(parentHandle);
+  }
+  return HRPosition{x, y};
+}
+
+HRPosition ArkUINode::GetLayoutPositionInScreen() const {
+  ArkUI_IntOffset offset;
+  auto status = OH_ArkUI_NodeUtils_GetLayoutPositionInScreen(nodeHandle_, &offset);
+  if (status == ARKUI_ERROR_CODE_NO_ERROR) {
+    return HRPosition{ HRPixelUtils::PxToDp((float)offset.x), HRPixelUtils::PxToDp((float)offset.y) };
+  }
+  return HRPosition{0, 0};
+}
+
+HRPosition ArkUINode::GetLayoutPositionInWindow() const {
+  ArkUI_IntOffset offset;
+  auto status = OH_ArkUI_NodeUtils_GetLayoutPositionInWindow(nodeHandle_, &offset);
+  if (status == ARKUI_ERROR_CODE_NO_ERROR) {
+    return HRPosition{ HRPixelUtils::PxToDp((float)offset.x), HRPixelUtils::PxToDp((float)offset.y) };
+  }
+  return HRPosition{0, 0};
 }
 
 ArkUINode &ArkUINode::SetSize(const HRSize &size) {

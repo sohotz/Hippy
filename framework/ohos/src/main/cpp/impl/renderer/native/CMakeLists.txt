@@ -65,6 +65,7 @@ set(SOURCE_SET
   src/uimanager/hr_gesture_dispatcher.cc
   src/utils/hr_event_utils.cc
   src/utils/hr_convert_utils.cc
+  src/utils/hr_pixel_utils.cc
   src/utils/hr_text_convert_utils.cc
   src/utils/hr_url_utils.cc
   src/virtual/hr_virtual_view_manager.cc

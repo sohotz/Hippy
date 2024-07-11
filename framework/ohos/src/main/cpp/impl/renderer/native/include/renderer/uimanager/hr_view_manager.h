@@ -50,6 +50,10 @@ public:
   int GetRootTag() {
     return (int)root_id_;
   }
+  
+  std::shared_ptr<RootView> &GetRootView() {
+    return root_view_;
+  }
 
   void AddMutations(std::shared_ptr<HRMutation> &m);
 
@@ -93,7 +97,6 @@ private:
   
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t root_id_;
-  std::unordered_map<uint32_t, OH_NativeXComponent *> nativeXComponentMap_;
   std::unordered_map<uint32_t, ArkUI_NodeContentHandle> nodeContentMap_;
   std::shared_ptr<RootView> root_view_;
   std::map<uint32_t, std::shared_ptr<BaseView>> view_registry_;

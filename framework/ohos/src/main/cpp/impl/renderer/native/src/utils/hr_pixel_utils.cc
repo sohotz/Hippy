@@ -20,27 +20,13 @@
  *
  */
 
-#pragma once
-
-#include "renderer/utils/hr_types.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class NativeRender : public std::enable_shared_from_this<NativeRender> {
-public:
-  NativeRender() {}
-  virtual ~NativeRender() = default;
-  
-  virtual std::string GetBundlePath() = 0;
-  
-  virtual HRPosition GetRootViewtPositionInWindow(uint32_t root_id) = 0;
-
-  virtual uint64_t AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) = 0;
-  virtual void RemoveEndBatchCallback(uint32_t root_id, uint64_t cbId) = 0;
-  
-};
+float HRPixelUtils::density_ = 1.f;
 
 } // namespace native
 } // namespace render

@@ -68,6 +68,8 @@ public:
   void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
   
   std::string GetBundlePath() override;
+  HRPosition GetRootViewtPositionInWindow(uint32_t root_id) override;
+  
   uint64_t AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) override;
   void RemoveEndBatchCallback(uint32_t root_id, uint64_t cbId) override;
 

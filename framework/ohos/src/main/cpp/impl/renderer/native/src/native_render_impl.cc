@@ -218,6 +218,18 @@ std::string NativeRenderImpl::GetBundlePath() {
   return bundle_path_;
 }
 
+HRPosition NativeRenderImpl::GetRootViewtPositionInWindow(uint32_t root_id) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return HRPosition{0, 0};
+  }
+  auto rootView = view_manager->GetRootView();
+  if (!rootView) {
+    return HRPosition{0, 0};
+  }
+  return rootView->GetLocalRootArkUINode().GetLayoutPositionInWindow();
+}
+
 uint64_t NativeRenderImpl::AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {

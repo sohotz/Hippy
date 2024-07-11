@@ -111,7 +111,10 @@ public:
   virtual void ResetNodeAttribute(ArkUI_NodeAttributeType type);
   virtual HRSize GetSize() const;
   virtual uint32_t GetTotalChildCount() const;
-  virtual HRPosition GetPostion() const;  
+  virtual HRPosition GetPostion() const;
+  virtual HRPosition GetAbsolutePosition() const;
+  virtual HRPosition GetLayoutPositionInScreen() const;
+  virtual HRPosition GetLayoutPositionInWindow() const;
   
   void SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate);
   virtual void OnNodeEvent(ArkUI_NodeEvent *event);

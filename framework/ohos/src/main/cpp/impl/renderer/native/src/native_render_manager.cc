@@ -24,6 +24,7 @@
 #include "renderer/native_render_provider_napi.h"
 #include "renderer/native_render_provider_manager.h"
 #include "renderer/api/hippy_view_provider.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include <cstdint>
 #include <iostream>
 #include <utility>
@@ -200,6 +201,7 @@ void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_a
 
 void NativeRenderManager::InitDensity(double density) {
   density_ = static_cast<float>(density);
+  HRPixelUtils::InitDensity(density);
 }
 
 void NativeRenderManager::AddCustomFontPath(const std::string &fontFamilyName, const std::string &fontPath) {
