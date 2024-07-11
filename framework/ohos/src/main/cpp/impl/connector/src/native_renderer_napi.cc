@@ -142,9 +142,48 @@ static napi_value SetDomManager(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
+static napi_value RegisterCustomFontWithPaths(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info, 2);
+  uint32_t render_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+
+  // get native_render_manager
+  std::any render_manager;
+  auto flag = hippy::global_data_holder.Find(render_id, render_manager);
+  FOOTSTONE_CHECK(flag);
+  auto render_manager_object = std::any_cast<std::shared_ptr<RenderManager>>(render_manager);
+  auto native_render_manager = std::static_pointer_cast<NativeRenderManager>(render_manager_object);
+  
+  // get fontFamily:fontPath map
+  std::map<std::string, std::string> font_path_map;
+  auto ts_array = args[1];
+  if (arkTs.IsArray(ts_array)) {
+    auto length = arkTs.GetArrayLength(ts_array);
+    if (length > 0) {
+      for (uint32_t i = 0; i < length; i += 2) {
+        auto ts_font_family = arkTs.GetArrayElement(ts_array, i);
+        auto font_family = arkTs.GetString(ts_font_family);
+        if (font_family.length() > 0 && i + 1 < length) {
+          auto ts_font_path = arkTs.GetArrayElement(ts_array, i + 1);
+          auto font_path = arkTs.GetString(ts_font_path);
+          if (font_path.length() > 0) {
+            font_path_map[font_family] = font_path;
+          }
+        }
+      }
+    }
+  }
+    
+  for (const std::pair<const std::string, std::string>& item : font_path_map) {
+    native_render_manager->AddCustomFontPath(item.first, item.second);
+  }
+  return arkTs.GetUndefined();
+}
+
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_CreateNativeRenderManager", CreateNativeRenderManager)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_DestroyNativeRenderManager", DestroyNativeRenderManager)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_SetDomManager", SetDomManager)
+REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_RegisterFontPaths", RegisterCustomFontWithPaths)
 
 }
 }

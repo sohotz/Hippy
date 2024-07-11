@@ -70,12 +70,14 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     let customMeasureRenderViews: Array<string> | null = null;
     let mappingRenderViews: Array<string> | null = null;
     let customNativeModules: Map<string, HippyNativeModuleCreator> | null = null;
+    let customFontPathMap: Map<string, string> | null = null;
     if (this.providers) {
       customRenderViewCreatorMap = new Map();
       customRenderViews = new Array();
       customMeasureRenderViews = new Array();
       mappingRenderViews = new Array();
       customNativeModules = new Map();
+      customFontPathMap = new Map();
       for (let provider of this.providers) {
         let apiProviderRenderMap = provider.getCustomRenderViewCreatorMap()
         if (apiProviderRenderMap) {
@@ -103,6 +105,12 @@ export class HippyEngineContextImpl implements HippyEngineContext {
             customNativeModules?.set(key, value)
           })
         }
+        let apiProviderFontPaths = provider.getCustomFontPathMap();
+        if (apiProviderFontPaths) {
+          apiProviderFontPaths.forEach((value, key) => {
+            customFontPathMap?.set(key, value)
+          })
+        }
       }
     }
 
@@ -116,6 +124,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     let enableArkCApi = globalConfigs.enableArkCApi()
     this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider,
       customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath)
+    this.nativeRenderer.registerCustomFontPaths(customFontPathMap)
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)

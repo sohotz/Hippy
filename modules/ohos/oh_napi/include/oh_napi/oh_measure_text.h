@@ -39,6 +39,8 @@ struct OhMeasureResult {
 class OhMeasureText {
 public:
     OhMeasureText();
+    OhMeasureText(const std::unordered_map<std::string, std::string>& fontFamilyList)
+        : fontFamilyList_(fontFamilyList) {}
     ~OhMeasureText();
 
     void StartMeasure(std::map<std::string, std::string> &propMap);
@@ -46,10 +48,12 @@ public:
     void AddImage(std::map<std::string, std::string> &propMap);
     OhMeasureResult EndMeasure(int width, int widthMode, int height, int heightMode, float density);
 
-    static void RegisterFont(std::string familyName, std::string familySrc);
+    void RegisterFont(std::string &familyName, std::string &familySrc) {
+        fontFamilyList_[familyName] = familySrc;
+    }
 
 private:
-    static std::map<std::string, std::string> fontFamilyList_;
+    std::unordered_map<std::string, std::string> fontFamilyList_;
 
     OH_Drawing_FontWeight FontWeightToDrawing(std::string &str);
     bool HasProp(std::map<std::string, std::string> &propMap, const char *s);

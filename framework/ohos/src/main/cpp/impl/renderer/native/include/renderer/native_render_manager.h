@@ -69,6 +69,7 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
                          std::set<std::string> &custom_views, std::set<std::string> &custom_measure_views, std::map<std::string, std::string> &mapping_views,
                          std::string &bundle_path);
   void InitDensity(double density);
+  void AddCustomFontPath(const std::string &fontFamilyName, const std::string &fontPath);
   
   void CreateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
   void UpdateRenderNode(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>>&& nodes) override;
@@ -187,6 +188,7 @@ private:
   napi_ref ts_render_provider_ref_ = 0;
   
   std::set<std::string> custom_measure_views_;
+  std::unordered_map<std::string, std::string> custom_font_path_map_;
   
   std::shared_ptr<footstone::value::Serializer> serializer_;
   std::map<uint32_t, std::vector<ListenerOp>> event_listener_ops_;

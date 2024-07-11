@@ -91,6 +91,7 @@ export interface HippyLibrary {
     customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null, mappingRenderViews: Array<string> | null, bundlePath: string, density: number): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
   NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
+  NativeRenderer_RegisterFontPaths(instanceId: number, fontFamilyAndPaths: Array<string>): void;
 
   NativeRenderProvider_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number): void;
   NativeRenderProvider_UpdateNodeSize(instanceId: number, rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void;

@@ -30,4 +30,6 @@ export interface HippyAPIProvider {
   getCustomMeasureRenderViews(): Array<string> | null
 
   getCustomMappingRenderViewMap(): Map<string, string> | null
+
+  getCustomFontPathMap(): Map<string, string> | null
 }

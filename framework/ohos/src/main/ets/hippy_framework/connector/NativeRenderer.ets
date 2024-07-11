@@ -52,4 +52,12 @@ export class NativeRenderer {
   ) {
     this.libHippy?.NativeRenderer_SetDomManager(this.instanceId, domManagerId)
   }
+
+  registerCustomFontPaths(customFontPathMap: Map<string,string> | null) : void {
+    const resultArray: string[] = [];
+    customFontPathMap?.forEach((value, key) => {
+      resultArray.push(key, value);
+    });
+    this.libHippy?.NativeRenderer_RegisterFontPaths(this.instanceId, resultArray)
+  }
 }

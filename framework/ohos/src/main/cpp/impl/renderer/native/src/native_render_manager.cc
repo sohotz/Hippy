@@ -202,6 +202,12 @@ void NativeRenderManager::InitDensity(double density) {
   density_ = static_cast<float>(density);
 }
 
+void NativeRenderManager::AddCustomFontPath(const std::string &fontFamilyName, const std::string &fontPath) {
+    if (fontFamilyName.length() && fontPath.length()) {
+        custom_font_path_map_[fontFamilyName] = fontPath;
+    }
+}
+
 void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
                                            std::vector<std::shared_ptr<hippy::dom::DomNode>>&& nodes) {
   if (enable_ark_c_api_) {
@@ -989,7 +995,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   CollectAllProps(textPropMap, node);
 
   float density = GetDensity();
-  OhMeasureText measureInst;
+  OhMeasureText measureInst(custom_font_path_map_);
   OhMeasureResult measureResult;
 
   measureInst.StartMeasure(textPropMap);
