@@ -28,6 +28,7 @@
 #include "dom/render_manager.h"
 #include "dom/root_node.h"
 #include "dom/scene.h"
+#include "renderer/native_render_params.h"
 
 using DomArgument = hippy::dom::DomArgument;
 using DomEvent = hippy::dom::DomEvent;
@@ -122,6 +123,14 @@ static napi_value DestroyNativeRenderManager(napi_env env, napi_callback_info in
   return arkTs.GetUndefined();
 }
 
+static napi_value InitRendererParams(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  auto statusBarHeight = (float)arkTs.GetDouble(args[0]);
+  NativeRenderParams::InitParams(statusBarHeight);
+  return arkTs.GetUndefined();
+}
+
 static napi_value SetDomManager(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info, 2);
@@ -182,6 +191,7 @@ static napi_value RegisterCustomFontWithPaths(napi_env env, napi_callback_info i
 
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_CreateNativeRenderManager", CreateNativeRenderManager)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_DestroyNativeRenderManager", DestroyNativeRenderManager)
+REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_InitRendererParams", InitRendererParams)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_SetDomManager", SetDomManager)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_RegisterFontPaths", RegisterCustomFontWithPaths)
 

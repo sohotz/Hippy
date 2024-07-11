@@ -59,6 +59,7 @@ set(SOURCE_SET
   src/native_render_provider_manager.cc
   src/native_render_impl.cc
   src/native_render_context.cc
+  src/native_render_params.cc
   src/uimanager/hr_mutation.cc
   src/uimanager/hr_manager.cc
   src/uimanager/hr_view_manager.cc

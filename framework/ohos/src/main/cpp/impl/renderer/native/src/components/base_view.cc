@@ -22,6 +22,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/dom_node/hr_node_props.h"
+#include "renderer/native_render_params.h"
 #include "renderer/utils/hr_url_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 #include "renderer/utils/hr_convert_utils.h"
@@ -626,7 +627,7 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
       return;
     }
     
-    float statusBarHeight = 0;
+    float statusBarHeight = NativeRenderParams::StatusBarHeight();
     HRPosition viewPosition = GetLocalRootArkUINode().GetLayoutPositionInScreen();
     HRSize viewSize = GetLocalRootArkUINode().GetSize();
     

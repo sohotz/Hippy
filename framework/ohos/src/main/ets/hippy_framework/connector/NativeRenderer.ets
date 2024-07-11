@@ -21,6 +21,7 @@ import { HippyLibrary } from '../../hippy_library/HippyLibrary'
 import { NativeRenderProvider } from '../../renderer_native/NativeRenderProvider'
 import { HippyAny } from '../../support/common/HippyTypes'
 import { PixelUtil } from '../../support/utils/PixelUtil'
+import { DimensionsUtil } from '../../support/utils/DimensionsUtil'
 
 export class NativeRenderer {
   private libHippy: HippyLibrary
@@ -45,6 +46,10 @@ export class NativeRenderer {
 
   destroyNativeRenderManager() {
     this.libHippy?.NativeRenderer_DestroyNativeRenderManager(this.instanceId)
+  }
+
+  initRendererParams(statusBarHeight: number): void {
+    this.libHippy?.NativeRenderer_InitRendererParams(statusBarHeight)
   }
 
   attachToDom(

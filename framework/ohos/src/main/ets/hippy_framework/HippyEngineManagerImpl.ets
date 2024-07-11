@@ -59,6 +59,7 @@ import { DevtoolsManager } from './devsupport/DevtoolsManager';
 import { DevSupportManager } from './devsupport/DevSupportManager';
 import { DevServerCallBack } from './devsupport/DevServerCallBack';
 import { HippyJsException } from './common/HippyJsException';
+import { DimensionsUtil } from '../support/utils/DimensionsUtil';
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevServerCallBack {
   private libHippy: HippyLibrary
@@ -202,6 +203,10 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
 
     // initBridge
     this.mEngineContext.getBridgeManager().initBridge((result: number, reason: string) => {
+      // Some async params needed by c-api renderer are put here.
+      let nativeRenderer = (this.getHippyEngineContext() as HippyEngineContextImpl).nativeRenderer
+      nativeRenderer?.initRendererParams(px2vp(DimensionsUtil.STATUS_BAR_HEIGHT))
+
       this.initBridgeCallback(result, reason, initCallback)
     });
   }
