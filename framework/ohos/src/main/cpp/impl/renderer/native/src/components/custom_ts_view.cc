@@ -30,8 +30,6 @@ inline namespace native {
 CustomTsView::CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_NodeHandle nodeHandle) : BaseView(ctx), tsNode_(nodeHandle) {
   containerNode_.AddChild(tsNode_);
   containerNode_.AddChild(subContainerNode_);
-  tsNode_.SetWidthPercent(1.f);
-  tsNode_.SetHeightPercent(1.f);
   subContainerNode_.SetWidthPercent(1.f);
   subContainerNode_.SetHeightPercent(1.f);
   subContainerNode_.SetHitTestMode(ARKUI_HIT_TEST_MODE_NONE);
