@@ -26,6 +26,7 @@
 #include <arkui/native_type.h>
 #include <memory>
 #include <string>
+#include <sys/stat.h>
 #include "footstone/logging.h"
 #include "renderer/utils/hr_types.h"
 
@@ -134,9 +135,17 @@ protected:
   void MaybeThrow(int32_t status) {
     if (status != 0) {
       auto message = std::string("ArkUINode operation failed with status: ") + std::to_string(status);
-      FOOTSTONE_LOG(ERROR) << message;
-      // TODO(hot):
-      //throw std::runtime_error(std::move(message));
+      if (status == ARKUI_ERROR_CODE_PARAM_INVALID) {
+        FOOTSTONE_LOG(ERROR) << message;
+      } else if (status == ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED) {
+        // Comment for too many log.
+        // FOOTSTONE_LOG(ERROR) << message;
+      } else if (status == ARKUI_ERROR_CODE_ARKTS_NODE_NOT_SUPPORTED) {
+        FOOTSTONE_LOG(ERROR) << message;
+      } else if (status == ARKUI_ERROR_CODE_ADAPTER_NOT_BOUND || status == ARKUI_ERROR_CODE_ADAPTER_EXIST) {
+        FOOTSTONE_LOG(ERROR) << message;
+      }
+      // throw std::runtime_error(std::move(message));
     }
   }
 
