@@ -351,6 +351,42 @@ void HRViewManager::NotifyEndBatchCallbacks() {
   }
 }
 
+void HRViewManager::OnCustomTsViewChildInserted(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index) {
+  ArkTS arkTs(ts_env_);
+
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("rootTag", ctx_->GetRootId());
+  params_builder.AddProperty("tag", tag);
+  params_builder.AddProperty("childTag", childView->GetTag());
+  params_builder.AddProperty("childViewName", childView->GetViewType());
+  params_builder.AddProperty("childIndex", index);
+  
+  std::vector<napi_value> args = {
+    params_builder.Build()
+  };
+  
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("onChildInsertedForCApi", args);
+}
+
+void HRViewManager::OnCustomTsViewChildRemoved(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index) {
+  ArkTS arkTs(ts_env_);
+
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("rootTag", ctx_->GetRootId());
+  params_builder.AddProperty("tag", tag);
+  params_builder.AddProperty("childTag", childView->GetTag());
+  params_builder.AddProperty("childViewName", childView->GetViewType());
+  params_builder.AddProperty("childIndex", index);
+  
+  std::vector<napi_value> args = {
+    params_builder.Build()
+  };
+  
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("onChildRemovedForCApi", args);
+}
+
 bool HRViewManager::GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type) {
   auto viewIt = view_registry_.find(node_id);
   if (viewIt == view_registry_.end()) {
@@ -427,6 +463,7 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   view->Init();
   view->SetTag(tag);
   view->SetViewType(view_name);
+  view->SetCustomTsViewDelegate(this);
   view_registry_[tag] = view;
   return view;
 }

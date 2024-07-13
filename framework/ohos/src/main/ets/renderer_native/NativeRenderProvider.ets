@@ -29,6 +29,8 @@ import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HippyAny, HippyMap } from '../support/common/HippyTypes';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import { CreateRenderViewParamsForCApi,
+  OnChildInsertedParamsForCApi,
+  OnChildRemovedParamsForCApi,
   SetRenderViewFrameParamsForCApi,
   UpdateEventListenerParamsForCApi,
   UpdatePropsParamsForCApi} from './NativeRenderBuilderForCApi';
@@ -245,6 +247,16 @@ export class NativeRenderProvider {
   // for c-api
   setRenderViewFrameForCApi(params: SetRenderViewFrameParamsForCApi): void {
     this.renderImpl.setRenderViewFrameForCApi(params)
+  }
+
+  // for c-api
+  onChildInsertedForCApi(params: OnChildInsertedParamsForCApi): void {
+    this.renderImpl.onChildInsertedForCApi(params)
+  }
+
+  // for c-api
+  onChildRemovedForCApi(params: OnChildRemovedParamsForCApi): void {
+    this.renderImpl.onChildRemovedForCApi(params)
   }
 
 }

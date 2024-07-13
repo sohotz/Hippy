@@ -720,6 +720,14 @@ export default abstract class HippyRenderBaseView {
 
   }
 
+  onChildInserted(childTag: number, childViewName: string, childIndex: number): void {
+
+  }
+
+  onChildRemoved(childTag: number, childViewName: string, childIndex: number): void {
+
+  }
+
   onDestroy(): void {
 
   }

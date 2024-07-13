@@ -49,6 +49,22 @@ export interface SetRenderViewFrameParamsForCApi {
   height: number
 }
 
+export interface OnChildInsertedParamsForCApi {
+  rootTag: number
+  tag: number
+  childTag: number
+  childViewName: string
+  childIndex: number
+}
+
+export interface OnChildRemovedParamsForCApi {
+  rootTag: number
+  tag: number
+  childTag: number
+  childViewName: string
+  childIndex: number
+}
+
 @Builder
 export function buildHippyRenderViewForCApi($$: HippyRenderBaseView) {
   if ($$ instanceof HRWebView) {

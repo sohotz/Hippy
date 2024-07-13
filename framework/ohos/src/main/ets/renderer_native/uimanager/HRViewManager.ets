@@ -66,6 +66,11 @@ export class HRViewManager {
     return this.rootRenderView
   }
 
+  getRenderView(tag: number): HippyRenderBaseView | null {
+    let view = this.viewRegistry.get(tag)
+    return view ? view : null
+  }
+
   preCreateRenderView(tag: number, viewName: string): void {
     this.createRenderView(tag, viewName)
   }
@@ -328,6 +333,22 @@ export class HRViewManager {
     let renderView = this.viewRegistry.get(tag)
     if (renderView) {
       renderView.setRenderViewFrame(frame, padding)
+    }
+  }
+
+  // for c-api
+  onChildInsertedForCApi(tag: number, childTag: number, childViewName: string, childIndex: number): void {
+    let renderView = this.viewRegistry.get(tag)
+    if (renderView) {
+      renderView.onChildInserted(childTag, childViewName, childIndex)
+    }
+  }
+
+  // for c-api
+  onChildRemovedForCApi(tag: number, childTag: number, childViewName: string, childIndex: number): void {
+    let renderView = this.viewRegistry.get(tag)
+    if (renderView) {
+      renderView.onChildRemoved(childTag, childViewName, childIndex)
     }
   }
 

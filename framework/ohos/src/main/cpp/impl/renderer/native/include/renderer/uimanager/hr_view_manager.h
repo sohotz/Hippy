@@ -27,6 +27,7 @@
 #include <js_native_api_types.h>
 #include <map>
 #include "footstone/serializer.h"
+#include "renderer/components/custom_ts_view.h"
 #include "renderer/components/custom_view.h"
 #include "renderer/components/root_view.h"
 #include "renderer/uimanager/hr_mutation.h"
@@ -37,7 +38,7 @@ inline namespace native {
 
 using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
-class HRViewManager {
+class HRViewManager : public CustomTsViewDelegate {
 public:
   HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
     napi_env ts_env, napi_ref ts_render_provider_ref,
@@ -82,6 +83,9 @@ public:
   uint64_t AddEndBatchCallback(const EndBatchCallback &cb);
   void RemoveEndBatchCallback(uint64_t cbId);
   void NotifyEndBatchCallbacks();
+  
+  void OnCustomTsViewChildInserted(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnCustomTsViewChildRemoved(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index) override;
   
   bool GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
   bool GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);

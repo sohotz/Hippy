@@ -23,6 +23,7 @@ import { HippyException } from '../support/common/HippyException';
 import { HippyExecutor } from '../support/common/HippyExecutor';
 import { HippyArray, HippyRecord } from '../support/common/HippyTypes';
 import { VfsManager } from '../vfs/VfsManager';
+import HippyRenderBaseView from './components/base/HippyRenderBaseView';
 import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter';
 import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
@@ -66,6 +67,8 @@ export interface NativeRender {
   addEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void
 
   removeEndBatchCallback(rootId: number, cb: HippyEndBatchCallback): void
+
+  getRenderView(rootId: number, nodeId: number): HippyRenderBaseView | null
 
   getViewParent(rootId: number, nodeId: number): HippyRenderViewInfo | null
   getViewChildren(rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null

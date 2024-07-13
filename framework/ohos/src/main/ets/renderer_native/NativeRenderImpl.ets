@@ -31,6 +31,8 @@ import { VfsManager } from '../vfs/VfsManager'
 import {
   buildHippyRenderViewForCApi,
   CreateRenderViewParamsForCApi,
+  OnChildInsertedParamsForCApi,
+  OnChildRemovedParamsForCApi,
   SetRenderViewFrameParamsForCApi,
   UpdateEventListenerParamsForCApi,
   UpdatePropsParamsForCApi } from './NativeRenderBuilderForCApi'
@@ -656,6 +658,32 @@ key1               value1
       return
     }
     viewManager.setRenderViewFrameForCApi(params.tag, new HRRect(params.left, params.top, params.width, params.height), null)
+  }
+
+  // for c-api
+  onChildInsertedForCApi(params: OnChildInsertedParamsForCApi): void {
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.onChildInsertedForCApi(params.tag, params.childTag, params.childViewName, params.childIndex)
+  }
+
+  // for c-api
+  onChildRemovedForCApi(params: OnChildRemovedParamsForCApi): void {
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.onChildRemovedForCApi(params.tag, params.childTag, params.childViewName, params.childIndex)
+  }
+
+  getRenderView(rootId: number, nodeId: number): HippyRenderBaseView | null {
+    let viewManager = this.renderManager.getViewManager(rootId)
+    if (!viewManager) {
+      return null
+    }
+    return viewManager.getRenderView(nodeId)
   }
 
   getViewParent(rootId: number, nodeId: number): HippyRenderViewInfo | null {

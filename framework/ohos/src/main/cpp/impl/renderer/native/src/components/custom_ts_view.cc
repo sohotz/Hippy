@@ -61,11 +61,19 @@ void CustomTsView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &p
 void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
   subContainerNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+  
+  if (customTsViewDelegate_) {
+    customTsViewDelegate_->OnCustomTsViewChildInserted(tag_, childView, index);
+  }
 }
 
 void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
   subContainerNode_.RemoveChild(childView->GetLocalRootArkUINode());
+  
+  if (customTsViewDelegate_) {
+    customTsViewDelegate_->OnCustomTsViewChildRemoved(tag_, childView, index);
+  }
 }
 
 } // namespace native
