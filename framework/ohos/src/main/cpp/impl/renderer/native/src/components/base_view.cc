@@ -20,7 +20,12 @@
  *
  */
 
+#include <arkui/native_node_napi.h>
 #include "renderer/components/base_view.h"
+#include "oh_napi/ark_ts.h"
+#include "oh_napi/oh_napi_object.h"
+#include "oh_napi/oh_napi_object_builder.h"
+#include "oh_napi/oh_napi_utils.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/native_render_params.h"
 #include "renderer/utils/hr_url_utils.h"
@@ -33,6 +38,8 @@
 namespace hippy {
 inline namespace render {
 inline namespace native {
+
+std::shared_ptr<footstone::value::Serializer> BaseView::serializer_ = nullptr;
 
 BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(0) {
 #if HIPPY_OHOS_MEM_CHECK
@@ -732,6 +739,15 @@ bool BaseView::CheckRegisteredEvent(std::string &eventName) {
   return false;
 }
 
+void BaseView::SetTsRenderProvider(napi_env ts_env, napi_ref ts_render_provider_ref) {
+  ts_env_ = ts_env;
+  ts_render_provider_ref_ = ts_render_provider_ref;
+}
+
+void BaseView::SetTsEventCallback(napi_ref ts_event_callback_ref) {
+  ts_event_callback_ref_ = ts_event_callback_ref;
+}
+
 void BaseView::OnClick() {
   if (eventClick_) {
     eventClick_();
@@ -783,6 +799,30 @@ int64_t BaseView::GetTimeMilliSeconds() {
   auto duration = now.time_since_epoch();
   auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
   return millis;
+}
+
+std::shared_ptr<footstone::value::Serializer> &BaseView::GetSerializer() {
+  if (!serializer_) {
+    serializer_ = std::make_shared<footstone::value::Serializer>();
+  }
+  return serializer_;
+}
+
+void BaseView::OnViewComponentEvent(const std::string &event_name, const HippyValueObjectType &hippy_object) {
+  if (!ts_event_callback_ref_) {
+    return;
+  }
+  
+  ArkTS arkTs(ts_env_);
+  auto ts_params = OhNapiUtils::HippyValue2NapiValue(ts_env_, HippyValue(hippy_object));
+  
+  std::vector<napi_value> args = {
+    arkTs.CreateString(event_name),
+    ts_params
+  };
+  
+  auto callback = arkTs.GetReferenceValue(ts_event_callback_ref_);
+  arkTs.Call(callback, args);
 }
 
 } // namespace native

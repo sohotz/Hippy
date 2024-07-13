@@ -20,6 +20,7 @@
 import TextMeasurer from "@ohos.measure"
 import {
   CallResultCallback,
+  EventListenerCallback,
   HippyLibrary, HippyRenderViewInfo } from '../hippy_library/HippyLibrary'
 import { HippyException } from '../support/common/HippyException'
 import { HippyExecutor } from '../support/common/HippyExecutor'
@@ -695,8 +696,13 @@ key1               value1
   }
 
   callViewMethod(rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void {
-    return this.libHippy?.NativeRenderProvider_CallViewMethod(this.instanceId, rootId, nodeId, method, params, callback)
+    this.libHippy?.NativeRenderProvider_CallViewMethod(this.instanceId, rootId, nodeId, method, params, callback)
   }
+
+  setViewEventListener(rootId: number, nodeId: number, callback: EventListenerCallback | null): void {
+    this.libHippy?.NativeRenderProvider_SetViewEventListener(this.instanceId, rootId, nodeId, callback)
+  }
+
 
 }
 

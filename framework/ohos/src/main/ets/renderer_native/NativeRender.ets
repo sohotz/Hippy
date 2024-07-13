@@ -18,7 +18,9 @@
  * limitations under the License.
  */
 import { HippyRootView } from '.';
-import { CallResultCallback, HippyRenderViewInfo } from '../hippy_library/HippyLibrary';
+import { CallResultCallback,
+  EventListenerCallback,
+  HippyRenderViewInfo } from '../hippy_library/HippyLibrary';
 import { HippyException } from '../support/common/HippyException';
 import { HippyExecutor } from '../support/common/HippyExecutor';
 import { HippyArray, HippyRecord } from '../support/common/HippyTypes';
@@ -73,5 +75,6 @@ export interface NativeRender {
   getViewParent(rootId: number, nodeId: number): HippyRenderViewInfo | null
   getViewChildren(rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null
   callViewMethod(rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void
+  setViewEventListener(rootId: number, nodeId: number, callback: EventListenerCallback | null): void
 
 }

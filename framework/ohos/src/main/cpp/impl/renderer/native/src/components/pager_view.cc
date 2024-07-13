@@ -92,11 +92,14 @@ void PagerView::OnChange(const int32_t &index) {
   HippyValueObjectType selectedPayload = {{PAGE_ITEM_POSITION, HippyValue{index}}};
   std::shared_ptr<HippyValue> selectedParams = std::make_shared<HippyValue>(selectedPayload);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SELECTED, selectedParams);
+  OnViewComponentEvent(HREventUtils::EVENT_PAGE_SELECTED, selectedPayload);
 
   HippyValueObjectType changedPayload = {{PAGE_SCROLL_STATE, HippyValue{SCROLL_STATE_IDLE}}};
   std::shared_ptr<HippyValue> changedParams = std::make_shared<HippyValue>(changedPayload);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED,
                                    changedParams);
+  OnViewComponentEvent(HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED, changedPayload);
+  
   index_ = index;
 }
 
@@ -135,6 +138,7 @@ void PagerView::OnGestureSwipe(const int32_t &swiperPageIndex,
                                {PAGE_ITEM_OFFSET, HippyValue{offset}}};
   std::shared_ptr<HippyValue> params = std::make_shared<HippyValue>(type);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL, params);
+  OnViewComponentEvent(HREventUtils::EVENT_PAGE_SCROLL, type);
 }
 
 void PagerView::SendScrollStateChangeEvent(const std::string &state) {
@@ -142,6 +146,7 @@ void PagerView::SendScrollStateChangeEvent(const std::string &state) {
   auto params = std::make_shared<HippyValue>(payload);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED,
                                    params);
+  OnViewComponentEvent(HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED, payload);
 }
 
 void PagerView::OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {

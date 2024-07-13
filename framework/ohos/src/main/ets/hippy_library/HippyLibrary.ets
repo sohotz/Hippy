@@ -21,7 +21,7 @@ import resmgr from "@ohos.resourceManager";
 import { JsDriver } from '../hippy_framework/connector/JsDriver';
 import { NativeCallback } from '../hippy_framework/connector/NativeCallback';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
-import { HippyAny, HippyArray } from '../support/common/HippyTypes';
+import { HippyAny, HippyArray, HippyMap } from '../support/common/HippyTypes';
 import { FetchResourceCallback } from '../vfs/FetchResourceCallback';
 import { ResourceDataHolder } from '../vfs/ResourceDataHolder';
 import { VfsManager } from '../vfs/VfsManager';
@@ -34,6 +34,7 @@ export interface HippyRenderViewInfo {
 }
 
 export type CallResultCallback = (result: HippyAny) => void
+export type EventListenerCallback = (event: string, params: object) => void
 
 export interface HippyLibrary {
   Devtools_OnCreateDevtools(dataDir: string, wsUrl: string): number;
@@ -107,6 +108,7 @@ export interface HippyLibrary {
   NativeRenderProvider_GetViewParent(instanceId: number, rootId: number, nodeId: number): HippyRenderViewInfo | null;
   NativeRenderProvider_GetViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null;
   NativeRenderProvider_CallViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void;
+  NativeRenderProvider_SetViewEventListener(instanceId: number, rootId: number, nodeId: number, callback: EventListenerCallback | null): void
 
   VfsManager_CreateVfs(vfsDelegate: VfsManager): number;
   VfsManager_DestroyVfs(instanceId: number): void;

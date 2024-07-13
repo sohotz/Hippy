@@ -1217,6 +1217,12 @@ void NativeRenderManager::CallViewMethod(uint32_t root_id, uint32_t node_id, con
   }
 }
 
+void NativeRenderManager::SetViewEventListener(uint32_t root_id, uint32_t node_id, napi_ref callback_ref) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->SetViewEventListener(root_id, node_id, callback_ref);
+  }
+}
+
 }  // namespace native
 }  // namespace render
 }  // namespace hippy

@@ -270,6 +270,14 @@ void NativeRenderImpl::CallViewMethod(uint32_t root_id, uint32_t node_id, const 
   view_manager->CallViewMethod(node_id, method, params, callback);
 }
 
+void NativeRenderImpl::SetViewEventListener(uint32_t root_id, uint32_t node_id, napi_ref callback_ref) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  view_manager->SetViewEventListener(node_id, callback_ref);
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

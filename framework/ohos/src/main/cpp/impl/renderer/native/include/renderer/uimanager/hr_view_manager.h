@@ -38,7 +38,7 @@ inline namespace native {
 
 using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
-class HRViewManager : public CustomTsViewDelegate {
+class HRViewManager {
 public:
   HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
     napi_env ts_env, napi_ref ts_render_provider_ref,
@@ -84,11 +84,9 @@ public:
   void RemoveEndBatchCallback(uint64_t cbId);
   void NotifyEndBatchCallbacks();
   
-  void OnCustomTsViewChildInserted(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnCustomTsViewChildRemoved(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
   bool GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
   bool GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
+  void SetViewEventListener(uint32_t node_id, napi_ref callback_ref);
 
 private:
   bool IsCustomTsRenderView(std::string &view_name);

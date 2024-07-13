@@ -20,7 +20,11 @@
  *
  */
 
+#include <arkui/native_node_napi.h>
 #include "renderer/components/custom_ts_view.h"
+#include "oh_napi/ark_ts.h"
+#include "oh_napi/oh_napi_object.h"
+#include "oh_napi/oh_napi_object_builder.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -62,18 +66,50 @@ void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
   BaseView::OnChildInserted(childView, index);
   subContainerNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
   
-  if (customTsViewDelegate_) {
-    customTsViewDelegate_->OnCustomTsViewChildInserted(tag_, childView, index);
-  }
+  OnCustomTsViewChildInserted(tag_, childView, index);
 }
 
 void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
   subContainerNode_.RemoveChild(childView->GetLocalRootArkUINode());
   
-  if (customTsViewDelegate_) {
-    customTsViewDelegate_->OnCustomTsViewChildRemoved(tag_, childView, index);
-  }
+  OnCustomTsViewChildRemoved(tag_, childView, index);
+}
+
+void CustomTsView::OnCustomTsViewChildInserted(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index) {
+  ArkTS arkTs(ts_env_);
+
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("rootTag", ctx_->GetRootId());
+  params_builder.AddProperty("tag", tag);
+  params_builder.AddProperty("childTag", childView->GetTag());
+  params_builder.AddProperty("childViewName", childView->GetViewType());
+  params_builder.AddProperty("childIndex", index);
+  
+  std::vector<napi_value> args = {
+    params_builder.Build()
+  };
+  
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("onChildInsertedForCApi", args);
+}
+
+void CustomTsView::OnCustomTsViewChildRemoved(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index) {
+  ArkTS arkTs(ts_env_);
+
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("rootTag", ctx_->GetRootId());
+  params_builder.AddProperty("tag", tag);
+  params_builder.AddProperty("childTag", childView->GetTag());
+  params_builder.AddProperty("childViewName", childView->GetViewType());
+  params_builder.AddProperty("childIndex", index);
+  
+  std::vector<napi_value> args = {
+    params_builder.Build()
+  };
+  
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("onChildRemovedForCApi", args);
 }
 
 } // namespace native

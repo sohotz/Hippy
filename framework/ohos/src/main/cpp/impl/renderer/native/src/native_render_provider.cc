@@ -180,6 +180,10 @@ void NativeRenderProvider::CallViewMethod(uint32_t root_id, uint32_t node_id, co
   render_impl_->CallViewMethod(root_id, node_id, method, params, callback);
 }
 
+void NativeRenderProvider::SetViewEventListener(uint32_t root_id, uint32_t node_id, napi_ref callback_ref) {
+  render_impl_->SetViewEventListener(root_id, node_id, callback_ref);
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy
