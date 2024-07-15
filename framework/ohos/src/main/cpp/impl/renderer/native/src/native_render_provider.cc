@@ -51,6 +51,10 @@ void NativeRenderProvider::DestroyRoot(uint32_t root_id) {
   render_impl_->DestroyRoot(root_id);
 }
 
+void NativeRenderProvider::DoCallbackForCallCustomTsView(uint32_t root_id, uint32_t node_id, uint32_t callback_id, const HippyValue &result) {
+  render_impl_->DoCallbackForCallCustomTsView(root_id, node_id, callback_id, result);
+}
+
 void NativeRenderProvider::CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
   taskRunner->RunAsyncTask([render_impl = render_impl_, root_id = root_id, mutations = mutations]() {

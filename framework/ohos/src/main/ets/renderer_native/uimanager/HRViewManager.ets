@@ -337,6 +337,11 @@ export class HRViewManager {
   }
 
   // for c-api
+  callRenderViewMethodForCApi(tag: number, method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+    this.callViewMethod(tag, method, params, callback)
+  }
+
+  // for c-api
   onChildInsertedForCApi(tag: number, childTag: number, childViewName: string, childIndex: number): void {
     let renderView = this.viewRegistry.get(tag)
     if (renderView) {

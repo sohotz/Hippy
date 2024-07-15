@@ -28,7 +28,9 @@ import { LogUtils } from '../support/utils/LogUtils';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HippyAny, HippyMap } from '../support/common/HippyTypes';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
-import { CreateRenderViewParamsForCApi,
+import {
+  CallRenderViewMethodParamsForCApi,
+  CreateRenderViewParamsForCApi,
   OnChildInsertedParamsForCApi,
   OnChildRemovedParamsForCApi,
   SetRenderViewFrameParamsForCApi,
@@ -247,6 +249,11 @@ export class NativeRenderProvider {
   // for c-api
   setRenderViewFrameForCApi(params: SetRenderViewFrameParamsForCApi): void {
     this.renderImpl.setRenderViewFrameForCApi(params)
+  }
+
+  // for c-api
+  callRenderViewMethodForCApi(params: CallRenderViewMethodParamsForCApi): void {
+    this.renderImpl.callRenderViewMethodForCApi(params)
   }
 
   // for c-api

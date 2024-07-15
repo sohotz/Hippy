@@ -31,6 +31,7 @@ import { LogUtils } from '../support/utils/LogUtils'
 import { VfsManager } from '../vfs/VfsManager'
 import {
   buildHippyRenderViewForCApi,
+  CallRenderViewMethodParamsForCApi,
   CreateRenderViewParamsForCApi,
   OnChildInsertedParamsForCApi,
   OnChildRemovedParamsForCApi,
@@ -659,6 +660,18 @@ key1               value1
       return
     }
     viewManager.setRenderViewFrameForCApi(params.tag, new HRRect(params.left, params.top, params.width, params.height), null)
+  }
+
+  // for c-api
+  callRenderViewMethodForCApi(params: CallRenderViewMethodParamsForCApi): void {
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+
+    viewManager.callRenderViewMethodForCApi(params.tag, params.method, params.params, params.callbackId == 0 ? null : (result: HippyAny) => {
+      this.libHippy?.NativeRenderProvider_DoCallbackForCallCustomTsView(this.instanceId, params.rootTag, params.tag, params.callbackId, result)
+    })
   }
 
   // for c-api

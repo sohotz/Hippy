@@ -25,6 +25,7 @@
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_napi_object.h"
 #include "oh_napi/oh_napi_object_builder.h"
+#include "oh_napi/oh_napi_utils.h"
 #include "renderer/api/hippy_view_provider.h"
 #include "renderer/components/custom_ts_view.h"
 #include "renderer/components/custom_view.h"
@@ -319,6 +320,13 @@ void HRViewManager::CallViewMethod(uint32_t tag, const std::string &method, cons
   auto it = view_registry_.find(tag);
   std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
   if (renderView) {
+    // custom ts view
+    if (IsCustomTsRenderView(renderView->GetViewType())) {
+      CallCustomTsRenderViewMethod(tag, method, params, callback);
+      return;
+    }
+    
+    // build-in view
     renderView->Call(method, params, callback);
   }
 }
@@ -349,6 +357,16 @@ void HRViewManager::NotifyEndBatchCallbacks() {
   for (const auto &callback : end_batch_callback_map_) {
     auto &cb = callback.second;
     cb();
+  }
+}
+
+void HRViewManager::DoCallbackForCallCustomTsView(uint32_t node_id, uint32_t callback_id, const HippyValue &result) {
+  if (callback_id) {
+    auto callback = callCustomTsCallbackMap_[callback_id];
+    if (callback) {
+      callback(result);
+    }
+    callCustomTsCallbackMap_.erase(callback_id);
   }
 }
 
@@ -506,6 +524,37 @@ void HRViewManager::SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame
   
   auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
   delegateObject.Call("setRenderViewFrameForCApi", args);
+}
+
+void HRViewManager::CallCustomTsRenderViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
+    std::function<void(const HippyValue &result)> callback) {
+  ArkTS arkTs(ts_env_);
+  
+  auto paramArray = std::vector<napi_value>();
+  for (size_t i = 0; i < params.size(); i++) {
+    paramArray.push_back(OhNapiUtils::HippyValue2NapiValue(ts_env_, params[i]));
+  }
+  
+  uint32_t callbackId = 0;
+  if (callback) {
+    ++callCustomTsCallbackId_;
+    callbackId = callCustomTsCallbackId_;
+    callCustomTsCallbackMap_[callbackId] = callback;
+  }
+  
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("rootTag", ctx_->GetRootId());
+  params_builder.AddProperty("tag", tag);
+  params_builder.AddProperty("method", method);
+  params_builder.AddProperty("params", arkTs.CreateArray(paramArray));
+  params_builder.AddProperty("callbackId", callbackId);
+  
+  std::vector<napi_value> args = {
+    params_builder.Build()
+  };
+  
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("callRenderViewMethodForCApi", args);
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {

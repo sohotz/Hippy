@@ -254,6 +254,29 @@ static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
+static napi_value DoCallbackForCallCustomTsView(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  uint32_t callback_id = static_cast<uint32_t>(arkTs.GetInteger(args[3]));
+  auto ts_result = args[4];
+  auto result = OhNapiUtils::NapiValue2HippyValue(env, ts_result);
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "DoCallbackForCall: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+
+  render_manager->DoCallbackForCallCustomTsView(root_id, node_id, callback_id, result);
+
+  return arkTs.GetUndefined();
+}
+
 static napi_value GetViewParent(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
@@ -393,6 +416,7 @@ static napi_value SetViewEventListener(napi_env env, napi_callback_info info) {
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_BindNativeRoot", BindNativeRoot)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_UnbindNativeRoot", UnbindNativeRoot)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DestroyRoot", DestroyRoot)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DoCallbackForCallCustomTsView", DoCallbackForCallCustomTsView)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewParent", GetViewParent)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewChildren", GetViewChildren)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_CallViewMethod", CallViewMethod)

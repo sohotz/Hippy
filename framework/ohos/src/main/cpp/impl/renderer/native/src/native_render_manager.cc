@@ -1197,6 +1197,12 @@ void NativeRenderManager::DestroyRoot(uint32_t root_id) {
   }
 }
 
+void NativeRenderManager::DoCallbackForCallCustomTsView(uint32_t root_id, uint32_t node_id, uint32_t callback_id, const HippyValue &result) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->DoCallbackForCallCustomTsView(root_id, node_id, callback_id, result);
+  }
+}
+
 bool NativeRenderManager::GetViewParent(uint32_t root_id, uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type) {
   if (enable_ark_c_api_) {
     return c_render_provider_->GetViewParent(root_id, node_id, parent_id, parent_view_type);

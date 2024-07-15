@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyMap } from '../support/common/HippyTypes'
+import { HippyAny, HippyMap } from '../support/common/HippyTypes'
 import HippyRenderBaseView from './components/base/HippyRenderBaseView'
 import { HRWeb, HRWebView } from './components/web/HRWebView'
 
@@ -47,6 +47,14 @@ export interface SetRenderViewFrameParamsForCApi {
   top: number
   width: number
   height: number
+}
+
+export interface CallRenderViewMethodParamsForCApi {
+  rootTag: number
+  tag: number
+  method: string
+  params: Array<HippyAny>
+  callbackId: number
 }
 
 export interface OnChildInsertedParamsForCApi {

@@ -84,6 +84,8 @@ public:
   void RemoveEndBatchCallback(uint64_t cbId);
   void NotifyEndBatchCallbacks();
   
+  void DoCallbackForCallCustomTsView(uint32_t node_id, uint32_t callback_id, const HippyValue &result);
+  
   bool GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
   bool GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
   void SetViewEventListener(uint32_t node_id, napi_ref callback_ref);
@@ -94,6 +96,8 @@ private:
   void UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
   void UpdateCustomTsEventListener(uint32_t tag, HippyValueObjectType &props);
   void SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding);
+  void CallCustomTsRenderViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
+                                    std::function<void(const HippyValue &result)> callback);
   
   std::shared_ptr<BaseView> CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   
@@ -112,6 +116,9 @@ private:
   std::set<std::string> custom_ts_render_views_;
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
+  
+  uint32_t callCustomTsCallbackId_ = 0;
+  std::unordered_map<uint32_t, std::function<void(const HippyValue &result)>> callCustomTsCallbackMap_;
 };
 
 } // namespace native

@@ -61,6 +61,14 @@ void NativeRenderImpl::DestroyRoot(uint32_t root_id) {
   hr_manager_->RemoveVirtualNodeManager(root_id);
 }
 
+void NativeRenderImpl::DoCallbackForCallCustomTsView(uint32_t root_id, uint32_t node_id, uint32_t callback_id, const HippyValue &result) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  view_manager->DoCallbackForCallCustomTsView(node_id, callback_id, result);
+}
+
 void NativeRenderImpl::CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);

@@ -105,6 +105,7 @@ export interface HippyLibrary {
   NativeRenderProvider_BindNativeRoot(content: NodeContent, instanceId: number, rootId: number, nodeId: number): void;
   NativeRenderProvider_UnbindNativeRoot(instanceId: number, rootId: number, nodeId: number): void;
   NativeRenderProvider_DestroyRoot(instanceId: number, rootId: number): void;
+  NativeRenderProvider_DoCallbackForCallCustomTsView(instanceId: number, rootId: number, nodeId: number, callbackId: number, result: HippyAny): void;
   NativeRenderProvider_GetViewParent(instanceId: number, rootId: number, nodeId: number): HippyRenderViewInfo | null;
   NativeRenderProvider_GetViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null;
   NativeRenderProvider_CallViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void;
