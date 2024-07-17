@@ -21,6 +21,7 @@
  */
 
 #include "renderer/components/waterfall_view.h"
+#include "renderer/components/rich_text_view.h"
 #include "renderer/utils/hr_value_utils.h"
 #include "renderer/native_render_provider.h"
 #include "renderer/components/waterfall_item_view.h"
@@ -32,16 +33,9 @@ inline namespace native {
 WaterfallView::WaterfallView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   stackNode_.RegisterAppearEvent();
   stackNode_.RegisterDisappearEvent();
-  stackNode_.SetArkUINodeDelegate(this);    
-  flowNode_.SetNodeDelegate(this);    
-  refreshNode_.SetNodeDelegate(this);
-    
-  stackNode_.AddChild(colNode_);
-  colNode_.AddChild(refreshNode_);
-  refreshNode_.AddChild(rowNode_);  
-  rowNode_.AddChild(scrollNode_);
-  scrollNode_.AddChild(colInnerNode_);
-  colInnerNode_.AddChild(flowNode_);
+  stackNode_.SetArkUINodeDelegate(this);
+  flowNode_.SetNodeDelegate(this);
+  listNode_.SetNodeDelegate(this);
 }
 
 WaterfallView::~WaterfallView() {
@@ -53,7 +47,6 @@ WaterfallView::~WaterfallView() {
     }
     children_.clear();
   }
-//  GetLocalRootArkUINode().RemoveChild(flowNode_);  
 }
 
 ArkUINode &WaterfallView::GetLocalRootArkUINode() { return stackNode_;}
@@ -118,72 +111,70 @@ void WaterfallView::Init() {
   this->cbID = render.GetNativeRenderImpl()->AddEndBatchCallback(GetCtx()->GetRootId(), [weak_view]() {
     auto view = weak_view.lock();
     if (view) {
-      auto waterfallView = std::dynamic_pointer_cast<WaterfallView>(view); 
-      waterfallView->build();  
+//      auto waterfallView = std::dynamic_pointer_cast<WaterfallView>(view);
     }
   });
 }
 
-void WaterfallView::build() {
-  scrollNode_.SetNestedScroll(ARKUI_SCROLL_NESTED_MODE_PARENT_FIRST,ARKUI_SCROLL_NESTED_MODE_SELF_FIRST);
-  scrollNode_.SetScrollEventThrottle(this->scrollEventThrottle_);  
-  scrollNode_.SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
-  scrollNode_.SetHeightPercent(1.0);  
-  scrollNode_.SetScrollEnableInteraction(true);  
-  scrollNode_.SetScrollEdgeEffect(this->edgeEffect_);
-  rowNode_.SetWidthPercent(1.0);
-  rowNode_.SetAlignItem(ArkUI_VerticalAlignment::ARKUI_VERTICAL_ALIGNMENT_BOTTOM);
+void WaterfallView::HandleOnChildrenUpdated() {
   colInnerNode_.SetPadding(this->padding_.paddingTop,this->padding_.paddingRight,this->padding_.paddingBottom,this->padding_.paddingLeft);
   flowNode_.SetWidthPercent(1.0);
   flowNode_.SetScrollEdgeEffect(this->edgeEffect_);
   flowNode_.SetColumnGap(this->columnSpacing_);
   flowNode_.SetRowGap(this->interItemSpacing_);
-//  flowNode_.SetColumnsTemplate(this->columnsTemplate_); //TODO issue ,cannot list multi line
+  flowNode_.SetColumnsTemplate(this->columnsTemplate_); 
   flowNode_.SetCachedCount(4);  
   flowNode_.SetScrollEnableInteraction(true);  
   flowNode_.SetNestedScroll(ARKUI_SCROLL_NESTED_MODE_PARENT_FIRST, ARKUI_SCROLL_NESTED_MODE_SELF_FIRST);
-  flowNode_.SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);  
-  if(footerView)
-    flowNode_.SetFooter(footerView->GetLocalRootArkUINode().GetArkUINodeHandle());
-}
-
-void WaterfallView::HandleOnChildrenUpdated() {
-//    build();
-  scrollNode_.SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
-  flowNode_.SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF); 
-  colInnerNode_.SetPadding(this->padding_.paddingTop,this->padding_.paddingRight,this->padding_.paddingBottom,this->padding_.paddingLeft);
+  stackNode_.AddChild(colInnerNode_);
+  colInnerNode_.AddChild(listNode_);
+  if(this->bannerView)  
+    this->bannerView->GetLocalRootArkUINode().SetPosition(HRPosition(0,0));
     
-  if(headerView){
-    headerViewHeight_ = headerView->GetLocalRootArkUINode().GetSize().height;
-    headerView->GetLocalRootArkUINode().SetPosition(HRPosition(0,-headerViewHeight_));
-    HRPosition setPos(0,0);
-    for(uint64_t i = 0 ; i < children_.size();i++){
-      if(children_[i]->GetViewType() == "WaterfallItem"){
-        auto flowItem = std::dynamic_pointer_cast<WaterfallItemView>(children_[i]);
-        setPos = flowItem->GetLocalRootArkUINode().GetPostion();
-        setPos.y -= headerViewHeight_;  
-        flowItem->GetLocalRootArkUINode().SetPosition(setPos);
-      }
-    }
+  if (headerView){
+    listNode_.InsertChild(headerView->GetLocalRootArkUINode(),0);
+    listNode_.InsertChild(bannerListNode_, 1);      
+    headerView->GetLocalRootArkUINode().SetNodeDelegate(this); 
+    headerView->GetLocalRootArkUINode().SetItemIndex(0);   
+    listNode_.ScrollToIndex(1, true, true);     
+  }
+  else{
+    listNode_.InsertChild(bannerListNode_, 0); 
+    listNode_.ScrollToIndex(0, true, true);       
+  }
+  
+  listNode_.AddChild(flowListNode_);  
+  flowListNode_.AddChild(flowNode_);    
+  if(footerView) {
+    listNode_.AddChild(footerView->GetLocalRootArkUINode());
+    footerView->GetLocalRootArkUINode().SetWidthPercent(1.0);
+    footerView->Show(false);
+    footerView->GetLocalRootArkUINode().SetNodeDelegate(this);
+    lastScrollIndex_ = (int32_t)listNode_.GetTotalChildCount()-1;
+    footerView->GetLocalRootArkUINode().SetItemIndex(lastScrollIndex_);  
+    UpdateFooterView();
   }
 }
 
 void WaterfallView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   if(childView->GetViewType() == "PullHeaderView") {
     this->headerView = std::dynamic_pointer_cast<PullHeaderView>(childView);
-    rowNode_.InsertChild(childView->GetLocalRootArkUINode(),0);
   } else if(childView->GetViewType() == "PullFooterView") {
     this->footerView = std::dynamic_pointer_cast<PullFooterView>(childView);
-    flowNode_.InsertChild(childView->GetLocalRootArkUINode(),0);
-  } else if(childView->GetViewType() == "WaterfallItem"){
-    auto flowItem = std::dynamic_pointer_cast<WaterfallItemView>(childView);
-    flowItem->GetLocalRootArkUINode().SetNodeDelegate(this);
-    flowItem->GetLocalRootArkUINode().SetItemIndex(index);
-    flowItem->GetLocalRootArkUINode().SetBorderWidth(1, 1, 1, 1);    
-    flowItem->GetLocalRootArkUINode().SetBorderColor(0xffff0000, 0xffff0000, 0xffff0000, 0xffff0000);  
-    flowNode_.AddChild(childView->GetLocalRootArkUINode());
+  } else if (childView->GetViewType() == "View") {
+      if (!this->bannerView) {
+        this->bannerView = std::dynamic_pointer_cast<DivView>(childView);
+        if(this->bannerView){
+          bannerListNode_.AddChild(this->bannerView->GetLocalRootArkUINode());
+        }
+     }
+  } else if (childView->GetViewType() == "WaterfallItem") {
+      auto flowItem = std::dynamic_pointer_cast<WaterfallItemView>(childView);
+      flowItem->GetLocalRootArkUINode().SetNodeDelegate(this);
+      flowItem->GetLocalRootArkUINode().SetItemIndex(index);
+      flowNode_.AddChild(childView->GetLocalRootArkUINode());
   } else {
-    FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" new child index = "<<index;    
+      FOOTSTONE_DLOG(INFO) << __FUNCTION__ << " new child index = " << index;
   }
 }
 
@@ -208,63 +199,62 @@ void WaterfallView::Call(const std::string &method, const std::vector<HippyValue
   } else if (method == "scrollToContentOffset") {
       
   } else if (method == "scrollToTop"){
-      
+    listNode_.ScrollToIndex(1, true,true);  
   } else {
     BaseView::Call(method, params, callback);
   }
 }
 
 void WaterfallView::OnWaterFlowScrollIndex(int32_t firstIndex, int32_t lastIndex){
-    this->lastIndex_ = lastIndex;
+
 }
 
 void WaterfallView::OnWaterFlowDidScroll(float_t offset, ArkUI_ScrollState state){
-
+  FOOTSTONE_DLOG(INFO)<<__FUNCTION__;
 }
 
 void WaterfallView::OnWaterFlowWillScroll(float_t offset, ArkUI_ScrollState state, int32_t source){
+  FOOTSTONE_DLOG(INFO)<<__FUNCTION__;
 
+}
+
+void WaterfallView::OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex){
+
+}
+
+void WaterfallView::OnScroll(float scrollOffsetX, float scrollOffsetY) {
+  auto offset = listNode_.GetScrollOffset();
+  HippyValueObjectType params;  
+  if(headerView && headerVisible){
+    if(isDragging_){
+      params["contentOffset"] = -offset.y+headerView->GetHeight();
+      HREventUtils::SendComponentEvent(headerView->GetCtx(), headerView->GetTag(),
+                                       HREventUtils::EVENT_PULL_HEADER_PULLING, std::make_shared<HippyValue>(params));
+    } else{
+      HREventUtils::SendComponentEvent(headerView->GetCtx(), headerView->GetTag(),
+                                       HREventUtils::EVENT_PULL_HEADER_RELEASED, nullptr);
+    }
+  }
+  if(footerView && footerVisible)
+     UpdateFooterView();
+}
+
+void WaterfallView::OnWillScroll(float offset, ArkUI_ScrollState state){
+  if (offset > 0) {
+    if (footerView) {
+      footerView->Show(true);
+    }
+  }  
 }
 
 void WaterfallView::OnTouch(int32_t actionType){
 //  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" actionType = "<<actionType;  
   if (actionType == UI_TOUCH_EVENT_ACTION_DOWN || actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
+    if(!isDragging_)
+      isDragging_ = true; 
   } else if (actionType == UI_TOUCH_EVENT_ACTION_UP || actionType == UI_TOUCH_EVENT_ACTION_CANCEL) {
-  }    
-}
-
-void WaterfallView::OnRefreshing(){
-   FOOTSTONE_DLOG(INFO)<<__FUNCTION__;
-  if(this->headerView){
-    HREventUtils::SendComponentEvent(this->headerView->GetCtx(), this->headerView->GetTag(), HREventUtils::EVENT_PULL_HEADER_RELEASED, nullptr);    
-  }else{
-//    this->isRefreshing = false;    
-  }
-}
-
-void WaterfallView::OnStateChange(int32_t state){
-  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" state = "<<state;
-  //Inactive=0， Drag=1，OverDrag=2，Refresh=3，Done=4  TODO sdk will update
-  if(this->headerView){
-    if(state == 1){
-      HippyValueObjectType params;
-      params["contentOffset"] = HippyValue(this->headerView->GetHeight());
-      const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
-      HREventUtils::SendComponentEvent(headerView->GetCtx(), headerView->GetTag(), HREventUtils::EVENT_PULL_HEADER_PULLING, obj);  
-      if(!this->isRefreshing){
-        this->refreshNode_.SetRefreshing(true);        
-        this->isRefreshing = true;      
-      }
-    } else if(state == 4){
-      HippyValueObjectType params;
-      params["contentOffset"] = HippyValue(this->headerView->GetHeight());
-      const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
-      HREventUtils::SendComponentEvent(headerView->GetCtx(), headerView->GetTag(), HREventUtils::EVENT_PULL_HEADER_RELEASED, obj);
-      if(this->isRefreshing){
-         this->refreshNode_.SetRefreshing(false);
-         this->isRefreshing = false;       
-      }
-    }
+    if(isDragging_)
+      isDragging_ = false;      
   }
 }
 
@@ -277,31 +267,42 @@ void WaterfallView::OnDisappear() {
   render.GetNativeRenderImpl()->RemoveEndBatchCallback(GetCtx()->GetRootId(), this->cbID);
 }  
 
+void WaterfallView::OnFlowItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio){
+
+}
+
 void WaterfallView::OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio){
-//  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" index = "<<index<<" isvisible = "<<isVisible<<" lastIndex_ = "<<lastIndex_;  
-  if(index == this->lastIndex_ && footerView){
-     if(isVisible)  {//reach end
-        OnReachEnd();
-     } else{
-            
-     }
-  }
+//  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" index = "<<index<<" isvisible = "<<isVisible;
+  if(headerView && index == 0){
+    if(isVisible){
+      headerVisible = true;
+    } else{
+      headerVisible = false;      
+    }    
+  } 
+  if(footerView && index == lastScrollIndex_){
+    if(isVisible){
+      footerVisible = true;      
+    } else{
+      footerVisible = false;      
+    }    
+  }  
+}
+
+void WaterfallView::OnFlowItemClick(int32_t index){
+  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" index = "<<index;
 }
 
 void WaterfallView::OnHeadRefreshFinish(int32_t delay){
   FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" delay = "<<delay;
   if(delay > 0 ){
-    //TODO setTimeout(delay)        
-  } else{
-    this->isRefreshing = false;
-    this->refreshNode_.SetRefreshing(false);          
+    //TODO setTimeout(delay)
+    listNode_.ScrollToIndex(1, true, true);
   }
 }
 
 void WaterfallView::OnHeadRefresh(){
   FOOTSTONE_DLOG(INFO)<<__FUNCTION__;
-//  this->isRefreshing = true;
-//  this->refreshNode_.SetRefreshing(true);  
 }
 
 void WaterfallView::SendOnReachedEvent(){
@@ -319,14 +320,26 @@ void WaterfallView::OnScrollStop() {
 }
 
 void WaterfallView::OnReachStart() {
-  FOOTSTONE_DLOG(INFO)<<__FUNCTION__;
 }
 
 void WaterfallView::OnReachEnd() {
   FOOTSTONE_DLOG(INFO)<<__FUNCTION__;
   SendOnReachedEvent();
+  UpdateFooterView();  
 }
 
+void WaterfallView::UpdateFooterView(){
+  if(footerView){
+    auto childrens = footerView->GetChildren();
+    for(uint64_t i = 0; i < childrens.size();i++) {
+      if(childrens[i]->GetViewType() == "Text"){
+         auto textView = std::dynamic_pointer_cast<RichTextView>(childrens[i]);
+         if(textView)
+            textView->GetLocalRootArkUINode().SetPosition(HRPosition(0,0));
+      }      
+    }            
+  }
+}
 
 } // namespace native
 } // namespace render

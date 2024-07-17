@@ -33,12 +33,13 @@
 #include "renderer/arkui/water_flow_item_node.h"
 #include "renderer/components/pull_footer_view.h"
 #include "renderer/components/pull_header_view.h"
+#include "renderer/components/div_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class WaterfallView : public BaseView ,public WaterFlowNodeDelegate,public RefreshNodeDelegate,public FlowItemNodeDelegate{
+class WaterfallView : public BaseView ,public WaterFlowNodeDelegate ,public FlowItemNodeDelegate,public ListItemNodeDelegate,public ListNodeDelegate{
 public:
   WaterfallView(std::shared_ptr<NativeRenderContext> &ctx);
   ~WaterfallView();
@@ -58,39 +59,41 @@ public:
   void OnWaterFlowScrollIndex(int32_t firstIndex, int32_t lastIndex) override;
   void OnWaterFlowDidScroll(float_t offset, ArkUI_ScrollState state) override;
   void OnWaterFlowWillScroll(float_t offset, ArkUI_ScrollState state, int32_t source) override;
+  
+  //ListNodeDelegate override
+  void OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) override;
+  void OnScroll(float scrollOffsetX, float scrollOffsetY) override;
+  void OnWillScroll(float offset, ArkUI_ScrollState state) override;
   void OnTouch(int32_t actionType) override;
   void OnScrollStart() override;
   void OnScrollStop() override;    
   void OnReachStart() override;       
-  void OnReachEnd() override ;
-    
-  //RefreshNodeDelegate override
-  void OnRefreshing() override;
-  void OnStateChange(int32_t state) override;   
+  void OnReachEnd() override;
 
   //ArkUINodeDelegate override
   void OnAppear() override;
   void OnDisappear() override;  
     
   //FlowItemNodeDelegate
-  void OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) override ;
+  void OnFlowItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) override ;
+  void OnFlowItemClick(int32_t index) override ;
+  
+  //ListItemNodeDelegate
+  void OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) override ;  
+  //pull head
   void OnHeadRefreshFinish(int32_t delay);
   void OnHeadRefresh();
 private:
 
   void HandleOnChildrenUpdated();
   void SendOnReachedEvent();
-
-  void build();  
-  ColumnNode colNode_;
-  RefreshNode refreshNode_;
-  RowNode rowNode_;  
-  ScrollNode scrollNode_;
-  ColumnNode colInnerNode_;
-    
+  void UpdateFooterView();  
   StackNode stackNode_;  
+  ListNode listNode_;
+  ColumnNode colInnerNode_;
+  ListItemNode flowListNode_;  
   WaterFlowNode flowNode_;
-  StackNode bannerNode_;  
+  ListItemNode bannerListNode_;  
 
   ArkUI_EdgeEffect edgeEffect_ = ArkUI_EdgeEffect::ARKUI_EDGE_EFFECT_SPRING;  
   HRPadding padding_ = {0, 0, 0, 0};
@@ -100,16 +103,17 @@ private:
   float_t columnSpacing_ = 0;
   std::string columnsTemplate_ = "1fr 1fr";
     
-  uint64_t cbID;  
-  bool isRefreshing = false;
+  uint64_t cbID;
   std::shared_ptr<PullHeaderView> headerView = nullptr;
-  std::shared_ptr<BaseView> bannerView = nullptr;
+  std::shared_ptr<DivView> bannerView = nullptr;
   std::shared_ptr<PullFooterView> footerView = nullptr;
   float width_ = 0;
   float height_ = 0;
   bool scrollEnable_ = false;
-  float headerViewHeight_ = 0;  
-  int32_t lastIndex_ = 0;  
+  bool isDragging_;  
+  int32_t lastScrollIndex_ = 0;  
+  bool headerVisible = false;
+  bool footerVisible = false;  
 };
 
 } // namespace native

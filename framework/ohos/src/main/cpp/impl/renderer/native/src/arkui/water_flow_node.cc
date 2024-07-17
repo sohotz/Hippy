@@ -31,11 +31,6 @@ static constexpr ArkUI_NodeEventType WATER_FLOW_NODE_EVENT_TYPES[] = {
   NODE_WATER_FLOW_ON_SCROLL_INDEX,
   NODE_WATER_FLOW_ON_DID_SCROLL,
   NODE_ON_WILL_SCROLL,
-  NODE_SCROLL_EVENT_ON_SCROLL_START,
-  NODE_SCROLL_EVENT_ON_SCROLL_STOP,
-  NODE_SCROLL_EVENT_ON_REACH_START,
-  NODE_SCROLL_EVENT_ON_REACH_END,
-  NODE_TOUCH_EVENT,
 };
 
 WaterFlowNode::WaterFlowNode()
@@ -75,21 +70,6 @@ void WaterFlowNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     int32_t state = nodeComponentEvent->data[1].i32; 
     int32_t source = nodeComponentEvent->data[2].i32; 
     waterFlowNodeDelegate_->OnWaterFlowWillScroll(offset, ArkUI_ScrollState(state), source);
-  } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
-    ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
-    auto type = OH_ArkUI_UIInputEvent_GetType(inputEvent);
-    if (type == ARKUI_UIINPUTEVENT_TYPE_TOUCH) {
-      auto action = OH_ArkUI_UIInputEvent_GetAction(inputEvent);
-      waterFlowNodeDelegate_->OnTouch(action);
-    }
-  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_SCROLL_START){
-    waterFlowNodeDelegate_->OnScrollStart();    
-  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_SCROLL_STOP){
-    waterFlowNodeDelegate_->OnScrollStop();
-  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_START){
-    waterFlowNodeDelegate_->OnReachStart();
-  } else if (eventType == ArkUI_NodeEventType::NODE_SCROLL_EVENT_ON_REACH_END){
-    waterFlowNodeDelegate_->OnReachEnd();
   } else{
     FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" event = "<<eventType;    
   }

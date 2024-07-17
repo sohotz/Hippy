@@ -44,7 +44,7 @@ void PullHeaderView::OnSetPropsEnd(){
 
 void PullHeaderView::Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) {
-//  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
+  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
   if (method == "collapsePullHeader") {
     OnHeadRefreshFinish();
   } else if (method == "collapsePullHeaderWithOptions") {
