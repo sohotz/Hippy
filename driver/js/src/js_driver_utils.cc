@@ -48,6 +48,11 @@
 #include "driver/napi/v8/v8_try_catch.h"
 #include "driver/vm/v8/v8_vm.h"
 #include "driver/napi/v8/serializer.h"
+#elif JS_JSH
+#include "driver/napi/jsh/jsh_ctx.h"
+#include "driver/napi/jsh/jsh_ctx_value.h"
+#include "driver/napi/jsh/jsh_try_catch.h"
+#include "driver/vm/jsh/jsh_vm.h"
 #endif
 
 namespace hippy {

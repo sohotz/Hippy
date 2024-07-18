@@ -31,7 +31,6 @@
 #include "oh_napi/oh_napi_task_runner.h"
 #include "connector/bridge.h"
 #include "driver/js_driver_utils.h"
-#include "driver/napi/v8/serializer.h"
 #include "driver/scope.h"
 #include "footstone/logging.h"
 #include "footstone/string_view_utils.h"
