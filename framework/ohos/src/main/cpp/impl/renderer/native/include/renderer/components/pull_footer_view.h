@@ -38,7 +38,7 @@ public:
   void OnSetPropsEnd() override;
   void Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
-  
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
   void Show(bool show);
 
 private:

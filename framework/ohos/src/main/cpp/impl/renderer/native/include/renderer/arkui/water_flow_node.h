@@ -35,12 +35,7 @@ public:
   virtual ~WaterFlowNodeDelegate() = default;
   virtual void OnWaterFlowScrollIndex(int32_t firstIndex, int32_t lastIndex) {}
   virtual void OnWaterFlowDidScroll(float_t offset, ArkUI_ScrollState state) {}
-  virtual void OnWaterFlowWillScroll(float_t offset, ArkUI_ScrollState state, int32_t source) {} //TODO ArkUI_ScrollSource not define in current sdk 
-  virtual void OnTouch(int32_t actionType) {}
-  virtual void OnScrollStart() {}
-  virtual void OnScrollStop() {}    
-  virtual void OnReachStart() {}       
-  virtual void OnReachEnd() {}       
+  virtual void OnWaterFlowWillScroll(float_t offset, ArkUI_ScrollState state, int32_t source) {} //TODO ArkUI_ScrollSource not define in current sdk
 };
 
 class WaterFlowNode : public ArkUINode {

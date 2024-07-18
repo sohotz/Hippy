@@ -49,7 +49,7 @@ void PullFooterView::OnSetPropsEnd(){
 
 void PullFooterView::Call(const std::string &method, const std::vector<HippyValue> params,
                           std::function<void(const HippyValue &result)> callback) {
-//  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
+  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
   if (method == "collapsePullFooter") {
     Show(false);
   } else {
@@ -64,6 +64,9 @@ void PullFooterView::Show(bool show) {
   }
 }
 
+void PullFooterView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding){
+//  BaseView::UpdateRenderViewFrame(frame, padding);
+}
 
 } // namespace native
 } // namespace render

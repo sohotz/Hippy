@@ -28,7 +28,8 @@ inline namespace render {
 inline namespace native {
 
 static constexpr ArkUI_NodeEventType FLOW_ITEM_NODE_EVENT_TYPES[] = {
-  NODE_EVENT_ON_VISIBLE_AREA_CHANGE
+  NODE_EVENT_ON_VISIBLE_AREA_CHANGE,
+  NODE_ON_CLICK,  
 };
 
 WaterFlowItemNode::WaterFlowItemNode()
@@ -49,6 +50,7 @@ WaterFlowItemNode::~WaterFlowItemNode() {
 void WaterFlowItemNode::SetNodeDelegate(FlowItemNodeDelegate* delegate){
     flowItemNodeDelegate_ = delegate;
 }
+
 void WaterFlowItemNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   if (flowItemNodeDelegate_ == nullptr) {
     return;
@@ -60,7 +62,9 @@ void WaterFlowItemNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_VISIBLE_AREA_CHANGE) {
     bool isVisible = nodeComponentEvent->data[0].i32;
     float currentRatio = nodeComponentEvent->data[1].f32;
-    flowItemNodeDelegate_->OnItemVisibleAreaChange(itemIndex_,isVisible,currentRatio);
+    flowItemNodeDelegate_->OnFlowItemVisibleAreaChange(itemIndex_,isVisible,currentRatio);
+  } else if(eventType == NODE_ON_CLICK){
+    flowItemNodeDelegate_->OnFlowItemClick(itemIndex_);    
   }
 }
 
