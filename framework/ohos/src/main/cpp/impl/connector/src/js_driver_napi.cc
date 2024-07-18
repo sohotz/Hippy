@@ -40,6 +40,8 @@
 
 #ifdef JS_V8
 #include "driver/vm/v8/v8_vm.h"
+#elif JS_JSH
+#include "driver/vm/jsh/jsh_vm.h"
 #endif
 
 #ifdef ENABLE_INSPECTOR
@@ -64,6 +66,8 @@ using TaskRunner = footstone::TaskRunner;
 
 #ifdef JS_V8
 using V8VMInitParam = hippy::V8VMInitParam;
+#elif JS_JSH
+using JSHVMInitParam = hippy::JSHVMInitParam;
 #endif
 
 enum INIT_CB_STATE {
@@ -142,6 +146,11 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
     param->maximum_heap_size_in_bytes =
       footstone::check::checked_numeric_cast<int, size_t>(maximum_heap_size_in_bytes);
     FOOTSTONE_CHECK(initial_heap_size_in_bytes <= maximum_heap_size_in_bytes);
+  }
+#elif JS_JSH
+  auto param = std::make_shared<JSHVMInitParam>();
+  if (has_vm_init_param) {
+    
   }
 #else
   auto param = std::make_shared<VMInitParam>();

@@ -37,6 +37,7 @@ target_link_libraries(hippy_impl PUBLIC
   libhilog_ndk.z.so
   librawfile.z.so
   libnative_drawing.so
+  libjsvm.so
   uv
   footstone
   oh_napi

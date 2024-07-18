@@ -39,6 +39,7 @@ import { BridgeCallback } from './HippyBridge';
 import { HippyBridgeImpl } from './HippyBridgeImpl';
 import { HippyBridgeManager } from './HippyBridgeManager';
 import { HippyCallNativeParams } from './HippyCallNativeParams';
+import { util } from '@kit.ArkTS';
 
 export enum BridgeState {
   UNINITIALIZED = 0,
@@ -154,6 +155,23 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   getSerializerBuffer(params: Map<string, HippyAny>) {
+    // let binaryWriter = new BinaryWriter()
+    // let serializer = new Serializer(binaryWriter)
+    // serializer.writeHeader()
+    // serializer.writeValue(params)
+    // let buffer = binaryWriter.chunked()
+    // return buffer;
+
+    // let str = JSON.stringify(params)
+    let str = ArgumentUtils.objectToJson(params)
+    // LogUtils.l("xxx hippy - gg", str);
+    let encoder = new util.TextEncoder("utf-8")
+    let uint8Array = encoder.encode(str)
+    return uint8Array
+  }
+
+  // TODO(hot-jsxx):
+  getSerializerBufferV8(params: Map<string, HippyAny>) {
     let binaryWriter = new BinaryWriter()
     let serializer = new Serializer(binaryWriter)
     serializer.writeHeader()
@@ -293,7 +311,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     map.set("id", id)
     map.set("params", params)
 
-    const buffer = this.getSerializerBuffer(map);
+    const buffer = this.getSerializerBufferV8(map);
     this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, buffer)
   }
 

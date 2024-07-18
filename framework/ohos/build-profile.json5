@@ -11,7 +11,7 @@
     {
       "name": "debug",
       "externalNativeOptions": {
-        "arguments": "-DENABLE_INSPECTOR=true",
+        "arguments": "-DENABLE_INSPECTOR=false",
         "abiFilters": [
           "arm64-v8a",
         ],

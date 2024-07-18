@@ -82,7 +82,8 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
   private cachedJSModuleMap: Map<string, HippyJavaScriptModuleBase> = new Map();
   private mEnableV8Serialization: boolean;
 
-  constructor(ctx: HippyEngineContext, enableV8Serialization = true) {
+  // TODO(hot-jsxx):
+  constructor(ctx: HippyEngineContext, enableV8Serialization = false) {
     this.ctx = ctx;
     this.nativeModuleCreatorRegisterMap = hippyNativeModuleCreatorRegisterMap();
     this.jsModuleCreatorRegisterMap = hippyJSModuleCreatorRegisterMap();
@@ -180,7 +181,32 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     const bytes = new Uint8Array(buffer);
     const textDecoder = TextUtils.getUtf8Decoder()
     const str = textDecoder.decodeWithStream(bytes)
+    if (!str) {
+      return new Array<HippyAny>()
+    }
     const paramArray = JSON.parse(str) as Array<HippyAny>;
-    return paramArray;
+    return this.convertObjectToMap(paramArray as HippyAny) as Array<HippyAny>
   }
+
+  private convertObjectToMap(value: HippyAny): HippyAny {
+    if(value instanceof Array) {
+      return (value as Array<HippyAny>).map(item => this.convertObjectToMap(item))
+    } else if (value instanceof Map) {
+      let map = value as Map<string, HippyAny>
+      let map2 = new Map<string, HippyAny>()
+      map.forEach((v: HippyAny, k: string) => {
+        map2.set(k, this.convertObjectToMap(v))
+      })
+      return map2
+    } else if (typeof value === 'object' && value !== null) {
+      let map: Map<string, HippyAny> = new Map(Object.entries(value))
+      let map2 = new Map<string, HippyAny>()
+      map.forEach((v: HippyAny, k: string) => {
+        map2.set(k, this.convertObjectToMap(v))
+      })
+      return map2
+    }
+    return value
+  }
+
 }
