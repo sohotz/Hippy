@@ -2048,6 +2048,8 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
   JSVM_CallbackStruct param1;
   param1.data = jsh_cls->GetValue();
   param1.callback = [](JSVM_Env env, JSVM_CallbackInfo info) -> JSVM_Value {
+    JSHHandleScope handleScope(env);
+    
     size_t argc = 10; // TODO(hot-js):
     JSVM_Value args[10];
     JSVM_Value thisArg = nullptr;
@@ -2167,36 +2169,55 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
   return std::make_shared<V8CtxValue>(isolate_, tpl->GetFunction(context).ToLocalChecked());
   //*/
   
-  JSVM_PropertyDescriptor propParams[property_count];
+  JSVM_PropertyDescriptor *propParams = new JSVM_PropertyDescriptor[property_count]; // TODO(hot-js):
+  JSVM_CallbackStruct *callbackParams = new JSVM_CallbackStruct[property_count];
   for (size_t i = 0; i < property_count; i++) {
     const auto &prop_desc = properties[i];
     auto &propParam = propParams[i];
+    auto &callbackParam = callbackParams[i];
     auto prop_name = std::static_pointer_cast<JSHCtxValue>(prop_desc->name);
     if (prop_desc->getter || prop_desc->setter) {
       if (prop_desc->getter) {
-        JSVM_CallbackStruct callbackParam;
-        callbackParam.data = prop_desc->getter.get();
+        callbackParam.data = prop_desc->getter.get(); // TODO(hot-js): get and set
         callbackParam.callback = InvokeJsCallback;
+        propParam.utf8name = nullptr;
         propParam.name = prop_name->GetValue();
+        propParam.method = nullptr;
         propParam.getter = &callbackParam;
+        propParam.setter = nullptr;
+        propParam.value = nullptr;
+        propParam.attributes = JSVM_DEFAULT;
       }
       if (prop_desc->setter) {
-        JSVM_CallbackStruct callbackParam;
         callbackParam.data = prop_desc->setter.get();
         callbackParam.callback = InvokeJsCallback;
+        propParam.utf8name = nullptr;
         propParam.name = prop_name->GetValue();
+        propParam.method = nullptr;
+        propParam.getter = nullptr;
         propParam.setter = &callbackParam;
+        propParam.value = nullptr;
+        propParam.attributes = JSVM_DEFAULT;
       }
     } else if (prop_desc->method) {
-      JSVM_CallbackStruct callbackParam;
       callbackParam.data = prop_desc->method.get();
       callbackParam.callback = InvokeJsCallback;
+      propParam.utf8name = nullptr;
       propParam.name = prop_name->GetValue();
       propParam.method = &callbackParam;
+      propParam.getter = nullptr;
+      propParam.setter = nullptr;
+      propParam.value = nullptr;
+      propParam.attributes = JSVM_DEFAULT;
     } else {
       auto prop_value = std::static_pointer_cast<JSHCtxValue>(prop_desc->value);
+      propParam.utf8name = nullptr;
       propParam.name = prop_name->GetValue();
+      propParam.method = nullptr;
+      propParam.getter = nullptr;
+      propParam.setter = nullptr;
       propParam.value = prop_value->GetValue();
+      propParam.attributes = JSVM_DEFAULT;
     }
   }
   
@@ -2206,9 +2227,18 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
   constructorParam.data = constructor_wrapper.get();
   constructorParam.callback = InvokeJsCallback;
   
+//   JSVM_PropertyDescriptor descriptor[] = {
+//             {"consoleinfo", NULL, &constructorParam, NULL, NULL, NULL, JSVM_DEFAULT},
+//             {"add", NULL, &constructorParam, NULL, NULL, NULL, JSVM_DEFAULT},
+//         };
+  
   JSVM_Value testClass = nullptr;
   auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, property_count, propParams, &testClass);
+//   auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, 2, descriptor, &testClass);
+  //   auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, 0, 0, &testClass);
   FOOTSTONE_DCHECK(s == JSVM_OK);
+  FOOTSTONE_DCHECK(testClass);
+  FOOTSTONE_DLOG(INFO) << "xxx hippy DefineClass res, " << testClass;
   
   template_map_[name] = std::make_shared<JSHClassDefinition>(env_, testClass);
 
