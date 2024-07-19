@@ -23,6 +23,7 @@
 #pragma once
 
 #include "driver/napi/js_class_definition.h"
+#include "footstone/logging.h"
 #include <ark_runtime/jsvm.h>
 
 namespace hippy {
@@ -36,7 +37,8 @@ class JSHClassDefinition: public ClassDefinition {
 
   inline auto GetValue() {
     JSVM_Value result = 0;
-    OH_JSVM_GetReferenceValue(env_, value_ref_, &result);
+    auto s = OH_JSVM_GetReferenceValue(env_, value_ref_, &result);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     return result;
   }
  private:

@@ -21,6 +21,8 @@
  */
 
 #include "driver/napi/jsh/jsh_ctx.h"
+#include <hilog/log.h>
+#include <sys/stat.h>
 
 #include "driver/base/js_value_wrapper.h"
 #include "driver/napi/jsh/jsh_ctx_value.h"
@@ -165,7 +167,8 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   JSVM_Value args[10];
   JSVM_Value thisArg;
   void *data = nullptr;
-  OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
+  auto s = OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   CallbackInfo cb_info;
   cb_info.SetSlot(sGetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
@@ -223,7 +226,8 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 //   }
   
   JSVM_Value ret;
-  OH_JSVM_GetReferenceValue(env, ret_value->value_ref_, &ret);
+  s = OH_JSVM_GetReferenceValue(env, ret_value->value_ref_, &ret);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   return ret;
 }
@@ -258,8 +262,10 @@ JSHCtx::JSHCtx(JSVM_VM vm) : vm_(vm) {
 //       {"onJSResultCallback", NULL, &callBackStructs_[3], NULL, NULL, NULL, JSVM_DEFAULT},
 //       {"createPromise", NULL, &callBackStructs_[4], NULL, NULL, NULL, JSVM_DEFAULT},
   };
-  OH_JSVM_CreateEnv(vm_, sizeof(descriptors) / sizeof(descriptors[0]), descriptors, &env_);
-  OH_JSVM_OpenEnvScope(env_, &envScope_);
+  auto s = OH_JSVM_CreateEnv(vm_, sizeof(descriptors) / sizeof(descriptors[0]), descriptors, &env_);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
+  s = OH_JSVM_OpenEnvScope(env_, &envScope_);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
 }
 
 std::shared_ptr<CtxValue> JSHCtx::CreateTemplate(const std::unique_ptr<FunctionWrapper>& wrapper) {
@@ -280,6 +286,9 @@ std::shared_ptr<CtxValue> JSHCtx::CreateTemplate(const std::unique_ptr<FunctionW
 }
 
 std::shared_ptr<CtxValue> JSHCtx::CreateFunction(const std::unique_ptr<FunctionWrapper>& wrapper) {
+  
+  JSHHandleScope handleScope(env_);
+  
   return CreateTemplate(wrapper);
   
   
@@ -365,6 +374,8 @@ std::shared_ptr<ClassDefinition> JSHCtx::GetClassDefinition(const string_view& n
 }
 
 void JSHCtx::SetAlignedPointerInEmbedderData(int index, intptr_t address) {
+  JSHHandleScope handleScope(env_);
+  
   sEmbedderDataMap[index] = reinterpret_cast<void*>(address);
   
 //   v8::HandleScope handle_scope(isolate_);
@@ -392,11 +403,13 @@ std::shared_ptr<CtxValue> JSHCtx::GetGlobalObject() {
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
-
+  
+  JSHHandleScope handleScope(env_);
+  
   JSVM_Value global = 0;
   JSVM_Status status = OH_JSVM_GetGlobal(env_, &global);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  
+
   return std::make_shared<JSHCtxValue>(env_, global);
 }
 
@@ -407,9 +420,11 @@ std::shared_ptr<CtxValue> JSHCtx::GetProperty(
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  
+  JSHHandleScope handleScope(env_);
 
   auto key = JSHVM::CreateV8String(env_, name);
-  return GetProperty(object, std::make_shared<JSHCtxValue>(env_, key));
+  return GetProperty(object, key);
 }
 
 std::shared_ptr<CtxValue> JSHCtx::GetProperty(
@@ -419,6 +434,8 @@ std::shared_ptr<CtxValue> JSHCtx::GetProperty(
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  
+  JSHHandleScope handleScope(env_);
 
   auto jsh_object = std::static_pointer_cast<JSHCtxValue>(object);
 //   auto v8_object_handle = v8::Local<v8::Value>::New(isolate_, v8_object->global_value_);
@@ -427,7 +444,8 @@ std::shared_ptr<CtxValue> JSHCtx::GetProperty(
 //   auto v8_key_handle = v8::Local<v8::Value>::New(isolate_, v8_key->global_value_);
   
   JSVM_Value result = 0;
-  OH_JSVM_GetProperty(env_, jsh_object->GetValue(), jsh_key->GetValue(), &result);
+  auto s = OH_JSVM_GetProperty(env_, jsh_object->GetValue(), jsh_key->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
 
   return std::make_shared<JSHCtxValue>(env_, result);
 }
@@ -450,7 +468,9 @@ std::shared_ptr<CtxValue> JSHCtx::RunScript(const string_view& str_view,
 //   v8::Context::Scope context_scope(context);
 //   v8::MaybeLocal<v8::String> source;
   
-  JSVM_Value source = JSHVM::CreateV8String(env_, str_view);
+  JSHHandleScope handleScope(env_);
+  
+  auto source_value = JSHVM::CreateV8String(env_, str_view);
   
   /*
   string_view::Encoding encoding = str_view.encoding();
@@ -513,12 +533,12 @@ std::shared_ptr<CtxValue> JSHCtx::RunScript(const string_view& str_view,
   }
   */
 
-  if (!source) {
+  if (!source_value) {
     FOOTSTONE_DLOG(WARNING) << "jsh_source empty, file_name = " << file_name;
     return nullptr;
   }
 
-  return InternalRunScript(source, file_name, is_use_code_cache, cache);
+  return InternalRunScript(source_value, file_name, is_use_code_cache, cache);
 }
 
 // void JSHCtx::SetDefaultContext(const std::shared_ptr<v8::SnapshotCreator>& creator) {
@@ -529,7 +549,7 @@ std::shared_ptr<CtxValue> JSHCtx::RunScript(const string_view& str_view,
 // }
 
 std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
-    JSVM_Value source,
+    std::shared_ptr<CtxValue> &source_value,
     const string_view& file_name,
     bool is_use_code_cache,
     string_view* cache) {
@@ -576,17 +596,111 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
   }
   //*/
   
-  // open handle scope
-  JSVM_HandleScope handlescope;
-  OH_JSVM_OpenHandleScope(env_, &handlescope);
+  JSHHandleScope handleScope(env_);
+  
+  auto jsh_source_value = std::static_pointer_cast<JSHCtxValue>(source_value);
   
   JSVM_Script script;
-  OH_JSVM_CompileScript(env_, source, nullptr, 0, true, nullptr, &script);
+  JSVM_Status status = OH_JSVM_CompileScript(env_, jsh_source_value->GetValue(), nullptr, 0, true, nullptr, &script);
+  if (status == JSVM_PENDING_EXCEPTION) {
+    JSVM_Value error;
+    if (JSVM_OK == OH_JSVM_GetAndClearLastException((env_), &error))
+    {
+        // 获取异常堆栈
+        JSVM_Value stack;
+        OH_JSVM_GetNamedProperty((env_), error, "stack", &stack);
+
+        JSVM_Value message;
+        OH_JSVM_GetNamedProperty((env_), error, "message", &message);
+
+        char stackstr[256];
+        OH_JSVM_GetValueStringUtf8(env_, stack, stackstr, 256, nullptr);
+        OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error stack: %{public}s", stackstr);
+
+        char messagestr[256];
+        OH_JSVM_GetValueStringUtf8(env_, message, messagestr, 256, nullptr);
+        OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error message: %{public}s", messagestr);
+    }
+      
+    FOOTSTONE_DCHECK(status == JSVM_OK);
+      
+      
+    JSVM_Value errorResult = nullptr;
+    auto s = OH_JSVM_GetAndClearLastException(env_, &errorResult);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
+    
+    JSVM_ValueType valuetype = (JSVM_ValueType)100;
+    status = OH_JSVM_Typeof(env_, errorResult, &valuetype);
+    FOOTSTONE_DCHECK(status == JSVM_OK);
+    FOOTSTONE_DLOG(INFO) << "xxx hippy error, result type, " << valuetype;
+    if (valuetype == 6) {
+      auto obj = errorResult;
+      JSVM_Value propNames = nullptr;
+      OH_JSVM_GetAllPropertyNames(env_, obj, JSVM_KEY_OWN_ONLY,
+                                static_cast<JSVM_KeyFilter>(JSVM_KEY_ENUMERABLE | JSVM_KEY_SKIP_SYMBOLS),
+                                JSVM_KEY_NUMBERS_TO_STRINGS, &propNames);
+    
+      bool isArray = false;
+      OH_JSVM_IsArray(env_, propNames, &isArray);
+      if (!isArray) {
+        return nullptr;
+      }
+    
+      uint32_t arrayLength = 0;
+      OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
+      if (!arrayLength) {
+        return nullptr;
+      }
+    
+      for (uint32_t i = 0; i < arrayLength; i++)
+      {
+        bool hasElement = false;
+        OH_JSVM_HasElement(env_, propNames, i, &hasElement);
+        if (!hasElement) {
+          continue;
+        }
+    
+        JSVM_Value propName = nullptr;
+        OH_JSVM_GetElement(env_, propNames, i, &propName);
+    
+        bool hasProp = false;
+        OH_JSVM_HasProperty(env_, obj, propName, &hasProp);
+        if (!hasProp) {
+          continue;
+        }
+    
+        JSVM_Value propValue = nullptr;
+        OH_JSVM_GetProperty(env_, obj, propName, &propValue);
+        
+        char buf[200] = {0};
+        size_t resultLen = 0;
+        OH_JSVM_GetValueStringUtf8(env_, propName, buf, 200, &resultLen);
+        
+        char buf2[200] = {0};
+        size_t resultLen2 = 0;
+        OH_JSVM_GetValueStringUtf8(env_, propValue, buf2, 200, &resultLen2);
+        
+        FOOTSTONE_DLOG(INFO) << "xxx hippy error, result pair, " << buf << " : " << buf2;
+        
+      }
+    }
+  }
+  FOOTSTONE_DCHECK(status == JSVM_OK);
   
   JSVM_Value result;
-  OH_JSVM_RunScript(env_, script, &result);
+  status = OH_JSVM_RunScript(env_, script, &result);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
   
-//   OH_JSVM_CloseHandleScope(env_, handlescope);
+  JSVM_ValueType valuetype = (JSVM_ValueType)100;
+  status = OH_JSVM_Typeof(env_, result, &valuetype);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
+  FOOTSTONE_DLOG(INFO) << "xxx hippy run script, result type, " << valuetype;
+  
+  if (valuetype == 3) {
+    double tt = 0;
+    OH_JSVM_GetValueDouble(env_, result, &tt);
+    FOOTSTONE_DLOG(INFO) << "xxx hippy run script, result value, " << tt;
+  }
 
 //   if (script.IsEmpty()) {
 //     return nullptr;
@@ -603,6 +717,8 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
 
 void JSHCtx::ThrowException(const std::shared_ptr<CtxValue>& exception) {
   FOOTSTONE_DCHECK(false);
+  JSHHandleScope handleScope(env_);
+  
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
@@ -625,6 +741,8 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
     FOOTSTONE_LOG(ERROR) << "function is nullptr";
     return nullptr;
   }
+  
+  JSHHandleScope handleScope(env_);
 
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
@@ -661,7 +779,8 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
 //       context, handle_object, static_cast<int>(argument_count), args);
   
   JSVM_Value result = 0;
-  OH_JSVM_CallFunction(env_, receiver_object->GetValue(), ctx_value->GetValue(), argument_count, args, &result);
+  auto s = OH_JSVM_CallFunction(env_, receiver_object->GetValue(), ctx_value->GetValue(), argument_count, args, &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
 
   if (!result) {
     FOOTSTONE_DLOG(INFO) << "maybe_result is empty";
@@ -678,7 +797,8 @@ std::shared_ptr<CtxValue> JSHCtx::CreateNumber(double number) {
 //     return nullptr;
 //   }
   JSVM_Value value = 0;
-  OH_JSVM_CreateDouble(env_, number, &value);
+  auto s = OH_JSVM_CreateDouble(env_, number, &value);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, value);
 }
 
@@ -690,7 +810,8 @@ std::shared_ptr<CtxValue> JSHCtx::CreateBoolean(bool b) {
 //     return nullptr;
 //   }
   JSVM_Value value = 0;
-  OH_JSVM_CreateInt32(env_, b ? 1 : 0, &value); // TODO(hot-js):
+  auto s = OH_JSVM_CreateInt32(env_, b ? 1 : 0, &value); // TODO(hot-js):
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, value);
 }
 
@@ -704,8 +825,8 @@ std::shared_ptr<CtxValue> JSHCtx::CreateString(const string_view& str_view) {
 //
 //   auto v8_string = V8VM::CreateV8String(isolate_, context, str_view);
   
-  JSVM_Value value = JSHVM::CreateV8String(env_, str_view);
-  return std::make_shared<JSHCtxValue>(env_, value);
+  auto value = JSHVM::CreateV8String(env_, str_view);
+  return value;
 }
 
 std::shared_ptr<CtxValue> JSHCtx::CreateUndefined() {
@@ -716,7 +837,8 @@ std::shared_ptr<CtxValue> JSHCtx::CreateUndefined() {
 //     return nullptr;
 //   }
   JSVM_Value value = 0;
-  OH_JSVM_GetUndefined(env_, &value);
+  auto s = OH_JSVM_GetUndefined(env_, &value);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, value);
 }
 
@@ -728,7 +850,8 @@ std::shared_ptr<CtxValue> JSHCtx::CreateNull() {
 //     return nullptr;
 //   }
   JSVM_Value value = 0;
-  OH_JSVM_GetNull(env_, &value);
+  auto s = OH_JSVM_GetNull(env_, &value);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, value);
 }
 
@@ -746,6 +869,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateObject(const std::unordered_map<
 std::shared_ptr<CtxValue> JSHCtx::CreateObject(const std::unordered_map<
     std::shared_ptr<CtxValue>,
     std::shared_ptr<CtxValue>>& object) {
+  
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
@@ -759,15 +883,19 @@ std::shared_ptr<CtxValue> JSHCtx::CreateObject(const std::unordered_map<
 //     obj->Set(context, key_handle_value, value_handle_value).ToChecked();
 //   }
   
+  JSHHandleScope handleScope(env_);
+  
   JSVM_Value obj = nullptr;
-  OH_JSVM_CreateObject(env_, &obj);
+  auto s = OH_JSVM_CreateObject(env_, &obj);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   for (const auto& it: object) {
     auto key_ctx_value = std::static_pointer_cast<JSHCtxValue>(it.first);
     
     auto value_ctx_value = std::static_pointer_cast<JSHCtxValue>(it.second);
     
-    OH_JSVM_SetProperty(env_, obj, key_ctx_value->GetValue(), value_ctx_value->GetValue());
+    s = OH_JSVM_SetProperty(env_, obj, key_ctx_value->GetValue(), value_ctx_value->GetValue());
+    FOOTSTONE_DCHECK(s == JSVM_OK);
   }
   
   return std::make_shared<JSHCtxValue>(env_, obj);
@@ -801,11 +929,15 @@ std::shared_ptr<CtxValue> JSHCtx::CreateArray(
 //     }
 //   }
   
+  JSHHandleScope handleScope(env_);
+  
   JSVM_Value array = 0;
-  OH_JSVM_CreateArrayWithLength(env_, (size_t)array_size, &array);
+  auto s = OH_JSVM_CreateArrayWithLength(env_, (size_t)array_size, &array);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   for (auto i = 0; i < array_size; i++) {
     std::shared_ptr<JSHCtxValue> ctx_value = std::static_pointer_cast<JSHCtxValue>(value[i]);
-    OH_JSVM_SetElement(env_, array, (uint32_t)i, ctx_value->GetValue());
+    s = OH_JSVM_SetElement(env_, array, (uint32_t)i, ctx_value->GetValue());
+    FOOTSTONE_DCHECK(s == JSVM_OK);
   }
   
   return std::make_shared<JSHCtxValue>(env_, array);
@@ -829,15 +961,19 @@ std::shared_ptr<CtxValue> JSHCtx::CreateMap(const std::map<
 //   }
 //   return std::make_shared<JSHCtxValue>(env_, js_map);
   
+  JSHHandleScope handleScope(env_);
+  
   JSVM_Value obj = nullptr;
-  OH_JSVM_CreateObject(env_, &obj); // TODO(hot-js):
+  auto s = OH_JSVM_CreateObject(env_, &obj); // TODO(hot-js):
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   for (const auto& it: map) {
     auto key_ctx_value = std::static_pointer_cast<JSHCtxValue>(it.first);
     
     auto value_ctx_value = std::static_pointer_cast<JSHCtxValue>(it.second);
     
-    OH_JSVM_SetProperty(env_, obj, key_ctx_value->GetValue(), value_ctx_value->GetValue());
+    s = OH_JSVM_SetProperty(env_, obj, key_ctx_value->GetValue(), value_ctx_value->GetValue());
+    FOOTSTONE_DCHECK(s == JSVM_OK);
   }
   return std::make_shared<JSHCtxValue>(env_, obj);
 }
@@ -854,10 +990,14 @@ std::shared_ptr<CtxValue> JSHCtx::CreateException(const string_view& msg) {
 //     return nullptr;
 //   }
   
+  JSHHandleScope handleScope(env_);
+  
   JSVM_Value code = nullptr;
-  JSVM_Value msgValue = JSHVM::CreateV8String(env_, msg);
+  auto msg_value = JSHVM::CreateV8String(env_, msg);
+  auto jsh_msg_value = std::static_pointer_cast<JSHCtxValue>(msg_value);
   JSVM_Value error = nullptr;
-  OH_JSVM_CreateError(env_, code, msgValue, &error);
+  auto s = OH_JSVM_CreateError(env_, code, jsh_msg_value->GetValue(), &error);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   return std::make_shared<JSHCtxValue>(env_, error);
 }
@@ -888,8 +1028,11 @@ std::shared_ptr<CtxValue> JSHCtx::CreateByteBuffer(void* buffer, size_t length) 
 //     return nullptr;
 //   }
   
+  JSHHandleScope handleScope(env_);
+  
   JSVM_Value arrayBuffer = nullptr;
-  OH_JSVM_CreateArraybuffer(env_, length, &buffer, &arrayBuffer);
+  auto s = OH_JSVM_CreateArraybuffer(env_, length, &buffer, &arrayBuffer);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
 
   return std::make_shared<JSHCtxValue>(env_, arrayBuffer);
 }
@@ -901,6 +1044,7 @@ bool JSHCtx::GetValueNumber(const std::shared_ptr<CtxValue>& value, double* resu
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, ctx_value->global_value_);
 
@@ -915,7 +1059,8 @@ bool JSHCtx::GetValueNumber(const std::shared_ptr<CtxValue>& value, double* resu
 
 //   *result = number->Value();
   
-  OH_JSVM_GetValueDouble(env_, ctx_value->GetValue(), result);
+  auto s = OH_JSVM_GetValueDouble(env_, ctx_value->GetValue(), result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   return true;
 }
@@ -927,6 +1072,7 @@ bool JSHCtx::GetValueNumber(const std::shared_ptr<CtxValue>& value, int32_t* res
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   std::shared_ptr<JSHCtxValue> ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value =
@@ -938,7 +1084,8 @@ bool JSHCtx::GetValueNumber(const std::shared_ptr<CtxValue>& value, int32_t* res
 //
 //   v8::Local<v8::Int32> number = handle_value->ToInt32(context).ToLocalChecked();
 //   *result = number->Value();
-  OH_JSVM_GetValueInt32(env_, ctx_value->GetValue(), result);
+  auto s = OH_JSVM_GetValueInt32(env_, ctx_value->GetValue(), result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return true;
 }
 
@@ -949,6 +1096,7 @@ bool JSHCtx::GetValueBoolean(const std::shared_ptr<CtxValue>& value, bool* resul
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   std::shared_ptr<JSHCtxValue> ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value =
@@ -961,7 +1109,8 @@ bool JSHCtx::GetValueBoolean(const std::shared_ptr<CtxValue>& value, bool* resul
 //
 //   v8::Local<v8::Boolean> boolean = handle_value->ToBoolean(isolate_);
 //   *result = boolean->Value();
-  OH_JSVM_GetValueBool(env_, ctx_value->GetValue(), result);
+  auto s = OH_JSVM_GetValueBool(env_, ctx_value->GetValue(), result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return true;
 }
 
@@ -984,6 +1133,7 @@ bool JSHCtx::GetValueString(const std::shared_ptr<CtxValue>& value,
 //     *result = V8VM::ToStringView(isolate_, context, handle_value->ToString(context).ToLocalChecked());
 //     return true;
 //   }
+  JSHHandleScope handleScope(env_);
   *result = JSHVM::ToStringView(env_, ctx_value->GetValue());
   return true;
 }
@@ -996,6 +1146,7 @@ bool JSHCtx::GetValueJson(const std::shared_ptr<CtxValue>& value,
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   std::shared_ptr<JSHCtxValue> ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value =
@@ -1024,6 +1175,7 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, ctx_value->global_value_);
 //   auto handle_object = v8::Local<v8::Object>::Cast(handle_value);
@@ -1054,16 +1206,19 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
   auto obj = ctx_value->GetValue();
   
   JSVM_Value propNames = nullptr;
-  OH_JSVM_GetPropertyNames(env_, obj, &propNames);
+  auto s = OH_JSVM_GetPropertyNames(env_, obj, &propNames);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
 
   bool isArray = false;
-  OH_JSVM_IsArray(env_, propNames, &isArray);
+  s = OH_JSVM_IsArray(env_, propNames, &isArray);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (!isArray) {
     return false;
   }
 
   uint32_t arrayLength = 0;
-  OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
+  s = OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (!arrayLength) {
     return false;
   }
@@ -1071,22 +1226,26 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
   for (uint32_t i = 0; i < arrayLength; i++)
   {
     bool hasElement = false;
-    OH_JSVM_HasElement(env_, propNames, i, &hasElement);
+    s = OH_JSVM_HasElement(env_, propNames, i, &hasElement);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     if (!hasElement) {
       continue;
     }
 
     JSVM_Value propName = nullptr;
-    OH_JSVM_GetElement(env_, propNames, i, &propName);
+    s = OH_JSVM_GetElement(env_, propNames, i, &propName);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
 
     bool hasProp = false;
-    OH_JSVM_HasProperty(env_, obj, propName, &hasProp);
+    s = OH_JSVM_HasProperty(env_, obj, propName, &hasProp);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     if (!hasProp) {
       continue;
     }
 
     JSVM_Value propValue = nullptr;
-    OH_JSVM_GetProperty(env_, obj, propName, &propValue);
+    s = OH_JSVM_GetProperty(env_, obj, propName, &propValue);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     
     map[std::make_shared<JSHCtxValue>(env_, propName)] = std::make_shared<JSHCtxValue>(env_, propValue);
   }
@@ -1099,6 +1258,7 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
   auto js_value = ctx_value->GetValue();
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, ctx_value->global_value_);
@@ -1109,17 +1269,21 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
   
   // TODO(hot-js):
   bool isJsArray = false;
-  OH_JSVM_IsArray(env_, js_value, &isJsArray);
+  auto s = OH_JSVM_IsArray(env_, js_value, &isJsArray);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isJsArray) {
     uint32_t arrayLength = 0;
-    OH_JSVM_GetArrayLength(env_, js_value, &arrayLength);
+    s = OH_JSVM_GetArrayLength(env_, js_value, &arrayLength);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
 
     for (uint32_t i = 0; i < arrayLength; i++) {
       bool hasElement = false;
-      OH_JSVM_HasElement(env_, js_value, i, &hasElement);
+      s = OH_JSVM_HasElement(env_, js_value, i, &hasElement);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
 
       JSVM_Value element = nullptr;
-      OH_JSVM_GetElement(env_, js_value, i, &element);
+      s = OH_JSVM_GetElement(env_, js_value, i, &element);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
       
       if (i % 2 == 0) {
         map_key = std::make_shared<JSHCtxValue>(env_, element);
@@ -1130,19 +1294,23 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
   }
   
   bool isJsObj = false;
-  OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isJsObj) {
     JSVM_Value propNames = nullptr;
-    OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
+    s = OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
   
     bool isArray = false;
-    OH_JSVM_IsArray(env_, propNames, &isArray);
+    s = OH_JSVM_IsArray(env_, propNames, &isArray);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     if (!isArray) {
       return false;
     }
   
     uint32_t arrayLength = 0;
-    OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
+    s = OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     if (!arrayLength) {
       return false;
     }
@@ -1150,22 +1318,26 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
     for (uint32_t i = 0; i < arrayLength; i++)
     {
       bool hasElement = false;
-      OH_JSVM_HasElement(env_, propNames, i, &hasElement);
+      s = OH_JSVM_HasElement(env_, propNames, i, &hasElement);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
       if (!hasElement) {
         continue;
       }
   
       JSVM_Value propName = nullptr;
-      OH_JSVM_GetElement(env_, propNames, i, &propName);
+      s = OH_JSVM_GetElement(env_, propNames, i, &propName);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
   
       bool hasProp = false;
-      OH_JSVM_HasProperty(env_, js_value, propName, &hasProp);
+      s = OH_JSVM_HasProperty(env_, js_value, propName, &hasProp);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
       if (!hasProp) {
         continue;
       }
   
       JSVM_Value propValue = nullptr;
-      OH_JSVM_GetProperty(env_, js_value, propName, &propValue);
+      s = OH_JSVM_GetProperty(env_, js_value, propName, &propValue);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
       
       map[std::make_shared<JSHCtxValue>(env_, propName)] = std::make_shared<JSHCtxValue>(env_, propValue);
     }
@@ -1193,6 +1365,7 @@ bool JSHCtx::IsMap(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& persistent_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, persistent_value);
@@ -1204,7 +1377,8 @@ bool JSHCtx::IsMap(const std::shared_ptr<CtxValue>& value) {
   
   // TODO(hot-js):
   bool result = false;
-  OH_JSVM_IsObject(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1216,6 +1390,7 @@ bool JSHCtx::IsNull(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& persistent_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, persistent_value);
@@ -1225,7 +1400,8 @@ bool JSHCtx::IsNull(const std::shared_ptr<CtxValue>& value) {
 //   return handle_value->IsNull();
   
   bool result = false;
-  OH_JSVM_IsNull(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsNull(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1237,6 +1413,7 @@ bool JSHCtx::IsUndefined(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& persistent_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, persistent_value);
@@ -1246,7 +1423,8 @@ bool JSHCtx::IsUndefined(const std::shared_ptr<CtxValue>& value) {
 //   return handle_value->IsUndefined();
   
   bool result = false;
-  OH_JSVM_IsUndefined(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsUndefined(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1258,6 +1436,7 @@ bool JSHCtx::IsNullOrUndefined(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& persistent_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, persistent_value);
@@ -1266,7 +1445,8 @@ bool JSHCtx::IsNullOrUndefined(const std::shared_ptr<CtxValue>& value) {
 //   }
 //   return handle_value->IsNullOrUndefined();
   bool result = false;
-  OH_JSVM_IsNullOrUndefined(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsNullOrUndefined(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1279,6 +1459,7 @@ bool JSHCtx::IsArray(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value =
@@ -1289,7 +1470,8 @@ bool JSHCtx::IsArray(const std::shared_ptr<CtxValue>& value) {
 //   }
 //   return handle_value->IsArray();
   bool result = false;
-  OH_JSVM_IsArray(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsArray(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1300,6 +1482,7 @@ uint32_t JSHCtx::GetArrayLength(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value =
@@ -1315,10 +1498,12 @@ uint32_t JSHCtx::GetArrayLength(const std::shared_ptr<CtxValue>& value) {
 //   }
   
   bool isArray = false;
-  OH_JSVM_IsArray(env_, ctx_value->GetValue(), &isArray);
+  auto s = OH_JSVM_IsArray(env_, ctx_value->GetValue(), &isArray);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isArray) {
     uint32_t arrayLength = 0;
-    OH_JSVM_GetArrayLength(env_, ctx_value->GetValue(), &arrayLength);
+    s = OH_JSVM_GetArrayLength(env_, ctx_value->GetValue(), &arrayLength);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     return arrayLength;
   }
 
@@ -1334,6 +1519,7 @@ std::shared_ptr<CtxValue> JSHCtx::CopyArrayElement(
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
@@ -1353,15 +1539,18 @@ std::shared_ptr<CtxValue> JSHCtx::CopyArrayElement(
 //   }
   
   bool isArray = false;
-  OH_JSVM_IsArray(env_, ctx_value->GetValue(), &isArray);
+  auto s = OH_JSVM_IsArray(env_, ctx_value->GetValue(), &isArray);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isArray) {
     uint32_t arrayLength = 0;
-    OH_JSVM_GetArrayLength(env_, ctx_value->GetValue(), &arrayLength);
+    s = OH_JSVM_GetArrayLength(env_, ctx_value->GetValue(), &arrayLength);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     if (index >= arrayLength) {
       return nullptr;
     }
     JSVM_Value result = nullptr;
-    OH_JSVM_GetElement(env_, ctx_value->GetValue(), index, &result);
+    s = OH_JSVM_GetElement(env_, ctx_value->GetValue(), index, &result);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     if (!result) {
       return nullptr;
     }
@@ -1379,6 +1568,7 @@ size_t JSHCtx::GetMapLength(std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& persistent_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value =
@@ -1397,19 +1587,23 @@ size_t JSHCtx::GetMapLength(std::shared_ptr<CtxValue>& value) {
   
   // TODO(hot-js):
   bool isJsObj = false;
-  OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  auto s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isJsObj) {
     JSVM_Value propNames = nullptr;
-    OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
+    s = OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
   
     bool isArray = false;
-    OH_JSVM_IsArray(env_, propNames, &isArray);
+    s = OH_JSVM_IsArray(env_, propNames, &isArray);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     if (!isArray) {
       return 0;
     }
   
     uint32_t arrayLength = 0;
-    OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
+    s = OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     return arrayLength;
   }
 
@@ -1440,6 +1634,7 @@ std::shared_ptr<CtxValue> JSHCtx::ConvertMapToArray(
 //     return std::make_shared<V8CtxValue>(isolate_, array);
 //   }
 
+  JSHHandleScope handleScope(env_);
   return nullptr;
 }
 
@@ -1453,6 +1648,7 @@ bool JSHCtx::HasNamedProperty(const std::shared_ptr<CtxValue>& value,
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
@@ -1474,12 +1670,15 @@ bool JSHCtx::HasNamedProperty(const std::shared_ptr<CtxValue>& value,
   
   // TODO(hot-js):
   bool isJsObj = false;
-  OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  auto s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isJsObj) {
-    auto key = JSHVM::CreateV8String(env_, name);
+    auto key_value = JSHVM::CreateV8String(env_, name);
+    auto jsh_key_value = std::static_pointer_cast<JSHCtxValue>(key_value);
     
     bool result = false;
-    OH_JSVM_HasProperty(env_, ctx_value->GetValue(), key, &result);
+    s = OH_JSVM_HasProperty(env_, ctx_value->GetValue(), jsh_key_value->GetValue(), &result);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     return result;
   }
   
@@ -1495,6 +1694,7 @@ std::shared_ptr<CtxValue> JSHCtx::CopyNamedProperty(
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const auto& global_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
@@ -1518,12 +1718,15 @@ std::shared_ptr<CtxValue> JSHCtx::CopyNamedProperty(
   
   // TODO(hot-js):
   bool isJsObj = false;
-  OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  auto s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isJsObj) {
-    auto key = JSHVM::CreateV8String(env_, name);
+    auto key_value = JSHVM::CreateV8String(env_, name);
+    auto jsh_key_value = std::static_pointer_cast<JSHCtxValue>(key_value);
     
     JSVM_Value result = nullptr;
-    OH_JSVM_GetProperty(env_, ctx_value->GetValue(), key, &result);
+    s = OH_JSVM_GetProperty(env_, ctx_value->GetValue(), jsh_key_value->GetValue(), &result);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     return std::make_shared<JSHCtxValue>(env_, result);
   }
 
@@ -1537,6 +1740,7 @@ std::shared_ptr<CtxValue> JSHCtx::GetPropertyNames(const std::shared_ptr<CtxValu
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
@@ -1552,13 +1756,15 @@ std::shared_ptr<CtxValue> JSHCtx::GetPropertyNames(const std::shared_ptr<CtxValu
   auto js_value = ctx_value->GetValue();
   
   bool isJsObj = false;
-  OH_JSVM_IsObject(env_, js_value, &isJsObj);
+  auto s = OH_JSVM_IsObject(env_, js_value, &isJsObj);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (!isJsObj) {
     return nullptr;  
   }
   
   JSVM_Value propNames = nullptr;
-  OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
+  s = OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   return std::make_shared<JSHCtxValue>(env_, propNames);
 }
@@ -1571,6 +1777,7 @@ std::shared_ptr<CtxValue> JSHCtx::GetOwnPropertyNames(const std::shared_ptr<CtxV
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
@@ -1587,16 +1794,18 @@ std::shared_ptr<CtxValue> JSHCtx::GetOwnPropertyNames(const std::shared_ptr<CtxV
   auto js_value = ctx_value->GetValue();
   
   bool isJsObj = false;
-  OH_JSVM_IsObject(env_, js_value, &isJsObj);
+  auto s = OH_JSVM_IsObject(env_, js_value, &isJsObj);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (!isJsObj) {
     return nullptr;  
   }
   
   // TODO(hot-js):
   JSVM_Value propNames = nullptr;
-  OH_JSVM_GetAllPropertyNames(env_, js_value, JSVM_KEY_OWN_ONLY,
+  s = OH_JSVM_GetAllPropertyNames(env_, js_value, JSVM_KEY_OWN_ONLY,
                                 static_cast<JSVM_KeyFilter>(JSVM_KEY_ENUMERABLE | JSVM_KEY_SKIP_SYMBOLS),
                                 JSVM_KEY_NUMBERS_TO_STRINGS, &propNames);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   return std::make_shared<JSHCtxValue>(env_, propNames);
 }
@@ -1614,8 +1823,11 @@ bool JSHCtx::IsBoolean(const std::shared_ptr<CtxValue>& value) {
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
 //   return handle_value->IsBoolean();
   
+  JSHHandleScope handleScope(env_);
+  
   bool result = false;
-  OH_JSVM_IsBoolean(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsBoolean(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1631,8 +1843,10 @@ bool JSHCtx::IsNumber(const std::shared_ptr<CtxValue>& value) {
 //   const auto& global_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
 //   return handle_value->IsNumber();
+  JSHHandleScope handleScope(env_);
   bool result = false;
-  OH_JSVM_IsNumber(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsNumber(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1649,8 +1863,10 @@ bool JSHCtx::IsString(const std::shared_ptr<CtxValue>& value) {
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
 //   return handle_value->IsString();
   
+  JSHHandleScope handleScope(env_);
   bool result = false;
-  OH_JSVM_IsString(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsString(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1661,6 +1877,7 @@ bool JSHCtx::IsFunction(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   std::shared_ptr<JSHCtxValue> ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
@@ -1671,8 +1888,15 @@ bool JSHCtx::IsFunction(const std::shared_ptr<CtxValue>& value) {
 //
 //   return handle_value->IsFunction();
   
+  
+  JSVM_ValueType valuetype = (JSVM_ValueType)100;
+  auto s = OH_JSVM_Typeof(env_, ctx_value->GetValue(), &valuetype);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
+  FOOTSTONE_DLOG(INFO) << "xxx hippy value type, " << valuetype;
+  
   bool result = false;
-  OH_JSVM_IsFunction(env_, ctx_value->GetValue(), &result);
+  s = OH_JSVM_IsFunction(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1683,6 +1907,7 @@ bool JSHCtx::IsObject(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   std::shared_ptr<JSHCtxValue> ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
@@ -1693,7 +1918,8 @@ bool JSHCtx::IsObject(const std::shared_ptr<CtxValue>& value) {
 //
 //   return handle_value->IsObject();
   bool result = false;
-  OH_JSVM_IsObject(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -1704,6 +1930,7 @@ string_view JSHCtx::CopyFunctionName(const std::shared_ptr<CtxValue>& function) 
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(function);
 //   const v8::Global<v8::Value>& global_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, global_value);
@@ -1715,7 +1942,8 @@ string_view JSHCtx::CopyFunctionName(const std::shared_ptr<CtxValue>& function) 
 //   }
   
   bool isFunc = false;
-  OH_JSVM_IsFunction(env_, ctx_value->GetValue(), &isFunc);
+  auto s = OH_JSVM_IsFunction(env_, ctx_value->GetValue(), &isFunc);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isFunc) {
     // TODO(hot-js):
   }
@@ -1729,6 +1957,7 @@ bool JSHCtx::SetProperty(std::shared_ptr<CtxValue> object,
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto jsh_object = std::static_pointer_cast<JSHCtxValue>(object);
 //   auto handle_v8_object = v8::Local<v8::Value>::New(isolate_, v8_object->global_value_);
   auto jsh_key = std::static_pointer_cast<JSHCtxValue>(key);
@@ -1738,7 +1967,8 @@ bool JSHCtx::SetProperty(std::shared_ptr<CtxValue> object,
 
 //   auto handle_object = v8::Local<v8::Object>::Cast(handle_v8_object);
 //   return handle_object->Set(context, handle_v8_key, handle_v8_value).FromMaybe(false);
-  OH_JSVM_SetProperty(env_, jsh_object->GetValue(), jsh_key->GetValue(), jsh_value->GetValue());
+  auto s = OH_JSVM_SetProperty(env_, jsh_object->GetValue(), jsh_key->GetValue(), jsh_value->GetValue());
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return true;
 }
 
@@ -1752,6 +1982,7 @@ bool JSHCtx::SetProperty(std::shared_ptr<CtxValue> object,
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto jsh_object = std::static_pointer_cast<JSHCtxValue>(object);
 //   auto handle_v8_object = v8::Local<v8::Value>::New(isolate_, v8_object->global_value_);
   auto jsh_key = std::static_pointer_cast<JSHCtxValue>(key);
@@ -1766,7 +1997,8 @@ bool JSHCtx::SetProperty(std::shared_ptr<CtxValue> object,
 //                                           handle_v8_value, v8_attr).FromMaybe(false);
   
   // TODO(hot-js):
-  OH_JSVM_SetProperty(env_, jsh_object->GetValue(), jsh_key->GetValue(), jsh_value->GetValue());
+  auto s = OH_JSVM_SetProperty(env_, jsh_object->GetValue(), jsh_key->GetValue(), jsh_value->GetValue());
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return true;
 }
 
@@ -1777,9 +2009,10 @@ std::shared_ptr<CtxValue> JSHCtx::CreateObject() {
 
 //   auto object = v8::Object::New(isolate_);
 //   return std::make_shared<V8CtxValue>(isolate_, object);
-  
+  JSHHandleScope handleScope(env_);
   JSVM_Value obj = nullptr;
-  OH_JSVM_CreateObject(env_, &obj);
+  auto s = OH_JSVM_CreateObject(env_, &obj);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, obj);
 }
 
@@ -1790,6 +2023,7 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
 
+  JSHHandleScope handleScope(env_);
   auto jsh_cls = std::static_pointer_cast<JSHCtxValue>(cls);
 //   auto cls_handle_value = v8::Local<v8::Value>::New(isolate_, v8_cls->global_value_);
 //   auto function = v8::Local<v8::Function>::Cast(cls_handle_value);
@@ -1818,13 +2052,16 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
     JSVM_Value args[10];
     JSVM_Value thisArg = nullptr;
     void *data = nullptr;
-    OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
+    auto s = OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
 
     JSVM_Value result = 0;
-    OH_JSVM_CallFunction(env, thisArg, (JSVM_Value)data, argc, args, &result);
+    s = OH_JSVM_CallFunction(env, thisArg, (JSVM_Value)data, argc, args, &result);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     return result;
   };
-  OH_JSVM_DefineClass(env_, "TestClass", JSVM_AUTO_LENGTH, &param1, 0, nullptr, &testClass);
+  auto s = OH_JSVM_DefineClass(env_, "TestClass", JSVM_AUTO_LENGTH, &param1, 0, nullptr, &testClass);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
 
   JSVM_Value instanceValue = nullptr;
   
@@ -1834,7 +2071,8 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
     jsh_argv[i] = jsh_value->GetValue();
   }
   
-  OH_JSVM_NewInstance(env_, testClass, (size_t)argc, jsh_argv, &instanceValue);
+  s = OH_JSVM_NewInstance(env_, testClass, (size_t)argc, jsh_argv, &instanceValue);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, instanceValue);
 }
 
@@ -1847,6 +2085,7 @@ void* JSHCtx::GetObjectExternalData(const std::shared_ptr<CtxValue>& object) {
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, v8_object->global_value_);
 //   auto handle_object = v8::Local<v8::Object>::Cast(handle_value);
 //   return handle_object->GetInternalField(kExternalIndex).As<v8::External>()->Value();
+  JSHHandleScope handleScope(env_);
   return nullptr;
 }
 
@@ -1866,6 +2105,7 @@ std::shared_ptr<CtxValue> JSHCtx::DefineProxy(const std::unique_ptr<FunctionWrap
 //                                                                               reinterpret_cast<void*>(constructor_wrapper.get()))));
 //   obj_tpl->SetInternalFieldCount(1);
 //   return std::make_shared<V8CtxValue>(isolate_, func_tpl->GetFunction(context).ToLocalChecked());
+  JSHHandleScope handleScope(env_);
   return nullptr;
 }
 
@@ -1878,7 +2118,8 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
 
-  auto tpl = CreateTemplate(constructor_wrapper);
+  JSHHandleScope handleScope(env_);
+//   auto tpl = CreateTemplate(constructor_wrapper);
   if (parent) {
     auto parent_template = std::static_pointer_cast<JSHClassDefinition>(parent);
 //     auto parent_template_handle = v8::Local<v8::FunctionTemplate>::New(
@@ -1966,7 +2207,8 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
   constructorParam.callback = InvokeJsCallback;
   
   JSVM_Value testClass = nullptr;
-  OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, property_count, propParams, &testClass);
+  auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, property_count, propParams, &testClass);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   template_map_[name] = std::make_shared<JSHClassDefinition>(env_, testClass);
 
@@ -1978,6 +2220,7 @@ bool JSHCtx::Equals(const std::shared_ptr<CtxValue>& lhs, const std::shared_ptr<
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   std::shared_ptr<JSHCtxValue> ctx_lhs = std::static_pointer_cast<JSHCtxValue>(lhs);
   std::shared_ptr<JSHCtxValue> ctx_rhs = std::static_pointer_cast<JSHCtxValue>(rhs);
 
@@ -1998,7 +2241,8 @@ bool JSHCtx::Equals(const std::shared_ptr<CtxValue>& lhs, const std::shared_ptr<
 //   return maybe.FromJust();
   
   bool isEquals = false;
-  OH_JSVM_Equals(env_, ctx_lhs->GetValue(), ctx_rhs->GetValue(), &isEquals);
+  auto s = OH_JSVM_Equals(env_, ctx_lhs->GetValue(), ctx_rhs->GetValue(), &isEquals);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return isEquals;
 }
 
@@ -2006,6 +2250,7 @@ bool JSHCtx::IsByteBuffer(const std::shared_ptr<CtxValue>& value) {
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   std::shared_ptr<JSHCtxValue> ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& persistent_value = ctx_value->global_value_;
 //   v8::Local<v8::Value> handle_value =
@@ -2016,7 +2261,8 @@ bool JSHCtx::IsByteBuffer(const std::shared_ptr<CtxValue>& value) {
 //   return handle_value->IsArrayBuffer();
   
   bool result = false;
-  OH_JSVM_IsArraybuffer(env_, ctx_value->GetValue(), &result);
+  auto s = OH_JSVM_IsArraybuffer(env_, ctx_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return result;
 }
 
@@ -2027,6 +2273,7 @@ bool JSHCtx::GetByteBuffer(const std::shared_ptr<CtxValue>& value,
 //   v8::HandleScope handle_scope(isolate_);
 //   v8::Local<v8::Context> context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   const v8::Global<v8::Value>& persistent_value = ctx_value->global_value_;
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, persistent_value);
@@ -2046,14 +2293,16 @@ bool JSHCtx::GetByteBuffer(const std::shared_ptr<CtxValue>& value,
 // #endif //V8_MAJOR_VERSION < 9
   
   bool isArrayBuffer = false;
-  OH_JSVM_IsArraybuffer(env_, ctx_value->GetValue(), &isArrayBuffer);
+  auto s = OH_JSVM_IsArraybuffer(env_, ctx_value->GetValue(), &isArrayBuffer);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   if (!isArrayBuffer) {
     return false;
   }
 
   void *tmpArrayBufferPtr = nullptr;
   size_t arrayBufferLength = 0;
-  OH_JSVM_GetArraybufferInfo(env_, ctx_value->GetValue(), &tmpArrayBufferPtr, &arrayBufferLength);
+  s = OH_JSVM_GetArraybufferInfo(env_, ctx_value->GetValue(), &tmpArrayBufferPtr, &arrayBufferLength);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   
   *out_data = tmpArrayBufferPtr;
   out_length = arrayBufferLength;
@@ -2066,6 +2315,7 @@ void  JSHCtx::SetWeak(std::shared_ptr<CtxValue> value,
 //   v8::HandleScope handle_scope(isolate_);
 //   auto context = context_persistent_.Get(isolate_);
 //   v8::Context::Scope context_scope(context);
+  JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
 //   auto handle_value = v8::Local<v8::Value>::New(isolate_, ctx_value->global_value_);
 //   auto handle_object = v8::Local<v8::Object>::Cast(handle_value);

@@ -114,7 +114,8 @@ JSHVM::JSHVM() : VM() {
   memset(&init_options, 0, sizeof(init_options));
   static int aa = 0;
   if (aa == 0) {
-    OH_JSVM_Init(&init_options);
+    auto s = OH_JSVM_Init(&init_options);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     aa++;
   }
 
@@ -125,7 +126,9 @@ JSHVM::JSHVM() : VM() {
   JSVM_CreateVMOptions options;
   memset(&options, 0, sizeof(options));
   status = OH_JSVM_CreateVM(&options, &vm_);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
   status = OH_JSVM_OpenVMScope(vm_, &vmScope_);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
   
   assert(status == JSVM_OK);
 }
@@ -158,6 +161,7 @@ void JSHVM::AddUncaughtExceptionMessageListener(const std::unique_ptr<FunctionWr
 //   v8::HandleScope handle_scope(isolate_);
 //   isolate_->AddMessageListener(UncaughtExceptionMessageCallback,
 //                                v8::External::New(isolate_, wrapper.get()));
+
 }
 
 JSHVM::~JSHVM() {
@@ -208,38 +212,48 @@ string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value stringValue) {
 //   v8_string->Write(isolate, reinterpret_cast<uint16_t*>(&two_byte_string[0]));
 //   return string_view(two_byte_string);
   
+  JSHHandleScope handleScope(env);
+  
   std::u16string two_byte_string;
   size_t result = 0;
-  OH_JSVM_GetValueStringUtf16(env, stringValue, NULL, 0, &result);
+  auto s = OH_JSVM_GetValueStringUtf16(env, stringValue, NULL, 0, &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   two_byte_string.resize(result + 1);
-  OH_JSVM_GetValueStringUtf16(env, stringValue, reinterpret_cast<char16_t*>(&two_byte_string[0]), result + 1, &result);
+  s = OH_JSVM_GetValueStringUtf16(env, stringValue, reinterpret_cast<char16_t*>(&two_byte_string[0]), result + 1, &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return string_view(two_byte_string);
 }
 
-JSVM_Value JSHVM::CreateV8String(JSVM_Env env, const string_view& str_view) {
+std::shared_ptr<CtxValue> JSHVM::CreateV8String(JSVM_Env env, const string_view& str_view) {
 //   v8::EscapableHandleScope handle_scope(isolate);
 //   v8::Context::Scope context_scope(context);
+  
+  JSHHandleScope handleScope(env);
 
   JSVM_Value result = 0;
   string_view::Encoding encoding = str_view.encoding();
   switch (encoding) {
     case string_view::Encoding::Latin1: {
       const std::string& one_byte_str = str_view.latin1_value();
-      OH_JSVM_CreateStringLatin1(env, one_byte_str.c_str(), one_byte_str.size(), &result);
-      return result;
+      auto s = OH_JSVM_CreateStringLatin1(env, one_byte_str.c_str(), one_byte_str.size(), &result);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
+      return std::make_shared<JSHCtxValue>(env, result);
     }
     case string_view::Encoding::Utf8: {
       const string_view::u8string& utf8_str = str_view.utf8_value();
-      OH_JSVM_CreateStringUtf8(env, (const char *)utf8_str.c_str(), utf8_str.size(), &result);
-      return result;
+      auto s = OH_JSVM_CreateStringUtf8(env, (const char *)utf8_str.c_str(), utf8_str.size(), &result);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
+      return std::make_shared<JSHCtxValue>(env, result);
     }
     case string_view::Encoding::Utf16: {
       const std::u16string& two_byte_str = str_view.utf16_value();
-      OH_JSVM_CreateStringUtf16(env, two_byte_str.c_str(), two_byte_str.length(), &result);
-      return result;
+      auto s = OH_JSVM_CreateStringUtf16(env, two_byte_str.c_str(), two_byte_str.length(), &result);
+      FOOTSTONE_DCHECK(s == JSVM_OK);
+      return std::make_shared<JSHCtxValue>(env, result);
     }
     default:break;
   }
+
   FOOTSTONE_UNREACHABLE();
 }
 /*
@@ -317,19 +331,22 @@ std::shared_ptr<CtxValue> JSHVM::ParseJson(const std::shared_ptr<Ctx>& ctx, cons
   }
 
   auto jsh_ctx = std::static_pointer_cast<JSHCtx>(ctx);
+  JSHHandleScope handleScope(jsh_ctx->env_);
 //   auto isolate = v8_ctx->isolate_;
 //   v8::HandleScope handle_scope(isolate);
 //   auto context = v8_ctx->context_persistent_.Get(isolate);
 //   v8::Context::Scope context_scope(context);
 
-  auto jsh_string = JSHVM::CreateV8String(jsh_ctx->env_, json);
+  auto string_value = JSHVM::CreateV8String(jsh_ctx->env_, json);
+  auto jsh_string_value = std::static_pointer_cast<JSHCtxValue>(string_value);
 //   v8::MaybeLocal<v8::Value> maybe_obj = v8::JSON::Parse(context, v8_string);
 //   if (maybe_obj.IsEmpty()) {
 //     return nullptr;
 //   }
   
   JSVM_Value result = nullptr;
-  OH_JSVM_JsonParse(jsh_ctx->env_, jsh_string, &result);
+  auto s = OH_JSVM_JsonParse(jsh_ctx->env_, jsh_string_value->GetValue(), &result);
+  FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(jsh_ctx->env_, result);
 }
 

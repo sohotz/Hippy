@@ -23,6 +23,7 @@
 #pragma once
 
 #include "driver/napi/js_ctx_value.h"
+#include "footstone/logging.h"
 #include <ark_runtime/jsvm.h>
 
 namespace hippy {
@@ -32,22 +33,27 @@ inline namespace napi {
 struct JSHCtxValue : public CtxValue {
   JSHCtxValue(JSVM_Env env, JSVM_Value value)
       : env_(env) {
-    OH_JSVM_CreateReference(env, value, 1, &value_ref_);
+    auto s = OH_JSVM_CreateReference(env, value, 1, &value_ref_);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
   }
   ~JSHCtxValue() {
-    OH_JSVM_DeleteReference(env_, value_ref_);
+//     OH_JSVM_DeleteReference(env_, value_ref_);
   }
   JSHCtxValue(const JSHCtxValue&) = delete;
   JSHCtxValue& operator=(const JSHCtxValue&) = delete;
   
   JSVM_Value GetValue() {
+    if (!value_ref_) {
+      return nullptr;
+    }
     JSVM_Value result = 0;
-    OH_JSVM_GetReferenceValue(env_, value_ref_, &result);
+    auto s = OH_JSVM_GetReferenceValue(env_, value_ref_, &result);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
     return result;
   }
 
-  JSVM_Env env_;
-  JSVM_Ref value_ref_;
+  JSVM_Env env_ = nullptr;
+  JSVM_Ref value_ref_ = nullptr;
 };
 
 }

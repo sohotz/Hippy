@@ -116,7 +116,7 @@ class JSHVM : public VM {
   void AddUncaughtExceptionMessageListener(const std::unique_ptr<FunctionWrapper>& wrapper) const;
   DeserializerResult Deserializer(const std::shared_ptr<Ctx>& ctx, const std::string& buffer);
 
-  static JSVM_Value CreateV8String(JSVM_Env env, const string_view& str_view);
+  static std::shared_ptr<CtxValue> CreateV8String(JSVM_Env env, const string_view& str_view);
   static string_view ToStringView(JSVM_Env env, JSVM_Value stringValue);
 //   static string_view GetMessageDescription(v8::Isolate* isolate,
 //                                            v8::Local<v8::Context> context,

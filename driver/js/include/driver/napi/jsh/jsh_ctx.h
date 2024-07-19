@@ -35,6 +35,24 @@ namespace hippy {
 inline namespace driver {
 inline namespace napi {
 
+class JSHHandleScope {
+ public:
+  JSHHandleScope(const JSHHandleScope &other) = delete;
+  JSHHandleScope &operator=(const JSHHandleScope &other) = delete;
+  
+  explicit JSHHandleScope(const JSVM_Env env) : env_(env) {
+    auto s = OH_JSVM_OpenHandleScope(env_, &handleScope_);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
+  }
+  ~JSHHandleScope() {
+    auto s = OH_JSVM_CloseHandleScope(env_, handleScope_);
+    FOOTSTONE_DCHECK(s == JSVM_OK);
+  }
+ private:
+  JSVM_Env env_ = nullptr;
+  JSVM_HandleScope handleScope_ = nullptr;
+};
+
 class JSHCtx : public Ctx {
  public:
   using unicode_string_view = footstone::string_view;
@@ -194,7 +212,7 @@ class JSHCtx : public Ctx {
   
   std::shared_ptr<CtxValue> CreateTemplate(const std::unique_ptr<FunctionWrapper>& wrapper);
   std::shared_ptr<CtxValue> InternalRunScript(
-      JSVM_Value source,
+      std::shared_ptr<CtxValue> &source_value,
       const unicode_string_view& file_name,
       bool is_use_code_cache,
       unicode_string_view* cache);
