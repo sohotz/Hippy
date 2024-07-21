@@ -56,6 +56,29 @@ static void* sGetAlignedPointerFromEmbedderData(int index) {
   return sEmbedderDataMap[index];
 }
 
+void CheckPendingExeception(JSVM_Env env_, JSVM_Status status) {
+  if (status == JSVM_PENDING_EXCEPTION) {
+    JSVM_Value error;
+    if (JSVM_OK == OH_JSVM_GetAndClearLastException((env_), &error))
+    {
+        // 获取异常堆栈
+        JSVM_Value stack;
+        OH_JSVM_GetNamedProperty((env_), error, "stack", &stack);
+
+        JSVM_Value message;
+        OH_JSVM_GetNamedProperty((env_), error, "message", &message);
+
+        char stackstr[256];
+        OH_JSVM_GetValueStringUtf8(env_, stack, stackstr, 256, nullptr);
+        OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error stack: %{public}s", stackstr);
+
+        char messagestr[256];
+        OH_JSVM_GetValueStringUtf8(env_, message, messagestr, 256, nullptr);
+        OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error message: %{public}s", messagestr);
+    }
+  }
+}
+
 /*
 void InvokePropertyCallback(v8::Local<v8::Name> property,
                             const v8::PropertyCallbackInfo<v8::Value>& info) {
@@ -215,7 +238,9 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   auto ret_value = std::static_pointer_cast<JSHCtxValue>(cb_info.GetReturnValue()->Get());
   if (!ret_value) {
     
-    auto error = std::static_pointer_cast<JSHCtxValue>(cb_info.GetExceptionValue()->Get())->GetValue();
+    auto error_ctx_value = std::static_pointer_cast<JSHCtxValue>(cb_info.GetExceptionValue()->Get());
+    if (error_ctx_value) {
+          auto error = error_ctx_value->GetValue();
     
         // 获取异常堆栈
         JSVM_Value stack;
@@ -231,8 +256,14 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
         char messagestr[256];
         OH_JSVM_GetValueStringUtf8(env, message, messagestr, 256, nullptr);
         OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error message: %{public}s", messagestr);
+    }
     
-    assert(0);
+    JSVM_Value result = nullptr;
+    OH_JSVM_GetUndefined(env, &result);
+    return result;
+      
+      
+      
 //     info.GetReturnValue().SetUndefined();
 //     return;
   }
@@ -805,7 +836,9 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
   
   JSVM_Value result = 0;
   auto s = OH_JSVM_CallFunction(env_, receiver_object->GetValue(), ctx_value->GetValue(), argument_count, args, &result);
+  CheckPendingExeception(env_, s);
   FOOTSTONE_DCHECK(s == JSVM_OK);
+  
 
   if (!result) {
     FOOTSTONE_DLOG(INFO) << "maybe_result is empty";
