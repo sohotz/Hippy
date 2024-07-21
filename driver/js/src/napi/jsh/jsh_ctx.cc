@@ -185,6 +185,13 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 //       cb_info.SetData(new_instance_external);
 //     }
 //   }
+  
+    // TODO(hot-js):
+    auto new_instance_external = (void*)1; //context->GetAlignedPointerFromEmbedderData(kNewInstanceExternalIndex);
+    if (new_instance_external) {
+      cb_info.SetData(new_instance_external);
+    }
+  
   cb_info.SetReceiver(std::make_shared<JSHCtxValue>(env, thisArg));
   for (size_t i = 0; i < argc; i++) {
     cb_info.AddValue(std::make_shared<JSHCtxValue>(env, args[i]));
@@ -207,6 +214,24 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 
   auto ret_value = std::static_pointer_cast<JSHCtxValue>(cb_info.GetReturnValue()->Get());
   if (!ret_value) {
+    
+    auto error = std::static_pointer_cast<JSHCtxValue>(cb_info.GetExceptionValue()->Get())->GetValue();
+    
+        // 获取异常堆栈
+        JSVM_Value stack;
+        OH_JSVM_GetNamedProperty(env, error, "stack", &stack);
+
+        JSVM_Value message;
+        OH_JSVM_GetNamedProperty(env, error, "message", &message);
+
+        char stackstr[256];
+        OH_JSVM_GetValueStringUtf8(env, stack, stackstr, 256, nullptr);
+        OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error stack: %{public}s", stackstr);
+
+        char messagestr[256];
+        OH_JSVM_GetValueStringUtf8(env, message, messagestr, 256, nullptr);
+        OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error message: %{public}s", messagestr);
+    
     assert(0);
 //     info.GetReturnValue().SetUndefined();
 //     return;
@@ -275,12 +300,12 @@ std::shared_ptr<CtxValue> JSHCtx::CreateTemplate(const std::unique_ptr<FunctionW
 //                                    v8::External::New(isolate_,
 //                                                      reinterpret_cast<void*>(wrapper.get())));
   
-  JSVM_CallbackStruct param;
-  param.data = wrapper.get();
-  param.callback = InvokeJsCallback;
+  JSVM_CallbackStruct *param = new JSVM_CallbackStruct();
+  param->data = wrapper.get();
+  param->callback = InvokeJsCallback;
 
   JSVM_Value funcValue = nullptr;
-  JSVM_Status status = OH_JSVM_CreateFunction(env_, "func", JSVM_AUTO_LENGTH, &param, &funcValue);
+  JSVM_Status status = OH_JSVM_CreateFunction(env_, "func", JSVM_AUTO_LENGTH, param, &funcValue);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, funcValue);
 }
@@ -2045,9 +2070,9 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
 //   return std::make_shared<V8CtxValue>(isolate_, instance);
   
   JSVM_Value testClass = nullptr;
-  JSVM_CallbackStruct param1;
-  param1.data = jsh_cls->GetValue();
-  param1.callback = [](JSVM_Env env, JSVM_CallbackInfo info) -> JSVM_Value {
+  JSVM_CallbackStruct *param1 = new JSVM_CallbackStruct();
+  param1->data = jsh_cls->GetValue();
+  param1->callback = [](JSVM_Env env, JSVM_CallbackInfo info) -> JSVM_Value {
     JSHHandleScope handleScope(env);
     
     size_t argc = 10; // TODO(hot-js):
@@ -2056,13 +2081,17 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
     void *data = nullptr;
     auto s = OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
     FOOTSTONE_DCHECK(s == JSVM_OK);
+    FOOTSTONE_DLOG(INFO) << "xxx hippy define, data2: " << data << ", thisArg: " << thisArg << ", argc: " << argc;
+    FOOTSTONE_DCHECK(data);
 
     JSVM_Value result = 0;
     s = OH_JSVM_CallFunction(env, thisArg, (JSVM_Value)data, argc, args, &result);
     FOOTSTONE_DCHECK(s == JSVM_OK);
     return result;
   };
-  auto s = OH_JSVM_DefineClass(env_, "TestClass", JSVM_AUTO_LENGTH, &param1, 0, nullptr, &testClass);
+  
+  FOOTSTONE_DLOG(INFO) << "xxx hippy define, data1: " << param1->data;
+  auto s = OH_JSVM_DefineClass(env_, "TestClass", JSVM_AUTO_LENGTH, param1, 0, nullptr, &testClass);
   FOOTSTONE_DCHECK(s == JSVM_OK);
 
   JSVM_Value instanceValue = nullptr;
@@ -2073,7 +2102,8 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
     jsh_argv[i] = jsh_value->GetValue();
   }
   
-  s = OH_JSVM_NewInstance(env_, testClass, (size_t)argc, jsh_argv, &instanceValue);
+  FOOTSTONE_DLOG(INFO) << "xxx hippy define, cls: " << jsh_cls->GetValue();
+  s = OH_JSVM_NewInstance(env_, jsh_cls->GetValue(), (size_t)argc, jsh_argv, &instanceValue);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, instanceValue);
 }
@@ -2223,9 +2253,9 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
   
   string_view utf8Name = StringViewUtils::ConvertEncoding(name, string_view::Encoding::Utf8);
   
-  JSVM_CallbackStruct constructorParam;
-  constructorParam.data = constructor_wrapper.get();
-  constructorParam.callback = InvokeJsCallback;
+  JSVM_CallbackStruct *constructorParam = new JSVM_CallbackStruct();
+  constructorParam->data = constructor_wrapper.get();
+  constructorParam->callback = InvokeJsCallback;
   
 //   JSVM_PropertyDescriptor descriptor[] = {
 //             {"consoleinfo", NULL, &constructorParam, NULL, NULL, NULL, JSVM_DEFAULT},
@@ -2233,7 +2263,7 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
 //         };
   
   JSVM_Value testClass = nullptr;
-  auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, property_count, propParams, &testClass);
+  auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, constructorParam, property_count, propParams, &testClass);
 //   auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, 2, descriptor, &testClass);
   //   auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, 0, 0, &testClass);
   FOOTSTONE_DCHECK(s == JSVM_OK);
