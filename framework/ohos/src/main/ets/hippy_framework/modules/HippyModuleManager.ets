@@ -33,10 +33,5 @@ export interface HippyModuleManager {
 
   getJavaScriptModule(name: string): HippyJavaScriptModuleBase | null;
 
-  /**
-   * Add native modules and java script modules defined in {@link HippyAPIProvider}.
-   *
-   * @param apiProviders API providers need to be added.
-   */
   addModules(customNativeModules: Map<string, HippyNativeModuleCreator> | null): void;
 }

@@ -27,6 +27,7 @@ import {
   HippyModuleDestroyCallback,
   HippyModuleLoadCallback,
   ModuleLoadParams,
+  ModuleLoadStatus,
   V8InitParams
 } from '.';
 import { DefaultProcessor } from '../vfs/DefaultProcessor'
@@ -164,16 +165,16 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
         this.params.remoteServerUrl);
       let url = this.mDevSupportManager.createResourceUrl(this.mServerBundleName);
       this.mCoreBundleLoader = new HippyRemoteBundleLoader(url as string, false, "");
-      // 注入调试回调
+      // Inject Devtools Callback
       this.mDevSupportManager.setDevCallback(this);
     }
   }
 
   public restartEngine(initCallback: HippyEngineInitCallback) {
-    // 性能打点
+    // performance
     this.mMonitor.startPoint(MonitorGroupType.ENGINE_INITIALIZE, TimeMonitor.MONITOR_POINT_INIT_NATIVE_ENGINE);
     this.domMgr = new DomManager(this.libHippy)
-    // 初始化 HippyEngineContext
+    // init HippyEngineContext
     this.mEngineContext = new HippyEngineContextImpl(
       this.params,
       this.domMgr,
@@ -182,7 +183,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
       this.mCoreBundleLoader,
       this.mDevSupportManager,
     );
-    // 提供给 Render 模块的 Proxy
     this.nativeRenderProvider = this.mEngineContext.getNativeRenderProvider()
     if (this.nativeRenderProvider) {
       this.nativeRenderProvider.getNativeRenderImpl().setFrameworkProxy(this);
@@ -321,27 +321,23 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
   onSizeChanged(rootId: number, w: number, h: number, ow: number, oh: number): void {
   }
 
-  loadJsModule(loadParams: ModuleLoadParams, rootId: number, loadCallback: HippyModuleLoadCallback) {
+  loadJsModule(loadParams: ModuleLoadParams, rootId: number, loadJsModuleCallback: HippyModuleLoadCallback) {
     if (!this.mEngineContext) {
       return;
     }
     if (!this.params.debugMode) {
       if (this.mCoreBundleLoader != null) {
-        // TODO 多RootView
         this.mEngineContext?.getBridgeManager().runBundle(0, this.mCoreBundleLoader);
       } else {
         LogUtils.e('hippy', 'load module error. jsBundleLoader==null');
-        // notifyModuleLoaded(ModuleLoadStatus.STATUS_VARIABLE_NULL,
-        //   "load module error. jsBundleLoader==null");
+        loadJsModuleCallback(ModuleLoadStatus.STATUS_VARIABLE_NULL, "load module error. jsBundleLoader==null");
         return;
       }
     }
-    // TODO 多RootView
     this.mEngineContext.getBridgeManager().loadInstance(loadParams.componentName, rootId, loadParams.jsParams);
 
-    // TODO: Debug
     if (this.params.debugMode) {
-      // notifyModuleLoaded(ModuleLoadStatus.STATUS_OK, null);
+      loadJsModuleCallback(ModuleLoadStatus.STATUS_OK, 'load module in debugMode');
     }
   }
 
