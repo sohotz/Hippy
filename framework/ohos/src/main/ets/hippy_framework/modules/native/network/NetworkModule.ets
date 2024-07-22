@@ -30,6 +30,7 @@ import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
 import { LogUtils } from '../../../../support/utils/LogUtils'
 import { FetchResourceCallback } from '../../../../vfs/FetchResourceCallback'
 import { HippyModulePromise } from '../../HippyModulePromise'
+import { ArgumentUtils } from '../../../../support/utils/ArgumentUtils'
 
 const NETWORK_MODULE_TAG = "NetworkModule"
 
@@ -147,15 +148,14 @@ export class NetworkModule extends HippyNativeModuleBase {
     }
     responseMap.set(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE, statusCode);
     responseMap.set("statusLine", responseMessage);
-    responseMap.set("respHeaders", headerMap.toString());
+    responseMap.set("respHeaders", JSON.stringify(ArgumentUtils.mapToRecord(headerMap)));
     let body = "";
-    // let result = util.TextDecoder.create('utf-8', dataHolder)
-    // let retStr = result.encoding
     try {
-      let bytes = dataHolder.getBuffer();
-      if (bytes != null) {
+      let buffer = dataHolder.getBuffer();
+      if (buffer != null) {
+        const bytes = new Uint8Array(buffer);
         let textDecoder = TextUtils.getUtf8Decoder();
-        // let body = textDecoder.decodeWithStream( bytes , {stream: false});
+        body = textDecoder.decodeWithStream(bytes);
       }
     } catch (e) {
       LogUtils.e(NETWORK_MODULE_TAG, e)
