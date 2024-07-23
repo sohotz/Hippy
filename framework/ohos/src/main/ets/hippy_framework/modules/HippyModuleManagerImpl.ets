@@ -185,6 +185,19 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
       return new Array<HippyAny>()
     }
     const paramArray = JSON.parse(str) as Array<HippyAny>;
-    return paramArray;
+    let resultArray = new Array<HippyAny>()
+    paramArray.forEach((value: HippyAny) => {
+      if (typeof value == 'object') {
+        resultArray.push(this.object2map(value as object))
+      } else {
+        resultArray.push(value)
+      }
+    });
+    return resultArray
+  }
+
+  private object2map(obj: object): Map<string, HippyAny> {
+    let map: Map<string, HippyAny> = new Map(Object.entries(obj))
+    return map
   }
 }
