@@ -220,6 +220,7 @@ string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value stringValue) {
   FOOTSTONE_DCHECK(s == JSVM_OK);
   two_byte_string.resize(result + 1);
   s = OH_JSVM_GetValueStringUtf16(env, stringValue, reinterpret_cast<char16_t*>(&two_byte_string[0]), result + 1, &result);
+  two_byte_string.resize(result);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   return string_view(two_byte_string);
 }
@@ -336,6 +337,8 @@ std::shared_ptr<CtxValue> JSHVM::ParseJson(const std::shared_ptr<Ctx>& ctx, cons
 //   v8::HandleScope handle_scope(isolate);
 //   auto context = v8_ctx->context_persistent_.Get(isolate);
 //   v8::Context::Scope context_scope(context);
+
+//   auto jj = StringViewUtils::ConvertEncoding(json, footstone::string_view::Encoding::Utf8);
 
   auto string_value = JSHVM::CreateV8String(jsh_ctx->env_, json);
   auto jsh_string_value = std::static_pointer_cast<JSHCtxValue>(string_value);

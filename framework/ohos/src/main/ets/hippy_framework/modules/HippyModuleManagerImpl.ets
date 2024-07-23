@@ -82,7 +82,8 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
   private cachedJSModuleMap: Map<string, HippyJavaScriptModuleBase> = new Map();
   private mEnableV8Serialization: boolean;
 
-  constructor(ctx: HippyEngineContext, enableV8Serialization = true) {
+  // TODO(hot-jsxx):
+  constructor(ctx: HippyEngineContext, enableV8Serialization = false) {
     this.ctx = ctx;
     this.nativeModuleCreatorRegisterMap = hippyNativeModuleCreatorRegisterMap();
     this.jsModuleCreatorRegisterMap = hippyJSModuleCreatorRegisterMap();
@@ -180,6 +181,9 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     const bytes = new Uint8Array(buffer);
     const textDecoder = TextUtils.getUtf8Decoder()
     const str = textDecoder.decodeWithStream(bytes)
+    if (!str) {
+      return new Array<HippyAny>()
+    }
     const paramArray = JSON.parse(str) as Array<HippyAny>;
     return paramArray;
   }

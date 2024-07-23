@@ -503,8 +503,11 @@ void JsDriverUtils::CallJs(const string_view& action,
       }
     } else {
 #endif
-      std::u16string str(reinterpret_cast<const char16_t*>(&buffer_data_[0]),
-                         buffer_data_.length() / sizeof(char16_t));
+      // TODO(hot-jsxx):
+//       std::u16string str(reinterpret_cast<const char16_t*>(&buffer_data_[0]),
+//                          buffer_data_.length() / sizeof(char16_t));
+      string_view::u8string str(reinterpret_cast<const uint8_t*>(&buffer_data_[0]),
+                         buffer_data_.length());
       string_view buf_str(std::move(str));
       FOOTSTONE_DLOG(INFO) << "action = " << action << ", buf_str = " << buf_str;
       params = vm->ParseJson(context, buf_str);

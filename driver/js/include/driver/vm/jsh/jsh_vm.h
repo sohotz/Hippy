@@ -130,7 +130,7 @@ class JSHVM : public VM {
 //   v8::Isolate::CreateParams create_params_;
   std::unique_ptr<FunctionWrapper> uncaught_exception_;
   std::string serializer_reused_buffer_;
-  bool enable_v8_serialization_;
+  bool enable_v8_serialization_ = false;
 
 // #if defined(ENABLE_INSPECTOR) && !defined(V8_WITHOUT_INSPECTOR)
 //   std::shared_ptr<V8InspectorClientImpl> inspector_client_;

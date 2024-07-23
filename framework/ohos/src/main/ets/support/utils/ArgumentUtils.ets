@@ -21,17 +21,16 @@ import { HippyAny, HippyValue } from '../common/HippyTypes'
 
 export class ArgumentUtils {
   public static objectToJson(obj: HippyAny): string {
-    if (obj == null) {
+    if (!obj) {
       return ""
     }
 
-    let buider: String = new String()
-    ArgumentUtils.objectToJsonImpl(obj, buider)
-    return buider.toString()
+    let str = ArgumentUtils.objectToJsonImpl(obj)
+    return str
   }
 
-  private static stringFormat(value: string, builder: String) {
-    builder += "\""
+  private static stringFormat(value: string): string {
+    let builder: string = "\""
     for (let i = 0, length = value.length; i < length; i++) {
       let c = value.charAt(i)
       switch (c) {
@@ -74,19 +73,21 @@ export class ArgumentUtils {
       }
     }
     builder += "\""
+    return builder
   }
 
-  private static objectToJsonImpl(obj: HippyAny, builder: String) {
-    if (obj == null) {
+  private static objectToJsonImpl(obj: HippyAny): string {
+    let builder: string = ""
+    if (!obj) {
       builder += "\"\""
-      return
+      return builder
     }
 
     if (typeof obj == 'string') {
       if (obj.length == 0) {
         builder += "\"\""
       } else {
-        ArgumentUtils.stringFormat(obj, builder)
+        builder += ArgumentUtils.stringFormat(obj)
       }
     } else if (typeof obj == 'number') {
       builder += Number.isNaN(obj) ? "0" : obj.toString()
@@ -99,7 +100,7 @@ export class ArgumentUtils {
       let array = obj as Array<HippyAny>
       let length = array.length
       for (let i = 0; i < length; i++) {
-        ArgumentUtils.objectToJsonImpl(array[i], builder)
+        builder += ArgumentUtils.objectToJsonImpl(array[i])
         if (i != length - 1) {
           builder += ","
         }
@@ -115,7 +116,7 @@ export class ArgumentUtils {
         builder += key
         builder += "\""
         builder += ":"
-        ArgumentUtils.objectToJsonImpl(value, builder)
+        builder += ArgumentUtils.objectToJsonImpl(value)
         ++count
         if (count < length) {
           builder += ","
@@ -123,6 +124,7 @@ export class ArgumentUtils {
       })
       builder += "}"
     }
+    return builder
   }
 
   public static mapToRecord(map: Map<string, HippyAny>) {

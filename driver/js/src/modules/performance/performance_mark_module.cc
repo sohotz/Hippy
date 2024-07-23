@@ -84,11 +84,13 @@ std::shared_ptr<ClassTemplate<PerformanceMark>> RegisterPerformanceMark(const st
       return nullptr;
     }
     auto context = scope->GetContext();
-    auto detail = thiz->GetDetail();
-    if (!detail.has_value()) {
-      return context->CreateNull();
-    }
-    return std::any_cast<std::shared_ptr<CtxValue>>(detail);
+    // TODO(hot-jsxx):
+    return context->CreateNull();
+//     auto detail = thiz->GetDetail();
+//     if (!detail.has_value()) {
+//       return context->CreateNull();
+//     }
+//     return std::any_cast<std::shared_ptr<CtxValue>>(detail);
   };
   class_template.properties.push_back(std::move(name_property_define));
 
