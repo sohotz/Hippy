@@ -586,6 +586,15 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
     if (v8_vm->IsEnableV8Serialization()) {
       auto v8_ctx = std::static_pointer_cast<hippy::napi::V8Ctx>(context);
       buffer_data = v8_ctx->GetSerializationBuffer(info[3], v8_vm->GetBuffer());
+#elif JS_JSH
+    auto engine = scope->GetEngine().lock();
+    FOOTSTONE_DCHECK(engine);
+    if (!engine) {
+      return;
+    }
+    auto vm = engine->GetVM();
+    auto jsh_vm = std::static_pointer_cast<JSHVM>(vm);
+    if (jsh_vm->enable_v8_serialization_) {
 #endif
     } else {
       string_view json;
@@ -595,6 +604,8 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
       buffer_data = StringViewUtils::ToStdString(
           StringViewUtils::ConvertEncoding(json, string_view::Encoding::Utf8).utf8_value());
 #ifdef JS_V8
+    }
+#elif JS_JSH
     }
 #endif
   }
