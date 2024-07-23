@@ -1380,7 +1380,7 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
   s = OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   if (!arrayLength) {
-    return false;
+    return true; // TODO(hot-js):
   }
 
   for (uint32_t i = 0; i < arrayLength; i++)
@@ -2080,6 +2080,12 @@ bool JSHCtx::IsObject(const std::shared_ptr<CtxValue>& value) {
   bool result = false;
   auto s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &result);
   FOOTSTONE_DCHECK(s == JSVM_OK);
+  
+//     JSVM_ValueType valuetype = (JSVM_ValueType)100;
+//     s = OH_JSVM_Typeof(env_, ctx_value->GetValue(), &valuetype);
+//     FOOTSTONE_DCHECK(s == JSVM_OK);
+//     FOOTSTONE_DLOG(INFO) << "xxx hippy IsObject, real type, " << valuetype;
+  
   return result;
 }
 
