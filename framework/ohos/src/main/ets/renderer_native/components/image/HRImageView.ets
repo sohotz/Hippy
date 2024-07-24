@@ -30,7 +30,7 @@ import { ImageRequestListener } from './ImageRequestListener';
 import { ImageDataSupplier } from './ImageDataSupplier';
 import { HashMap } from '@kit.ArkTS';
 import { HRValueUtils } from '../../utils/HRValueUtils';
-import { HippyResourceLoader } from '../../../hippy_framework/adapter/http/HippyResourceLoader';
+import { HippyResourceLoader } from '../../../hippy_framework/HippyResourceLoader';
 import { UrlUtils } from '../../../support/utils/UrlUtils';
 import { HRPadding, HRRect } from '../../utils/HRTypes';
 

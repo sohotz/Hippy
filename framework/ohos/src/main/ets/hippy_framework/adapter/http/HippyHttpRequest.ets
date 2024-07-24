@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpHeaderReuqest } from './HttpHeaderRequest';
+import { HttpHeaderRequest } from './HippyHttpHeader';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import I18n from '@ohos.i18n';
 import { util } from '@kit.ArkTS';
@@ -57,7 +57,7 @@ export class HippyHttpRequest {
 
   public getRequestCookies(): string | undefined {
     if (this.mHeaders != null) {
-      return this.mHeaders.get(HttpHeaderReuqest.COOKIE);
+      return this.mHeaders.get(HttpHeaderRequest.COOKIE);
     }
     return undefined
   }
@@ -191,6 +191,6 @@ export class HippyHttpRequest {
       }
     }
 
-    this.addHeader(HttpHeaderReuqest.USER_AGENT, HippyHttpRequest.USER_AGENT);
+    this.addHeader(HttpHeaderRequest.USER_AGENT, HippyHttpRequest.USER_AGENT);
   }
 }

@@ -96,9 +96,6 @@ export class HippyGlobalConfigs {
 
   public destroyIfNeed() {
     try {
-      if (this.mHttpAdapter != null) {
-        this.mHttpAdapter.destroyIfNeed();
-      }
       if (this.mStorageAdapter != null) {
         this.mStorageAdapter.destroyIfNeed();
       }

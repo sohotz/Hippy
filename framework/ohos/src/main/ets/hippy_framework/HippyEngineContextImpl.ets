@@ -14,7 +14,7 @@ import { EngineInitParams, ModuleLoadParams } from './HippyEngine';
 import { HippyEngineContext } from './HippyEngineContext';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
 import { HippyModuleManagerImpl, HippyNativeModuleCreator } from './modules/HippyModuleManagerImpl';
-import { HippyResourceLoader } from './adapter/http/HippyResourceLoader';
+import { HippyResourceLoader } from './HippyResourceLoader';
 import { DefaultProcessor } from '../vfs/DefaultProcessor';
 import { HippyModuleManager } from './modules/HippyModuleManager';
 import { HippyAPIProvider } from './bridge/HippyAPIProvider';
@@ -42,6 +42,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   private mDevSupportManager: DevSupportManager | null = null;
   private mDevtoolsManager: DevtoolsManager | null = null;
   private mDebugMode: boolean;
+  private loadModuleCallback: Function | null = null;
 
   public constructor(
     params: EngineInitParams,
@@ -166,8 +167,14 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     // }
   }
 
+  setLoadModuleCallback(loadModuleCallback: Function | null) {
+    this.loadModuleCallback = loadModuleCallback;
+  }
+
   onLoadModuleCompleted(statusCode: number, msg: string): void {
-    throw new Error('Method not implemented.');
+    if (this.loadModuleCallback) {
+        this.loadModuleCallback(statusCode, msg);
+    }
   }
 
   getLibHippy(): HippyLibrary {

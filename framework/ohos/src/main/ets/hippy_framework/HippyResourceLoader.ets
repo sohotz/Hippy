@@ -18,14 +18,14 @@
  * limitations under the License.
  */
 
-import { ResourceDataHolder, UriType } from '../../../vfs/ResourceDataHolder';
-import { ResourceLoader } from '../../../vfs/ResourceLoader';
-import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
-import { UrlUtils } from '../../../support/utils/UrlUtils';
-import { HippyEngineContext } from '../../HippyEngineContext';
+import { ResourceDataHolder, UriType } from '../vfs/ResourceDataHolder';
+import { ResourceLoader } from '../vfs/ResourceLoader';
+import { ProcessorCallback } from '../vfs/ProcessorCallback';
+import { UrlUtils } from '../support/utils/UrlUtils';
+import { HippyEngineContext } from './HippyEngineContext';
 import { http } from '@kit.NetworkKit';
-import { HippyAssetBundleLoader } from '../../bridge/bundleloader/HippyAssetBundleLoader';
-import { HippyFileBundleLoader } from '../../bridge/bundleloader/HippyFileBundleLoader';
+import { HippyAssetBundleLoader } from './bridge/bundleloader/HippyAssetBundleLoader';
+import { HippyFileBundleLoader } from './bridge/bundleloader/HippyFileBundleLoader';
 
 export enum FetchResultCode {
   OK,

@@ -23,7 +23,6 @@ import { VfsManager } from '../../../../vfs/VfsManager'
 import { ResourceDataHolder, UriType } from '../../../../vfs/ResourceDataHolder'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
-import { HashMap } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
 import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
 import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
@@ -121,10 +120,10 @@ export class NetworkModule extends HippyNativeModuleBase {
     return new Map<string, string>();
   }
 
-  private handleFetchResponse(dataHolder: ResourceDataHolder): Map<string, HippyValue> {
+  private handleFetchResponse(dataHolder: ResourceDataHolder): HippyMap {
     let resHeader = dataHolder.responseHeaders
-    let headerMap: Map<string, HippyValue> = new Map<string, HippyValue>();
-    let responseMap: Map<string, HippyValue> = new Map<string, HippyValue>();
+    let headerMap: HippyMap = new Map<string, string>();
+    let responseMap: HippyMap = new Map<string, HippyAny>();
     let statusCode = -1;
     let responseMessage = "";
     if (resHeader != null) {
@@ -148,19 +147,8 @@ export class NetworkModule extends HippyNativeModuleBase {
     }
     responseMap.set(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE, statusCode);
     responseMap.set("statusLine", responseMessage);
-    responseMap.set("respHeaders", JSON.stringify(ArgumentUtils.mapToRecord(headerMap)));
-    let body = "";
-    try {
-      let buffer = dataHolder.getBuffer();
-      if (buffer != null) {
-        const bytes = new Uint8Array(buffer);
-        let textDecoder = TextUtils.getUtf8Decoder();
-        body = textDecoder.decodeWithStream(bytes);
-      }
-    } catch (e) {
-      LogUtils.e(NETWORK_MODULE_TAG, e)
-    }
-    responseMap.set("respBody", body);
+    responseMap.set("respHeaders", headerMap);
+    responseMap.set("respBody", dataHolder.requestResult);
     return responseMap
   }
 

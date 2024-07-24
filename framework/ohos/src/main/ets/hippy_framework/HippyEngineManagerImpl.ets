@@ -86,7 +86,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
   private mDevtoolsManager: DevtoolsManager | null = null;
   private mDevSupportManager: DevSupportManager | null = null;
 
-  private destroyCallback: Function | null = null;
+  private destroyModuleCallback: Function | null = null;
   private rootView: HippyRootView | null = null;
 
   constructor(params: EngineInitParams) {
@@ -236,12 +236,12 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     }
   }
 
-  public initEngine(initCallback: HippyEngineInitCallback): void {
+  public initEngine(initEngineCallback: HippyEngineInitCallback): void {
     this.initDevModule();
-    this.restartEngine(initCallback);
+    this.restartEngine(initEngineCallback);
   }
 
-  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): HippyRootView | null {
+  loadModule(loadParams: ModuleLoadParams, loadModuleCallback: HippyModuleLoadCallback): HippyRootView | null {
     const jsDriver = this.mEngineContext?.getJsDriver();
     if (!jsDriver || !this.getVfsManager() || !this.resourceManager) {
       return null;
@@ -259,21 +259,21 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     }
     const rootView = this.mEngineContext!.createRootView(loadParams);
     this.rootView = rootView;
-    this.loadJsModule(loadParams, rootView.getRootId(), loadCallback)
+    this.loadJsModule(loadParams, rootView.getRootId(), loadModuleCallback)
     if (this.params.debugMode && this.mDevSupportManager) {
       this.mDevSupportManager.attachToHost(this.params.context, rootView.getRootId());
     }
     return rootView;
   }
 
-  destroyModule(rootId: number, destroyCallback: HippyModuleDestroyCallback): void {
-    this.destroyCallback = destroyCallback;
+  destroyModule(rootId: number, destroyModuleCallback: HippyModuleDestroyCallback): void {
+    this.destroyModuleCallback = destroyModuleCallback;
     this.nativeRenderProvider!.getNativeRenderImpl().destroyRoot(rootId)
     if (this.mEngineContext != null && this.mEngineContext.getBridgeManager() != null) {
       this.mEngineContext.getBridgeManager().destroyInstance(rootId);
     }
-    if (this.destroyCallback) {
-      this.destroyCallback();
+    if (this.destroyModuleCallback) {
+      this.destroyModuleCallback();
     }
   }
 
@@ -323,8 +323,11 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
 
   loadJsModule(loadParams: ModuleLoadParams, rootId: number, loadJsModuleCallback: HippyModuleLoadCallback) {
     if (!this.mEngineContext) {
+      LogUtils.e('hippy', 'load module error. mEngineContext=null');
+      loadJsModuleCallback(ModuleLoadStatus.STATUS_VARIABLE_NULL, 'load module error. mEngineContext=null');
       return;
     }
+    this.mEngineContext?.setLoadModuleCallback(loadJsModuleCallback);
     if (!this.params.debugMode) {
       if (this.mCoreBundleLoader != null) {
         this.mEngineContext?.getBridgeManager().runBundle(0, this.mCoreBundleLoader);

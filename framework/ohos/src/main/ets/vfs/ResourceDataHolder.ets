@@ -47,6 +47,7 @@ export class ResourceDataHolder {
   public uri: string
   public uriType: UriType
   public buffer: ArrayBuffer | null = null
+  public requestResult: string = ""
   public requestHeaders: Map<string, string> | null
   public requestParams: Map<string, string> | null
   public responseHeaders: Map<string, string> | null = null
@@ -60,7 +61,6 @@ export class ResourceDataHolder {
   public requestId: string | null = null
   public errorMessage: string | null = null
   public processorTag: string | null = null
-  // 文件存储路径
   public filePath = ""
 
   constructor(uri: string,

@@ -23,7 +23,7 @@ import { HippyJsException } from '../../common/HippyJsException';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
-import { FetchResultCode } from '../http/HippyResourceLoader';
+import { FetchResultCode } from '../../HippyResourceLoader';
 import fs from '@ohos.file.fs';
 import { BusinessError } from '@kit.BasicServicesKit';
 
