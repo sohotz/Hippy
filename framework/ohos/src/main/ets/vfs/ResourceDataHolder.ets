@@ -24,6 +24,7 @@ import { LogUtils } from '../support/utils/LogUtils';
 import { FetchResourceCallback } from './FetchResourceCallback';
 import { buffer } from '@kit.ArkTS';
 import { HippyJsException } from '../hippy_framework/common/HippyJsException';
+import { HippyAny } from '../support/common/HippyTypes';
 
 const RESOURCE_DATA_TAG = "ResourceDataHolder"
 
@@ -49,7 +50,7 @@ export class ResourceDataHolder {
   public buffer: ArrayBuffer | null = null
   public requestResult: string = ""
   public requestHeaders: Map<string, string> | null
-  public requestParams: Map<string, string> | null
+  public requestParams: Map<string, HippyAny> | null
   public responseHeaders: Map<string, string> | null = null
   public callback: FetchResourceCallback | null
   public transferType: TransferType = TransferType.NORMAL
@@ -66,7 +67,7 @@ export class ResourceDataHolder {
   constructor(uri: string,
               uriType: UriType,
               requestHeaders: Map<string, string> | null,
-              requestParams: Map<string, string> | null,
+              requestParams: Map<string, HippyAny> | null,
               callback: FetchResourceCallback | null,
               from: RequestFrom,
               nativeRequestId: number) {

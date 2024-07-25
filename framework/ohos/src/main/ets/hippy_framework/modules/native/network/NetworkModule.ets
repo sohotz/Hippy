@@ -101,7 +101,11 @@ export class NetworkModule extends HippyNativeModuleBase {
     let vfsManager: VfsManager = this.ctx.getVfsManager()
     const uri: string = request.get(HippyHttpRequest.HTTP_URL) as string;
     const requestHeaders = request.get(HippyHttpRequest.HTTP_HEADERS) as Map<string, string>;
-    let requestParams = this.normalizeRequestParams(request);
+    const requestParams =  new Map<string, HippyAny>();
+    const requestBody = this.normalizeRequestParams(request);
+    const method = request.get(HippyHttpRequest.HTTP_METHOD) as string ?? 'GET';
+    requestParams.set(HippyHttpRequest.HTTP_METHOD, method.toUpperCase())
+    requestParams.set(HippyHttpRequest.HTTP_BODY, requestBody)
     const map = new Map<string, HippyValue>();
     if (TextUtils.isEmpty(uri)) {
       map.set('request', 'Get url parameter failed!')

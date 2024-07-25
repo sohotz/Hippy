@@ -23,7 +23,7 @@ import I18n from '@ohos.i18n';
 import { util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
 import { LogUtils } from '../../../support/utils/LogUtils';
-import { HippyArray } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyArray } from '../../../support/common/HippyTypes';
 
 
 const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
@@ -47,8 +47,9 @@ export class HippyHttpRequest {
   private mInitParams: Map<string, string>
   private mNativeParams: Map<string, Object>
 
-  constructor(headers: Map<string, string | Array<string>>, method: string,
-              initParams: Map<string, string>, nativeParams: Map<string, Object>) {
+  constructor(headers: Map<string, string | Array<string>>,
+              requestParams: Map<string, HippyAny>,
+              nativeParams: Map<string, Object>) {
     this.mHeaders = new Map<string, string>()
     if (headers !== null) {
       // adjust requestHeader for ohos
@@ -56,8 +57,9 @@ export class HippyHttpRequest {
         this.mHeaders.set(key, value.toString());
       })
     }
-    this.mInitParams = initParams;
+    this.mInitParams = requestParams.get(HippyHttpRequest.HTTP_BODY) as Map<string, string>;
     this.mNativeParams = nativeParams;
+    const method = requestParams.get(HippyHttpRequest.HTTP_METHOD) as string;
     this.setMethod(method);
     this.initUserAgent();
   }

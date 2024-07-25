@@ -24,6 +24,7 @@ import { Processor } from './Processor';
 import { ResourceDataHolder, RequestFrom, UriType } from './ResourceDataHolder';
 import { ProcessorCallback } from './ProcessorCallback';
 import { FetchResourceCallback } from './FetchResourceCallback';
+import { HippyAny } from '../support/common/HippyTypes';
 
 export class ProcessorCallbackImpl implements ProcessorCallback {
   onHandleCompleted = () => {
@@ -103,7 +104,7 @@ export class VfsManager {
   fetchResourceAsync(uri: string,
                      uriType: UriType,
                      requestHeaders: Map<string, string> | null,
-                     requestParams: Map<string, string> | null,
+                     requestParams: Map<string, HippyAny> | null,
                      callback: FetchResourceCallback) {
     this.onFetchResourceStart()
     this.fetchResourceAsyncImpl(uri, uriType, requestHeaders, requestParams, callback, RequestFrom.LOCAL, -1)
@@ -112,7 +113,7 @@ export class VfsManager {
   fetchResourceAsyncImpl(uri: string,
                          uriType: UriType,
                          requestHeaders: Map<string, string> | null,
-                         requestParams: Map<string, string> | null,
+                         requestParams: Map<string, HippyAny> | null,
                          callback: FetchResourceCallback,
                          from: RequestFrom,
                          nativeRequestId: number) {

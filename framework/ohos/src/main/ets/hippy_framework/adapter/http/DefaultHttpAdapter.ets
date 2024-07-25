@@ -38,9 +38,9 @@ const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
 
 export class DefaultHttpAdapter implements HippyHttpAdapter {
 
-  public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: Map<string, Object>, callback: ProcessorCallback) {
+  public fetch(holder: ResourceDataHolder, nativeParams: Map<string, Object>, callback: ProcessorCallback) {
     holder.processorTag = DefaultHttpAdapter.name
-    let httpRequest = this.generateHttpRequest(holder, method, nativeParams);
+    let httpRequest = this.generateHttpRequest(holder, nativeParams);
     this.handleRequestCookie(httpRequest);
     this.sendRequest(httpRequest, new HttpTaskCallbackImpl(holder, callback))
   }
@@ -140,14 +140,12 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     }
   }
 
-  protected generateHttpRequest(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams:
-    Map<string, Object>): HippyHttpRequest {
+  protected generateHttpRequest(holder: ResourceDataHolder, nativeParams: Map<string, Object>): HippyHttpRequest {
     if (holder.requestHeaders == null || holder.requestHeaders == undefined)
       holder.requestHeaders = new Map<string, string>()
     if (holder.requestParams == null || holder.requestParams == undefined)
       holder.requestParams = new Map<string, string>()
-    let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, method,
-      holder.requestParams, nativeParams);
+    let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, holder.requestParams, nativeParams);
     httpRequest.setUrl(holder.uri);
     return httpRequest;
   }

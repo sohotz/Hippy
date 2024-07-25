@@ -29,7 +29,7 @@ export interface HippyHttpAdapter {
 
   sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback): void
 
-  fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: Map<string, Object>, callback: ProcessorCallback): void
+  fetch(holder: ResourceDataHolder, nativeParams: Map<string, Object>, callback: ProcessorCallback): void
 
   getCookie(url: string, promise: HippyModulePromise): void
 

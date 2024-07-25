@@ -26,6 +26,7 @@ import { HippyEngineContext } from './HippyEngineContext';
 import { http } from '@kit.NetworkKit';
 import { HippyAssetBundleLoader } from './bridge/bundleloader/HippyAssetBundleLoader';
 import { HippyFileBundleLoader } from './bridge/bundleloader/HippyFileBundleLoader';
+import { HippyHttpRequest } from './adapter/http/HippyHttpRequest';
 
 export enum FetchResultCode {
   OK,
@@ -70,7 +71,7 @@ export class HippyResourceLoader implements ResourceLoader {
       if(holder.uriType === UriType.NORMAL) {
         let httpAdapter = this.engineContext.getGlobalConfigs().getHttpAdapter()
         if (httpAdapter) {
-          httpAdapter.fetch(holder, http.RequestMethod.GET, this.engineContext.getNativeParams(), callback)
+          httpAdapter.fetch(holder, this.engineContext.getNativeParams(), callback)
         }
       } else {
         let fileAdapter = this.engineContext.getGlobalConfigs().getFileAdapter()
