@@ -185,19 +185,28 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
       return new Array<HippyAny>()
     }
     const paramArray = JSON.parse(str) as Array<HippyAny>;
-    let resultArray = new Array<HippyAny>()
-    paramArray.forEach((value: HippyAny) => {
-      if (typeof value == 'object') {
-        resultArray.push(this.object2map(value as object))
-      } else {
-        resultArray.push(value)
-      }
-    });
-    return resultArray
+    return this.convertObjectToMap(paramArray as HippyAny) as Array<HippyAny>
   }
 
-  private object2map(obj: object): Map<string, HippyAny> {
-    let map: Map<string, HippyAny> = new Map(Object.entries(obj))
-    return map
+  private convertObjectToMap(value: HippyAny): HippyAny {
+    if(value instanceof Array) {
+      return (value as Array<HippyAny>).map(item => this.convertObjectToMap(item))
+    } else if (value instanceof Map) {
+      let map = value as Map<string, HippyAny>
+      let map2 = new Map<string, HippyAny>()
+      map.forEach((v: HippyAny, k: string) => {
+        map2.set(k, this.convertObjectToMap(v))
+      })
+      return map2
+    } else if (typeof value === 'object' && value !== null) {
+      let map: Map<string, HippyAny> = new Map(Object.entries(value))
+      let map2 = new Map<string, HippyAny>()
+      map.forEach((v: HippyAny, k: string) => {
+        map2.set(k, this.convertObjectToMap(v))
+      })
+      return map2
+    }
+    return value
   }
+
 }
