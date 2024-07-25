@@ -18,10 +18,11 @@
  * limitations under the License.
  */
 import { HippyAny, HippyValue } from '../common/HippyTypes'
+import { LogUtils } from './LogUtils'
 
 export class ArgumentUtils {
   public static objectToJson(obj: HippyAny): string {
-    if (!obj) {
+    if (obj == null || obj == undefined) {
       return ""
     }
 
@@ -78,7 +79,7 @@ export class ArgumentUtils {
 
   private static objectToJsonImpl(obj: HippyAny): string {
     let builder: string = ""
-    if (!obj) {
+    if (obj == null || obj == undefined) {
       builder += "\"\""
       return builder
     }
@@ -106,26 +107,14 @@ export class ArgumentUtils {
         }
       }
       builder += "]"
-    } else if (obj instanceof Map) {
+    } else if ((obj instanceof Map) || (typeof obj == 'object')) {
+      let map: Map<string, HippyAny>
+      if (obj instanceof Map) {
+        map = obj as Map<string, HippyAny>
+      } else {
+        map = new Map(Object.entries(obj))
+      }
       builder += "{"
-      let map = obj as Map<string, HippyAny>
-      let length = map.size
-      let count = 0
-      map.forEach((value: HippyAny, key: string) => {
-        builder += "\""
-        builder += key
-        builder += "\""
-        builder += ":"
-        builder += ArgumentUtils.objectToJsonImpl(value)
-        ++count
-        if (count < length) {
-          builder += ","
-        }
-      })
-      builder += "}"
-    } else if (typeof obj == 'object') {
-      builder += "{"
-      let map: Map<string, HippyAny> = new Map(Object.entries(obj))
       let length = map.size
       let count = 0
       map.forEach((value: HippyAny, key: string) => {
