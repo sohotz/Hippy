@@ -32,7 +32,7 @@ inline namespace napi {
 
 struct JSHCtxValue : public CtxValue {
   JSHCtxValue(JSVM_Env env, JSVM_Value value)
-      : env_(env) {
+      : env_(env), value_(value) {
     auto s = OH_JSVM_CreateReference(env, value, 1, &value_ref_);
     FOOTSTONE_DCHECK(s == JSVM_OK);
   }
@@ -50,10 +50,12 @@ struct JSHCtxValue : public CtxValue {
     auto s = OH_JSVM_GetReferenceValue(env_, value_ref_, &result);
     FOOTSTONE_DCHECK(s == JSVM_OK);
     return result;
+//     return value_;
   }
 
   JSVM_Env env_ = nullptr;
   JSVM_Ref value_ref_ = nullptr;
+  JSVM_Value value_ = nullptr;
 };
 
 }

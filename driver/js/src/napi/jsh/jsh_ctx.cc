@@ -195,7 +195,15 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   auto s = OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, external index, thisArg: " << thisArg;
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg: " << thisArg << ", argc: " << argc << ", data: " << data;
+  
+    JSVM_ValueType valuetype = (JSVM_ValueType)100;
+    JSVM_Status status = OH_JSVM_Typeof(env, thisArg, &valuetype);
+    FOOTSTONE_DCHECK(status == JSVM_OK);
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg type, " << valuetype;
+    if (valuetype == JSVM_EXTERNAL) {
+      FOOTSTONE_DCHECK(0);
+    }
   
   CallbackInfo cb_info;
   cb_info.SetSlot(sGetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
@@ -289,11 +297,14 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 //     }
 //   }
   
-  JSVM_Value ret;
-  s = OH_JSVM_GetReferenceValue(env, ret_value->value_ref_, &ret);
-  FOOTSTONE_DCHECK(s == JSVM_OK);
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, ret_value: " << ret_value->GetValue();
   
-  return ret;
+  return ret_value->GetValue();
+}
+
+void xx_Finalize(JSVM_Env env,
+                                        void* finalizeData,
+                                        void* finalizeHint) {
 }
 
 JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
@@ -303,8 +314,8 @@ JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
   void *data = nullptr;
   auto s = OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
   FOOTSTONE_DCHECK(s == JSVM_OK);
-  
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, external index, construct, thisArg: " << thisArg;
+
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, thisArg: " << thisArg << ", argc: " << argc << ", data: " << data;
   
   CallbackInfo cb_info;
   cb_info.SetSlot(sGetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
@@ -331,6 +342,7 @@ JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
   
   js_cb(cb_info, external_data);
 
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, cb_info data: " << cb_info.GetData();
 
   auto ret_value = std::static_pointer_cast<JSHCtxValue>(cb_info.GetReturnValue()->Get());
   if (!ret_value) {
@@ -363,11 +375,12 @@ JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
     
   }
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, external index, construct, ret_value: " << ret_value->GetValue();
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, ret_value: " << ret_value->GetValue();
   
-//   JSVM_Value ret;
-//   s = OH_JSVM_GetReferenceValue(env, ret_value->value_ref_, &ret);
-//   FOOTSTONE_DCHECK(s == JSVM_OK);
+//   JSVM_Value rett = nullptr;
+//   auto st = OH_JSVM_CreateExternal(env, cb_info.GetData(), xx_Finalize, nullptr, &rett);
+//   FOOTSTONE_DCHECK(st == JSVM_OK);
+//   return rett;
   
   return ret_value->GetValue();
 }
@@ -420,7 +433,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateTemplate(const std::unique_ptr<FunctionW
   param->callback = InvokeJsCallback;
 
   JSVM_Value funcValue = nullptr;
-  JSVM_Status status = OH_JSVM_CreateFunction(env_, "func", JSVM_AUTO_LENGTH, param, &funcValue);
+  JSVM_Status status = OH_JSVM_CreateFunction(env_, nullptr, JSVM_AUTO_LENGTH, param, &funcValue);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, funcValue);
 }
@@ -918,13 +931,14 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
 //   v8::MaybeLocal<v8::Value> maybe_result = v8_fn->Call(
 //       context, handle_object, static_cast<int>(argument_count), args);
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, external index, receiver_object: " << receiver_object->GetValue();
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, CallFunction, receiver_object: " << receiver_object->GetValue() << ", argc: " << argument_count;
   
   JSVM_Value result = 0;
   auto s = OH_JSVM_CallFunction(env_, receiver_object->GetValue(), ctx_value->GetValue(), argument_count, args, &result);
   CheckPendingExeception(env_, s);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, CallFunction, after, result: " << result;
 
   if (!result) {
     FOOTSTONE_DLOG(INFO) << "maybe_result is empty";
@@ -2052,7 +2066,7 @@ bool JSHCtx::IsFunction(const std::shared_ptr<CtxValue>& value) {
   JSVM_ValueType valuetype = (JSVM_ValueType)100;
   auto s = OH_JSVM_Typeof(env_, ctx_value->GetValue(), &valuetype);
   FOOTSTONE_DCHECK(s == JSVM_OK);
-  FOOTSTONE_DLOG(INFO) << "xxx hippy value type, " << valuetype;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy value type, " << valuetype;
   
   bool result = false;
   s = OH_JSVM_IsFunction(env_, ctx_value->GetValue(), &result);
@@ -2237,21 +2251,24 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
 
   JSVM_Value instanceValue = nullptr;
   
-  JSVM_Value jsh_argv[argc];
+  JSVM_Value *jsh_argv = new JSVM_Value[(size_t)argc];
   for (auto i = 0; i < argc; ++i) {
     auto jsh_value = std::static_pointer_cast<JSHCtxValue>(argv[i]);
     jsh_argv[i] = jsh_value->GetValue();
   }
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy define, cls: " << jsh_cls->GetValue();
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, use cls: " << jsh_cls->GetValue() << ", argc: " << argc;
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, use cls: " << jsh_cls->GetValue() << ", argc: " << argc;
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, use cls: " << jsh_cls->GetValue() << ", argc: " << argc;
   JSVM_Status s = OH_JSVM_NewInstance(env_, jsh_cls->GetValue(), (size_t)argc, jsh_argv, &instanceValue);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   
   if (external) {
     sEmbedderExternalMap[instanceValue] = external;
-    FOOTSTONE_DLOG(INFO) << "xxx hippy, external index, jsh_cls: " << jsh_cls->GetValue();
-    FOOTSTONE_DLOG(INFO) << "xxx hippy, external index, instanceValue: " << instanceValue;
+    
   }
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, after, cls: " << jsh_cls->GetValue();
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, after, instanceValue: " << instanceValue;
   
   return std::make_shared<JSHCtxValue>(env_, instanceValue);
 }
@@ -2354,28 +2371,27 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
     auto &propParam = propParams[i];
     auto &callbackParam = callbackParams[i];
     auto prop_name = std::static_pointer_cast<JSHCtxValue>(prop_desc->name);
+    propParam.utf8name = nullptr;
+    propParam.name = prop_name->GetValue();
+    propParam.method = nullptr;
+    propParam.value = nullptr;
+    propParam.attributes = JSVM_DEFAULT;
     if (prop_desc->getter || prop_desc->setter) {
       if (prop_desc->getter) {
-        callbackParam.data = prop_desc->getter.get(); // TODO(hot-js): get and set
-        callbackParam.callback = InvokeJsCallback;
-        propParam.utf8name = nullptr;
-        propParam.name = prop_name->GetValue();
-        propParam.method = nullptr;
-        propParam.getter = &callbackParam;
-        propParam.setter = nullptr;
-        propParam.value = nullptr;
-        propParam.attributes = JSVM_DEFAULT;
+        JSVM_CallbackStruct *callbackP = new JSVM_CallbackStruct();
+        callbackP->data = prop_desc->getter.get(); // TODO(hot-js): get and set
+        callbackP->callback = InvokeJsCallback;
+        propParam.getter = callbackP;
+      } else {
+        propParam.getter = nullptr;
       }
       if (prop_desc->setter) {
-        callbackParam.data = prop_desc->setter.get();
-        callbackParam.callback = InvokeJsCallback;
-        propParam.utf8name = nullptr;
-        propParam.name = prop_name->GetValue();
-        propParam.method = nullptr;
-        propParam.getter = nullptr;
-        propParam.setter = &callbackParam;
-        propParam.value = nullptr;
-        propParam.attributes = JSVM_DEFAULT;
+        JSVM_CallbackStruct *callbackP = new JSVM_CallbackStruct();
+        callbackP->data = prop_desc->setter.get();
+        callbackP->callback = InvokeJsCallback;
+        propParam.setter = callbackP;
+      } else {
+        propParam.setter = nullptr;
       }
     } else if (prop_desc->method) {
       callbackParam.data = prop_desc->method.get();
@@ -2416,7 +2432,7 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
   //   auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, 0, 0, &testClass);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   FOOTSTONE_DCHECK(testClass);
-  FOOTSTONE_DLOG(INFO) << "xxx hippy DefineClass res, " << testClass;
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, DefineClass, cls res: " << testClass << ", name: " << name;
   
   template_map_[name] = std::make_shared<JSHClassDefinition>(env_, testClass);
 
