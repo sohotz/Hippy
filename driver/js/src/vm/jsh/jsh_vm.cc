@@ -349,6 +349,9 @@ std::shared_ptr<CtxValue> JSHVM::ParseJson(const std::shared_ptr<Ctx>& ctx, cons
   
   JSVM_Value result = nullptr;
   auto s = OH_JSVM_JsonParse(jsh_ctx->env_, jsh_string_value->GetValue(), &result);
+  if (s == JSVM_GENERIC_FAILURE) {
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, json: " << json;
+  }
   FOOTSTONE_DCHECK(s == JSVM_OK);
   return std::make_shared<JSHCtxValue>(jsh_ctx->env_, result);
 }

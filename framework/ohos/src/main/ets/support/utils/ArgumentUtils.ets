@@ -123,6 +123,25 @@ export class ArgumentUtils {
         }
       })
       builder += "}"
+    } else if (typeof obj == 'object') {
+      builder += "{"
+      let map: Map<string, HippyAny> = new Map(Object.entries(obj))
+      let length = map.size
+      let count = 0
+      map.forEach((value: HippyAny, key: string) => {
+        builder += "\""
+        builder += key
+        builder += "\""
+        builder += ":"
+        builder += ArgumentUtils.objectToJsonImpl(value)
+        ++count
+        if (count < length) {
+          builder += ","
+        }
+      })
+      builder += "}"
+    } else {
+      builder += "\"\""
     }
     return builder
   }

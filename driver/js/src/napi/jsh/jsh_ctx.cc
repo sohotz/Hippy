@@ -46,15 +46,15 @@ using CallbackInfo = hippy::CallbackInfo;
 
 // constexpr static int kExternalIndex = 0;
 // constexpr static int kNewInstanceExternalIndex = 1;
-constexpr static int kScopeWrapperIndex = 5;
+// constexpr static int kScopeWrapperIndex = 5;
 // constexpr static int kExternalDataMapIndex = 6;
 //constexpr char kProtoKey[] = "__proto__";
 
 // TODO(hot-js):
 std::map<int32_t, void*> sEmbedderDataMap;
-static void* sGetAlignedPointerFromEmbedderData(int index) {
-  return sEmbedderDataMap[index];
-}
+// static void* sGetAlignedPointerFromEmbedderData(int index) {
+//   return sEmbedderDataMap[index];
+// }
 
 std::map<JSVM_Value, void*> sEmbedderExternalMap;
 
@@ -206,7 +206,13 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
     }
   
   CallbackInfo cb_info;
-  cb_info.SetSlot(sGetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
+//   cb_info.SetSlot(sGetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
+  
+  void *scope_data = nullptr;
+  auto sst = OH_JSVM_GetInstanceData(env, &scope_data);
+  FOOTSTONE_DCHECK(sst == JSVM_OK);
+  cb_info.SetSlot(scope_data);
+  
 //   auto thiz = info.This();
 //   auto holder = info.Holder();
 //   auto count = holder->InternalFieldCount();
@@ -330,7 +336,12 @@ JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
   FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, thisArg: " << thisArg << ", argc: " << argc << ", data: " << data;
   
   CallbackInfo cb_info;
-  cb_info.SetSlot(sGetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
+//   cb_info.SetSlot(sGetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
+  
+  void *scope_data = nullptr;
+  auto sst = OH_JSVM_GetInstanceData(env, &scope_data);
+  FOOTSTONE_DCHECK(sst == JSVM_OK);
+  cb_info.SetSlot(scope_data);
 
   
   void *external = sEmbedderExternalMap[thisArg];
@@ -528,7 +539,9 @@ class ExternalStringResourceImpl : public v8::String::ExternalStringResource {
 */
 
 void JSHCtx::SetExternalData(void* address) {
-  SetAlignedPointerInEmbedderData(kScopeWrapperIndex, reinterpret_cast<intptr_t>(address));
+//   SetAlignedPointerInEmbedderData(kScopeWrapperIndex, reinterpret_cast<intptr_t>(address));
+  
+  OH_JSVM_SetInstanceData(env_, address, nullptr, nullptr);
 }
 
 std::shared_ptr<ClassDefinition> JSHCtx::GetClassDefinition(const string_view& name) {
