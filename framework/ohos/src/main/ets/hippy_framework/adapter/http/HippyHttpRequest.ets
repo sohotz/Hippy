@@ -22,6 +22,7 @@ import { TextUtils } from '../../../support/utils/TextUtils';
 import I18n from '@ohos.i18n';
 import { util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
+import Url from '@ohos.url';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HippyAny, HippyArray } from '../../../support/common/HippyTypes';
 
@@ -171,8 +172,21 @@ export class HippyHttpRequest {
         jsonObject[key] = value;
       }
     })
+    let contentType = this.mHeaders.get('content-type')
+    if (!contentType) {
+      contentType = this.mHeaders.get('Content-Type') || ''
+    }
     LogUtils.d(HIPPY_HTTP_REQUEST_TAG, JSON.stringify(jsonObject));
-    return JSON.stringify(jsonObject)
+    if (contentType.indexOf('/json') > 0) {
+      return jsonObject;
+    } else {
+      let result = new Url.URLParams();
+      Object.keys(jsonObject).forEach((k) => {
+        let v: string = jsonObject[k] as string;
+        result.append(k,v);
+      });
+      return result.toString();
+    }
   }
 
   private initUserAgent(): void {
