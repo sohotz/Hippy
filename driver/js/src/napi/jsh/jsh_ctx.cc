@@ -221,15 +221,27 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 //     }
 //   }
   
-  void *external = sEmbedderExternalMap[thisArg];
-  
-    // TODO(hot-js):
-    auto new_instance_external = (void*)external; //context->GetAlignedPointerFromEmbedderData(kNewInstanceExternalIndex);
-    if (new_instance_external) {
-      cb_info.SetData(new_instance_external);
-    } else {
-      cb_info.SetData((void*)1);
+  void *internal_data = nullptr;
+  auto st = OH_JSVM_Unwrap(env, thisArg, &internal_data);
+//   FOOTSTONE_DCHECK(st == JSVM_OK);
+  if (st == JSVM_OK) {
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg: " << thisArg << ", argc: " << argc << ", internal_data: " << internal_data;
+    if (internal_data) {
+      cb_info.SetData(internal_data);
     }
+  }
+  
+  
+  
+//   void *external = sEmbedderExternalMap[thisArg];
+//  
+//     // TODO(hot-js):
+//     auto new_instance_external = (void*)external; //context->GetAlignedPointerFromEmbedderData(kNewInstanceExternalIndex);
+//     if (new_instance_external) {
+//       cb_info.SetData(new_instance_external);
+//     } else {
+//       cb_info.SetData((void*)1);
+//     }
   
   cb_info.SetReceiver(std::make_shared<JSHCtxValue>(env, thisArg));
   for (size_t i = 0; i < argc; i++) {
@@ -375,14 +387,12 @@ JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
     
   }
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, ret_value: " << ret_value->GetValue();
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, ret_value: " << ret_value->GetValue() << ", data: " << cb_info.GetData();
   
-//   JSVM_Value rett = nullptr;
-//   auto st = OH_JSVM_CreateExternal(env, cb_info.GetData(), xx_Finalize, nullptr, &rett);
-//   FOOTSTONE_DCHECK(st == JSVM_OK);
-//   return rett;
+  auto st = OH_JSVM_Wrap(env, thisArg, cb_info.GetData(), xx_Finalize, nullptr, nullptr);
+  FOOTSTONE_DCHECK(st == JSVM_OK);
   
-  return ret_value->GetValue();
+  return thisArg;//ret_value->GetValue();
 }
 
 JSHCtx::JSHCtx(JSVM_VM vm) : vm_(vm) {
