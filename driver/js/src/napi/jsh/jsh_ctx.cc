@@ -195,12 +195,12 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   auto s = OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg: " << thisArg << ", argc: " << argc << ", data: " << data;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg: " << thisArg << ", argc: " << argc << ", data: " << data;
   
     JSVM_ValueType valuetype = (JSVM_ValueType)100;
     JSVM_Status status = OH_JSVM_Typeof(env, thisArg, &valuetype);
     FOOTSTONE_DCHECK(status == JSVM_OK);
-    FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg type, " << valuetype;
+//     FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg type, " << valuetype;
     if (valuetype == JSVM_EXTERNAL) {
       FOOTSTONE_DCHECK(0);
     }
@@ -231,7 +231,7 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   auto st = OH_JSVM_Unwrap(env, thisArg, &internal_data);
 //   FOOTSTONE_DCHECK(st == JSVM_OK);
   if (st == JSVM_OK) {
-    FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg: " << thisArg << ", argc: " << argc << ", internal_data: " << internal_data;
+//     FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, thisArg: " << thisArg << ", argc: " << argc << ", internal_data: " << internal_data;
     if (internal_data) {
       cb_info.SetData(internal_data);
     }
@@ -315,7 +315,7 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 //     }
 //   }
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, ret_value: " << ret_value->GetValue();
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback, ret_value: " << ret_value->GetValue();
   
   return ret_value->GetValue();
 }
@@ -333,7 +333,7 @@ JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
   auto s = OH_JSVM_GetCbInfo(env, info, &argc, args, &thisArg, &data);
   FOOTSTONE_DCHECK(s == JSVM_OK);
 
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, thisArg: " << thisArg << ", argc: " << argc << ", data: " << data;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, thisArg: " << thisArg << ", argc: " << argc << ", data: " << data;
   
   CallbackInfo cb_info;
 //   cb_info.SetSlot(sGetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
@@ -365,7 +365,7 @@ JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
   
   js_cb(cb_info, external_data);
 
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, cb_info data: " << cb_info.GetData();
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, cb_info data: " << cb_info.GetData();
 
   auto ret_value = std::static_pointer_cast<JSHCtxValue>(cb_info.GetReturnValue()->Get());
   if (!ret_value) {
@@ -398,7 +398,7 @@ JSVM_Value InvokeJsCallback_Construct(JSVM_Env env, JSVM_CallbackInfo info) {
     
   }
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, ret_value: " << ret_value->GetValue() << ", data: " << cb_info.GetData();
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, InvokeJsCallback_Construct, ret_value: " << ret_value->GetValue() << ", data: " << cb_info.GetData();
   
   auto st = OH_JSVM_Wrap(env, thisArg, cb_info.GetData(), xx_Finalize, nullptr, nullptr);
   FOOTSTONE_DCHECK(st == JSVM_OK);
@@ -808,7 +808,7 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
     JSVM_ValueType valuetype = (JSVM_ValueType)100;
     status = OH_JSVM_Typeof(env_, errorResult, &valuetype);
     FOOTSTONE_DCHECK(status == JSVM_OK);
-    FOOTSTONE_DLOG(INFO) << "xxx hippy error, result type, " << valuetype;
+//     FOOTSTONE_DLOG(INFO) << "xxx hippy error, result type, " << valuetype;
     if (valuetype == 6) {
       auto obj = errorResult;
       JSVM_Value propNames = nullptr;
@@ -870,12 +870,12 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
   JSVM_ValueType valuetype = (JSVM_ValueType)100;
   status = OH_JSVM_Typeof(env_, result, &valuetype);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  FOOTSTONE_DLOG(INFO) << "xxx hippy run script, result type, " << valuetype;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy run script, result type, " << valuetype;
   
   if (valuetype == 3) {
     double tt = 0;
     OH_JSVM_GetValueDouble(env_, result, &tt);
-    FOOTSTONE_DLOG(INFO) << "xxx hippy run script, result value, " << tt;
+//     FOOTSTONE_DLOG(INFO) << "xxx hippy run script, result value, " << tt;
   }
 
 //   if (script.IsEmpty()) {
@@ -954,17 +954,17 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
 //   v8::MaybeLocal<v8::Value> maybe_result = v8_fn->Call(
 //       context, handle_object, static_cast<int>(argument_count), args);
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, CallFunction, receiver_object: " << receiver_object->GetValue() << ", argc: " << argument_count;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, CallFunction, receiver_object: " << receiver_object->GetValue() << ", argc: " << argument_count;
   
   JSVM_Value result = 0;
   auto s = OH_JSVM_CallFunction(env_, receiver_object->GetValue(), ctx_value->GetValue(), argument_count, args, &result);
   CheckPendingExeception(env_, s);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, CallFunction, after, result: " << result;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, CallFunction, after, result: " << result;
 
   if (!result) {
-    FOOTSTONE_DLOG(INFO) << "maybe_result is empty";
+//     FOOTSTONE_DLOG(INFO) << "maybe_result is empty";
     return nullptr;
   }
   return std::make_shared<JSHCtxValue>(env_, result);
@@ -2280,9 +2280,7 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
     jsh_argv[i] = jsh_value->GetValue();
   }
   
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, use cls: " << jsh_cls->GetValue() << ", argc: " << argc;
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, use cls: " << jsh_cls->GetValue() << ", argc: " << argc;
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, use cls: " << jsh_cls->GetValue() << ", argc: " << argc;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, use cls: " << jsh_cls->GetValue() << ", argc: " << argc;
   JSVM_Status s = OH_JSVM_NewInstance(env_, jsh_cls->GetValue(), (size_t)argc, jsh_argv, &instanceValue);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   
@@ -2290,8 +2288,8 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
     sEmbedderExternalMap[instanceValue] = external;
     
   }
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, after, cls: " << jsh_cls->GetValue();
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, after, instanceValue: " << instanceValue;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, after, cls: " << jsh_cls->GetValue();
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, NewInstance, after, instanceValue: " << instanceValue;
   
   return std::make_shared<JSHCtxValue>(env_, instanceValue);
 }
@@ -2455,7 +2453,7 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
   //   auto s = OH_JSVM_DefineClass(env_, (const char *)utf8Name.utf8_value().c_str(), JSVM_AUTO_LENGTH, &constructorParam, 0, 0, &testClass);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   FOOTSTONE_DCHECK(testClass);
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, DefineClass, cls res: " << testClass << ", name: " << name;
+//   FOOTSTONE_DLOG(INFO) << "xxx hippy, DefineClass, cls res: " << testClass << ", name: " << name;
   
   template_map_[name] = std::make_shared<JSHClassDefinition>(env_, testClass);
 
