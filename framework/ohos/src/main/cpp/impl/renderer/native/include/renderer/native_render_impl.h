@@ -79,6 +79,7 @@ public:
   bool GetViewChildren(uint32_t root_id, uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
   void CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback);
   void SetViewEventListener(uint32_t root_id, uint32_t node_id, napi_ref callback_ref);
+  std::shared_ptr<HRManager> &GetHRManager() { return hr_manager_; }
   
 private:
   uint32_t instance_id_;
