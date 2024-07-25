@@ -32,6 +32,7 @@ import { HippyHttpResponse } from './HippyHttpResponse';
 import { http } from '@kit.NetworkKit';
 import { HippyJsException } from '../../common/HippyJsException';
 import { HippyModulePromise } from '../../modules/HippyModulePromise';
+import { ArgumentUtils } from '../../../support/utils/ArgumentUtils';
 
 const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
 
@@ -56,10 +57,11 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
   public sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback) {
     try {
       let httpRequest = http.createHttp();
+      const header = ArgumentUtils.mapToRecord(request.getHeaders())
       httpRequest.request(request.getUrl(),
         {
           method: request.getMethod(),
-          header: request.getHeaders(),
+          header: header,
           extraData: request.getBody(),
           readTimeout: request.getReadTimeout(),
           connectTimeout: request.getConnectTimeout()
