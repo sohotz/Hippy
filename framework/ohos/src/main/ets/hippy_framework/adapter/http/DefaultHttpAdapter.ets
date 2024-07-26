@@ -19,58 +19,36 @@
  */
 import { HippyHttpAdapter, HttpTaskCallback } from './HippyHttpAdapter';
 import { HippyHttpRequest } from './HippyHttpRequest';
-import { HttpHeaderReuqest } from './HttpHeaderRequest';
+import { HttpHeaderRequest } from './HippyHttpHeader';
 import List from '@ohos.util.List';
 import web_webview from '@ohos.web.webview';
-import Url from '@ohos.url';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { HttpTaskCallbackImpl } from './HttpTaskCallbackImpl';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
-import { HippyExecutor, HippyTask } from '../../../support/common/HippyExecutor';
 import { HippyException } from '../../../support/common/HippyException';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HippyHttpResponse } from './HippyHttpResponse';
 import { http } from '@kit.NetworkKit';
 import { HippyJsException } from '../../common/HippyJsException';
 import { HippyModulePromise } from '../../modules/HippyModulePromise';
+import { ArgumentUtils } from '../../../support/utils/ArgumentUtils';
 
 const DEFAULT_HTTP_ADAPTER_TAG = 'DefaultHttpAdapter'
 
 export class DefaultHttpAdapter implements HippyHttpAdapter {
-  private mExecutorService: HippyExecutor | null = null
 
-  static isGzipRequest(request: HippyHttpRequest): boolean {
-    let headers = request.getHeaders();
-    for (let header of headers.entries()) {
-      if (header[0] != null && header[0].toLowerCase() == HttpHeaderReuqest.ACCEPT_ENCODING.toLowerCase()) {
-        if (TextUtils.isEmpty(header[1])) {
-          return false;
-        }
-        let encodings: string[] = header[1].split(HippyHttpRequest.HTTP_HEADERS_SEPARATOR);
-        for (let i = 0; i < encodings.length; i++) {
-          if ("gzip" === encodings[i].toLowerCase() || encodings[i].toLowerCase() === "deflate") {
-            return true;
-          }
-        }
-      }
-    }
-    return false
-  }
-
-  public fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: Map<string, Object>, callback: ProcessorCallback) {
+  public fetch(holder: ResourceDataHolder, nativeParams: Map<string, Object>, callback: ProcessorCallback) {
     holder.processorTag = DefaultHttpAdapter.name
-    let httpRequest = this.generateHttpRequest(holder, method, nativeParams);
+    let httpRequest = this.generateHttpRequest(holder, nativeParams);
     this.handleRequestCookie(httpRequest);
     this.sendRequest(httpRequest, new HttpTaskCallbackImpl(holder, callback))
   }
 
   public handleRedirectRequest(request: HippyHttpRequest,
                                callback: HttpTaskCallback) {
-    //获取重定向地址
     if (request.getAndIncrementRedirectTimes() > 2) {
-      callback.onTaskFailed(request, new HippyException(
-        "Redirect more than 3 times!"));
+      callback.onTaskFailed(request, new HippyException("Redirect more than 3 times!"));
     } else {
       this.sendRequest(request, callback);
     }
@@ -79,11 +57,11 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
   public sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback) {
     try {
       let httpRequest = http.createHttp();
+      const header = ArgumentUtils.mapToRecord(request.getHeaders())
       httpRequest.request(request.getUrl(),
         {
           method: request.getMethod(),
-          header: request.getHeaders(),
-          // 当使用POST请求时此字段用于传递内容
+          header: header,
           extraData: request.getBody(),
           readTimeout: request.getReadTimeout(),
           connectTimeout: request.getConnectTimeout()
@@ -92,8 +70,6 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
             if (data.responseCode === 302) {
               this.handleRedirectRequest(request, callback);
             } else {
-              //todo response need tobe set value
-              // let res:HippyAny = JSON.parse(`${data.result}`);
               callback.onTaskSuccess(request, this.createResponse(data));
             }
             LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'Result:' + data.result);
@@ -107,20 +83,15 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
           }
         });
     } catch (e) {
-      LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'error1:' + e);
+      LogUtils.i(DEFAULT_HTTP_ADAPTER_TAG, 'error:' + e);
     }
   }
 
   public createResponse(res: http.HttpResponse): HippyHttpResponse {
     let response = new HippyHttpResponse();
     response.setStatusCode(res.responseCode);
-    // response.setRspHeaderMap(urlConnection.getHeaderFields());
-    try {
-      response.buffer = res.result as ArrayBuffer
-      response.setResponseMessage(`${res.result}`);
-    } catch (e) {
-      e.printStackTrace();
-    }
+    response.setRspHeaderMap(res.header);
+    response.result = res.result.toString();
     return response;
   }
 
@@ -135,7 +106,7 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
       if (this.getCookieManager()) {
         let cookie = web_webview.WebCookieManager.fetchCookieSync(url);
         if (!TextUtils.isEmpty(await cookie)) {
-          httpRequest.addHeader(HttpHeaderReuqest.COOKIE, await cookie);
+          httpRequest.addHeader(HttpHeaderRequest.COOKIE, await cookie);
         }
       }
     }
@@ -169,28 +140,12 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     }
   }
 
-  public destroyIfNeed() {
-    if (this.mExecutorService != null && !this.mExecutorService.isShutdown()) {
-      this.mExecutorService.shutdown();
-      this.mExecutorService = null;
-    }
-  }
-
-  protected execute(task: HippyTask) {
-    if (this.mExecutorService == null) {
-      this.mExecutorService = new HippyExecutor()
-    }
-    this.mExecutorService.execute(task);
-  }
-
-  protected generateHttpRequest(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams:
-    Map<string, Object>): HippyHttpRequest {
+  protected generateHttpRequest(holder: ResourceDataHolder, nativeParams: Map<string, Object>): HippyHttpRequest {
     if (holder.requestHeaders == null || holder.requestHeaders == undefined)
       holder.requestHeaders = new Map<string, string>()
     if (holder.requestParams == null || holder.requestParams == undefined)
       holder.requestParams = new Map<string, string>()
-    let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, method,
-      holder.requestParams, nativeParams);
+    let httpRequest: HippyHttpRequest = new HippyHttpRequest(holder.requestHeaders, holder.requestParams, nativeParams);
     httpRequest.setUrl(holder.uri);
     return httpRequest;
   }
@@ -258,19 +213,4 @@ export class DefaultHttpAdapter implements HippyHttpAdapter {
     })
   }
 
-  private toURL(url: string | null | undefined): Url.URL { //url验证和完善
-    let _URL: Url.URL = Url.URL.parseURL(url);
-    if (_URL == null || _URL.toString() == "") {
-      if (_URL.pathname != "" && _URL.pathname.startsWith("?")) {
-        // 补斜杠符号
-      }
-      // 分支走到这里，没有path也没有file，证明为一个没有/的host，例如:
-      // http://m.cnbeta.com(注意：后面没有/)
-      if (_URL == null || _URL.toString() == "") {
-        let sb: string = url + "/";
-        _URL = Url.URL.parseURL(sb);
-      }
-    }
-    return _URL;
-  }
 }

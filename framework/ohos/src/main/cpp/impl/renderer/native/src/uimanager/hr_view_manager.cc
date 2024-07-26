@@ -574,6 +574,17 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, st
   return nullptr;
 }
 
+std::shared_ptr<BaseView> HRViewManager::GetViewFromRegistry(uint32_t node_id) {
+  if (node_id > 0) {
+    auto viewIt = view_registry_.find(node_id);
+    if (viewIt == view_registry_.end()) {
+      return nullptr;
+    }
+    return viewIt->second;
+  }
+  return nullptr;
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

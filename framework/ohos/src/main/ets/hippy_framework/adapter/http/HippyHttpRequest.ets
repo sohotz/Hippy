@@ -17,12 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpHeaderReuqest } from './HttpHeaderRequest';
+import { HttpHeaderRequest } from './HippyHttpHeader';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import I18n from '@ohos.i18n';
 import { util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
+import Url from '@ohos.url';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HippyAny, HippyArray } from '../../../support/common/HippyTypes';
 
 
 const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
@@ -46,18 +48,26 @@ export class HippyHttpRequest {
   private mInitParams: Map<string, string>
   private mNativeParams: Map<string, Object>
 
-  constructor(headers: Map<string, string>, method: string,
-              initParams: Map<string, string>, nativeParams: Map<string, Object>) {
-    this.mHeaders = (headers == null) ? new Map<string, string>() : headers;
-    this.mInitParams = initParams;
+  constructor(headers: Map<string, string | Array<string>>,
+              requestParams: Map<string, HippyAny>,
+              nativeParams: Map<string, Object>) {
+    this.mHeaders = new Map<string, string>()
+    if (headers !== null) {
+      // adjust requestHeader for ohos
+      headers.forEach((value: string | Array<string>, key: string) => {
+        this.mHeaders.set(key, value.toString());
+      })
+    }
+    this.mInitParams = requestParams.get(HippyHttpRequest.HTTP_BODY) as Map<string, string>;
     this.mNativeParams = nativeParams;
+    const method = requestParams.get(HippyHttpRequest.HTTP_METHOD) as string;
     this.setMethod(method);
     this.initUserAgent();
   }
 
   public getRequestCookies(): string | undefined {
     if (this.mHeaders != null) {
-      return this.mHeaders.get(HttpHeaderReuqest.COOKIE);
+      return this.mHeaders.get(HttpHeaderRequest.COOKIE);
     }
     return undefined
   }
@@ -162,8 +172,21 @@ export class HippyHttpRequest {
         jsonObject[key] = value;
       }
     })
+    let contentType = this.mHeaders.get('content-type')
+    if (!contentType) {
+      contentType = this.mHeaders.get('Content-Type') || ''
+    }
     LogUtils.d(HIPPY_HTTP_REQUEST_TAG, JSON.stringify(jsonObject));
-    return JSON.stringify(jsonObject)
+    if (contentType.indexOf('/json') > 0) {
+      return jsonObject;
+    } else {
+      let result = new Url.URLParams();
+      Object.keys(jsonObject).forEach((k) => {
+        let v: string = jsonObject[k] as string;
+        result.append(k,v);
+      });
+      return result.toString();
+    }
   }
 
   private initUserAgent(): void {
@@ -191,6 +214,6 @@ export class HippyHttpRequest {
       }
     }
 
-    this.addHeader(HttpHeaderReuqest.USER_AGENT, HippyHttpRequest.USER_AGENT);
+    this.addHeader(HttpHeaderRequest.USER_AGENT, HippyHttpRequest.USER_AGENT);
   }
 }

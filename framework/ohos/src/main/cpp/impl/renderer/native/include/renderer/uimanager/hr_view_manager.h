@@ -89,6 +89,7 @@ public:
   bool GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
   bool GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
   void SetViewEventListener(uint32_t node_id, napi_ref callback_ref);
+  std::shared_ptr<BaseView> GetViewFromRegistry(uint32_t node_id);
 
 private:
   bool IsCustomTsRenderView(std::string &view_name);

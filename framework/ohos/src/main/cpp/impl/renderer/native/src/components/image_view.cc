@@ -46,12 +46,16 @@ ImageNode &ImageView::GetLocalRootArkUINode() {
   return imageNode_;
 }
 
+std::string ImageView::GetSrc() {
+  return src_;
+}
+
 bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "src") {
     auto value = HRValueUtils::GetString(propValue);
     if (value != src_) {
       src_ = value;
-      fetchImage(value);
+      FetchImage(value);
     }
     return true;
   } else if (propKey == "resizeMode") {
@@ -109,7 +113,7 @@ void ImageView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padd
   BaseView::UpdateRenderViewFrame(frame, padding);
 }
 
-void ImageView::fetchImage(const std::string &imageUrl) {
+void ImageView::FetchImage(const std::string &imageUrl) {
   if (imageUrl.size() > 0) {
     if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
       GetLocalRootArkUINode().SetSources(imageUrl);

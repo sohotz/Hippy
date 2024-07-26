@@ -40,12 +40,14 @@ public:
   
   void OnComplete(float width, float height) override;
   void OnError(int32_t errorCode) override;
+  std::string GetSrc();
+  
+protected:
+  virtual void FetchImage(const std::string &imageUrl);
   
 private:
   ImageNode imageNode_;
   std::string src_;
-  
-  void fetchImage(const std::string &imageUrl);
 };
 
 } // namespace native

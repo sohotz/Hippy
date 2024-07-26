@@ -18,6 +18,20 @@
  * limitations under the License.
  */
 
+export class HttpHeaderRequest {
+  public static ACCEPT: string = "Accept"
+  public static HOST: string = "Host";
+  public static ACCEPT_LANGUAGE: string = "Accept-Language";
+  public static ACCEPT_ENCODING: string = "Accept-Encoding";
+  public static CONTENT_LENGTH: string = "Content-Length";
+  public static CONTENT_TYPE: string = "Content-Type";
+  public static USER_AGENT: string = "User-Agent";
+  public static REFERER: string = "Referer";
+  public static RANGE: string = "Range";
+  public static CONNECTION: string = "Connection";
+  public static COOKIE: string = "Cookie";
+}
+
 export class HttpHeaderResponse {
   public static LOCATION: string = "Location";
   public static SET_COOKIE: string = "Set-Cookie";
@@ -29,7 +43,7 @@ export class HttpHeaderResponse {
   public static CHARSET: string = "Charset";
   public static TRANSFER_ENCODING: string = "Transfer-Encoding";
   public static LAST_MODIFY: string = "Last-Modified";
-  public static BYTE_RNAGES: string = "Byte-Ranges";
+  public static BYTE_RANGES: string = "Byte-Ranges";
   public static CACHE_CONTROL: string = "Cache-Control";
   public static CONNECTION: string = "Connection";
   public static CONTENT_RANGE: string = "Content-Range";

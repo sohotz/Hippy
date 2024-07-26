@@ -30,7 +30,7 @@ import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAda
 import { HippyJsException } from '../common/HippyJsException';
 import { JsDriver } from '../connector/JsDriver';
 import { NativeCallback } from '../connector/NativeCallback';
-import { V8InitParams } from '../HippyEngine';
+import { ModuleLoadStatus, V8InitParams } from '../HippyEngine';
 import { HippyEngineContext } from '../HippyEngineContext';
 import { TurboModuleManager } from '../modules/turbo/TurboModuleManager';
 import { Serializer } from '../serialization/Serializer';
@@ -123,6 +123,13 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
   bundleLoaderCallback = (result: number, reason: string) => {
     LogUtils.i('hippy bundleLoaderCallback', result + reason)
+    if (this.mContext) {
+      if (result === 0) {
+        this.mContext.onLoadModuleCompleted(ModuleLoadStatus.STATUS_OK, 'load module success')
+      } else {
+        this.mContext.onLoadModuleCompleted(ModuleLoadStatus.STATUS_ERR_RUN_BUNDLE, 'load module error. loader.load failed. check the file!!')
+      }
+    }
   }
 
   resumeInstance(id: number): void {
@@ -225,11 +232,11 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
   async initBridge(initBridgeCallback: NativeCallback): Promise<void> {
     this.mHippyBridge.initJSBridge(await this.getGlobalConfigsString(), (result: number, reason: string) => {
-      this.initJSDriverCallback(result, reason, initBridgeCallback);
+      this.initJSBridgeCallback(result, reason, initBridgeCallback);
     }, this.mGroupId);
   }
 
-  initJSDriverCallback(result: number, reason: string, initBridgeCallback: NativeCallback): void {
+  initJSBridgeCallback(result: number, reason: string, initBridgeCallback: NativeCallback): void {
     LogUtils.i('hippy', 'jsDriver initialize callback, instanceId: %{public}d' + this.mJsDriver.instanceId);
     if (result != 0) {
       LogUtils.e('hippy', 'jsDriver initialize error ' + reason);

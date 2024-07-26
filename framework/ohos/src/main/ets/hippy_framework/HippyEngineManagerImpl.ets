@@ -27,6 +27,7 @@ import {
   HippyModuleDestroyCallback,
   HippyModuleLoadCallback,
   ModuleLoadParams,
+  ModuleLoadStatus,
   V8InitParams
 } from '.';
 import { DefaultProcessor } from '../vfs/DefaultProcessor'
@@ -85,7 +86,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
   private mDevtoolsManager: DevtoolsManager | null = null;
   private mDevSupportManager: DevSupportManager | null = null;
 
-  private destroyCallback: Function | null = null;
+  private destroyModuleCallback: Function | null = null;
   private rootView: HippyRootView | null = null;
 
   constructor(params: EngineInitParams) {
@@ -164,16 +165,16 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
         this.params.remoteServerUrl);
       let url = this.mDevSupportManager.createResourceUrl(this.mServerBundleName);
       this.mCoreBundleLoader = new HippyRemoteBundleLoader(url as string, false, "");
-      // 注入调试回调
+      // Inject Devtools Callback
       this.mDevSupportManager.setDevCallback(this);
     }
   }
 
   public restartEngine(initCallback: HippyEngineInitCallback) {
-    // 性能打点
+    // performance
     this.mMonitor.startPoint(MonitorGroupType.ENGINE_INITIALIZE, TimeMonitor.MONITOR_POINT_INIT_NATIVE_ENGINE);
     this.domMgr = new DomManager(this.libHippy)
-    // 初始化 HippyEngineContext
+    // init HippyEngineContext
     this.mEngineContext = new HippyEngineContextImpl(
       this.params,
       this.domMgr,
@@ -182,7 +183,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
       this.mCoreBundleLoader,
       this.mDevSupportManager,
     );
-    // 提供给 Render 模块的 Proxy
     this.nativeRenderProvider = this.mEngineContext.getNativeRenderProvider()
     if (this.nativeRenderProvider) {
       this.nativeRenderProvider.getNativeRenderImpl().setFrameworkProxy(this);
@@ -236,12 +236,12 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     }
   }
 
-  public initEngine(initCallback: HippyEngineInitCallback): void {
+  public initEngine(initEngineCallback: HippyEngineInitCallback): void {
     this.initDevModule();
-    this.restartEngine(initCallback);
+    this.restartEngine(initEngineCallback);
   }
 
-  loadModule(loadParams: ModuleLoadParams, loadCallback: HippyModuleLoadCallback): HippyRootView | null {
+  loadModule(loadParams: ModuleLoadParams, loadModuleCallback: HippyModuleLoadCallback): HippyRootView | null {
     const jsDriver = this.mEngineContext?.getJsDriver();
     if (!jsDriver || !this.getVfsManager() || !this.resourceManager) {
       return null;
@@ -259,21 +259,21 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     }
     const rootView = this.mEngineContext!.createRootView(loadParams);
     this.rootView = rootView;
-    this.loadJsModule(loadParams, rootView.getRootId(), loadCallback)
+    this.loadJsModule(loadParams, rootView.getRootId(), loadModuleCallback)
     if (this.params.debugMode && this.mDevSupportManager) {
       this.mDevSupportManager.attachToHost(this.params.context, rootView.getRootId());
     }
     return rootView;
   }
 
-  destroyModule(rootId: number, destroyCallback: HippyModuleDestroyCallback): void {
-    this.destroyCallback = destroyCallback;
+  destroyModule(rootId: number, destroyModuleCallback: HippyModuleDestroyCallback): void {
+    this.destroyModuleCallback = destroyModuleCallback;
     this.nativeRenderProvider!.getNativeRenderImpl().destroyRoot(rootId)
     if (this.mEngineContext != null && this.mEngineContext.getBridgeManager() != null) {
       this.mEngineContext.getBridgeManager().destroyInstance(rootId);
     }
-    if (this.destroyCallback) {
-      this.destroyCallback();
+    if (this.destroyModuleCallback) {
+      this.destroyModuleCallback();
     }
   }
 
@@ -321,27 +321,26 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
   onSizeChanged(rootId: number, w: number, h: number, ow: number, oh: number): void {
   }
 
-  loadJsModule(loadParams: ModuleLoadParams, rootId: number, loadCallback: HippyModuleLoadCallback) {
+  loadJsModule(loadParams: ModuleLoadParams, rootId: number, loadJsModuleCallback: HippyModuleLoadCallback) {
     if (!this.mEngineContext) {
+      LogUtils.e('hippy', 'load module error. mEngineContext=null');
+      loadJsModuleCallback(ModuleLoadStatus.STATUS_VARIABLE_NULL, 'load module error. mEngineContext=null');
       return;
     }
+    this.mEngineContext?.setLoadModuleCallback(loadJsModuleCallback);
     if (!this.params.debugMode) {
       if (this.mCoreBundleLoader != null) {
-        // TODO 多RootView
         this.mEngineContext?.getBridgeManager().runBundle(0, this.mCoreBundleLoader);
       } else {
         LogUtils.e('hippy', 'load module error. jsBundleLoader==null');
-        // notifyModuleLoaded(ModuleLoadStatus.STATUS_VARIABLE_NULL,
-        //   "load module error. jsBundleLoader==null");
+        loadJsModuleCallback(ModuleLoadStatus.STATUS_VARIABLE_NULL, "load module error. jsBundleLoader==null");
         return;
       }
     }
-    // TODO 多RootView
     this.mEngineContext.getBridgeManager().loadInstance(loadParams.componentName, rootId, loadParams.jsParams);
 
-    // TODO: Debug
     if (this.params.debugMode) {
-      // notifyModuleLoaded(ModuleLoadStatus.STATUS_OK, null);
+      loadJsModuleCallback(ModuleLoadStatus.STATUS_OK, 'load module in debugMode');
     }
   }
 

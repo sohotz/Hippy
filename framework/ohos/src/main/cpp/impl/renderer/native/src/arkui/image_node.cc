@@ -49,7 +49,6 @@ void ImageNode::SetNodeDelegate(ImageNodeDelegate *imageNodeDelegate) { imageNod
 
 void ImageNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   ArkUINode::OnNodeEvent(event);
-  
   if (imageNodeDelegate_ == nullptr) {
     return;
   }
@@ -198,8 +197,8 @@ void ImageNode::SetColorFilterMatrix() {
       return;
 		} else if (cssTintColorBlendMode_ == ImageTintColorBlendMode::SRC_ATOP) {
       ArkUI_NumberValue value[] = { {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
-                                    {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
-                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
+                                    {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[1] * matrixColor[3]},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = matrixColor[2] * matrixColor[3]},
                                     {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 1}, {.f32 = 0} };
       SetColorFilter(value);
       return;
@@ -217,10 +216,11 @@ ImageNode &ImageNode::SetTintColor(uint32_t sharedColor) {
   if (colorValue >> 24 == 0) {
     colorValue |= ((uint32_t)0xff << 24);
   }
-  int32_t alpha = colorValue & 0xff;
-  int32_t red = (colorValue >> 8) & 0xff;
-  int32_t green = (colorValue >> 16) & 0xff;
-  int32_t blue = (colorValue >> 24) &0xff;
+
+  int32_t blue = colorValue & 0xff;
+  int32_t green = (colorValue >> 8) & 0xff;
+  int32_t red = (colorValue >> 16) & 0xff;
+  int32_t alpha = (colorValue >> 24) &0xff;
   cssTintColor_.push_back(red);
   cssTintColor_.push_back(green);
   cssTintColor_.push_back(blue);
