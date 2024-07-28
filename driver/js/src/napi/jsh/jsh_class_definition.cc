@@ -28,15 +28,13 @@ inline namespace driver {
 inline namespace napi {
 
 JSHClassDefinition::JSHClassDefinition(JSVM_Env env, JSVM_Value value): env_(env) {
-  // TODO(hot-js):
-  auto s = OH_JSVM_CreateReference(env, value, 1, &value_ref_);
-  FOOTSTONE_DCHECK(s == JSVM_OK);
+  auto stauts = OH_JSVM_CreateReference(env, value, 1, &value_ref_);
+  FOOTSTONE_CHECK(stauts == JSVM_OK);
 }
 
 JSHClassDefinition::~JSHClassDefinition() {
-  // TODO(hot-js):
-  auto s = OH_JSVM_DeleteReference(env_, value_ref_);
-  FOOTSTONE_DCHECK(s == JSVM_OK);
+  auto stauts = OH_JSVM_DeleteReference(env_, value_ref_);
+  FOOTSTONE_CHECK(stauts == JSVM_OK);
 }
 
 }

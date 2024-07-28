@@ -37,20 +37,22 @@ inline namespace napi {
 
 class JSHHandleScope {
  public:
-  JSHHandleScope(const JSHHandleScope &other) = delete;
-  JSHHandleScope &operator=(const JSHHandleScope &other) = delete;
-  
   explicit JSHHandleScope(const JSVM_Env env) : env_(env) {
-    auto s = OH_JSVM_OpenHandleScope(env_, &handleScope_);
-    FOOTSTONE_DCHECK(s == JSVM_OK);
+    auto status = OH_JSVM_OpenHandleScope(env_, &handle_scope_);
+    FOOTSTONE_DCHECK(status == JSVM_OK);
   }
   ~JSHHandleScope() {
-    auto s = OH_JSVM_CloseHandleScope(env_, handleScope_);
-    FOOTSTONE_DCHECK(s == JSVM_OK);
+    auto status = OH_JSVM_CloseHandleScope(env_, handle_scope_);
+    FOOTSTONE_DCHECK(status == JSVM_OK);
   }
+  JSHHandleScope(const JSHHandleScope &) = delete;
+  JSHHandleScope &operator=(const JSHHandleScope &) = delete;
+  JSHHandleScope(JSHHandleScope &&) = delete;
+  void *operator new(size_t) = delete;
+  void *operator new[](size_t) = delete;
  private:
   JSVM_Env env_ = nullptr;
-  JSVM_HandleScope handleScope_ = nullptr;
+  JSVM_HandleScope handle_scope_ = nullptr;
 };
 
 class JSHCtx : public Ctx {

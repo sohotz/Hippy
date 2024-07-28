@@ -25,7 +25,6 @@
 #include "driver/napi/js_try_catch.h"
 #include "driver/napi/jsh/jsh_ctx_value.h"
 #include "footstone/string_view.h"
-#include <ark_runtime/jsvm.h>
 
 namespace hippy {
 inline namespace driver {
@@ -46,9 +45,9 @@ class JSHTryCatch : public TryCatch {
   virtual footstone::string_view GetExceptionMessage();
 
  private:
-  // TODO(hot-js):
-  //std::shared_ptr<v8::TryCatch> try_catch_;
   std::shared_ptr<JSHCtxValue> exception_;
+  bool is_verbose_ = false;
+  bool is_rethrow_ = false;
 };
 
 }

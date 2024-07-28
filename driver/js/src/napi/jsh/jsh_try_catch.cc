@@ -21,7 +21,6 @@
  */
 
 #include "driver/napi/jsh/jsh_try_catch.h"
-
 #include "footstone/string_view.h"
 #include "footstone/string_view_utils.h"
 #include "driver/napi/jsh/jsh_ctx.h"
@@ -40,86 +39,100 @@ std::shared_ptr<TryCatch> CreateTryCatchScope(bool enable,
 }
 
 JSHTryCatch::JSHTryCatch(bool enable, const std::shared_ptr<Ctx>& ctx)
-    : TryCatch(enable, ctx) {//, try_catch_(nullptr) {
-  if (enable) {
-//     std::shared_ptr<V8Ctx> v8_ctx = std::static_pointer_cast<V8Ctx>(ctx);
-//     if (v8_ctx) {
-//       try_catch_ = std::make_shared<v8::TryCatch>(v8_ctx->isolate_);
-//     }
+    : TryCatch(enable, ctx) {
+}
+
+JSHTryCatch::~JSHTryCatch() {
+  if (HasCaught()) {
+    if (is_rethrow_ && exception_) {
+      auto jsh_ctx = std::static_pointer_cast<JSHCtx>(ctx_);
+      auto env = jsh_ctx->env_;
+      auto status = OH_JSVM_Throw(env, exception_->GetValue());
+      FOOTSTONE_DCHECK(status == JSVM_OK);
+    }
   }
 }
 
-JSHTryCatch::~JSHTryCatch() = default;
-
 void JSHTryCatch::ReThrow() {
-//   if (try_catch_) {
-//     try_catch_->ReThrow();
-//   }
+  is_rethrow_ = true;
 }
 
 bool JSHTryCatch::HasCaught() {
-//   if (try_catch_) {
-//     return try_catch_->HasCaught();
-//   }
+  if (enable_) {
+    if (exception_) {
+      return true;
+    }
+    
+    auto jsh_ctx = std::static_pointer_cast<JSHCtx>(ctx_);
+    auto env = jsh_ctx->env_;
+      
+    bool isPending = false;
+    if (OH_JSVM_IsExceptionPending(env, &isPending) == JSVM_OK && isPending) {
+      JSVM_Value error = nullptr;
+      if (OH_JSVM_GetAndClearLastException(env, &error) == JSVM_OK) {
+        exception_ = std::make_shared<JSHCtxValue>(env, error);
+        return true;
+      }
+    }
+    return false;
+  }
   return false;
 }
 
 bool JSHTryCatch::CanContinue() {
-//   if (try_catch_) {
-//     return try_catch_->CanContinue();
-//   }
+  if (enable_) {
+    return exception_ ? false : true;
+  }
   return true;
 }
 
 bool JSHTryCatch::HasTerminated() {
-//   if (try_catch_) {
-//     return try_catch_->HasTerminated();
-//   }
+  if (enable_) {
+    return exception_ ? true : false;
+  }
   return false;
 }
 
 bool JSHTryCatch::IsVerbose() {
-//   if (try_catch_) {
-//     return try_catch_->IsVerbose();
-//   }
-  return false;
+  return is_verbose_;
 }
 
 void JSHTryCatch::SetVerbose(bool verbose) {
-//   if (try_catch_) {
-//     try_catch_->SetVerbose(verbose);
-//   }
+  is_verbose_ = verbose;
 }
 
 std::shared_ptr<CtxValue> JSHTryCatch::Exception() {
-//   if (try_catch_) {
-//     FOOTSTONE_CHECK(ctx_);
-//     auto v8_ctx = std::static_pointer_cast<V8Ctx>(ctx_);
-//     v8::HandleScope handle_scope(v8_ctx->isolate_);
-//     auto context = v8_ctx->context_persistent_.Get(v8_ctx->isolate_);
-//     v8::Context::Scope context_scope(context);
-//     auto exception = try_catch_->Exception();
-//     return std::make_shared<V8CtxValue>(v8_ctx->isolate_, exception);
-//   }
-  return nullptr;
+  return exception_;
 }
 
 string_view JSHTryCatch::GetExceptionMessage() {
-//   if (!try_catch_) {
-//     return {};
-//   }
-//
-//   auto v8_ctx = std::static_pointer_cast<V8Ctx>(ctx_);
-//   auto isolate = v8_ctx->isolate_;
-//   v8::HandleScope handle_scope(isolate);
-//   auto context = v8_ctx->context_persistent_.Get(isolate);
-//   v8::Context::Scope context_scope(context);
-//
-//   auto message = try_catch_->Message();
-//   auto desc = V8VM::GetMessageDescription(isolate, context, message);
-//   auto stack= V8VM::GetStackTrace(isolate, context, message->GetStackTrace());
-//   return string_view("message: ") + desc + string_view(", stack: ") + stack;
-  return {};
+  if (enable_ && exception_) {
+    auto jsh_ctx = std::static_pointer_cast<JSHCtx>(ctx_);
+    auto env = jsh_ctx->env_;
+    auto error = exception_->GetValue();
+    
+    JSVM_Value stack = nullptr;
+    auto status = OH_JSVM_GetNamedProperty(env, error, "stack", &stack);
+    FOOTSTONE_DCHECK(status == JSVM_OK);
+
+    JSVM_Value message = nullptr;
+    status = OH_JSVM_GetNamedProperty(env, error, "message", &message);
+    FOOTSTONE_DCHECK(status == JSVM_OK);
+
+    char stackstr[256] = {0};
+    status = OH_JSVM_GetValueStringUtf8(env, stack, stackstr, 256, nullptr);
+    FOOTSTONE_DCHECK(status == JSVM_OK);
+
+    char messagestr[256] = {0};
+    status = OH_JSVM_GetValueStringUtf8(env, message, messagestr, 256, nullptr);
+    FOOTSTONE_DCHECK(status == JSVM_OK);
+    
+    std::string str = std::string("message: ") + messagestr + ", stack: " + stackstr;
+    string_view ret(str);
+    FOOTSTONE_DLOG(ERROR) << "GetExceptionMessage msg = " << ret;
+    return ret;
+  }
+  return "";
 }
 
 }

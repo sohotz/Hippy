@@ -599,7 +599,7 @@ std::shared_ptr<CtxValue> JSHCtx::GetProperty(
   
   JSHHandleScope handleScope(env_);
 
-  auto key = JSHVM::CreateV8String(env_, name);
+  auto key = JSHVM::CreateJSHString(env_, name);
   return GetProperty(object, key);
 }
 
@@ -646,7 +646,7 @@ std::shared_ptr<CtxValue> JSHCtx::RunScript(const string_view& str_view,
   
   JSHHandleScope handleScope(env_);
   
-  auto source_value = JSHVM::CreateV8String(env_, str_view);
+  auto source_value = JSHVM::CreateJSHString(env_, str_view);
   
   /*
   string_view::Encoding encoding = str_view.encoding();
@@ -1014,7 +1014,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateString(const string_view& str_view) {
 //
 //   auto v8_string = V8VM::CreateV8String(isolate_, context, str_view);
   
-  auto value = JSHVM::CreateV8String(env_, str_view);
+  auto value = JSHVM::CreateJSHString(env_, str_view);
   return value;
 }
 
@@ -1186,7 +1186,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateException(const string_view& msg) {
   JSHHandleScope handleScope(env_);
   
   JSVM_Value code = nullptr;
-  auto msg_value = JSHVM::CreateV8String(env_, msg);
+  auto msg_value = JSHVM::CreateJSHString(env_, msg);
   auto jsh_msg_value = std::static_pointer_cast<JSHCtxValue>(msg_value);
   JSVM_Value error = nullptr;
   auto s = OH_JSVM_CreateError(env_, code, jsh_msg_value->GetValue(), &error);
@@ -1870,7 +1870,7 @@ bool JSHCtx::HasNamedProperty(const std::shared_ptr<CtxValue>& value,
   auto s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isJsObj) {
-    auto key_value = JSHVM::CreateV8String(env_, name);
+    auto key_value = JSHVM::CreateJSHString(env_, name);
     auto jsh_key_value = std::static_pointer_cast<JSHCtxValue>(key_value);
     
     bool result = false;
@@ -1918,7 +1918,7 @@ std::shared_ptr<CtxValue> JSHCtx::CopyNamedProperty(
   auto s = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
   FOOTSTONE_DCHECK(s == JSVM_OK);
   if (isJsObj) {
-    auto key_value = JSHVM::CreateV8String(env_, name);
+    auto key_value = JSHVM::CreateJSHString(env_, name);
     auto jsh_key_value = std::static_pointer_cast<JSHCtxValue>(key_value);
     
     JSVM_Value result = nullptr;

@@ -32,12 +32,13 @@ inline namespace napi {
 
 struct JSHCtxValue : public CtxValue {
   JSHCtxValue(JSVM_Env env, JSVM_Value value)
-      : env_(env), value_(value) {
-    auto s = OH_JSVM_CreateReference(env, value, 1, &value_ref_);
-    FOOTSTONE_DCHECK(s == JSVM_OK);
+      : env_(env) {
+    auto staus = OH_JSVM_CreateReference(env, value, 1, &value_ref_);
+    FOOTSTONE_CHECK(staus == JSVM_OK);
   }
   ~JSHCtxValue() {
-//     OH_JSVM_DeleteReference(env_, value_ref_);
+    auto staus = OH_JSVM_DeleteReference(env_, value_ref_);
+    FOOTSTONE_CHECK(staus == JSVM_OK);
   }
   JSHCtxValue(const JSHCtxValue&) = delete;
   JSHCtxValue& operator=(const JSHCtxValue&) = delete;
@@ -46,16 +47,14 @@ struct JSHCtxValue : public CtxValue {
     if (!value_ref_) {
       return nullptr;
     }
-    JSVM_Value result = 0;
-    auto s = OH_JSVM_GetReferenceValue(env_, value_ref_, &result);
-    FOOTSTONE_DCHECK(s == JSVM_OK);
+    JSVM_Value result = nullptr;
+    auto staus = OH_JSVM_GetReferenceValue(env_, value_ref_, &result);
+    FOOTSTONE_CHECK(staus == JSVM_OK);
     return result;
-//     return value_;
   }
 
   JSVM_Env env_ = nullptr;
   JSVM_Ref value_ref_ = nullptr;
-  JSVM_Value value_ = nullptr;
 };
 
 }

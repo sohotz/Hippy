@@ -42,150 +42,65 @@ namespace hippy {
 inline namespace driver {
 inline namespace vm {
 
-// static std::unique_ptr<v8::Platform> platform = nullptr;
+static bool platform_initted = false;
 static std::mutex mutex;
 
-// void InitializePlatform() {
-//   std::lock_guard<std::mutex> lock(mutex);
-//   if (platform != nullptr) {
-// #if defined(V8_X5_LITE) && defined(THREAD_LOCAL_PLATFORM)
-//     FOOTSTONE_DLOG(INFO) << "InitializePlatform";
-//     v8::V8::InitializePlatform(platform.get());
-// #endif
-//   } else {
-//     FOOTSTONE_LOG(INFO) << "NewDefaultPlatform";
-//     platform = v8::platform::NewDefaultPlatform();
-//
-// #if defined(V8_X5_LITE)
-//     v8::V8::InitializePlatform(platform.get(), true);
-// #else
-//     v8::V8::InitializePlatform(platform.get());
-// #endif
-//     FOOTSTONE_DLOG(INFO) << "Initialize";
-//     v8::V8::Initialize();
-//   }
-// }
-
 JSHVM::JSHVM() : VM() {
-//   FOOTSTONE_DLOG(INFO) << "V8VM begin, version: " << v8::V8::GetVersion();
+  JSVM_VMInfo vmInfo;
+  OH_JSVM_GetVMInfo(&vmInfo);
+  FOOTSTONE_DLOG(INFO) << "JSHVM begin, apiVersion: " << vmInfo.apiVersion
+    << ", engine: " << vmInfo.engine 
+    << ", version: " << vmInfo.version;
   {
-//     std::lock_guard<std::mutex> lock(mutex);
-//     if (platform != nullptr) {
-// #if defined(V8_X5_LITE) && defined(THREAD_LOCAL_PLATFORM)
-//       FOOTSTONE_DLOG(INFO) << "InitializePlatform";
-//       v8::V8::InitializePlatform(platform_.get());
-// #endif
-//     } else {
-//       FOOTSTONE_DLOG(INFO) << "NewDefaultPlatform";
-//       platform = v8::platform::NewDefaultPlatform();
-//
-// #if defined(V8_X5_LITE)
-//       v8::V8::InitializePlatform(platform.get(), true);
-// #else
-//       v8::V8::InitializePlatform(platform.get());
-// #endif
-//       FOOTSTONE_DLOG(INFO) << "Initialize";
-//       v8::V8::Initialize();
-// #ifdef ENABLE_INSPECTOR
-//       auto trace = reinterpret_cast<v8::platform::tracing::TracingController*>(platform->GetTracingController());
-//       devtools::DevtoolsDataSource::OnGlobalTracingControlGenerate(trace);
-// #endif    
-//     }
+    std::lock_guard<std::mutex> lock(mutex);
+    if (!platform_initted) {
+      JSVM_InitOptions init_options;
+      memset(&init_options, 0, sizeof(init_options));
+      auto status = OH_JSVM_Init(&init_options);
+      FOOTSTONE_CHECK(status == JSVM_OK);
+      platform_initted = true;
+#ifdef ENABLE_INSPECTOR
+      auto trace = reinterpret_cast<v8::platform::tracing::TracingController*>(platform->GetTracingController());
+      devtools::DevtoolsDataSource::OnGlobalTracingControlGenerate(trace);
+#endif
+    }
   }
-//   create_params_.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-//   if (param) {
-//     create_params_.constraints.ConfigureDefaultsFromHeapSize(param->initial_heap_size_in_bytes,
-//                                                              param->maximum_heap_size_in_bytes);
-//   }
-//   isolate_ = v8::Isolate::New(create_params_);
-//   isolate_->Enter();
-//   isolate_->SetCaptureStackTraceForUncaughtExceptions(true);
-//   if (param && param->near_heap_limit_callback) {
-//     isolate_->AddNearHeapLimitCallback(param->near_heap_limit_callback,
-//                                        param->near_heap_limit_callback_data);
-//   }
-//
-//   enable_v8_serialization_ = param->enable_v8_serialization;
-//   FOOTSTONE_DLOG(INFO) << "V8VM end";
   
+  // TODO(hot): vm params
   
-  JSVM_Status status;
-  JSVM_InitOptions init_options;
-  memset(&init_options, 0, sizeof(init_options));
-  static int aa = 0;
-  if (aa == 0) {
-    auto s = OH_JSVM_Init(&init_options);
-    FOOTSTONE_DCHECK(s == JSVM_OK);
-    aa++;
-  }
-
-  // 虚拟机实例
-//   vm_ = new JSVM_VM;
-//   JSVM_VMScope vmScope;
-//   g_vmScopeMap[ENVTAG_NUMBER] = vmScope;
   JSVM_CreateVMOptions options;
   memset(&options, 0, sizeof(options));
-  status = OH_JSVM_CreateVM(&options, &vm_);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
-  status = OH_JSVM_OpenVMScope(vm_, &vmScope_);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
-  
-  assert(status == JSVM_OK);
+  auto status = OH_JSVM_CreateVM(&options, &vm_);
+  FOOTSTONE_CHECK(status == JSVM_OK);
+  status = OH_JSVM_OpenVMScope(vm_, &vm_scope_);
+  FOOTSTONE_CHECK(status == JSVM_OK);
+
+  FOOTSTONE_DLOG(INFO) << "V8VM end";
 }
 
 // constexpr static int kScopeWrapperIndex = 5;
 
-
-// static void UncaughtExceptionMessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> data) {
-//   auto isolate = message->GetIsolate();
-//   v8::HandleScope handle_scope(isolate);
-//   auto context = isolate->GetCurrentContext();
-//   v8::Context::Scope context_scope(context);
-//   CallbackInfo callback_info;
-//   callback_info.SetSlot(context->GetAlignedPointerFromEmbedderData(kScopeWrapperIndex));
-//   auto error = v8::Exception::Error(message->Get());
-//   callback_info.AddValue(std::make_shared<V8CtxValue>(isolate, error));
-//   auto description = V8VM::GetMessageDescription(isolate, context, message);
-//   callback_info.AddValue(std::make_shared<V8CtxValue>(isolate, V8VM::CreateV8String(isolate, context, description)));
-//   auto stack = V8VM::GetStackTrace(isolate, context, message->GetStackTrace());
-//   callback_info.AddValue(std::make_shared<V8CtxValue>(isolate, V8VM::CreateV8String(isolate, context, stack)));
-//   auto external = data.As<v8::External>();
-//   FOOTSTONE_CHECK(!external.IsEmpty());
-//   auto* func_wrapper = reinterpret_cast<FunctionWrapper*>(external->Value());
-//   FOOTSTONE_CHECK(func_wrapper && func_wrapper->callback);
-//   (func_wrapper->callback)(callback_info, func_wrapper->data);
-// }
-
 void JSHVM::AddUncaughtExceptionMessageListener(const std::unique_ptr<FunctionWrapper>& wrapper) const {
   FOOTSTONE_CHECK(!wrapper->data) << "Snapshot requires the parameter data to be nullptr or the address can be determined during compilation";
-//   v8::HandleScope handle_scope(isolate_);
-//   isolate_->AddMessageListener(UncaughtExceptionMessageCallback,
-//                                v8::External::New(isolate_, wrapper.get()));
 
+  // TODO(hot-js):
 }
 
 JSHVM::~JSHVM() {
   FOOTSTONE_LOG(INFO) << "~JSHVM";
 
-// #if defined(ENABLE_INSPECTOR) && !defined(V8_WITHOUT_INSPECTOR)
-//   inspector_client_ = nullptr;
-// #endif
-//   isolate_->Exit();
-//   isolate_->Dispose();
-//   delete create_params_.array_buffer_allocator;
+#if defined(ENABLE_INSPECTOR) && !defined(JSH_WITHOUT_INSPECTOR)
+  inspector_client_ = nullptr;
+#endif
+  
+  OH_JSVM_CloseVMScope(vm_, vm_scope_);
+  vm_scope_ = nullptr;
+  OH_JSVM_DestroyVM(vm_);
+  vm_ = nullptr;
 }
 
 void JSHVM::PlatformDestroy() {
-//   platform = nullptr;
-//
-//   v8::V8::Dispose();
-// #if (V8_MAJOR_VERSION == 9 && V8_MINOR_VERSION == 8 && \
-//      V8_BUILD_NUMBER >= 124) || \
-//     (V8_MAJOR_VERSION == 9 && V8_MINOR_VERSION > 8) || (V8_MAJOR_VERSION > 9)
-//   v8::V8::DisposePlatform();
-// #else
-//   v8::V8::ShutdownPlatform();
-// #endif
+  platform_initted = false;
 }
 
 std::shared_ptr<Ctx> JSHVM::CreateContext() {
@@ -193,42 +108,27 @@ std::shared_ptr<Ctx> JSHVM::CreateContext() {
   return std::make_shared<JSHCtx>(vm_);
 }
 
-string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value stringValue) {
-  FOOTSTONE_DCHECK(stringValue);
-//   v8::HandleScope handle_scope(isolate);
-//   v8::Context::Scope context_scope(context);
-
-//   auto v8_string = v8::String::Cast(*string);
-//   auto len = footstone::checked_numeric_cast<int, size_t>(v8_string->Length());
-//   if (v8_string->IsOneByte()) {
-//     std::string one_byte_string;
-//     one_byte_string.resize(len);
-//     v8_string->WriteOneByte(isolate,
-//                             reinterpret_cast<uint8_t*>(&one_byte_string[0]));
-//     return string_view(one_byte_string);
-//   }
-//   std::u16string two_byte_string;
-//   two_byte_string.resize(len);
-//   v8_string->Write(isolate, reinterpret_cast<uint16_t*>(&two_byte_string[0]));
-//   return string_view(two_byte_string);
+string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value string_value) {
+  FOOTSTONE_DCHECK(string_value);
   
   JSHHandleScope handleScope(env);
   
-  std::u16string two_byte_string;
+  // TODO(hot-js): need handle one byte string?
+  
   size_t result = 0;
-  auto s = OH_JSVM_GetValueStringUtf16(env, stringValue, NULL, 0, &result);
-  FOOTSTONE_DCHECK(s == JSVM_OK);
+  auto status = OH_JSVM_GetValueStringUtf16(env, string_value, NULL, 0, &result);
+  if (status != JSVM_OK || result == 0) {
+    return "";
+  }
+  std::u16string two_byte_string;
   two_byte_string.resize(result + 1);
-  s = OH_JSVM_GetValueStringUtf16(env, stringValue, reinterpret_cast<char16_t*>(&two_byte_string[0]), result + 1, &result);
+  status = OH_JSVM_GetValueStringUtf16(env, string_value, reinterpret_cast<char16_t*>(&two_byte_string[0]), result + 1, &result);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
   two_byte_string.resize(result);
-  FOOTSTONE_DCHECK(s == JSVM_OK);
   return string_view(two_byte_string);
 }
 
-std::shared_ptr<CtxValue> JSHVM::CreateV8String(JSVM_Env env, const string_view& str_view) {
-//   v8::EscapableHandleScope handle_scope(isolate);
-//   v8::Context::Scope context_scope(context);
-  
+std::shared_ptr<CtxValue> JSHVM::CreateJSHString(JSVM_Env env, const string_view& str_view) {
   JSHHandleScope handleScope(env);
 
   JSVM_Value result = 0;
@@ -236,20 +136,20 @@ std::shared_ptr<CtxValue> JSHVM::CreateV8String(JSVM_Env env, const string_view&
   switch (encoding) {
     case string_view::Encoding::Latin1: {
       const std::string& one_byte_str = str_view.latin1_value();
-      auto s = OH_JSVM_CreateStringLatin1(env, one_byte_str.c_str(), one_byte_str.size(), &result);
-      FOOTSTONE_DCHECK(s == JSVM_OK);
+      auto status = OH_JSVM_CreateStringLatin1(env, one_byte_str.c_str(), one_byte_str.size(), &result);
+      FOOTSTONE_DCHECK(status == JSVM_OK);
       return std::make_shared<JSHCtxValue>(env, result);
     }
     case string_view::Encoding::Utf8: {
       const string_view::u8string& utf8_str = str_view.utf8_value();
-      auto s = OH_JSVM_CreateStringUtf8(env, (const char *)utf8_str.c_str(), utf8_str.size(), &result);
-      FOOTSTONE_DCHECK(s == JSVM_OK);
+      auto status = OH_JSVM_CreateStringUtf8(env, (const char *)utf8_str.c_str(), utf8_str.size(), &result);
+      FOOTSTONE_DCHECK(status == JSVM_OK);
       return std::make_shared<JSHCtxValue>(env, result);
     }
     case string_view::Encoding::Utf16: {
       const std::u16string& two_byte_str = str_view.utf16_value();
-      auto s = OH_JSVM_CreateStringUtf16(env, two_byte_str.c_str(), two_byte_str.length(), &result);
-      FOOTSTONE_DCHECK(s == JSVM_OK);
+      auto status = OH_JSVM_CreateStringUtf16(env, two_byte_str.c_str(), two_byte_str.length(), &result);
+      FOOTSTONE_DCHECK(status == JSVM_OK);
       return std::make_shared<JSHCtxValue>(env, result);
     }
     default:break;
@@ -257,70 +157,6 @@ std::shared_ptr<CtxValue> JSHVM::CreateV8String(JSVM_Env env, const string_view&
 
   FOOTSTONE_UNREACHABLE();
 }
-/*
-string_view V8VM::GetMessageDescription(v8::Isolate* isolate,
-                                        v8::Local<v8::Context> context,
-                                        v8::Local<v8::Message> message) {
-  v8::HandleScope handle_scope(isolate);
-  v8::Context::Scope context_scope(context);
-
-  auto msg = ToStringView(isolate, context, message->Get());
-  auto maybe_file_name = message->GetScriptOrigin().ResourceName()->ToString(context);
-  string_view file_name;
-  if (!maybe_file_name.IsEmpty()) {
-    file_name = ToStringView(isolate, context, maybe_file_name.ToLocalChecked());
-  } else {
-    file_name = string_view("");
-  }
-  int line = message->GetLineNumber(context).FromMaybe(-1);
-  int start = message->GetStartColumn(context).FromMaybe(-1);
-  int end = message->GetEndColumn(context).FromMaybe(-1);
-
-  std::basic_stringstream<char> description;
-  description << file_name << ": " << line << ": " << start << "-" << end
-              << ": " << msg;
-  std::string u8_str = description.str();
-  return string_view::new_from_utf8(u8_str.c_str(), u8_str.length());
-}
-
-string_view V8VM::GetStackTrace(v8::Isolate* isolate,
-                                v8::Local<v8::Context> context,
-                                v8::Local<v8::StackTrace> trace) {
-  if (trace.IsEmpty()) {
-    return "";
-  }
-
-  v8::HandleScope handle_scope(isolate);
-  v8::Context::Scope context_scope(context);
-
-  std::basic_stringstream<char> stack_stream;
-  auto len = trace->GetFrameCount();
-  for (auto i = 0; i < len; ++i) {
-    auto frame = trace->GetFrame(isolate, static_cast<uint32_t>(i));
-    if (frame.IsEmpty()) {
-      continue;
-    }
-
-    auto v8_script_name = frame->GetScriptName();
-    string_view script_name("");
-    if (!v8_script_name.IsEmpty()) {
-      script_name = ToStringView(isolate, context, v8_script_name);
-    }
-
-    string_view function_name("");
-    auto v8_function_name = frame->GetFunctionName();
-    if (!v8_function_name.IsEmpty()) {
-      function_name = ToStringView(isolate, context, v8_function_name);
-    }
-
-    stack_stream << std::endl
-                 << script_name << ":" << frame->GetLineNumber() << ":"
-                 << frame->GetColumn() << ":" << function_name;
-  }
-  auto u8_str = stack_stream.str();
-  return string_view::new_from_utf8(u8_str.c_str(), u8_str.length());
-}
-*/
 
 std::shared_ptr<VM> CreateVM(const std::shared_ptr<VM::VMInitParam>& param) {
   return std::make_shared<JSHVM>();
@@ -340,19 +176,18 @@ std::shared_ptr<CtxValue> JSHVM::ParseJson(const std::shared_ptr<Ctx>& ctx, cons
 
 //   auto jj = StringViewUtils::ConvertEncoding(json, footstone::string_view::Encoding::Utf8);
 
-  auto string_value = JSHVM::CreateV8String(jsh_ctx->env_, json);
-  auto jsh_string_value = std::static_pointer_cast<JSHCtxValue>(string_value);
-//   v8::MaybeLocal<v8::Value> maybe_obj = v8::JSON::Parse(context, v8_string);
-//   if (maybe_obj.IsEmpty()) {
-//     return nullptr;
-//   }
-  
-  JSVM_Value result = nullptr;
-  auto s = OH_JSVM_JsonParse(jsh_ctx->env_, jsh_string_value->GetValue(), &result);
-  if (s == JSVM_GENERIC_FAILURE) {
-    FOOTSTONE_DLOG(INFO) << "xxx hippy, json: " << json;
+  auto string_value = JSHVM::CreateJSHString(jsh_ctx->env_, json);
+  if (!string_value) {
+    return nullptr;
   }
-  FOOTSTONE_DCHECK(s == JSVM_OK);
+  auto jsh_string_value = std::static_pointer_cast<JSHCtxValue>(string_value);
+  JSVM_Value result = nullptr;
+  auto status = OH_JSVM_JsonParse(jsh_ctx->env_, jsh_string_value->GetValue(), &result);
+  if (status == JSVM_GENERIC_FAILURE) {
+    FOOTSTONE_LOG(ERROR) << "JSHVM::ParseJson error, json: " << json;
+    return nullptr;
+  }
+  FOOTSTONE_DCHECK(status == JSVM_OK);
   return std::make_shared<JSHCtxValue>(jsh_ctx->env_, result);
 }
 

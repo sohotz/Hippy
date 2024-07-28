@@ -36,15 +36,14 @@ class JSHClassDefinition: public ClassDefinition {
   virtual ~JSHClassDefinition();
 
   inline auto GetValue() {
-    JSVM_Value result = 0;
+    JSVM_Value result = nullptr;
     auto s = OH_JSVM_GetReferenceValue(env_, value_ref_, &result);
-    FOOTSTONE_DCHECK(s == JSVM_OK);
+    FOOTSTONE_CHECK(s == JSVM_OK);
     return result;
   }
  private:
-//   JSVM_Value value_;
-  JSVM_Env env_;
-  JSVM_Ref value_ref_;
+  JSVM_Env env_ = nullptr;
+  JSVM_Ref value_ref_ = nullptr;
 };
 
 }

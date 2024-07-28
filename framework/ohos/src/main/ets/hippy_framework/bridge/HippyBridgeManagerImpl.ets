@@ -155,7 +155,8 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     // let buffer = binaryWriter.chunked()
     // return buffer;
 
-    let str = ArgumentUtils.objectToJson(params) //JSON.stringify(params)
+    // let str = JSON.stringify(params)
+    let str = ArgumentUtils.objectToJson(params)
     // LogUtils.l("xxx hippy - gg", str);
     let encoder = new util.TextEncoder("utf-8")
     let uint8Array = encoder.encode(str)
