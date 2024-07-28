@@ -114,6 +114,16 @@ string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value string_value) {
   JSHHandleScope handleScope(env);
   
   // TODO(hot-js): need handle one byte string?
+//   size_t result = 0;
+//   auto status = OH_JSVM_GetValueStringUtf8(env, string_value, NULL, 0, &result);
+//   if (status != JSVM_OK || result == 0) {
+//     return "";
+//   }
+//   std::string one_byte_string;
+//   one_byte_string.resize(result + 1);
+//   status = OH_JSVM_GetValueStringUtf8(env, string_value, reinterpret_cast<char*>(&one_byte_string[0]), result + 1, &result);
+//   FOOTSTONE_DCHECK(status == JSVM_OK);
+//   one_byte_string.resize(result);
   
   size_t result = 0;
   auto status = OH_JSVM_GetValueStringUtf16(env, string_value, NULL, 0, &result);
@@ -125,6 +135,7 @@ string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value string_value) {
   status = OH_JSVM_GetValueStringUtf16(env, string_value, reinterpret_cast<char16_t*>(&two_byte_string[0]), result + 1, &result);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   two_byte_string.resize(result);
+  
   return string_view(two_byte_string);
 }
 
@@ -169,13 +180,7 @@ std::shared_ptr<CtxValue> JSHVM::ParseJson(const std::shared_ptr<Ctx>& ctx, cons
 
   auto jsh_ctx = std::static_pointer_cast<JSHCtx>(ctx);
   JSHHandleScope handleScope(jsh_ctx->env_);
-//   auto isolate = v8_ctx->isolate_;
-//   v8::HandleScope handle_scope(isolate);
-//   auto context = v8_ctx->context_persistent_.Get(isolate);
-//   v8::Context::Scope context_scope(context);
-
-//   auto jj = StringViewUtils::ConvertEncoding(json, footstone::string_view::Encoding::Utf8);
-
+  
   auto string_value = JSHVM::CreateJSHString(jsh_ctx->env_, json);
   if (!string_value) {
     return nullptr;
@@ -192,30 +197,6 @@ std::shared_ptr<CtxValue> JSHVM::ParseJson(const std::shared_ptr<Ctx>& ctx, cons
 }
 
 JSHVM::DeserializerResult JSHVM::Deserializer(const std::shared_ptr<Ctx>& ctx, const std::string& buffer) {
-//   v8::HandleScope handle_scope(isolate_);
-//   auto v8_ctx = std::static_pointer_cast<V8Ctx>(ctx);
-//   auto context = v8_ctx->context_persistent_.Get(isolate_);
-//
-//   V8TryCatch try_catch(true, v8_ctx);
-//   v8::ValueDeserializer deserializer(
-//       isolate_,
-//       reinterpret_cast<const uint8_t*>(buffer.c_str()),
-//       buffer.length());
-//   FOOTSTONE_CHECK(deserializer.ReadHeader(context).FromMaybe(false));
-//   auto ret = deserializer.ReadValue(context);
-//   if (!ret.IsEmpty()) {
-//     return {
-//       true,
-//       std::make_shared<V8CtxValue>(isolate_, ret.ToLocalChecked()),
-//       ""
-//     };
-//   } else if (try_catch.HasCaught()) {
-//     return {
-//       false,
-//       nullptr,
-//       try_catch.GetExceptionMessage()
-//     };
-//   }
   return {false, nullptr, ""};
 }
 
