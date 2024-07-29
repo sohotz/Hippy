@@ -62,8 +62,10 @@ class JSHCtx : public Ctx {
   explicit JSHCtx(JSVM_VM vm);
 
   ~JSHCtx() {
-//     context_persistent_.Reset();
-//     global_persistent_.Reset();
+    OH_JSVM_CloseEnvScope(env_, env_scope_);
+    env_scope_ = nullptr;
+    OH_JSVM_DestroyEnv(env_);
+    env_ = nullptr;
   }
 
   virtual std::shared_ptr<CtxValue> DefineProxy(const std::unique_ptr<FunctionWrapper>& constructor_wrapper) override;
@@ -179,9 +181,7 @@ class JSHCtx : public Ctx {
       bool is_use_code_cache,
       unicode_string_view* cache,
       bool is_copy);
-
-//   virtual void SetDefaultContext(const std::shared_ptr<v8::SnapshotCreator>& creator);
-
+  
   virtual void ThrowException(const std::shared_ptr<CtxValue>& exception) override;
   virtual void ThrowException(const unicode_string_view& exception) override;
   virtual std::shared_ptr<CtxValue> CreateFunction(const std::unique_ptr<FunctionWrapper>& wrapper) override;
@@ -194,24 +194,18 @@ class JSHCtx : public Ctx {
   void SetExternalData(void* data) override;
   virtual std::shared_ptr<ClassDefinition> GetClassDefinition(const string_view& name) override;
 
-//   std::string GetSerializationBuffer(const std::shared_ptr<CtxValue>& value,
-//                                      std::string& reused_buffer);
+  std::string GetSerializationBuffer(const std::shared_ptr<CtxValue>& value,
+                                     std::string& reused_buffer);
   void SetAlignedPointerInEmbedderData(int index, intptr_t address);
   
-//   v8::Isolate* isolate_;
-//   v8::Persistent<v8::ObjectTemplate> global_persistent_;
-//   v8::Persistent<v8::Context> context_persistent_;
-  
   JSVM_VM vm_ = nullptr;
-  JSVM_CallbackStruct *callBackStructs_ = nullptr;
   JSVM_Env env_ = nullptr;
-  JSVM_EnvScope envScope_ = nullptr;
+  JSVM_EnvScope env_scope_ = nullptr;
   
   std::unordered_map<void*, void*> func_external_data_map_;
   std::unordered_map<string_view, std::shared_ptr<JSHClassDefinition>> template_map_;
 
  private:
-  
   std::shared_ptr<CtxValue> CreateTemplate(const std::unique_ptr<FunctionWrapper>& wrapper);
   std::shared_ptr<CtxValue> InternalRunScript(
       std::shared_ptr<CtxValue> &source_value,
