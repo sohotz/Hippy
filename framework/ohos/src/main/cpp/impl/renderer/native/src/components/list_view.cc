@@ -519,10 +519,6 @@ void ListView::CheckInitOffset() {
   if (!initOffsetUsed_) {
     initOffsetUsed_ = true;
     
-    if (headerView_) {
-      listNode_.ScrollToIndex(1, false, true); // TODO(hot): delete when NODE_LIST_INITIAL_INDEX is supported
-    }
-    
     if (initialOffset_ > 0) {
       float y = 0;
       if (headerView_ != nullptr) {

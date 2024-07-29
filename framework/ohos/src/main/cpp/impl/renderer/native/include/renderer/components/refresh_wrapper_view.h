@@ -60,7 +60,6 @@ private:
   void StartRefresh();
   void RefreshComplected();
   
-  void CheckInitOffset();
   void SendOnScrollEvent(float y);
   
   ListNode listNode_;
