@@ -48,6 +48,11 @@
 #include "driver/napi/v8/v8_try_catch.h"
 #include "driver/vm/v8/v8_vm.h"
 #include "driver/napi/v8/serializer.h"
+#elif JS_JSH
+#include "driver/napi/jsh/jsh_ctx.h"
+#include "driver/napi/jsh/jsh_ctx_value.h"
+#include "driver/napi/jsh/jsh_try_catch.h"
+#include "driver/vm/jsh/jsh_vm.h"
 #endif
 
 namespace hippy {
@@ -498,8 +503,14 @@ void JsDriverUtils::CallJs(const string_view& action,
       }
     } else {
 #endif
+
+#ifdef JS_JSH
+      string_view::u8string str(reinterpret_cast<const uint8_t*>(&buffer_data_[0]),
+                         buffer_data_.length());
+#else
       std::u16string str(reinterpret_cast<const char16_t*>(&buffer_data_[0]),
                          buffer_data_.length() / sizeof(char16_t));
+#endif
       string_view buf_str(std::move(str));
       FOOTSTONE_DLOG(INFO) << "action = " << action << ", buf_str = " << buf_str;
       params = vm->ParseJson(context, buf_str);
@@ -578,6 +589,15 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
     if (v8_vm->IsEnableV8Serialization()) {
       auto v8_ctx = std::static_pointer_cast<hippy::napi::V8Ctx>(context);
       buffer_data = v8_ctx->GetSerializationBuffer(info[3], v8_vm->GetBuffer());
+#elif JS_JSH
+    auto engine = scope->GetEngine().lock();
+    FOOTSTONE_DCHECK(engine);
+    if (!engine) {
+      return;
+    }
+    auto vm = engine->GetVM();
+    auto jsh_vm = std::static_pointer_cast<JSHVM>(vm);
+    if (jsh_vm->enable_v8_serialization_) {
 #endif
     } else {
       string_view json;
@@ -587,6 +607,8 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
       buffer_data = StringViewUtils::ToStdString(
           StringViewUtils::ConvertEncoding(json, string_view::Encoding::Utf8).utf8_value());
 #ifdef JS_V8
+    }
+#elif JS_JSH
     }
 #endif
   }

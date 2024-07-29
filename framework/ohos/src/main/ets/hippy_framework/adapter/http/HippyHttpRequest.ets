@@ -45,8 +45,9 @@ export class HippyHttpRequest {
   private mUrl: string = ""
   private mHeaders: Map<string, string>
   private mMethod: http.RequestMethod = http.RequestMethod.GET
-  private mInitParams: Map<string, string>
+  private mBody: string
   private mNativeParams: Map<string, Object>
+  private mRequestParams: Map<string, HippyAny>
 
   constructor(headers: Map<string, string | Array<string>>,
               requestParams: Map<string, HippyAny>,
@@ -58,7 +59,8 @@ export class HippyHttpRequest {
         this.mHeaders.set(key, value.toString());
       })
     }
-    this.mInitParams = requestParams.get(HippyHttpRequest.HTTP_BODY) as Map<string, string>;
+    this.mRequestParams = requestParams;
+    this.mBody = requestParams.get(HippyHttpRequest.HTTP_BODY) as string;
     this.mNativeParams = nativeParams;
     const method = requestParams.get(HippyHttpRequest.HTTP_METHOD) as string;
     this.setMethod(method);
@@ -84,7 +86,7 @@ export class HippyHttpRequest {
     if (this.mUrl != null) {
       return this.mUrl;
     }
-    return (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_URL) : null;
+    return (this.mRequestParams != null) ? this.mRequestParams.get(HippyHttpRequest.HTTP_URL) as string : null;
   }
 
   public addHeader(name: string, value: string) {
@@ -160,32 +162,32 @@ export class HippyHttpRequest {
   }
 
   public isInstanceFollowRedirects(): boolean {
-    let redirect = (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_REDIRECT) : null;
+    let redirect = (this.mRequestParams != null) ? this.mRequestParams.get(HippyHttpRequest.HTTP_REDIRECT) as string : null;
     return!TextUtils.isEmpty(redirect) && TextUtils.equals("follow", redirect);
   }
 
   public getBody(): string | Object | ArrayBuffer {
-    if (this.mInitParams == null) return ""
-    let jsonObject: Record<string, Object> = {};
-    this.mInitParams.forEach((value, key) => {
-      if (key != undefined && value != undefined) {
-        jsonObject[key] = value;
+    if (this.mBody == null) return ""
+    try {
+      let jsonObject: Record<string, Object> = JSON.parse(this.mBody);
+      let contentType = this.mHeaders.get('content-type')
+      if (!contentType) {
+        contentType = this.mHeaders.get('Content-Type') || ''
       }
-    })
-    let contentType = this.mHeaders.get('content-type')
-    if (!contentType) {
-      contentType = this.mHeaders.get('Content-Type') || ''
-    }
-    LogUtils.d(HIPPY_HTTP_REQUEST_TAG, JSON.stringify(jsonObject));
-    if (contentType.indexOf('/json') > 0) {
-      return jsonObject;
-    } else {
-      let result = new Url.URLParams();
-      Object.keys(jsonObject).forEach((k) => {
-        let v: string = jsonObject[k] as string;
-        result.append(k,v);
-      });
-      return result.toString();
+      LogUtils.d(HIPPY_HTTP_REQUEST_TAG, JSON.stringify(jsonObject));
+      if (contentType.indexOf('/json') > 0) {
+        return jsonObject;
+      } else {
+        let result = new Url.URLParams();
+        Object.keys(jsonObject).forEach((k) => {
+          let v: string = jsonObject[k] as string;
+          result.append(k,v);
+        });
+        return result.toString();
+      }
+    } catch (e) {
+      LogUtils.e(HIPPY_HTTP_REQUEST_TAG, 'http body parse error: ' + this.mBody);
+      return '';
     }
   }
 

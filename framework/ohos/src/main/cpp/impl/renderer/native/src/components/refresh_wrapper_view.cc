@@ -52,7 +52,7 @@ void RefreshWrapperView::Init() {
     auto view = weak_view.lock();
     if (view) {
       auto refreshView = std::static_pointer_cast<RefreshWrapperView>(view);
-      refreshView->CheckInitOffset();
+
     }
   });
 }
@@ -169,10 +169,6 @@ void RefreshWrapperView::StartRefresh() {
 void RefreshWrapperView::RefreshComplected() {
   BounceToHead();
   needRefresh_ = false;
-}
-
-void RefreshWrapperView::CheckInitOffset() {
-  listNode_.ScrollToIndex(1, false, true); // TODO(hot): delete when NODE_LIST_INITIAL_INDEX is supported
 }
 
 void RefreshWrapperView::SendOnScrollEvent(float y) {
