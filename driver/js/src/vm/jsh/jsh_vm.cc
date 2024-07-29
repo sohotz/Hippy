@@ -29,6 +29,7 @@
 #include "driver/napi/jsh/jsh_ctx.h"
 #include "driver/napi/jsh/jsh_ctx_value.h"
 #include "driver/napi/jsh/jsh_try_catch.h"
+#include <sys/prctl.h>
 
 using string_view = footstone::string_view;
 using Ctx = hippy::napi::Ctx;
@@ -54,6 +55,10 @@ JSHVM::JSHVM() : VM() {
   {
     std::lock_guard<std::mutex> lock(mutex);
     if (!platform_initted) {
+      
+      // TODO(hot): 临时关闭管控，等 ohos beta3 版本修复后，删除这里。
+      prctl(0x6a6974, 0, 0);
+      
       JSVM_InitOptions init_options;
       memset(&init_options, 0, sizeof(init_options));
       auto status = OH_JSVM_Init(&init_options);
