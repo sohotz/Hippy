@@ -30,6 +30,7 @@
 #include "renderer/arkui/arkui_node.h"
 #include "renderer/native_render_context.h"
 #include "footstone/hippy_value.h"
+#include "renderer/utils/hr_display_sync_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -103,6 +104,7 @@ protected:
   void SetInterceptPullUp(bool flag);
   void SetAttachedToWindowHandle(bool flag);
   void SetDetachedFromWindowHandle(bool flag);
+  void SetDisplaySync(bool flag);  
   
   void HandleInterceptPullUp();
   std::string ConvertToLocalPathIfNeeded(const std::string &uri);
@@ -166,6 +168,7 @@ protected:
   bool flagInterceptPullUp_ = false;
   
   HippyValueObjectType events_;
+  std::shared_ptr<HRDisplaySyncUtils> displaySync_ = nullptr;  
 };
 
 }  // namespace native

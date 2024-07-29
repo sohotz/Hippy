@@ -31,6 +31,7 @@
 #include "renderer/utils/hr_url_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 #include "renderer/utils/hr_convert_utils.h"
+#include "renderer/utils/hr_display_sync_utils.h"
 #include "renderer/uimanager/hr_gesture_dispatcher.h"
 
 #define HIPPY_COMPONENT_KEY_PREFIX "HippyKey"
@@ -398,6 +399,7 @@ bool BaseView::SetEventProp(const std::string &propKey, const HippyValue &propVa
   SET_EVENT_PROP_CASE("onInterceptPullUpEvent", SetInterceptPullUp)
   SET_EVENT_PROP_CASE("attachedtowindow", SetAttachedToWindowHandle)
   SET_EVENT_PROP_CASE("detachedfromwindow", SetDetachedFromWindowHandle)
+  SET_EVENT_PROP_CASE("frameupdate", SetDisplaySync) 
   return false;
 }
 
@@ -595,6 +597,18 @@ void BaseView::SetDetachedFromWindowHandle(bool flag) {
   }
 }
 
+void BaseView::SetDisplaySync(bool flag){
+  if(!displaySync_)  
+    displaySync_ = std::make_shared<HRDisplaySyncUtils>();
+  if(!displaySync_)
+    return;
+  if (flag) {
+    displaySync_->registerDoFrameListener(ctx_->GetInstanceId(),ctx_->GetRootId());
+  } else {
+    displaySync_->unregisterDoFrameListener(ctx_->GetInstanceId(),ctx_->GetRootId());
+  }
+}
+
 void BaseView::OnSetPropsEnd() {
   if (toSetBackgroundImagePosition_) {
     toSetBackgroundImagePosition_ = false;
@@ -764,6 +778,8 @@ void BaseView::OnDisappear() {
   if (eventDetachedFromWindow_) {
     eventDetachedFromWindow_();
   }
+  if(displaySync_)  
+    displaySync_->unregisterDoFrameListener(ctx_->GetInstanceId(),ctx_->GetRootId());    
 }
 
 void BaseView::OnAreaChange(ArkUI_NumberValue* data) {
