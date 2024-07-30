@@ -21,17 +21,40 @@
  */
 
 #include "renderer/components/root_view.h"
+#include "renderer/utils/hr_display_sync_utils.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
 RootView::RootView(std::shared_ptr<NativeRenderContext> &ctx) : DivView(ctx) {
-  
+  GetLocalRootArkUINode().RegisterDisappearEvent();
 }
 
 RootView::~RootView() {
-  
+  GetLocalRootArkUINode().UnregisterDisappearEvent();
+  HRDisplaySyncUtils::UnregisterDoFrameListener(ctx_->GetInstanceId(), tag_);
+}
+
+bool RootView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+  if (propKey.length() > 0 && propValue.IsBoolean()) {
+    HandleRootEvent(propKey, propValue.ToBooleanChecked());
+  }
+  return BaseView::SetProp(propKey, propValue);
+}
+
+void RootView::HandleRootEvent(const std::string &event, bool enable) {
+  if (event == "frameupdate") {
+    if (enable) {
+      HRDisplaySyncUtils::RegisterDoFrameListener(ctx_->GetInstanceId(), tag_);
+    } else {
+      HRDisplaySyncUtils::UnregisterDoFrameListener(ctx_->GetInstanceId(), tag_);
+    }
+  }
+}
+
+void RootView::OnDisappear() {
+  HRDisplaySyncUtils::UnregisterDoFrameListener(ctx_->GetInstanceId(), tag_);
 }
 
 } // namespace native

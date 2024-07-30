@@ -33,16 +33,19 @@ inline namespace render {
 inline namespace native {
 
 class HRDisplaySyncUtils{
-public:
-    void registerDoFrameListener(uint32_t rendererId, uint32_t rootId);
-    void unregisterDoFrameListener(uint32_t rendererId, uint32_t rootId);
-private:
-    void startPostFrame();
-    void stopPostFrame();
-    void static FrameCallback(long long timestamp, long long targetTimestamp, void *data);
-    void static handleDoFrameCallback();    
-    bool sEnablePostFrame = false;
-    OH_DisplaySoloist* s_BackDisplaySync = nullptr;
+ public:
+  static void RegisterDoFrameListener(uint32_t rendererId, uint32_t rootId);
+  static void UnregisterDoFrameListener(uint32_t rendererId, uint32_t rootId);
+ private:
+  static void StartPostFrame();
+  static void StopPostFrame();
+  static void FrameCallback(long long timestamp, long long targetTimestamp, void *data);
+  static void HandleDoFrameCallback();
+  
+  static bool sEnablePostFrame;
+  static OH_DisplaySoloist *sBackDisplaySync;
+  static std::mutex sMutex_;
+  static std::map<uint32_t, std::vector<uint32_t>> sListeners;
 };
 } // namespace native
 } // namespace render

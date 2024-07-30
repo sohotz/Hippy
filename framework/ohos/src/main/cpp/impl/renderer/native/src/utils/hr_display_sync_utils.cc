@@ -25,65 +25,74 @@
 namespace hippy {
 inline namespace render {
 inline namespace native {
+
 const char *DO_FRAME = "frameUpdate";
-std::map<int, std::vector<int>> sListeners;
 
-void HRDisplaySyncUtils::registerDoFrameListener(uint32_t rendererId, uint32_t rootId) {
-    sListeners[(int)rendererId].push_back((int)rootId);
-    if (!sEnablePostFrame) {
-        sEnablePostFrame = true;
-        startPostFrame();
-    }
+bool HRDisplaySyncUtils::sEnablePostFrame = false;
+OH_DisplaySoloist *HRDisplaySyncUtils::sBackDisplaySync = nullptr;
+std::mutex HRDisplaySyncUtils::sMutex_;
+std::map<uint32_t, std::vector<uint32_t>> HRDisplaySyncUtils::sListeners;
+
+void HRDisplaySyncUtils::RegisterDoFrameListener(uint32_t rendererId, uint32_t rootId) {
+  std::lock_guard<std::mutex> lock(sMutex_);
+  sListeners[rendererId].push_back(rootId);
+  if (!sEnablePostFrame) {
+    sEnablePostFrame = true;
+    StartPostFrame();
+  }
 }
 
-void HRDisplaySyncUtils::unregisterDoFrameListener(uint32_t rendererId, uint32_t rootId) {
-    auto it = sListeners.find((int)rendererId);
-    if (it != sListeners.end()) {
-        auto& roots = it->second;
-        roots.erase(std::remove(roots.begin(), roots.end(), rootId), roots.end());
-        if (roots.empty()) {
-            sListeners.erase(it);
-        }
+void HRDisplaySyncUtils::UnregisterDoFrameListener(uint32_t rendererId, uint32_t rootId) {
+  std::lock_guard<std::mutex> lock(sMutex_);
+  auto it = sListeners.find(rendererId);
+  if (it != sListeners.end()) {
+    auto& roots = it->second;
+    roots.erase(std::remove(roots.begin(), roots.end(), rootId), roots.end());
+    if (roots.empty()) {
+      sListeners.erase(it);
     }
+  }
 
-    if (sListeners.empty()) {
-        sEnablePostFrame = false;
-        stopPostFrame();
-    }
+  if (sListeners.empty()) {
+    sEnablePostFrame = false;
+    StopPostFrame();
+  }
 }
 
-void HRDisplaySyncUtils::handleDoFrameCallback() {
-    for (const auto& entry : sListeners) {
-        auto rendererId = entry.first;
-        const std::vector<int>& rootList = entry.second;
-        if (!rootList.empty()) {
-            for (int rootId : rootList) {
-                HREventUtils::SendRootEvent((uint32_t)rendererId, (uint32_t)rootId, DO_FRAME, nullptr);
-            }
-        }
+void HRDisplaySyncUtils::HandleDoFrameCallback() {
+  std::lock_guard<std::mutex> lock(sMutex_);
+  for (const auto& entry : sListeners) {
+    auto rendererId = entry.first;
+    const std::vector<uint32_t>& rootList = entry.second;
+    if (!rootList.empty()) {
+      for (uint32_t rootId : rootList) {
+        HREventUtils::SendRootEvent((uint32_t)rendererId, (uint32_t)rootId, DO_FRAME, nullptr);
+      }
     }
+  }
 }
 
-void HRDisplaySyncUtils::startPostFrame() {
-    if (!s_BackDisplaySync) {
-        s_BackDisplaySync = OH_DisplaySoloist_Create(true);
-    }
-    
-    DisplaySoloist_ExpectedRateRange rateRange = {0, 120, 60};
-    OH_DisplaySoloist_SetExpectedFrameRateRange(s_BackDisplaySync, &rateRange);
-    OH_DisplaySoloist_Start(s_BackDisplaySync, FrameCallback, nullptr);
+void HRDisplaySyncUtils::StartPostFrame() {
+  if (!sBackDisplaySync) {
+    sBackDisplaySync = OH_DisplaySoloist_Create(false);
+  }
+  
+  DisplaySoloist_ExpectedRateRange rateRange = {0, 120, 60};
+  OH_DisplaySoloist_SetExpectedFrameRateRange(sBackDisplaySync, &rateRange);
+  OH_DisplaySoloist_Start(sBackDisplaySync, FrameCallback, nullptr);
 }
 
-void HRDisplaySyncUtils::stopPostFrame() {
-    if (s_BackDisplaySync) {
-        OH_DisplaySoloist_Stop(s_BackDisplaySync);
-        OH_DisplaySoloist_Destroy(s_BackDisplaySync);
-        s_BackDisplaySync = nullptr;
-    }
+void HRDisplaySyncUtils::StopPostFrame() {
+  if (sBackDisplaySync) {
+    OH_DisplaySoloist_Stop(sBackDisplaySync);
+    OH_DisplaySoloist_Destroy(sBackDisplaySync);
+    sBackDisplaySync = nullptr;
+  }
 }
 
+// This method is from a sub thread.
 void HRDisplaySyncUtils::FrameCallback(long long timestamp, long long targetTimestamp, void *data) {
-    handleDoFrameCallback();
+  HandleDoFrameCallback();
 }
 
 

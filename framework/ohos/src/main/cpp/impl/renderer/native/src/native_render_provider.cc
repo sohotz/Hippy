@@ -157,7 +157,9 @@ void NativeRenderProvider::DispatchEvent(uint32_t root_id, uint32_t node_id, con
   if (lower_case_event_name.compare(0, prefix.length(), prefix) == 0) {
     lower_case_event_name = lower_case_event_name.substr(prefix.length());
   }
-  if (event_type != HREventType::GESTURE && !render_impl_->CheckRegisteredEvent(root_id, node_id, lower_case_event_name)) {
+  if (event_type != HREventType::GESTURE
+    && event_type != HREventType::ROOT // "frameUpdate" event is from a sub thread, so no need to check for thread-safe
+    && !render_impl_->CheckRegisteredEvent(root_id, node_id, lower_case_event_name)) {
     return;
   }
   
