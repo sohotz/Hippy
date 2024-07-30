@@ -35,6 +35,7 @@ ScrollView::ScrollView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx
   isDragging_ = false;
   lastScrollOffset_ = 0;
   lastScrollTime_ = 0;
+  scrollNode_.SetAlignment(ARKUI_ALIGNMENT_TOP_START);
   scrollNode_.SetNodeDelegate(this);
   scrollNode_.AddChild(stackNode_);
 }

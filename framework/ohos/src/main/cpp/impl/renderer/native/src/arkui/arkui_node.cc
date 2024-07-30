@@ -495,6 +495,13 @@ ArkUINode &ArkUINode::SetMargin(float left, float top, float right, float bottom
   return *this;
 }
 
+ArkUINode &ArkUINode::SetAlignment(ArkUI_Alignment align) {
+  ArkUI_NumberValue value[] = {{.i32 = align}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ALIGNMENT, &item));
+  return *this;
+}
+
 ArkUINode &ArkUINode::SetExpandSafeArea(){
 //TODO  NODE_EXPAND_SAFE_AREA not define in devEco 5.0.0.400 will add in later
 //  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_EXPAND_SAFE_AREA,nullptr ));
