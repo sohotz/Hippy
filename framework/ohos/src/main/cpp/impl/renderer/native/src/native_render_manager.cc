@@ -586,22 +586,32 @@ void NativeRenderManager::MoveRenderNode_TS(std::weak_ptr<RootNode> root_node, s
   CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode", root->GetId(), pid, buffer_pair);
 }
 
+static bool SortMoveNodes(const std::shared_ptr<DomNode> &lhs, const std::shared_ptr<DomNode> &rhs) {
+  return lhs->GetPid() < rhs->GetPid();
+}
+
 void NativeRenderManager::MoveRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
   auto root = root_node.lock();
   if (!root) {
     return;
   }
 
+  std::sort(nodes.begin(), nodes.end(), SortMoveNodes);
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
-  auto m = std::make_shared<HRMoveMutation>();
-  std::vector<HRMoveNodeInfo> node_infos;
+  std::shared_ptr<HRMoveMutation> m;
   for (uint32_t i = 0; i < len; i++) {
     const auto &render_info = nodes[i]->GetRenderInfo();
-    m->parent_tag_ = render_info.pid;
-    node_infos.push_back(HRMoveNodeInfo(render_info.id, render_info.index));
+    if (m && m->parent_tag_ != render_info.pid) {
+      c_render_provider_->MoveNode(root_id, m);
+      m = nullptr;
+    }
+    if (!m) {
+      m = std::make_shared<HRMoveMutation>();
+      m->parent_tag_ = render_info.pid;
+    }
+    m->node_infos_.push_back(HRMoveNodeInfo(render_info.id, render_info.index));
   }
-  m->node_infos_ = node_infos;
   c_render_provider_->MoveNode(root_id, m);
 }
 
