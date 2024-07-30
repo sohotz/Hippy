@@ -82,8 +82,7 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
   private cachedJSModuleMap: Map<string, HippyJavaScriptModuleBase> = new Map();
   private mEnableV8Serialization: boolean;
 
-  // TODO(hot-jsxx):
-  constructor(ctx: HippyEngineContext, enableV8Serialization = false) {
+  constructor(ctx: HippyEngineContext, enableV8Serialization: boolean) {
     this.ctx = ctx;
     this.nativeModuleCreatorRegisterMap = hippyNativeModuleCreatorRegisterMap();
     this.jsModuleCreatorRegisterMap = hippyJSModuleCreatorRegisterMap();

@@ -554,7 +554,7 @@ void JsDriverUtils::CallJs(const string_view& action,
     } else {
 #endif
 
-#ifdef JS_JSH
+#ifdef __OHOS__
       string_view::u8string str(reinterpret_cast<const uint8_t*>(&buffer_data_[0]),
                          buffer_data_.length());
 #else

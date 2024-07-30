@@ -130,7 +130,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)
     // ModuleManager注册
-    this.mModuleManager = new HippyModuleManagerImpl(this);
+    this.mModuleManager = new HippyModuleManagerImpl(this, params.enableV8Serialization);
     this.mModuleManager.addModules(customNativeModules);
     // JsDriver注册
     this.mJsDriver = new JsDriver(this.libHippy, this.mModuleManager)
