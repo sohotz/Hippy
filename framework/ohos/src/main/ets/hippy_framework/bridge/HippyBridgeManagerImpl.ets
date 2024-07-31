@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyLibrary } from '../../hippy_library/HippyLibrary';
 import { BinaryWriter } from '../../serialization/writer/BinaryWriter';
 import { HippyAny,
   HippyArray,
@@ -79,9 +80,11 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   public mJsDriver: JsDriver;
   public mHippyBridge: HippyBridgeImpl;
   public mBridgeState: BridgeState = BridgeState.UNINITIALIZED;
+  public libHippy: HippyLibrary;
 
   public constructor(
     context: HippyEngineContext,
+    libHippy: HippyLibrary,
     coreBundleLoader: HippyBundleLoader | null,
     enableV8Serialization: boolean,
     isDevModule: boolean,
@@ -92,6 +95,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     jsDriver: JsDriver) {
 
     this.mContext = context;
+    this.libHippy = libHippy;
     this.mCoreBundleLoader = coreBundleLoader;
     this.mGroupId = groupId;
     this.mThirdPartyAdapter = thirdPartyAdapter;
@@ -265,9 +269,9 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     }
     // TODO
     if (this.enableTurbo()) {
-      const mTurboModuleManager = new TurboModuleManager(this.mContext);
+      const mTurboModuleManager = new TurboModuleManager(this.mContext, this.libHippy);
       // TODO runtimeID
-      mTurboModuleManager.install(0);
+      mTurboModuleManager.install(this.mHippyBridge.getV8RuntimeId());
     }
     // if (mThirdPartyAdapter != null) {
     //   mThirdPartyAdapter.onRuntimeInit(runtimeId);
@@ -371,7 +375,6 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   private enableTurbo(): boolean {
-    return this.mContext.getGlobalConfigs() != null && this.mContext.getGlobalConfigs()
-      .enableTurbo();
+    return this.mContext.getGlobalConfigs() != null && this.mContext.getGlobalConfigs().enableTurbo();
   }
 }

@@ -105,6 +105,7 @@ struct PageConfiguration {
     // params.enableLog = true
 
     params.providers = new Array(new ExampleAPIProvider())
+    params.enableTurbo = true
 
     params.coreJSAssetsPath = "react/vendor.ohos.js"
     if (info.driver === DriverMode.JS_VUE_2) {

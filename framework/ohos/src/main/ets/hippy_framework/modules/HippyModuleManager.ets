@@ -29,7 +29,7 @@ export interface HippyModuleManager {
 
   destroy(): void;
 
-  getNativeModule(name: string): HippyNativeModuleBase | null;
+  getNativeModule(name: string, isTurbo: boolean): HippyNativeModuleBase | null;
 
   getJavaScriptModule(name: string): HippyJavaScriptModuleBase | null;
 

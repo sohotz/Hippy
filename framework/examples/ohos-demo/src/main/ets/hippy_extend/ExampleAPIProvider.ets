@@ -30,11 +30,13 @@ import {
 import { ExampleComponentA, ExampleViewA } from './ExampleViewA'
 import { ExampleComponentB, ExampleViewB } from './ExampleViewB'
 import { ExampleNativeModule } from './ExampleNativeModule'
+import { ExampleNativeTurboModule } from './ExampleNativeTurboModule'
 
 export class ExampleAPIProvider implements HippyAPIProvider {
   getCustomNativeModuleCreatorMap(): Map<string, HippyNativeModuleCreator> | null {
     let registerMap: Map<string, HippyNativeModuleCreator> = new Map()
     registerMap.set(ExampleNativeModule.NAME, (ctx): HippyNativeModuleBase => new ExampleNativeModule(ctx))
+    registerMap.set(ExampleNativeTurboModule.NAME, (ctx): HippyNativeModuleBase => new ExampleNativeTurboModule(ctx))
     return registerMap;
   }
 

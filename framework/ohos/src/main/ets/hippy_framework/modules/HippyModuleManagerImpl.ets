@@ -112,7 +112,7 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     // callNative 参数反序列化
     let moduleParam = this.bytesToArgument(buffer);
     LogUtils.i('hippy', 'JsDriver callNatives moduleParam: ' + moduleParam);
-    let module = this.getNativeModule(moduleName)
+    let module = this.getNativeModule(moduleName, false)
     if (module) {
       const promise: HippyModulePromise = new HippyModulePromiseImpl(
         this.ctx,
@@ -136,13 +136,16 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
     }
   }
 
-  public getNativeModule(name: string): HippyNativeModuleBase | null {
+  public getNativeModule(name: string, isTurbo: boolean): HippyNativeModuleBase | null {
     if (this.cachedNativeModuleMap.has(name)) {
       return this.cachedNativeModuleMap.get(name) as HippyNativeModuleBase
     } else {
       let creator = this.nativeModuleCreatorRegisterMap.get(name)
       if (creator) {
         let module = creator(this.ctx)
+        if (module.isTurbo() !== isTurbo) {
+          return null;
+        }
         this.cachedNativeModuleMap.set(name, module)
         return module
       } else {

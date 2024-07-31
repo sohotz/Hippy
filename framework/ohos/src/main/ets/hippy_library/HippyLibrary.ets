@@ -26,6 +26,7 @@ import { FetchResourceCallback } from '../vfs/FetchResourceCallback';
 import { ResourceDataHolder } from '../vfs/ResourceDataHolder';
 import { VfsManager } from '../vfs/VfsManager';
 import { FrameNode } from '@kit.ArkUI';
+import { TurboModuleManager } from '../hippy_framework/modules/turbo/TurboModuleManager';
 import { NodeContent } from '@ohos.arkui.node';
 
 export interface HippyRenderViewInfo {
@@ -118,4 +119,5 @@ export interface HippyLibrary {
   VfsManager_OnJniDelegateInvokeAsync(id: number, holder: ResourceDataHolder, callback: FetchResourceCallback): void;
   VfsManager_OnJniDelegateInvokeSync(id: number, holder: ResourceDataHolder): void;
 
+  TurboModuleManager_Install(turbo: TurboModuleManager, v8RuntimeId: number): void;
 }
