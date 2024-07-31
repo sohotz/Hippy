@@ -280,6 +280,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   handleException(error: HippyJsException): void {
     if (this.mDebugMode && this.mDevSupportManager != null) {
       this.mDevSupportManager.handleException(error);
+      this.mGlobalConfigs.getExceptionHandler()?.handleJsException(error);
     } else {
       if (error instanceof HippyJsException) {
         this.mGlobalConfigs.getExceptionHandler()?.handleJsException(error);
