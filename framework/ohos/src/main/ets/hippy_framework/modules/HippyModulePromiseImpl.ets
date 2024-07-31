@@ -75,6 +75,6 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
     resultMap.set("moduleFunc", this.mModuleFunc);
     resultMap.set("callId", this.mCallId);
     resultMap.set("params", resultObject);
-    this.context.getBridgeManager().execCallback(resultMap);
+    this.context.getBridgeManager()?.execCallback(resultMap);
   }
 }

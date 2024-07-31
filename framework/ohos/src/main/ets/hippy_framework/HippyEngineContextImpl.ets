@@ -35,10 +35,10 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   private mDomManager: DomManager;
   private mMonitor: TimeMonitor;
   private mModuleManager: HippyModuleManager;
-  private mBridgeManager: HippyBridgeManager;
+  private mBridgeManager: HippyBridgeManager | null = null;
   private providers: Array<HippyAPIProvider> | null = null
   private libHippy: HippyLibrary
-  private mJsDriver: JsDriver
+  private mJsDriver: JsDriver | null = null
   private mDevSupportManager: DevSupportManager | null = null;
   private mDevtoolsManager: DevtoolsManager | null = null;
   private mDebugMode: boolean;
@@ -132,29 +132,32 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     // ModuleManager注册
     this.mModuleManager = new HippyModuleManagerImpl(this, params.enableV8Serialization);
     this.mModuleManager.addModules(customNativeModules);
-    // JsDriver注册
-    this.mJsDriver = new JsDriver(this.libHippy, this.mModuleManager)
-    // BridgeManager注册
-    let bridgeManagerImpl = new HippyBridgeManagerImpl(
-      this,
-      coreBundleLoader,
-      params.enableV8Serialization,
-      params.debugMode,
-      params.debugServerHost,
-      params.groupId,
-      params.thirdPartyAdapter,
-      params.v8InitParams,
-      this.mJsDriver);
-    this.mBridgeManager = bridgeManagerImpl;
-    this.mJsDriver.setBridgeCallback(bridgeManagerImpl);
-    this.mDevSupportManager = devSupportManager;
 
-    // DevtoolsManager创建
-    this.mDevtoolsManager = new DevtoolsManager(params.libHippy, params.debugMode);
-    if (params.debugMode) {
-      let localCachePath = this.getGlobalConfigs().getContext()?.cacheDir;
-      let debugUrl = this.getDevSupportManager()?.createDebugUrl(params.debugServerHost);
-      this.mDevtoolsManager?.create(localCachePath as string, debugUrl || '');
+    if (params.integrateJSEngine) {
+      // JsDriver注册
+      this.mJsDriver = new JsDriver(this.libHippy, this.mModuleManager)
+      // BridgeManager注册
+      let bridgeManagerImpl = new HippyBridgeManagerImpl(
+        this,
+        coreBundleLoader,
+        params.enableV8Serialization,
+        params.debugMode,
+        params.debugServerHost,
+        params.groupId,
+        params.thirdPartyAdapter,
+        params.v8InitParams,
+        this.mJsDriver);
+      this.mBridgeManager = bridgeManagerImpl;
+      this.mJsDriver.setBridgeCallback(bridgeManagerImpl);
+      this.mDevSupportManager = devSupportManager;
+
+      // DevtoolsManager创建
+      this.mDevtoolsManager = new DevtoolsManager(params.libHippy, params.debugMode);
+      if (params.debugMode) {
+        let localCachePath = this.getGlobalConfigs().getContext()?.cacheDir;
+        let debugUrl = this.getDevSupportManager()?.createDebugUrl(params.debugServerHost);
+        this.mDevtoolsManager?.create(localCachePath as string, debugUrl || '');
+      }
     }
   }
 
@@ -186,6 +189,9 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   }
 
   onRuntimeInitialized(): void {
+    if (!this.mJsDriver) {
+      return
+    }
     this.mJsDriver.attachToDom(this.mDomManager.instanceId)
     if (this.mDevtoolsManager != null && this.nativeRenderer != null) {
       this.mDevtoolsManager.bind(this.mJsDriver, this.mDomManager, this.nativeRenderer);
@@ -210,7 +216,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   }
 
   attachJsToRootView(rootId: number): void {
-    this.mJsDriver.attachToRoot(rootId)
+    this.mJsDriver?.attachToRoot(rootId)
   }
 
   destroyRoot(rootId: number): void {
@@ -218,7 +224,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   }
 
   destroyBridge(isReload: boolean): void {
-    this.mBridgeManager.destroyBridge(isReload);
+    this.mBridgeManager?.destroyBridge(isReload);
   }
 
   destroy(isReload: boolean) {
@@ -249,7 +255,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     return this.vfsManager
   }
 
-  getJsDriver(): JsDriver {
+  getJsDriver(): JsDriver | null {
     return this.mJsDriver;
   }
 
@@ -265,7 +271,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     return this.mModuleManager;
   }
 
-  getBridgeManager(): HippyBridgeManager {
+  getBridgeManager(): HippyBridgeManager | null {
     return this.mBridgeManager;
   }
 

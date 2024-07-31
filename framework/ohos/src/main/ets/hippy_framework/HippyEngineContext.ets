@@ -37,7 +37,7 @@ export interface HippyEngineContext {
 
   getVfsManager(): VfsManager
 
-  getJsDriver(): JsDriver
+  getJsDriver(): JsDriver | null
 
   getMonitor(): TimeMonitor
 
@@ -45,7 +45,7 @@ export interface HippyEngineContext {
 
   getModuleManager(): HippyModuleManager
 
-  getBridgeManager(): HippyBridgeManager
+  getBridgeManager(): HippyBridgeManager | null
 
   getDevSupportManager(): DevSupportManager | null
 
