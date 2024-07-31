@@ -201,8 +201,15 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
       }
     }
 
+    if (!this.params.integrateJSEngine) {
+      if (initCallback) {
+        initCallback(EngineInitStatus.STATUS_OK, "")
+      }
+      return
+    }
+
     // initBridge
-    this.mEngineContext.getBridgeManager().initBridge((result: number, reason: string) => {
+    this.mEngineContext.getBridgeManager()?.initBridge((result: number, reason: string) => {
       // Some async params needed by c-api renderer are put here.
       let nativeRenderer = (this.getHippyEngineContext() as HippyEngineContextImpl).nativeRenderer
       nativeRenderer?.initRendererParams(px2vp(DimensionsUtil.STATUS_BAR_HEIGHT))
@@ -270,7 +277,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     this.destroyModuleCallback = destroyModuleCallback;
     this.nativeRenderProvider!.getNativeRenderImpl().destroyRoot(rootId)
     if (this.mEngineContext != null && this.mEngineContext.getBridgeManager() != null) {
-      this.mEngineContext.getBridgeManager().destroyInstance(rootId);
+      this.mEngineContext.getBridgeManager()?.destroyInstance(rootId);
     }
     if (this.destroyModuleCallback) {
       this.destroyModuleCallback();
@@ -330,14 +337,14 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     this.mEngineContext?.setLoadModuleCallback(loadJsModuleCallback);
     if (!this.params.debugMode) {
       if (this.mCoreBundleLoader != null) {
-        this.mEngineContext?.getBridgeManager().runBundle(0, this.mCoreBundleLoader);
+        this.mEngineContext?.getBridgeManager()?.runBundle(0, this.mCoreBundleLoader);
       } else {
         LogUtils.e('hippy', 'load module error. jsBundleLoader==null');
         loadJsModuleCallback(ModuleLoadStatus.STATUS_VARIABLE_NULL, "load module error. jsBundleLoader==null");
         return;
       }
     }
-    this.mEngineContext.getBridgeManager().loadInstance(loadParams.componentName, rootId, loadParams.jsParams);
+    this.mEngineContext.getBridgeManager()?.loadInstance(loadParams.componentName, rootId, loadParams.jsParams);
 
     if (this.params.debugMode) {
       loadJsModuleCallback(ModuleLoadStatus.STATUS_OK, 'load module in debugMode');

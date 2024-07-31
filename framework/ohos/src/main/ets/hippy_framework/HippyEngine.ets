@@ -154,6 +154,8 @@ export class EngineInitParams {
   public v8InitParams: V8InitParams | null = null;
   public enableTurbo = false;
   public enableArkCApi: boolean = true;
+  // 可选参数 是否集成JS引擎功能
+  public integrateJSEngine: boolean = true;
 
   constructor(
     libHippy: HippyLibrary,
