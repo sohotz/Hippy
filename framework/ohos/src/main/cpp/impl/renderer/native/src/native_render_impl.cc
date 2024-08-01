@@ -173,7 +173,7 @@ void NativeRenderImpl::EndBatch(uint32_t root_id) {
   if (!view_manager) {
     return;
   }
-
+FOOTSTONE_DLOG(INFO) << "xxx hippy, NativeRenderImpl::EndBatch to ApplyMutations";
   view_manager->ApplyMutations();
   view_manager->NotifyEndBatchCallbacks();
 }

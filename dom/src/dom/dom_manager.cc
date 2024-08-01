@@ -80,6 +80,8 @@ void DomManager::CreateDomNodes(const std::weak_ptr<RootNode>& weak_root_node,
   size_t create_size = nodes.size();
   root_node->CreateDomNodes(std::move(nodes), needSortByIndex);
   FOOTSTONE_DLOG(INFO) << "[Hippy Statistic] create node size = " << create_size << ", total node size = " << root_node->GetChildCount();
+  
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, DomManager::CreateDomNodes size = " << create_size;
 }
 
 void DomManager::UpdateDomNodes(const std::weak_ptr<RootNode>& weak_root_node,
@@ -135,6 +137,8 @@ void DomManager::EndBatch(const std::weak_ptr<RootNode>& weak_root_node) {
     return;
   }
   FOOTSTONE_DLOG(INFO) << "[Hippy Statistic] total node size = " << root_node->GetChildCount();
+  
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, DomManager::EndBatch";
   root_node->SyncWithRenderManager(render_manager);
 }
 

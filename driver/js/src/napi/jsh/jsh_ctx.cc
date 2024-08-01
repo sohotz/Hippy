@@ -345,6 +345,8 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
     return nullptr;
   }
   
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, JSHCtx::CallFunction begin";
+  
   JSHHandleScope handleScope(env_);
 
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(function);
@@ -379,6 +381,9 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
     FOOTSTONE_DLOG(INFO) << "maybe_result is empty";
     return nullptr;
   }
+  
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, JSHCtx::CallFunction end";
+  
   return std::make_shared<JSHCtxValue>(env_, result);
 }
 

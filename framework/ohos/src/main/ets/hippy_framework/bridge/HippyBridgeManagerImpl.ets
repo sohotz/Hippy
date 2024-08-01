@@ -163,8 +163,8 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       let buffer = binaryWriter.chunked()
       return buffer
     } else {
-      // let str = JSON.stringify(params)
-      let str = ArgumentUtils.objectToJson(params)
+      let str = JSON.stringify(ArgumentUtils.mapToRecord(params))
+      // let str = ArgumentUtils.objectToJson(params)
       let encoder = new util.TextEncoder("utf-8")
       let uint8Array = encoder.encodeInto(str)
       return uint8Array

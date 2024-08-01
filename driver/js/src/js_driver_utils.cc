@@ -621,6 +621,7 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
 }
 
 void JsDriverUtils::LoadInstance(const std::shared_ptr<Scope>& scope, byte_string&& buffer_data) {
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils LoadInstance begin";
   auto runner = scope->GetTaskRunner();
   std::weak_ptr<Scope> weak_scope = scope;
   auto callback = [weak_scope, buffer_data_ = std::move(buffer_data)] {
@@ -635,7 +636,9 @@ void JsDriverUtils::LoadInstance(const std::shared_ptr<Scope>& scope, byte_strin
     deserializer.ReadHeader();
     auto ret = deserializer.ReadValue(value);
     if (ret) {
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils LoadInstance run begin";
       scope->LoadInstance(std::make_shared<HippyValue>(std::move(value)));
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils LoadInstance run end";
     } else {
       scope->GetContext()->ThrowException("LoadInstance param error");
     }

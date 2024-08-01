@@ -145,7 +145,7 @@ bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propVa
 void TextInputView::OnSetPropsEnd(){
   FOOTSTONE_DLOG(INFO)<< __FUNCTION__;
   InitNode();
-  GetTextNode().SetCaretColor(this->caretColor);
+//   GetTextNode().SetCaretColor(this->caretColor);
   GetTextNode().SetFontWeight((ArkUI_FontWeight)this->fontWeight);
   GetTextNode().SetFontColor(this->color);
   GetTextNode().SetFontFamily(this->fontFamily);

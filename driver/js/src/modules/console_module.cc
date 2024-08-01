@@ -38,21 +38,21 @@ using CallbackInfo = hippy::CallbackInfo;
 
 namespace {
 
-string_view EscapeMessage(const string_view& str_view) {
-  std::string u8_str = StringViewUtils::ToStdString(StringViewUtils::ConvertEncoding(
-      str_view, string_view::Encoding::Utf8).utf8_value());
-  size_t len = u8_str.length();
-  std::string ret;
-  for (size_t i = 0; i < len; i++) {
-    auto c = u8_str[i];
-    ret += c;
-    if (c == '%') {
-      ret += '%';
-    }
-  }
-
-  return string_view(ret);
-}
+// string_view EscapeMessage(const string_view& str_view) {
+//   std::string u8_str = StringViewUtils::ToStdString(StringViewUtils::ConvertEncoding(
+//       str_view, string_view::Encoding::Utf8).utf8_value());
+//   size_t len = u8_str.length();
+//   std::string ret;
+//   for (size_t i = 0; i < len; i++) {
+//     auto c = u8_str[i];
+//     ret += c;
+//     if (c == '%') {
+//       ret += '%';
+//     }
+//   }
+//
+//   return string_view(ret);
+// }
 
 }  // namespace
 
@@ -63,6 +63,9 @@ inline namespace module {
 GEN_INVOKE_CB(ConsoleModule, Log) // NOLINT(cert-err58-cpp)
 
 void ConsoleModule::Log(hippy::napi::CallbackInfo &info, void* data) { // NOLINT(readability-convert-member-functions-to-static)
+  info.GetReturnValue()->SetUndefined();
+  return;
+  /*
   auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
   auto scope = scope_wrapper->scope.lock();
   FOOTSTONE_CHECK(scope);
@@ -104,6 +107,7 @@ void ConsoleModule::Log(hippy::napi::CallbackInfo &info, void* data) { // NOLINT
   }
 
   info.GetReturnValue()->SetUndefined();
+  */
 }
 
 std::shared_ptr<CtxValue> ConsoleModule::BindFunction(std::shared_ptr<Scope> scope,
