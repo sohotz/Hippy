@@ -358,7 +358,7 @@ bool BaseView::SetShadowProp(const std::string &propKey, const HippyValue &propV
     toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_OPACITY) {
-    shadow_.shadowOpacity = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(propValue));
+    shadow_.shadowOpacity = HRValueUtils::GetFloat(propValue);
     toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_RADIUS) {
