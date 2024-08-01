@@ -188,7 +188,7 @@ bool BaseView::SetLinearGradientProp(const std::string &propKey, const HippyValu
   } else if (angle == "totopleft") {
     linearGradient.direction = ARKUI_LINEAR_GRADIENT_DIRECTION_LEFT_TOP;
   } else {
-    uint32_t value = static_cast<uint32_t>(std::stof(angle)) % 360;
+    int32_t value = static_cast<int32_t>(std::stof(angle)) % 360;
     linearGradient.angle = value;
   }
   
