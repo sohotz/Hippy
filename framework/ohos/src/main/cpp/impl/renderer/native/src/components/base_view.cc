@@ -28,6 +28,7 @@
 #include "oh_napi/oh_napi_utils.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/native_render_params.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_url_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 #include "renderer/utils/hr_convert_utils.h"
@@ -341,27 +342,27 @@ bool BaseView::SetShadowProp(const std::string &propKey, const HippyValue &propV
   if (propKey == HRNodeProps::SHADOW_OFFSET) {
     HippyValueObjectType m;
     if (propValue.ToObject(m)) {
-      auto x = HRValueUtils::GetFloat(m["x"]);
-      auto y = HRValueUtils::GetFloat(m["y"]);
+      auto x = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(m["x"]));
+      auto y = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(m["y"]));
       shadow_.shadowOffset.width = x;
       shadow_.shadowOffset.height = y;
     }
     toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_OFFSET_X) {
-    shadow_.shadowOffset.width = HRValueUtils::GetFloat(propValue);
+    shadow_.shadowOffset.width = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(propValue));
     toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_OFFSET_Y) {
-    shadow_.shadowOffset.height = HRValueUtils::GetFloat(propValue);
+    shadow_.shadowOffset.height = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(propValue));
     toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_OPACITY) {
-    shadow_.shadowOpacity = HRValueUtils::GetFloat(propValue);
+    shadow_.shadowOpacity = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(propValue));
     toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_RADIUS) {
-    shadow_.shadowRadius = HRValueUtils::GetFloat(propValue);
+    shadow_.shadowRadius = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(propValue));
     toSetShadow = true;
     return true;
   } else if (propKey == HRNodeProps::SHADOW_COLOR) {

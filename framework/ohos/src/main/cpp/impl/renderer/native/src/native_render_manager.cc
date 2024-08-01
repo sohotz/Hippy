@@ -160,6 +160,7 @@ StyleFilter::StyleFilter() {
     "opacity",
     "overflow",
     "direction",
+    "blur",
   };
 }
 

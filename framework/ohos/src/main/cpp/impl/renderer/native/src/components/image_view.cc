@@ -25,6 +25,7 @@
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_url_utils.h"
 #include "renderer/utils/hr_value_utils.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -100,7 +101,7 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
       return false;
     }
 	} else if (propKey == "blur") {
-		auto value = HRValueUtils::GetFloat(propValue);
+		auto value = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(propValue));
     GetLocalRootArkUINode().SetBlur(value);
 	} else if (propKey == "draggable") {
 		auto value = HRValueUtils::GetBool(propValue, false);
