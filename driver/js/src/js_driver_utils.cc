@@ -280,7 +280,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
                               const string_view& code_cache_dir,
                               const string_view& uri,
                               bool is_local_file) {
-  FOOTSTONE_LOG(INFO) << "RunScript begin, file_name = " << file_name
+  FOOTSTONE_LOG(INFO) << "xxx hippy, RunScript begin, file_name = " << file_name
                       << ", is_use_code_cache = " << is_use_code_cache
                       << ", code_cache_dir = " << code_cache_dir
                       << ", uri = " << uri
@@ -320,6 +320,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
   UriLoader::RetCode code;
   std::unordered_map<std::string, std::string> meta;
   UriLoader::bytes content;
+  FOOTSTONE_LOG(INFO) << "xxx hippy, RunScript to RequestUntrustedContent";
   loader->RequestUntrustedContent(uri, {}, code, meta, content);
   auto script_content = string_view::new_from_utf8(content.c_str(), content.length());
   auto read_script_flag = false;
@@ -330,12 +331,12 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
     code_cache_content = read_file_future.get();
   }
 
-  FOOTSTONE_DLOG(INFO) << "uri = " << uri
-                       << ", read_script_flag = " << read_script_flag
-                       << ", script content = " << script_content;
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, uri = " << uri
+                       << ", read_script_flag = " << read_script_flag;
+                       //<< ", script content = " << script_content;
 
   if (!read_script_flag || StringViewUtils::IsEmpty(script_content)) {
-    FOOTSTONE_LOG(WARNING) << "read_script_flag = " << read_script_flag
+    FOOTSTONE_LOG(WARNING) << "xxx hippy, read_script_flag = " << read_script_flag
                            << ", script content empty, uri = " << uri;
     return false;
   }
@@ -383,7 +384,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
   entry->BundleInfoOfUrl(uri).execute_source_end_ = footstone::TimePoint::SystemNow();
 
   auto flag = (ret != nullptr);
-  FOOTSTONE_LOG(INFO) << "runScript end, flag = " << flag;
+  FOOTSTONE_LOG(INFO) << "xxx hippy, runScript end, flag = " << flag;
 
   return flag;
 }
@@ -550,7 +551,7 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
       info.GetExceptionValue()->Set(context,"module name error");
       return;
     }
-    FOOTSTONE_DLOG(INFO) << "CallJava module_name = " << module_name;
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, CallJava module_name = " << module_name;
   } else {
     info.GetExceptionValue()->Set(context, "info error");
     return;
@@ -562,7 +563,7 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
       info.GetExceptionValue()->Set(context,"func name error");
       return;
     }
-    FOOTSTONE_DLOG(INFO) << "CallJava fn_name = " << fn_name;
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, CallJava fn_name = " << fn_name;
   } else {
     info.GetExceptionValue()->Set(context, "info error");
     return;
@@ -606,7 +607,7 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
       string_view json;
       auto flag = context->GetValueJson(info[3], &json);
       FOOTSTONE_DCHECK(flag);
-      FOOTSTONE_DLOG(INFO) << "CallJava json = " << json;
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, CallJava json = " << json;
       buffer_data = StringViewUtils::ToStdString(
           StringViewUtils::ConvertEncoding(json, string_view::Encoding::Utf8).utf8_value());
 #ifdef JS_V8
@@ -632,12 +633,14 @@ void JsDriverUtils::LoadInstance(const std::shared_ptr<Scope>& scope, byte_strin
     if (!scope) {
       return;
     }
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils LoadInstance, deserializer begin";
     Deserializer deserializer(
         reinterpret_cast<const uint8_t*>(buffer_data_.c_str()),
         buffer_data_.length());
     HippyValue value;
     deserializer.ReadHeader();
     auto ret = deserializer.ReadValue(value);
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils LoadInstance, deserializer end";
     if (ret) {
       FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils LoadInstance run begin";
       scope->LoadInstance(std::make_shared<HippyValue>(std::move(value)));

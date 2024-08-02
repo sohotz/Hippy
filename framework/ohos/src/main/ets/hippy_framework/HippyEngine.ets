@@ -70,6 +70,7 @@ export interface HippyEngine {
 }
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
+  LogUtils.e("hippy", `xxx hippy, to createHippyEngine`)
   params.check()
   LogUtils.enableDebugLog(params.enableLog)
   return new HippyEngineManagerImpl(params)
