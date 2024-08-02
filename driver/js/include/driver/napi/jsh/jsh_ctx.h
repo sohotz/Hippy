@@ -123,7 +123,7 @@ class JSHCtx : public Ctx {
       const std::shared_ptr<CtxValue>& function,
       const std::shared_ptr<CtxValue>& receiver,
       size_t argument_count,
-      const std::shared_ptr<CtxValue> arguments[]) override;
+      const std::shared_ptr<CtxValue> arguments[], const std::string callId) override;
 
   virtual bool GetValueNumber(const std::shared_ptr<CtxValue>& value, double* result) override;
   virtual bool GetValueNumber(const std::shared_ptr<CtxValue>& value, int32_t* result) override;

@@ -137,21 +137,21 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     let map = new Map<string, HippyAny>()
     map.set("id", id)
     const buffer = this.getSerializerBuffer(map);
-    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_RESUME_INSTANCE, this.callFunctionCallback, buffer);
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_RESUME_INSTANCE, this.callFunctionCallback, buffer, "");
   }
 
   pauseInstance(id: number): void {
     let map = new Map<string, HippyAny>()
     map.set("id", id)
     const buffer = this.getSerializerBuffer(map);
-    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_PAUSE_INSTANCE, this.callFunctionCallback, buffer);
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_PAUSE_INSTANCE, this.callFunctionCallback, buffer, "");
   }
 
   destroyInstance(id: number): void {
     let map = new Map<string, HippyAny>()
     map.set("id", id)
     const buffer = this.getSerializerBuffer(map);
-    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE, this.callFunctionCallback, buffer);
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE, this.callFunctionCallback, buffer, "");
   }
 
   getSerializerBuffer(params: Map<string, HippyAny>) {
@@ -183,7 +183,12 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   execCallback(params: Map<string, HippyAny>): void {
     if (this.mBridgeState == BridgeState.INITIALIZED) {
       const buffer = this.getSerializerBuffer(params);
-      this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALLBACK, this.callFunctionCallback, buffer);
+
+      let callId: string = params.get("callId") as string
+      if (!callId) {
+        callId = ""
+      }
+      this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALLBACK, this.callFunctionCallback, buffer, callId);
     }
   }
 
@@ -215,7 +220,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       map.set("params", params)
 
       const buffer = this.getSerializerBuffer(map);
-      this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALL_JS_MODULE, this.callJavaScriptModuleCallback, buffer);
+      this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALL_JS_MODULE, this.callJavaScriptModuleCallback, buffer, "");
     }
   }
 
@@ -312,7 +317,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     map.set("params", params)
 
     const buffer = this.getSerializerBufferBinary(map);
-    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, buffer)
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, buffer, "")
   }
 
   callFunctionCallBack = (result: number, reason: string) => {

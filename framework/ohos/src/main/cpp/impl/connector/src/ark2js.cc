@@ -59,6 +59,8 @@ static napi_value CallFunction(napi_env env, napi_callback_info info) {
   if (buffer_data && byte_length > 0) {
     buffer.assign(static_cast<char*>(buffer_data), byte_length);
   }
+  
+  auto callId = arkTs.GetString(args[4]);
 
   std::any scope_object;
   auto flag = hippy::global_data_holder.Find(scope_id, scope_object);
@@ -73,6 +75,7 @@ static napi_value CallFunction(napi_env env, napi_callback_info info) {
       CallArkMethod(env, callback_ref, static_cast<int>(state), msg);
     },
     std::move(buffer),
+    callId,
     []() {});
   return arkTs.GetUndefined();
 }

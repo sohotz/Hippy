@@ -33,7 +33,7 @@ export interface HippyBridge {
 
   destroy(callback: NativeCallback, isReload: boolean): void;
 
-  callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array): void;
+  callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array, callId: string): void;
 
   getV8RuntimeId(): number;
 

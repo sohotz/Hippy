@@ -450,13 +450,14 @@ void JsDriverUtils::CallJs(const string_view& action,
                            const std::shared_ptr<Scope>& scope,
                            std::function<void(CALL_FUNCTION_CB_STATE, string_view)> cb,
                            byte_string buffer_data,
+                           std::string callId,
                            std::function<void()> on_js_runner
                            ) {
-  FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils::CallJs begin, action: " << action << ", buffer_data.len: " << buffer_data.size();
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils::CallJs begin, action: " << action << ", buffer_data.len: " << buffer_data.size() << ", callId: " << callId;
   auto runner = scope->GetTaskRunner();
   std::weak_ptr<Scope> weak_scope = scope;
   auto callback = [weak_scope, cb = std::move(cb), action,
-      buffer_data_ = std::move(buffer_data),
+      buffer_data_ = std::move(buffer_data), callId,
       on_js_runner = std::move(on_js_runner)] {
     on_js_runner();
     auto scope = weak_scope.lock();
@@ -521,9 +522,9 @@ void JsDriverUtils::CallJs(const string_view& action,
     if (!params) {
       params = context->CreateNull();
     }
-    FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils::CallJs, context to call, action: " << action << ", buffer_data_.len: " << buffer_data_.size() << ", js context: " << context.get();
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils::CallJs, context to call, action: " << action << ", buffer_data_.len: " << buffer_data_.size() << ", js context: " << context.get() << ", callId: " << callId;
     std::shared_ptr<CtxValue> argv[] = {action_value, params};
-    context->CallFunction(scope->GetBridgeObject(), context->GetGlobalObject(), 2, argv);
+    context->CallFunction(scope->GetBridgeObject(), context->GetGlobalObject(), 2, argv, callId);
     cb(CALL_FUNCTION_CB_STATE::SUCCESS, "");
   };
 

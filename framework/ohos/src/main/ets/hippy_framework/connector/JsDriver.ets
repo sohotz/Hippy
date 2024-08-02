@@ -192,9 +192,10 @@ export class JsDriver {
   callFunction(
     action: string,
     callback: NativeCallback,
-    buffer: Uint8Array
+    buffer: Uint8Array,
+    callId: string
   ) {
-    this.libHippy?.JsDriver_CallFunction(this.instanceId, action, callback, buffer.buffer as ArrayBuffer)
+    this.libHippy?.JsDriver_CallFunction(this.instanceId, action, callback, buffer.buffer as ArrayBuffer, callId)
   }
 
   // call from c++

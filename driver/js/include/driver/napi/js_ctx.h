@@ -166,7 +166,7 @@ class Ctx {
       const std::shared_ptr<CtxValue>& function,
       const std::shared_ptr<CtxValue>& receiver,
       size_t argument_count,
-      const std::shared_ptr<CtxValue> arguments[]) = 0;
+      const std::shared_ptr<CtxValue> arguments[], const std::string callId  = "") = 0;
 
   virtual bool GetValueNumber(const std::shared_ptr<CtxValue>& value,
                               double* result) = 0;

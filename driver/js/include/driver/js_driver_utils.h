@@ -68,6 +68,7 @@ class JsDriverUtils {
                      const std::shared_ptr<Scope>& scope,
                      std::function<void(CALL_FUNCTION_CB_STATE, string_view)> cb,
                      byte_string buffer_data,
+                     std::string callId,
                      std::function<void()> on_js_runner
     );
 

@@ -151,14 +151,14 @@ export class HippyBridgeImpl implements HippyBridge {
     return this.mJsDriver.getInstanceId();
   }
 
-  callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array) {
+  callFunction(functionId: number, callback: NativeCallback, buffer: Uint8Array, callId: string) {
     const functionName = this.getCallFunctionName(functionId)
     if (functionId == HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE) {
       this.mJsDriver.loadInstance(buffer, callback);
     } else if (functionId == HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE) {
       this.mJsDriver.unloadInstance(buffer);
     } else {
-      this.mJsDriver.callFunction(functionName, callback, buffer);
+      this.mJsDriver.callFunction(functionName, callback, buffer, callId);
     }
   }
 
