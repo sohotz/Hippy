@@ -452,6 +452,7 @@ void JsDriverUtils::CallJs(const string_view& action,
                            byte_string buffer_data,
                            std::function<void()> on_js_runner
                            ) {
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils::CallJs begin, action: " << action << ", buffer_data.len: " << buffer_data.size();
   auto runner = scope->GetTaskRunner();
   std::weak_ptr<Scope> weak_scope = scope;
   auto callback = [weak_scope, cb = std::move(cb), action,
@@ -520,6 +521,7 @@ void JsDriverUtils::CallJs(const string_view& action,
     if (!params) {
       params = context->CreateNull();
     }
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, JsDriverUtils::CallJs, context to call, action: " << action << ", buffer_data_.len: " << buffer_data_.size() << ", js context: " << context.get();
     std::shared_ptr<CtxValue> argv[] = {action_value, params};
     context->CallFunction(scope->GetBridgeObject(), context->GetGlobalObject(), 2, argv);
     cb(CALL_FUNCTION_CB_STATE::SUCCESS, "");
@@ -535,7 +537,7 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
     string_view,
     bool,
     byte_string)>& callback) {
-  FOOTSTONE_DLOG(INFO) << "CallHost";
+  FOOTSTONE_DLOG(INFO) << "xxx hippy, CallHost";
   auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
   auto scope = scope_wrapper->scope.lock();
   FOOTSTONE_CHECK(scope);
@@ -569,10 +571,10 @@ void JsDriverUtils::CallNative(hippy::napi::CallbackInfo& info, const std::funct
   if (info[2]) {
     double cb_id;
     if (context->GetValueString(info[2], &cb_id_str)) {
-      FOOTSTONE_DLOG(INFO) << "CallJava cb_id = " << cb_id_str;
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, CallJava cb_id = " << cb_id_str;
     } else if (context->GetValueNumber(info[2], &cb_id)) {
       cb_id_str = std::to_string(cb_id);
-      FOOTSTONE_DLOG(INFO) << "CallJava cb_id = " << cb_id_str;
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, CallJava cb_id = " << cb_id_str;
     }
   }
 

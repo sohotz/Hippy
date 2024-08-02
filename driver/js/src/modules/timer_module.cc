@@ -21,6 +21,7 @@
  */
 
 #include "driver/modules/timer_module.h"
+#include <cstdint>
 
 #include "driver/base/common.h"
 #include "driver/modules/module_register.h"
@@ -67,7 +68,10 @@ TimerModule::TimerModule() :
     timer_map_(std::make_shared<std::unordered_map<uint32_t,
                                                    std::shared_ptr<footstone::BaseTimer>>>()),
     idle_function_holder_map_(std::make_shared<std::unordered_map<uint32_t,
-                                                                  std::shared_ptr<CtxValue>>>()) {}
+                                                                  std::shared_ptr<CtxValue>>>()) {
+  heart_jump_timer_map_ = std::make_shared<std::unordered_map<uint32_t,
+                                                   std::shared_ptr<footstone::BaseTimer>>>();
+}
 
 void TimerModule::SetTimeout(CallbackInfo& info, void* data) {
   info.GetReturnValue()->Set(Start(info, false));
@@ -181,6 +185,9 @@ std::shared_ptr<hippy::napi::CtxValue> TimerModule::Start(
   FOOTSTONE_CHECK(scope);
   auto context = scope->GetContext();
   FOOTSTONE_CHECK(context);
+  
+  // check js thread ok
+  StartHeartJump(scope);
 
   auto function = info[0];
   if (!context->IsFunction(function)) {
@@ -280,6 +287,51 @@ std::shared_ptr<CtxValue> TimerModule::BindFunction(std::shared_ptr<Scope> scope
   context->SetProperty(object, key, value);
 
   return object;
+}
+
+void TimerModule::StartHeartJump(std::shared_ptr<Scope> &scope) {
+  static bool isFirst = true;
+  if (isFirst) {
+    isFirst = false;
+  } else {
+    return;
+  }
+  
+  FOOTSTONE_CHECK(scope);
+
+  std::shared_ptr<TaskRunner> runner = scope->GetTaskRunner();
+  FOOTSTONE_DCHECK(runner);
+
+  std::weak_ptr<Scope> weak_scope = scope;
+  auto task = std::make_unique<Task>();
+  auto task_id = task->GetId();
+  bool repeat = true;
+  TimeDelta delay = TimeDelta::FromMilliseconds(100);
+  std::weak_ptr<std::unordered_map<uint32_t , std::shared_ptr<BaseTimer>>> weak_timer_map = heart_jump_timer_map_;
+  // holding chain: scope -> timer_module -> timer_map -> BaseTimer -> task -> CtxValue(function)
+  task->SetExecUnit([weak_scope, task_id, repeat, weak_timer_map] {
+    auto scope = weak_scope.lock();
+    if (!scope) {
+      return;
+    }
+    auto timer_map = weak_timer_map.lock();
+    if (!timer_map) {
+      return;
+    }
+
+    // heart jump log
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, js thread heart jump -----";
+    
+    if (!repeat) {
+      timer_map->erase(task_id);
+    }
+  });
+
+  if (repeat) {
+    auto timer = std::make_shared<RepeatingTimer>(runner);
+    timer->Start(std::move(task), delay);
+    heart_jump_timer_map_->insert({task_id, std::move(timer)});
+  }
 }
 
 }

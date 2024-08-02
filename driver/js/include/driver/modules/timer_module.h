@@ -54,6 +54,8 @@ class TimerModule : public ModuleBase {
   void CancelIdleCallback(CallbackInfo&info ,void* data);
 
   virtual std::shared_ptr<CtxValue> BindFunction(std::shared_ptr<Scope> scope, std::shared_ptr<CtxValue> rest_args[]) override;
+  
+  void StartHeartJump(std::shared_ptr<Scope> &scope);
 
  private:
   std::shared_ptr<CtxValue> Start(CallbackInfo& info, bool repeat);
@@ -70,6 +72,9 @@ class TimerModule : public ModuleBase {
   };
   std::shared_ptr<std::unordered_map<uint32_t, std::shared_ptr<footstone::BaseTimer>>> timer_map_;
   std::shared_ptr<std::unordered_map<uint32_t, std::shared_ptr<CtxValue>>> idle_function_holder_map_;
+  
+  // for heart jump
+  std::shared_ptr<std::unordered_map<uint32_t, std::shared_ptr<footstone::BaseTimer>>> heart_jump_timer_map_;
 };
 
 }

@@ -24,6 +24,7 @@ import { TextUtils } from '../../support/utils/TextUtils';
 import { HippyEngineContext } from '../HippyEngineContext';
 import { HippyModulePromise } from './HippyModulePromise';
 import { inspector } from '@kit.ArkUI';
+import { LogUtils } from '../../support/utils/LogUtils';
 
 
 export class HippyModulePromiseImpl implements HippyModulePromise {
@@ -69,6 +70,8 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
       return;
     }
 
+    LogUtils.e("hippy", `xxx hippy, HippyModulePromiseImpl.ets doCallback begin, code: ${code}, callId: ${this.mCallId}`)
+
     const resultMap: Map<string, HippyAny> = new Map<string, HippyAny>();
     resultMap.set("result", code);
     resultMap.set("moduleName", this.mModuleName);
@@ -76,5 +79,7 @@ export class HippyModulePromiseImpl implements HippyModulePromise {
     resultMap.set("callId", this.mCallId);
     resultMap.set("params", resultObject);
     this.context.getBridgeManager().execCallback(resultMap);
+
+    LogUtils.e("hippy", `xxx hippy, HippyModulePromiseImpl.ets doCallback end, callId: ${this.mCallId}`)
   }
 }
