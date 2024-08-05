@@ -402,6 +402,7 @@ void TextInputView::Call(const std::string &method, const std::vector<HippyValue
 void TextInputView::SetText(const HippyValueArrayType &params){
   if(params.size() == 0) {
     value_ = "";
+    GetTextNode().SetTextContent(value_.value());
   } else {
     std::string str = HRValueUtils::GetString(params[0]);
     value_ = str;
