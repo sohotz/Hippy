@@ -23,6 +23,7 @@
 #include "renderer/arkui/swiper_node.h"
 #include "renderer/arkui/native_node_api.h"
 #include <bits/alltypes.h>
+#include <cstdio>
 #include "footstone/logging.h"
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/arkui/arkui_node_registry.h"
@@ -32,11 +33,11 @@ inline namespace render {
 inline namespace native {
 
 static constexpr ArkUI_NodeEventType SWIPER_NODE_EVENT_TYPES[] = {
-    NODE_SWIPER_EVENT_ON_CHANGE,        
-    NODE_SWIPER_EVENT_ON_ANIMATION_START,
-    NODE_SWIPER_EVENT_ON_ANIMATION_END,
-    NODE_SWIPER_EVENT_ON_GESTURE_SWIPE, 
-    NODE_TOUCH_EVENT
+  NODE_SWIPER_EVENT_ON_CHANGE,        
+  NODE_SWIPER_EVENT_ON_ANIMATION_START,
+  NODE_SWIPER_EVENT_ON_ANIMATION_END,
+  NODE_SWIPER_EVENT_ON_CONTENT_DID_SCROLL,
+  NODE_TOUCH_EVENT
 };
 
 SwiperNode::SwiperNode()
@@ -78,10 +79,20 @@ void SwiperNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     int32_t currentIndex = nodeComponentEvent->data[0].i32;
     float_t currentOffset = nodeComponentEvent->data[1].f32;
     swiperNodeDelegate_->OnAnimationEnd(currentIndex, currentOffset);
-  } else if (eventType == ArkUI_NodeEventType::NODE_SWIPER_EVENT_ON_GESTURE_SWIPE) {
-    int32_t swiperPageIndex = nodeComponentEvent->data[0].i32;
-    float_t elementOffsetFromStart = nodeComponentEvent->data[1].f32;
-    swiperNodeDelegate_->OnGestureSwipe(swiperPageIndex, elementOffsetFromStart);
+  } else if (eventType == ArkUI_NodeEventType::NODE_SWIPER_EVENT_ON_CONTENT_DID_SCROLL) {
+    int32_t pageIndex = nodeComponentEvent->data[0].i32;
+    float_t pageOffset = nodeComponentEvent->data[2].f32;
+    swiperNodeDelegate_->OnContentDidScroll(pageIndex, pageOffset);
+    
+//     static std::string logBuffer;
+//     char buf[128] = {0};
+//     sprintf(buf, "%d,%d,%f,%f|", pageIndex, index2, pageOffset, pageLength);
+//     logBuffer += buf;
+//     static int i = 0;
+//     ++i;
+//     if (i == 100) {
+//       printf("zzz hippy, %s\n", logBuffer.c_str());
+//     }
   } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
     ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
     swiperNodeDelegate_->OnNodeTouchEvent(inputEvent);
