@@ -207,7 +207,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     this.mBridgeState = BridgeState.DESTROYED;
   }
 
-  callJavaScriptModule(moduleName: string, methodName: string, params: HippyMap): void {
+  callJavaScriptModule(moduleName: string, methodName: string, params: HippyAny): void {
     if (this.mBridgeState == BridgeState.INITIALIZED) {
       let map = new Map<string, HippyAny>()
       map.set("moduleName", moduleName)
