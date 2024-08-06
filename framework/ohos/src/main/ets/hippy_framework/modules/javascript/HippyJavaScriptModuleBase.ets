@@ -30,6 +30,6 @@ export class HippyJavaScriptModuleBase {
   }
 
   callJs(moduleName: string, method: string, params: HippyAny, callback: HippyModuleCallback | null): void {
-    this.mHippyContext.getBridgeManager().callJavaScriptModule(moduleName, method, params);
+    this.mHippyContext.getBridgeManager()?.callJavaScriptModule(moduleName, method, params);
   }
 }
