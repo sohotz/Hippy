@@ -117,14 +117,26 @@ void PagerView::OnAnimationEnd(const int32_t &currentIndex, const float_t &curre
                        << ", Final offset: " << currentOffset;
 }
 
-void PagerView::OnContentDidScroll(const int32_t pageIndex, const float_t pageOffset) {
+void PagerView::OnContentDidScroll(const int32_t currentIndex, const int32_t pageIndex, const float_t pageOffset) {
   // position: Position index of the target page.
   // offset: Value from [-1, 1] indicating the offset from the page at position.
   auto position = pageIndex;
   auto offset = pageOffset;
-  if (pageOffset < 0) {
-    position += 1;
-    offset = 1- offset;
+  
+  // filter the illegal values
+  if (offset < -1.f || offset > 1.f) {
+    return;
+  }
+  
+  if (pageIndex == currentIndex + 1) {
+    position = pageIndex;
+    offset = 1.f - offset;
+  } else if (pageIndex == currentIndex - 1) {
+    position = pageIndex;
+    offset = - (1.f + offset);
+  } else {
+    // no need to handle current page params
+    return;
   }
   
   //FOOTSTONE_DLOG(INFO) << "PagerView on gesture swipe, index: " << swiperPageIndex

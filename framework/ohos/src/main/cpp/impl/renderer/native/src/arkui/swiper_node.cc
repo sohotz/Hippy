@@ -80,19 +80,10 @@ void SwiperNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     float_t currentOffset = nodeComponentEvent->data[1].f32;
     swiperNodeDelegate_->OnAnimationEnd(currentIndex, currentOffset);
   } else if (eventType == ArkUI_NodeEventType::NODE_SWIPER_EVENT_ON_CONTENT_DID_SCROLL) {
-    int32_t pageIndex = nodeComponentEvent->data[0].i32;
+    int32_t currentIndex = nodeComponentEvent->data[0].i32;
+    int32_t pageIndex = nodeComponentEvent->data[1].i32;
     float_t pageOffset = nodeComponentEvent->data[2].f32;
-    swiperNodeDelegate_->OnContentDidScroll(pageIndex, pageOffset);
-    
-//     static std::string logBuffer;
-//     char buf[128] = {0};
-//     sprintf(buf, "%d,%d,%f,%f|", pageIndex, index2, pageOffset, pageLength);
-//     logBuffer += buf;
-//     static int i = 0;
-//     ++i;
-//     if (i == 100) {
-//       printf("zzz hippy, %s\n", logBuffer.c_str());
-//     }
+    swiperNodeDelegate_->OnContentDidScroll(currentIndex, pageIndex, pageOffset);
   } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
     ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
     swiperNodeDelegate_->OnNodeTouchEvent(inputEvent);

@@ -47,7 +47,7 @@ public:
                         const float_t &currentOffset, const float_t &targetOffset,
                         const float_t &swipeVelocity) override;
   void OnAnimationEnd(const int32_t &currentIndex, const float_t &currentOffset) override;
-  void OnContentDidScroll(const int32_t pageIndex,
+  void OnContentDidScroll(const int32_t currentIndex, const int32_t pageIndex,
                           const float_t pageOffset) override;
   void OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) override;
 
