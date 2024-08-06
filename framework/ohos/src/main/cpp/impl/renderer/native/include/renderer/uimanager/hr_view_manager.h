@@ -79,6 +79,8 @@ public:
   LayoutSize CallCustomMeasure(uint32_t tag,
     float width, LayoutMeasureMode width_measure_mode,
     float height, LayoutMeasureMode height_measure_mode);
+  
+  void SendTextEllipsizedEvent(uint32_t tag);
 
   uint64_t AddEndBatchCallback(const EndBatchCallback &cb);
   void RemoveEndBatchCallback(uint64_t cbId);

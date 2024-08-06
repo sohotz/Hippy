@@ -139,6 +139,13 @@ void NativeRenderProvider::SpanPosition(uint32_t root_id, uint32_t node_id, floa
   });
 }
 
+void NativeRenderProvider::TextEllipsized(uint32_t root_id, uint32_t node_id) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
+  taskRunner->RunAsyncTask([render_impl = render_impl_, root_id, node_id]() {
+    render_impl->TextEllipsized(root_id, node_id);
+  });
+}
+
 void NativeRenderProvider::OnSize(uint32_t root_id, float width, float height) {
   NativeRenderProvider_UpdateRootSize(instance_id_, root_id, width, height);
 }

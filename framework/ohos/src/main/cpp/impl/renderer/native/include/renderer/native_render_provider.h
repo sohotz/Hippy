@@ -69,6 +69,7 @@ public:
     float height, LayoutMeasureMode height_measure_mode);
   
   void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
+  void TextEllipsized(uint32_t root_id, uint32_t node_id);
   
   void OnSize(uint32_t root_id, float width, float height);
   void OnSize2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync);

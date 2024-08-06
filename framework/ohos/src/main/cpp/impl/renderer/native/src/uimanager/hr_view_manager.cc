@@ -30,6 +30,7 @@
 #include "renderer/components/custom_ts_view.h"
 #include "renderer/components/custom_view.h"
 #include "renderer/components/hippy_render_view_creator.h"
+#include "renderer/components/rich_text_view.h"
 #include "renderer/native_render_context.h"
 #include "footstone/logging.h"
 
@@ -341,6 +342,15 @@ LayoutSize HRViewManager::CallCustomMeasure(uint32_t tag,
     return customView->CustomMeasure(width, width_measure_mode, height, height_measure_mode);
   }
   return {0, 0};
+}
+
+void HRViewManager::SendTextEllipsizedEvent(uint32_t tag) {
+  auto it = view_registry_.find(tag);
+  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  if (renderView && renderView->GetViewType() == "Text") {
+    auto textView = std::static_pointer_cast<RichTextView>(renderView);
+    textView->SendTextEllipsizedEvent();
+  }
 }
 
 uint64_t HRViewManager::AddEndBatchCallback(const EndBatchCallback &cb) {

@@ -415,6 +415,8 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
 
     double realHeight = CalcSpanPostion(typography, ret);
     ret.height = fmax(ret.height, realHeight);
+  
+    ret.isEllipsized = OH_Drawing_TypographyIsEllipsized(typoStyle_);
 
     OH_Drawing_DestroyTypography(typography);
 

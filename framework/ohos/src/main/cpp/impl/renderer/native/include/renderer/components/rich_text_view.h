@@ -42,6 +42,8 @@ public:
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   
+  void SendTextEllipsizedEvent();
+  
 private:
   TextNode textNode_;
   
@@ -66,6 +68,8 @@ private:
   
   bool toSetTextDecoration_ = false;
   bool toSetTextShadow = false;
+  
+  bool isListenEllipsized_ = false;
 };
 
 } // namespace native

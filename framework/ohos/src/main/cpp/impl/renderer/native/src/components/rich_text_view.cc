@@ -23,6 +23,7 @@
 #include "renderer/components/rich_text_view.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_text_convert_utils.h"
+#include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -173,6 +174,9 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     ArkUI_WordBreak wordBreak = HRTextConvertUtils::WordBreakToArk(value);
     GetLocalRootArkUINode().SetWordBreak(wordBreak);
     return true;
+  } else if (propKey == "ellipsized") {
+    isListenEllipsized_ = HRValueUtils::GetBool(propValue, false);
+    return true;
   }
   
   return BaseView::SetProp(propKey, propValue);
@@ -208,6 +212,13 @@ void RichTextView::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
 void RichTextView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
   textNode_.RemoveChild(childView->GetLocalRootArkUINode());
+}
+
+void RichTextView::SendTextEllipsizedEvent() {
+  if (!isListenEllipsized_) {
+    return;
+  }
+  HREventUtils::SendComponentEvent(ctx_, tag_, "ellipsized", nullptr);
 }
 
 } // namespace native

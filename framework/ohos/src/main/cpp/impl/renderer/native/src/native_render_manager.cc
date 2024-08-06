@@ -1046,6 +1046,11 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       }
     }
   }
+  if (measureResult.isEllipsized) {
+    if (enable_ark_c_api_) {
+      c_render_provider_->TextEllipsized(root->GetId(), node->GetId());
+    }
+  }
   result = static_cast<int64_t>(ceil(measureResult.width)) << 32 | static_cast<int64_t>(ceil(measureResult.height));
 }
 
