@@ -61,11 +61,11 @@ void CheckPendingExeception(JSVM_Env env_, JSVM_Status status) {
 
       char stackstr[256];
       OH_JSVM_GetValueStringUtf8(env_, stack, stackstr, 256, nullptr);
-      OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error stack: %{public}s", stackstr);
+      FOOTSTONE_LOG(ERROR) << "JSVM PENDING EXCEPTION, error stack: " << stackstr;
 
       char messagestr[256];
       OH_JSVM_GetValueStringUtf8(env_, message, messagestr, 256, nullptr);
-      OH_LOG_INFO(LOG_APP, "xxx hippy JSVM error message: %{public}s", messagestr);
+      FOOTSTONE_LOG(ERROR) << "JSVM PENDING EXCEPTION, error message: " << messagestr;
     }
   }
 }
