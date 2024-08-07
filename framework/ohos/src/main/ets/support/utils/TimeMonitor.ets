@@ -21,72 +21,93 @@ import ArrayList from '@ohos.util.ArrayList';
 import systemDateTime from '@ohos.systemDateTime';
 import HashMap from '@ohos.util.HashMap';
 import { LogUtils } from './LogUtils';
-import { HippyJsException } from '../../hippy_framework/common/HippyJsException';
-
-export enum MonitorGroupType {
-  ENGINE_INITIALIZE,
-  RUN_JS_BUNDLE,
-  LOAD_INSTANCE,
-  VFS_RESOURCE_LOAD
-}
-
-const TIME_MONITOR_TAG = "TimeMonitor"
 
 export class TimeMonitor {
-  public static MONITOR_POINT_INIT_NATIVE_ENGINE: string = "initNativeEngine";
-  public static MONITOR_POINT_INIT_JS_ENGINE: string = "initJSEngine";
-  public static MONITOR_POINT_LOAD_COMMON_JS: string = "loadCommonJs";
-  public static MONITOR_POINT_NOTIFY_ENGINE_INITIALIZED: string = "notifyEngineInitialized";
-  public static MONITOR_POINT_LOAD_BUSINESS_JS: string = "loadBusinessJs";
-  public static MONITOR_POINT_LOAD_INSTANCE: string = "loadInstance";
-  public static MONITOR_POINT_FIRST_FRAME: string = "firstFrame";
-  mMonitorGroups: HashMap<MonitorGroupType, MonitorGroup> | null = null;
+  public static TAG = "TimeMonitor";
 
-  public startPoint(groupType: MonitorGroupType, point: string): void {
+  public static MONITOR_GROUP_INIT_ENGINE = "initEngine";
+  public static MONITOR_GROUP_RUN_BUNDLE = "runBundle";
+  public static MONITOR_GROUP_PAINT = "paint";
+
+  public static MONITOR_POINT_INIT_NATIVE_ENGINE: string = "initNativeEngine";
+  public static MONITOR_POINT_LOAD_VENDOR_JS: string = "loadVendorJs";
+  public static MONITOR_POINT_LOAD_MAIN_JS: string = "loadMainJs";
+  public static MONITOR_POINT_FIRST_PAINT: string = "firstPaint";
+  public static MONITOR_POINT_FIRST_CONTENTFUL_PAINT = "firstContentfulPaint";
+
+  public static MONITOR_POINT_INIT_JS_ENGINE: string = "initJSEngine";
+  public static MONITOR_POINT_LOAD_INSTANCE: string = "loadInstance";
+  public static MONITOR_POINT_NOTIFY_ENGINE_INITIALIZED: string = "notifyEngineInitialized";
+  public mMonitorGroups: HashMap<string, MonitorGroup> | null = null;
+
+  public beginGroup(groupName: string) {
     if (this.mMonitorGroups == null) {
       this.mMonitorGroups = new HashMap();
     }
-    let monitorGroup: MonitorGroup = this.mMonitorGroups.get(groupType);
+    let monitorGroup: MonitorGroup = this.mMonitorGroups.get(groupName);
     if (monitorGroup == null) {
-      monitorGroup = new MonitorGroup(groupType);
-      this.mMonitorGroups.set(groupType, monitorGroup);
+      const monitorGroup = new MonitorGroup(groupName);
+      this.mMonitorGroups.set(groupName, monitorGroup);
+    } else {
+      monitorGroup.reset();
     }
-    monitorGroup.startPoint(point);
   }
 
-  public endGroup(groupType: MonitorGroupType): MonitorGroup | null {
+  public endGroup(groupName: string): void {
     if (this.mMonitorGroups == null) {
-      return null;
+      return;
     }
-    let monitorGroup: MonitorGroup = this.mMonitorGroups.get(groupType);
+    let monitorGroup: MonitorGroup = this.mMonitorGroups.get(groupName);
     if (monitorGroup != null) {
       monitorGroup.end();
     }
-    return monitorGroup;
   }
 
-  public getMonitorGroup(groupType: MonitorGroupType): MonitorGroup | null {
+  public addPoint(groupName: string, point: string) {
     if (this.mMonitorGroups == null) {
-      return null;
+      return;
     }
-    return (this.mMonitorGroups == null) ? null : this.mMonitorGroups.get(groupType);
+    let monitorGroup: MonitorGroup = this.mMonitorGroups.get(groupName);
+    if (monitorGroup != null) {
+      monitorGroup.addPoint(point);
+    }
+  }
+
+  public printGroup(groupName: string) {
+    if (this.mMonitorGroups == null) {
+      return;
+    }
+    let monitorGroup: MonitorGroup = this.mMonitorGroups.get(groupName);
+    if (monitorGroup != null) {
+      monitorGroup.print();
+    }
   }
 }
 
 export class MonitorGroup {
-  public type: MonitorGroupType
+  public name: string
   public beginTime: number = -1
   public totalTime: number = -1
   public isActive: boolean;
   private mMonitorPoints: ArrayList<MonitorPoint> | null = null;
   private mLastPoint: MonitorPoint | null = null;
 
-  constructor(type: MonitorGroupType) {
-    this.type = type;
+  constructor(name: string) {
+    this.name = name;
     this.isActive = true;
   }
 
-  startPoint(pointKey: string): void {
+  public reset() {
+    this.beginTime = -1;
+    this.totalTime = -1;
+    this.isActive = true;
+    this.mLastPoint = null;
+    if (this.mMonitorPoints != null) {
+      this.mMonitorPoints.clear();
+    }
+  }
+
+  addPoint(pointKey: string): void {
     if (!this.isActive) {
       return;
     }
@@ -94,10 +115,11 @@ export class MonitorGroup {
       this.mMonitorPoints = new ArrayList();
     }
     let monitorPoint: MonitorPoint | null = this.checkMonitorPoint(pointKey);
-    if (monitorPoint == null) {
-      monitorPoint = new MonitorPoint(pointKey);
-      this.mMonitorPoints.add(monitorPoint);
+    if (monitorPoint != null) {
+        return;
     }
+    monitorPoint = new MonitorPoint(pointKey);
+    this.mMonitorPoints.add(monitorPoint);
     let currentTime: number = this.getCurrentTime()
     monitorPoint.startTime = currentTime;
     if (this.mLastPoint != null) {
@@ -116,7 +138,17 @@ export class MonitorGroup {
         this.mLastPoint.endTime = this.getCurrentTime()
       }
       if (this.beginTime != -1) {
-        this.totalTime = (Number)(this.getCurrentTime() - this.beginTime);
+        this.totalTime = this.getCurrentTime() - this.beginTime;
+      }
+      this.print();
+    }
+  }
+
+  print(): void {
+    if (this.mMonitorPoints != null) {
+      LogUtils.e(TimeMonitor.TAG, "group " + this.name + ", totalTime " + this.totalTime + "ms");
+      for (const monitorPoint of this.mMonitorPoints) {
+        LogUtils.e(TimeMonitor.TAG, monitorPoint.key + ": " + (monitorPoint.endTime - monitorPoint.startTime) + "ms");
       }
     }
   }
@@ -126,17 +158,7 @@ export class MonitorGroup {
   }
 
   getCurrentTime(): number {
-    try {
-      systemDateTime.getCurrentTime().then((time) => {
-        LogUtils.d(TIME_MONITOR_TAG, `Succeeded in getting currentTime : ${time}`);
-        return time
-      }).catch((err: HippyJsException) => {
-        LogUtils.e(TIME_MONITOR_TAG, `Failed to get currentTime. message:${err.message}`);
-      });
-    } catch (e) {
-      LogUtils.e(TIME_MONITOR_TAG, `Failed to get currentTime. message:${e.message}, code:${e.code}`);
-    }
-    return -1
+    return systemDateTime.getTime();
   }
 
   private checkMonitorPoint(pointKey: string): MonitorPoint | null {

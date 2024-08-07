@@ -23,7 +23,6 @@ import { JsDriver } from '../connector/JsDriver';
 import { NativeCallback } from '../connector/NativeCallback';
 import { HippyEngineContext } from '../HippyEngineContext';
 import { V8InitParams } from '../HippyEngine';
-import { MonitorGroupType, TimeMonitor } from '../../support/utils/TimeMonitor';
 import { HippyBridgeManagerImpl } from './HippyBridgeManagerImpl';
 import { LogUtils } from '../../support/utils/LogUtils';
 
@@ -86,9 +85,6 @@ export class HippyBridgeImpl implements HippyBridge {
     if (!this.mEngineContext) {
       return;
     }
-    this.mEngineContext?.getMonitor()
-      .startPoint(MonitorGroupType.ENGINE_INITIALIZE, TimeMonitor.MONITOR_POINT_INIT_JS_ENGINE);
-    // TODO 多线程问题
     this.mJsDriver.initialize(
       this.mEngineContext.getDomManagerId(),
       this.mEngineContext.getVfsId(),

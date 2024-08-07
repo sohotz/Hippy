@@ -25,7 +25,7 @@ import { ArgumentUtils } from '../../support/utils/ArgumentUtils';
 import { DimensionsUtil } from '../../support/utils/DimensionsUtil';
 import { I18nUtil } from '../../support/utils/I18nUtil';
 import { LogUtils } from '../../support/utils/LogUtils';
-import { MonitorGroupType, TimeMonitor } from '../../support/utils/TimeMonitor';
+import { TimeMonitor } from '../../support/utils/TimeMonitor';
 import { HippyThirdPartyAdapter } from '../adapter/thirdparty/HippyThirdPartyAdapter';
 import { HippyJsException } from '../common/HippyJsException';
 import { JsDriver } from '../connector/JsDriver';
@@ -108,29 +108,6 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       debugServerHost,
       v8InitParams,
       jsDriver);
-    if (enableV8Serialization) {
-      // compatibleSerializer = new Serializer();
-      // recommendSerializer = new com.tencent.mtt.hippy.serialization.recommend.Serializer();
-    } else {
-      // mStringBuilder = new StringBuilder(1024);
-    }
-  }
-
-  runBundle(id: number, loader: HippyBundleLoader): void {
-    loader.load(this.mHippyBridge, (result: number, reason: string) => {
-      this.bundleLoaderCallback(result, reason);
-    });
-  }
-
-  bundleLoaderCallback = (result: number, reason: string) => {
-    LogUtils.i('hippy bundleLoaderCallback', result + reason)
-    if (this.mContext) {
-      if (result === 0) {
-        this.mContext.onLoadModuleCompleted(ModuleLoadStatus.STATUS_OK, 'load module success')
-      } else {
-        this.mContext.onLoadModuleCompleted(ModuleLoadStatus.STATUS_ERR_RUN_BUNDLE, 'load module error. loader.load failed. check the file!!')
-      }
-    }
   }
 
   resumeInstance(id: number): void {
@@ -154,24 +131,41 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE, this.callFunctionCallback, buffer);
   }
 
-  getSerializerBuffer(params: Map<string, HippyAny>) {
+  loadInstance(name: string, id: number, params: HippyMap) {
+    // add first paint perf log
+    const timeMonitor = this.mContext.getMonitor()
+    timeMonitor.beginGroup(TimeMonitor.MONITOR_GROUP_PAINT);
+    timeMonitor.addPoint(TimeMonitor.MONITOR_GROUP_PAINT, TimeMonitor.MONITOR_POINT_FIRST_PAINT);
+
+    let map = new Map<string, HippyAny>()
+    map.set("name", name)
+    map.set("id", id)
+    map.set("params", params)
+
+    const buffer = this.getSerializerBufferBinary(map);
+    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, buffer)
+  }
+
+  callFunctionCallBack = (result: number, reason: string) => {
+    LogUtils.i('hippy callFunctionCallBack', result + reason)
+  }
+
+  getSerializerBuffer(params: Map<string, HippyAny>): Uint8Array {
     if (this.mEnableV8Serialization) {
-      let binaryWriter = new BinaryWriter()
-      let serializer = new Serializer(binaryWriter)
-      serializer.writeHeader()
-      serializer.writeValue(params)
-      let buffer = binaryWriter.chunked()
-      return buffer
+      return this.getSerializerBufferBinary(params);
     } else {
-      let str = JSON.stringify(ArgumentUtils.mapToRecord(params))
-      // let str = ArgumentUtils.objectToJson(params)
-      let encoder = new util.TextEncoder("utf-8")
-      let uint8Array = encoder.encodeInto(str)
-      return uint8Array
+      return this.getSerializerBufferJson(params);
     }
   }
 
-  getSerializerBufferBinary(params: Map<string, HippyAny>) {
+  getSerializerBufferJson(params: Map<string, HippyAny>): Uint8Array {
+    let str = JSON.stringify(ArgumentUtils.mapToRecord(params))
+    let encoder = new util.TextEncoder("utf-8")
+    let uint8Array = encoder.encodeInto(str)
+    return uint8Array
+  }
+
+  getSerializerBufferBinary(params: Map<string, HippyAny>): Uint8Array {
     let binaryWriter = new BinaryWriter()
     let serializer = new Serializer(binaryWriter)
     serializer.writeHeader()
@@ -180,7 +174,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     return buffer;
   }
 
-  execCallback(params: Map<string, HippyAny>): void {
+  execPromiseCallback(params: Map<string, HippyAny>): void {
     if (this.mBridgeState == BridgeState.INITIALIZED) {
       const buffer = this.getSerializerBuffer(params);
       this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_CALLBACK, this.callFunctionCallback, buffer);
@@ -192,7 +186,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   public callFunctionCallback = (result: number, reason: string) => {
-    LogUtils.i('hippy execCallback', result + reason);
+    LogUtils.i('hippy callFunctionCallback', result + reason);
   }
 
   destroyBridge(isReload: boolean): void {
@@ -274,19 +268,18 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     // }
     if (this.mCoreBundleLoader != null) {
       const timeMonitor = this.mContext.getMonitor();
-      timeMonitor.startPoint(MonitorGroupType.ENGINE_INITIALIZE,
-        TimeMonitor.MONITOR_POINT_LOAD_COMMON_JS);
-      this.mCoreBundleLoader
-        .load(this.mHippyBridge, (result: number, reason: string) => {
-          this.bundleVendorLoaderCallback(result, reason, initBridgeCallback);
-        });
+      // add load vendor js perf log
+      timeMonitor.addPoint(TimeMonitor.MONITOR_GROUP_INIT_ENGINE, TimeMonitor.MONITOR_POINT_LOAD_VENDOR_JS);
+      this.mCoreBundleLoader.load(this.mHippyBridge, (result: number, reason: string) => {
+          this.loadVendorJSCallback(result, reason, initBridgeCallback);
+      });
     } else {
       this.mBridgeState = BridgeState.INITIALIZED;
       initBridgeCallback(1, '');
     }
   }
 
-  public bundleVendorLoaderCallback = (result: number, reason: string, initBridgeCallback: NativeCallback) => {
+  public loadVendorJSCallback = (result: number, reason: string, initBridgeCallback: NativeCallback) => {
     if (this.mBridgeState == BridgeState.DESTROYED) {
       return;
     }
@@ -296,27 +289,34 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
       throw new Error("load coreJsBundle failed, check your core jsBundle:" + reason);
     }
     const timeMonitor = this.mContext.getMonitor();
-    timeMonitor.startPoint(
-      MonitorGroupType.ENGINE_INITIALIZE,
-      TimeMonitor.MONITOR_POINT_NOTIFY_ENGINE_INITIALIZED);
+    // end init engine perf
+    timeMonitor.endGroup(TimeMonitor.MONITOR_GROUP_INIT_ENGINE);
     initBridgeCallback(result, reason);
   }
 
-  loadInstance(name: string, id: number, params: HippyMap) {
-    const timeMonitor = this.mContext.getMonitor()
-    timeMonitor.startPoint(MonitorGroupType.LOAD_INSTANCE, TimeMonitor.MONITOR_POINT_LOAD_INSTANCE)
-
-    let map = new Map<string, HippyAny>()
-    map.set("name", name)
-    map.set("id", id)
-    map.set("params", params)
-
-    const buffer = this.getSerializerBufferBinary(map);
-    this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_LOAD_INSTANCE, this.callFunctionCallBack, buffer)
+  runBundle(id: number, loader: HippyBundleLoader): void {
+    // add load main js perf log
+    const timeMonitor = this.mContext.getMonitor();
+    timeMonitor.beginGroup(TimeMonitor.MONITOR_GROUP_RUN_BUNDLE);
+    timeMonitor.addPoint(TimeMonitor.MONITOR_GROUP_RUN_BUNDLE, TimeMonitor.MONITOR_POINT_LOAD_MAIN_JS);
+    loader.load(this.mHippyBridge, (result: number, reason: string) => {
+      this.runBundleCallback(result, reason);
+    });
   }
 
-  callFunctionCallBack = (result: number, reason: string) => {
-    LogUtils.i('hippy callFunctionCallBack', result + reason)
+  runBundleCallback = (result: number, reason: string) => {
+    LogUtils.i('hippy bundleLoaderCallback', result + reason)
+    if (this.mContext) {
+      if (result === 0) {
+        this.mContext.onLoadModuleCompleted(ModuleLoadStatus.STATUS_OK, 'load module success')
+      } else {
+        this.mContext.onLoadModuleCompleted(ModuleLoadStatus.STATUS_ERR_RUN_BUNDLE, 'load module error. loader.load failed. check the file!!')
+      }
+      const timeMonitor = this.mContext.getMonitor();
+      timeMonitor.endGroup(TimeMonitor.MONITOR_GROUP_RUN_BUNDLE);
+      timeMonitor.beginGroup(TimeMonitor.MONITOR_GROUP_PAINT);
+      timeMonitor.addPoint(TimeMonitor.MONITOR_GROUP_PAINT, TimeMonitor.MONITOR_POINT_FIRST_PAINT);
+    }
   }
 
   async getGlobalConfigsString(): Promise<string> {
@@ -339,8 +339,6 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     let nightMode = false
     let extraDataMap = new Map<string, HippyValue>()
 
-    // TODO support ThirdAdapter inject
-
     let platformParams = new Map<string, HippyAny>()
     platformParams.set("OS", "ohos")
     platformParams.set("PackageName", (packageName == null) ? "" : packageName)
@@ -357,8 +355,6 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
 
     globalParams.set("Platform", platformParams)
 
-    // TODO(etkamo): isSupportDev
-
     let host = new Map<string, HippyAny>()
     host.set("url", (pageUrl == null) ? "" : pageUrl)
     host.set("appName", (packageName == null) ? "" : packageName)
@@ -371,7 +367,6 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   private enableTurbo(): boolean {
-    return this.mContext.getGlobalConfigs() != null && this.mContext.getGlobalConfigs()
-      .enableTurbo();
+    return this.mContext.getGlobalConfigs() != null && this.mContext.getGlobalConfigs().enableTurbo();
   }
 }

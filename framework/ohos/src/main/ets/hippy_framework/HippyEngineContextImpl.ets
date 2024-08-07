@@ -43,6 +43,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   private mDevtoolsManager: DevtoolsManager | null = null;
   private mDebugMode: boolean;
   private loadModuleCallback: Function | null = null;
+  private component: string = '';
 
   public constructor(
     params: EngineInitParams,
@@ -178,6 +179,14 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     if (this.loadModuleCallback) {
         this.loadModuleCallback(statusCode, msg);
     }
+  }
+
+  public setComponentName(component: string) {
+    return this.component = component;
+  }
+
+  public getComponentName(): string {
+    return this.component;
   }
 
   getLibHippy(): HippyLibrary {

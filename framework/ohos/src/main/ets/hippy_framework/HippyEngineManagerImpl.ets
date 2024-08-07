@@ -30,19 +30,17 @@ import {
   ModuleLoadStatus,
   V8InitParams
 } from '.';
-import { DefaultProcessor } from '../vfs/DefaultProcessor'
 import { DomManager } from './connector/DomManager';
 import { FrameworkProxy } from '../renderer_native/FrameworkProxy';
 import { NativeRenderer } from './connector/NativeRenderer';
 import { VfsManager } from '../vfs/VfsManager';
-import { NativeRenderContext } from '../renderer_native/NativeRenderContext';
 import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { HippyException } from '../support/common/HippyException';
 import { HippyAPIProvider } from './bridge/HippyAPIProvider';
 import { HRRenderViewCreator } from '../renderer_native/components/HippyRenderRegisterMap';
 import { HippyGlobalConfigs } from './HippyGlobalConfigs';
-import { MonitorGroupType, TimeMonitor } from '../support/utils/TimeMonitor';
+import { TimeMonitor } from '../support/utils/TimeMonitor';
 import { TextUtils } from '../support/utils/TextUtils';
 import { HippyAssetBundleLoader } from './bridge/bundleloader/HippyAssetBundleLoader';
 import { HippyBundleLoader } from './bridge/bundleloader/HippyBundleLoader';
@@ -119,9 +117,6 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
         !TextUtils.isEmpty(params.codeCacheTag), params.codeCacheTag);
     }
     this.mCoreBundleLoader = coreBundleLoader;
-    // this.mPreloadBundleLoader = preloadBundleLoader;
-    // TODO
-    // this.mProcessors = params.processors;
   }
 
   onInitDevError(e: HippyJsException): void {
@@ -170,9 +165,10 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     }
   }
 
-  public restartEngine(initCallback: HippyEngineInitCallback) {
-    // performance
-    this.mMonitor.startPoint(MonitorGroupType.ENGINE_INITIALIZE, TimeMonitor.MONITOR_POINT_INIT_NATIVE_ENGINE);
+  public restartEngine(initEngineCallback: HippyEngineInitCallback) {
+    // add init engine perf
+    this.mMonitor.beginGroup(TimeMonitor.MONITOR_GROUP_INIT_ENGINE);
+    this.mMonitor.addPoint(TimeMonitor.MONITOR_GROUP_INIT_ENGINE, TimeMonitor.MONITOR_POINT_INIT_NATIVE_ENGINE);
     this.domMgr = new DomManager(this.libHippy)
     // init HippyEngineContext
     this.mEngineContext = new HippyEngineContextImpl(
@@ -202,23 +198,23 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     }
 
     if (!this.params.integrateJSEngine) {
-      if (initCallback) {
-        initCallback(EngineInitStatus.STATUS_OK, "")
+      if (initEngineCallback) {
+        initEngineCallback(EngineInitStatus.STATUS_OK, "")
       }
       return
     }
 
-    // initBridge
+    // initBridge && load vendor js bundle
     this.mEngineContext.getBridgeManager()?.initBridge((result: number, reason: string) => {
       // Some async params needed by c-api renderer are put here.
       let nativeRenderer = (this.getHippyEngineContext() as HippyEngineContextImpl).nativeRenderer
       nativeRenderer?.initRendererParams(px2vp(DimensionsUtil.STATUS_BAR_HEIGHT))
 
-      this.initBridgeCallback(result, reason, initCallback)
+      this.initBridgeCallback(result, reason, initEngineCallback)
     });
   }
 
-  initBridgeCallback = (result: number, reason: string, initCallback: HippyEngineInitCallback) => {
+  initBridgeCallback = (result: number, reason: string, initEngineCallback: HippyEngineInitCallback) => {
     const jsDriver = this.mEngineContext?.getJsDriver();
     if (!jsDriver) {
       return
@@ -228,10 +224,9 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
       return;
     }
 
-    if (initCallback) {
-      initCallback(EngineInitStatus.STATUS_OK, "")
+    if (initEngineCallback) {
+      initEngineCallback(EngineInitStatus.STATUS_OK, "")
     }
-
   }
 
   public sendEvent(event: string, params: HippyAny): void {
@@ -256,11 +251,9 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     if (!this.mDebugMode) {
       let coreBundleLoader: HippyBundleLoader | null = null;
       if (!TextUtils.isEmpty(loadParams.jsAssetsPath)) {
-        coreBundleLoader = new HippyAssetBundleLoader(this.mGlobalConfigs.getContext()!, loadParams.jsAssetsPath,
-          !TextUtils.isEmpty(loadParams.codeCacheTag), loadParams.codeCacheTag);
+        coreBundleLoader = new HippyAssetBundleLoader(this.mGlobalConfigs.getContext()!, loadParams.jsAssetsPath, !TextUtils.isEmpty(loadParams.codeCacheTag), loadParams.codeCacheTag);
       } else if (!TextUtils.isEmpty(loadParams.jsFilePath)) {
-        coreBundleLoader = new HippyFileBundleLoader(loadParams.jsFilePath,
-          !TextUtils.isEmpty(loadParams.codeCacheTag), loadParams.codeCacheTag);
+        coreBundleLoader = new HippyFileBundleLoader(loadParams.jsFilePath, !TextUtils.isEmpty(loadParams.codeCacheTag), loadParams.codeCacheTag);
       }
       this.mCoreBundleLoader = coreBundleLoader;
     }
@@ -315,8 +308,16 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     return 0;
   }
 
-  onFirstViewAdded(): void {
+  onFirstPaint() {
+    this.mEngineContext?.getMonitor().addPoint(TimeMonitor.MONITOR_GROUP_PAINT, TimeMonitor.MONITOR_POINT_FIRST_CONTENTFUL_PAINT);
+    this.mGlobalConfigs?.getEngineMonitorAdapter()?.onFirstPaintCompleted(this.mEngineContext?.getComponentName() ?? '');
+  };
+
+  onFirstContentfulPaint() {
+    this.mEngineContext?.getMonitor().endGroup(TimeMonitor.MONITOR_GROUP_PAINT);
+    this.mGlobalConfigs.getEngineMonitorAdapter()?.onFirstContentfulPaintCompleted(this.mEngineContext?.getComponentName() ?? '');
   }
+
 
   handleNativeException(exception: HippyException): void {
     this.mGlobalConfigs.getExceptionHandler()?.handleNativeException(exception, true);
@@ -335,8 +336,10 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
       return;
     }
     this.mEngineContext?.setLoadModuleCallback(loadJsModuleCallback);
+    this.mEngineContext?.setComponentName(loadParams.componentName);
     if (!this.params.debugMode) {
       if (this.mCoreBundleLoader != null) {
+        // load main js bundle
         this.mEngineContext?.getBridgeManager()?.runBundle(0, this.mCoreBundleLoader);
       } else {
         LogUtils.e('hippy', 'load module error. jsBundleLoader==null');

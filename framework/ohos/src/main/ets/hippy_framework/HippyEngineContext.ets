@@ -51,10 +51,6 @@ export interface HippyEngineContext {
 
   destroyBridge(isReload: boolean): void
 
-  // void addEngineLifecycleEventListener(HippyEngineLifecycleEventListener listener);
-  //
-  // void removeEngineLifecycleEventListener(HippyEngineLifecycleEventListener listener);
-  //
   handleException(error: HippyJsException): void
 
   // int getEngineId();
@@ -70,4 +66,8 @@ export interface HippyEngineContext {
   onBridgeDestroyed(isReload: boolean): void;
 
   onLoadModuleCompleted(statusCode: number, msg: string): void;
+
+  setComponentName(component: string): void
+
+  getComponentName(): string;
 }

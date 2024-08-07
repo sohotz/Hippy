@@ -26,29 +26,21 @@ import { LogUtils } from '../../../support/utils/LogUtils';
 const DEFAULT_ENGIN_MONITOR_TAG: string = "DefaultEngineMonitorAdapter"
 
 export class DefaultEngineMonitorAdapter implements HippyEngineMonitorAdapter {
-  protected printGroupTime(monitorGroup: MonitorGroup): void {
-    let monitorPoints = monitorGroup.getMonitorPoints();
-    if (monitorPoints != null) {
-      monitorPoints.forEach((monitorPoint: MonitorPoint) => {
-        LogUtils.i(DEFAULT_ENGIN_MONITOR_TAG, monitorPoint.key + ": " + (monitorPoint.endTime - monitorPoint.startTime) + "ms");
-      });
-    }
-    LogUtils.i(DEFAULT_ENGIN_MONITOR_TAG, "total time: " + monitorGroup.totalTime);
-  }
 
-  onEngineInitialized(statusCode: EngineInitStatus, monitorGroup: MonitorGroup): void {
+  onEngineInitialized(statusCode: EngineInitStatus): void {
     LogUtils.i(DEFAULT_ENGIN_MONITOR_TAG, "engine initialization completed with result: " + statusCode);
-    this.printGroupTime(monitorGroup);
   }
 
-  onLoadModuleCompleted(statusCode: ModuleLoadStatus, componentName: string, monitorGroup: MonitorGroup): void {
+  onLoadModuleCompleted(statusCode: ModuleLoadStatus): void {
     LogUtils.i(DEFAULT_ENGIN_MONITOR_TAG, "load module completed with result: " + statusCode);
-    this.printGroupTime(monitorGroup);
   }
 
-  onLoadInstanceCompleted(componentName: string, monitorGroup: MonitorGroup): void {
-    LogUtils.i(DEFAULT_ENGIN_MONITOR_TAG, componentName + " load instance completed with first view added");
-    this.printGroupTime(monitorGroup);
+  onFirstPaintCompleted(componentName: string): void {
+    LogUtils.i(DEFAULT_ENGIN_MONITOR_TAG, componentName + " first paint completed with first view added");
+  }
+
+  onFirstContentfulPaintCompleted(componentName: string): void {
+    LogUtils.i(DEFAULT_ENGIN_MONITOR_TAG, componentName + " first contentful paint completed last content view added");
   }
 
   onInterceptCallNative(componentName: string, params: HippyCallNativeParams): boolean {

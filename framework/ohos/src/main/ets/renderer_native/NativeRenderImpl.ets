@@ -141,6 +141,20 @@ export class NativeRenderImpl implements NativeRender {
     this.libHippy.NativeRenderProvider_DestroyRoot(this.instanceId, rootId)
   }
 
+  // for c-api
+  onFirstPaint(): void {
+    if (this.frameworkProxy) {
+      this.frameworkProxy.onFirstPaint()
+    }
+  }
+
+  // for c-api
+  onFirstContentfulPaint(): void {
+    if (this.frameworkProxy) {
+      this.frameworkProxy.onFirstContentfulPaint()
+    }
+  }
+
   getRenderManager(): HRManager {
     return this.renderManager
   }
