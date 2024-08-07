@@ -170,8 +170,10 @@ void NativeRenderProvider::DispatchEvent(uint32_t root_id, uint32_t node_id, con
     return;
   }
   
-  FOOTSTONE_DLOG(INFO) << "NativeRenderProvider dispatchEvent: id " << node_id << ", eventName " << event_name
-    << ", eventType " << static_cast<int32_t>(event_type) << ", params " << params;
+  if (event_name != "frameUpdate") {
+    FOOTSTONE_DLOG(INFO) << "NativeRenderProvider dispatchEvent: id " << node_id << ", eventName " << event_name
+      << ", eventType " << static_cast<int32_t>(event_type) << ", params " << params;
+  }
   
   NativeRenderProvider_OnReceivedEvent(instance_id_, root_id, node_id, lower_case_event_name, params, capture, bubble);
 }
