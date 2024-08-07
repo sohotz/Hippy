@@ -390,10 +390,15 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
   // perfromance start time
   auto entry = scope->GetPerformance()->PerformanceNavigation(kPerfNavigationHippyInit);
   entry->BundleInfoOfUrl(uri).execute_source_start_ = footstone::TimePoint::SystemNow();
-
-#ifdef JS_V8
+  
+#if (defined JS_V8) || (defined JS_JSH)
+#if (defined JS_V8)
   auto ret = std::static_pointer_cast<V8Ctx>(scope->GetContext())->RunScript(
-      script_content, file_name, is_use_code_cache,&code_cache_content, true);
+      script_content, file_name, is_use_code_cache, &code_cache_content, true);
+#elif (defined JS_JSH)
+  auto ret = std::static_pointer_cast<JSHCtx>(scope->GetContext())->RunScript(
+      script_content, file_name, is_use_code_cache, &code_cache_content, true);
+#endif
   if (is_use_code_cache) {
     if (!StringViewUtils::IsEmpty(code_cache_content)) {
       auto func = [code_cache_path, code_cache_dir, code_cache_content] {
