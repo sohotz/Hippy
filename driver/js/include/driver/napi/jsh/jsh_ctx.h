@@ -62,6 +62,7 @@ class JSHCtx : public Ctx {
   explicit JSHCtx(JSVM_VM vm);
 
   ~JSHCtx() {
+    template_map_.clear();
     OH_JSVM_CloseEnvScope(env_, env_scope_);
     env_scope_ = nullptr;
     OH_JSVM_DestroyEnv(env_);
