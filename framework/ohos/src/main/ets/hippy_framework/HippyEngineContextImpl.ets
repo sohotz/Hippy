@@ -122,8 +122,8 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     }
 
     // Render注册
-    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, customRenderViewCreatorMap, customMeasureRenderViews)
     let enableArkCApi = globalConfigs.enableArkCApi()
+    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, enableArkCApi, customRenderViewCreatorMap, customMeasureRenderViews)
     this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider,
       customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath)
     this.nativeRenderer.registerCustomFontPaths(customFontPathMap)

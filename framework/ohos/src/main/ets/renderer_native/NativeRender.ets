@@ -39,6 +39,8 @@ export interface NativeRender {
 
   destroyRoot(rootId: number): void
 
+  isEnableArkCApi(): boolean
+
   getRenderManager(): HRManager
 
   getBundlePath(): string

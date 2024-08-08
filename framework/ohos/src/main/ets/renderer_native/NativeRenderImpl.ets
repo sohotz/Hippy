@@ -92,6 +92,7 @@ export class NativeRenderImpl implements NativeRender {
   private static sRootIdCounter = 0
 
   private libHippy: HippyLibrary
+  private enableArkCApi: boolean
 
   private instanceId: number = 0
 
@@ -103,10 +104,11 @@ export class NativeRenderImpl implements NativeRender {
 
   private renderManager: HRManager
 
-  constructor(libHippy: HippyLibrary,
+  constructor(libHippy: HippyLibrary, enableArkCApi: boolean,
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       customMeasureRenderViews: Array<string> | null) {
     this.libHippy = libHippy
+    this.enableArkCApi = enableArkCApi
     this.customRenderViewCreatorMap = customRenderViewCreatorMap
     this.customMeasureRenderViews = customMeasureRenderViews
     this.renderManager = new HRManager()
@@ -139,6 +141,10 @@ export class NativeRenderImpl implements NativeRender {
 
     this.renderManager.destroyViewManager(rootId)
     this.libHippy.NativeRenderProvider_DestroyRoot(this.instanceId, rootId)
+  }
+
+  isEnableArkCApi(): boolean {
+    return this.enableArkCApi
   }
 
   // for c-api

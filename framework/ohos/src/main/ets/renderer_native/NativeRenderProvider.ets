@@ -46,11 +46,11 @@ export class NativeRenderProvider {
   private renderImpl: NativeRenderImpl
   private instanceId: number = 0
 
-  constructor(libHippy: HippyLibrary,
+  constructor(libHippy: HippyLibrary, enableArkCApi: boolean,
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       customMeasureRenderViews: Array<string> | null) {
     this.libHippy = libHippy
-    this.renderImpl = new NativeRenderImpl(libHippy, customRenderViewCreatorMap, customMeasureRenderViews)
+    this.renderImpl = new NativeRenderImpl(libHippy, enableArkCApi, customRenderViewCreatorMap, customMeasureRenderViews)
   }
 
   setInstanceId(instanceId: number) {

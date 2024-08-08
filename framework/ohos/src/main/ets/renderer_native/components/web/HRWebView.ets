@@ -31,6 +31,7 @@ import web_webview from '@ohos.web.webview';
 import { LogUtils } from '../../../support/utils/LogUtils';
 import { HREventUtils } from '../../utils/HREventUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
+import { HRPadding, HRRect } from '../../utils/HRTypes';
 
 @Observed
 export class HRWebView extends HippyRenderBaseView {
@@ -108,6 +109,19 @@ export class HRWebView extends HippyRenderBaseView {
         controller.loadData(html, "text/html; charset=utf-8", "UTF-8");
       }
     }
+  }
+
+  protected updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
+    // For c api, web view is a custom ts view, the position is used by container node.
+    if (this.ctx.getNativeRender().isEnableArkCApi()) {
+      this.cssPositionX = 0
+      this.cssPositionY = 0
+    } else {
+      this.cssPositionX = frame.x
+      this.cssPositionY = frame.y
+    }
+    this.cssWidth = frame.width
+    this.cssHeight = frame.height
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
