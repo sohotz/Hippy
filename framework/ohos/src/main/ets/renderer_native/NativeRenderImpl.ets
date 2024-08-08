@@ -628,12 +628,12 @@ key1               value1
       return null
     }
 
-    if (!AppStorage.has('UIContext')) {
+    if (!AppStorage.has('UIContextForHippy')) {
       LogUtils.e("", "AppStorage has no UIContext.");
       return null
     }
 
-    let context = AppStorage.get<UIContext>('UIContext');
+    let context = AppStorage.get<UIContext>('UIContextForHippy');
 
     let view = viewManager.createRenderViewForCApi(params.tag, params.viewName)
     if (!view) {

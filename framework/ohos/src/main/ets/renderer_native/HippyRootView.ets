@@ -168,6 +168,10 @@ export struct HippyRoot {
   private enableArkCApi: boolean = false
 
   aboutToAppear(): void {
+    if (!AppStorage.has('UIContextForHippy')) {
+      AppStorage.setOrCreate<UIContext>('UIContextForHippy', this.getUIContext())
+    }
+
     if (!this.hippyEngine || !this.hippyEngine.getNativeRenderProvider()) {
       this.onRenderException?.(new HippyException("Error, hippyEngine is null."))
       return
