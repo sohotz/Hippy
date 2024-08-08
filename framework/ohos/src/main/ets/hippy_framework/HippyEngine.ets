@@ -100,6 +100,10 @@ export class EngineInitParams {
   libHippy: HippyLibrary
   // 必须 宿主（Hippy的使用者）的UIAbilityContext
   public context: Context;
+  // 必须 宿主（Hippy的使用者）的UIContext，当CApi创建自定义ts组件或WebView组件时需要
+  // 1 默认使用CApi，enableArkCApi开关控制；WebView的支持类似自定义ts组件;
+  // 2 需要外部设置，是因为外部可在创建HippyRoot组件前提前创建view，这时候Hippy内部没创建过ts组件拿不到；
+  public uiContext: UIContext;
   // 可选参数 核心的jsbundle的assets路径（assets路径和文件路径二选一，优先使用assets路径），debugMode = false时有效
   public coreJSAssetsPath: string = '';
   // 可选参数 核心的jsbundle的文件路径（assets路径和文件路径二选一，优先使用assets路径）,debugMode = false时有效
@@ -159,10 +163,15 @@ export class EngineInitParams {
 
   constructor(
     libHippy: HippyLibrary,
-    context: Context
+    context: Context,
+    uiContext: UIContext
   ) {
     this.libHippy = libHippy
     this.context = context
+    this.uiContext = uiContext
+    if (uiContext) {
+      AppStorage.setOrCreate<UIContext>('UIContextForHippy', uiContext)
+    }
   }
 
   check() {

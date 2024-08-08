@@ -68,6 +68,7 @@ struct PageConfiguration {
 
   @StorageLink('libHippy') private libHippy: HippyLibrary | null = null
   @StorageLink('abilityContext') private abilityContext: Context | null = null
+  @StorageLink('uiContext') private uiContext: UIContext | null = null
 
   @State driver:Resource = $r('app.string.driver_js_react')
   private driverSettingDlg:CustomDialogController = {} as CustomDialogController
@@ -99,7 +100,7 @@ struct PageConfiguration {
   }
 
   initEngine(info:HippyInfo):HippyEngine {
-    let params = new EngineInitParams(this.libHippy!, this.abilityContext!)
+    let params = new EngineInitParams(this.libHippy!, this.abilityContext!, this.uiContext!)
     params.debugServerHost = info.debugServerHost as string
     params.debugMode = info.isDebugMode as boolean
     // params.enableLog = true
