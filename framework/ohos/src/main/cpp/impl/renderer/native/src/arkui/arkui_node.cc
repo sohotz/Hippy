@@ -419,23 +419,11 @@ ArkUINode &ArkUINode::SetBorderWidth(float top, float right, float bottom, float
 }
 
 ArkUINode &ArkUINode::SetBorderColor(uint32_t top, uint32_t right, uint32_t bottom, uint32_t left) {
-  // default should be 0, for support color 'transparent'
-  uint32_t borderTopColor = 0x00000000;
-  uint32_t bordeRightColor = 0x00000000;
-  uint32_t borderBottomColor = 0x00000000;
-  uint32_t borderLeftColor = 0x00000000;
-  if (top) {
-    borderTopColor = top;
-  }
-  if (right) {
-    bordeRightColor = right;
-  }
-  if (bottom) {
-    borderBottomColor = bottom;
-  }
-  if (left) {
-    borderLeftColor = left;
-  }
+  // Support border color 0, for support color 'transparent'
+  uint32_t borderTopColor = top;
+  uint32_t bordeRightColor = right;
+  uint32_t borderBottomColor = bottom;
+  uint32_t borderLeftColor = left;
   ArkUI_NumberValue borderColorValue[] = {
     {.u32 = borderTopColor}, {.u32 = bordeRightColor}, {.u32 = borderBottomColor}, {.u32 = borderLeftColor}};
   ArkUI_AttributeItem borderColorItem = {borderColorValue, sizeof(borderColorValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
