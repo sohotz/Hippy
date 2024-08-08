@@ -288,10 +288,10 @@ ENV['layout_engine'] = 'Yoga'
 
 2个 Demo 说明：
 
-Ohos Demo：源码依赖 Hippy。体验方法：IDE 打开 hippy 项目根目录直接运行 entry。
+Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目录直接运行 entry。
 
 Ohos Har Demo：Har 包方式依赖 Hippy。 体验方法：Hippy/framework/examples/ohos-har-demo/oh-package.json5 取消 dependencies 里注释的依赖内容，
-Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目根目录运行 entry_har。 
+Make Module 'hippy' 后把 hippy.har 放到lib目录，DevEco 打开 hippy 项目根目录运行 entry_har。 
 
 ## 接入方式一：Har包快速接入
 
@@ -299,7 +299,7 @@ Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目�
  - 拉取 hippy 代码
  > https://github.com/sohotz/Hippy.git，分支：main
 
- - 构建 hippy.har：IDE 打开 hippy 工程根目录，IDE 菜单 - Build - Make Module 'hippy'
+ - 构建 hippy.har：DevEco 打开 hippy 工程根目录，DevEco 菜单 - Build - Make Module 'hippy'
  > Har 包生成目录：Hippy0129/framework/ohos/build/default/outputs/default/hippy.har
  
  > 如果菜单不显示 “Make Module 'hippy'”，可先选择到 hippy 模块内，比如选择文件：Hippy/framework/ohos/src/main/cpp/CMakeLists.txt
