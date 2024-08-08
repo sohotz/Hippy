@@ -326,7 +326,6 @@ Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目�
   import libHippy from 'libhippy.so'
   AppStorage.setOrCreate("libHippy", libHippy)
   AppStorage.setOrCreate("abilityContext", this.context)
-  AppStorage.setOrCreate<UIContext>('uiContext', windowStage.getMainWindowSync().getUIContext())
   ```
 
  - 创建 HippyEngine、初始化 HippyEngine、加载业务 bundle
@@ -378,7 +377,6 @@ Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目�
   import libHippy from 'libhippy.so'
   AppStorage.setOrCreate("libHippy", libHippy)
   AppStorage.setOrCreate("abilityContext", this.context)
-  AppStorage.setOrCreate<UIContext>('uiContext', windowStage.getMainWindowSync().getUIContext())
   ```
 
 - 创建 HippyEngine、初始化 HippyEngine、加载业务 bundle
