@@ -77,6 +77,8 @@ void HRViewManager::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32
   nodeContentMap_[current_id] = contentHandle;
   OH_ArkUI_NodeContent_RegisterCallback(contentHandle, nullptr);
   OH_ArkUI_NodeContent_AddNode(contentHandle, view->GetLocalRootArkUINode().GetArkUINodeHandle());
+  isFirstViewAdd = false;
+  isFirstContentViewAdd = FCPType::NONE;  
 }
 
 void HRViewManager::UnbindNativeRoot(uint32_t node_id) {
@@ -96,6 +98,39 @@ void HRViewManager::UnbindNativeRoot(uint32_t node_id) {
   nodeContentMap_.erase(current_id);
 }
 
+void HRViewManager::reportFirstViewAdd() {
+  isFirstViewAdd = true;
+  ArkTS arkTs(ts_env_);
+  std::vector<napi_value> args = {};
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("onFirstPaint", args);
+}
+
+void HRViewManager::reportFirstContentViewAdd() {
+  isFirstContentViewAdd = FCPType::MARKED;
+  ArkTS arkTs(ts_env_);
+  std::vector<napi_value> args = {};
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("onFirstContentfulPaint", args);
+}
+
+void HRViewManager::prepareReportFirstContentViewAdd(std::shared_ptr<HRMutation> &m) {
+  if (m->type_ == HRMutationType::CREATE) {
+    auto tm = std::static_pointer_cast<HRCreateMutation>(m);
+    if (isFirstContentViewAdd == FCPType::NONE) {
+      if (tm->props_.size() > 0) {
+        for (auto it = tm->props_.begin(); it != tm->props_.end(); it++) {
+          auto &key = it->first;
+          if (key.length() > 0 && key == "paintType") {
+            FOOTSTONE_DLOG(ERROR) << "TimeMonitor, fcp start";
+            isFirstContentViewAdd = FCPType::WAIT;
+          }
+        }
+      }
+    }
+  }
+}
+
 void HRViewManager::AddMutations(std::shared_ptr<HRMutation> &m) {
   mutations_.push_back(m);
 }
@@ -105,6 +140,9 @@ void HRViewManager::ApplyMutations() {
     ApplyMutation(*it);
   }
   mutations_.clear();
+  if (isFirstContentViewAdd == FCPType::WAIT) {
+    reportFirstContentViewAdd();
+  }
 }
 
 void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
@@ -114,6 +152,12 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
     if (view) {
       InsertSubRenderView(tm->parent_tag_, view, tm->index_);
       UpdateProps(view, tm->props_);
+    }
+    if (!isFirstViewAdd) {
+      reportFirstViewAdd();
+    }
+    if (isFirstContentViewAdd == FCPType::NONE) {
+      prepareReportFirstContentViewAdd(m);
     }
   } else if (m->type_ == HRMutationType::UPDATE) {
     auto tm = std::static_pointer_cast<HRUpdateMutation>(m);

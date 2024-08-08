@@ -38,6 +38,12 @@ inline namespace native {
 
 using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
+enum class FCPType {
+  NONE = 1,
+  WAIT = 2,
+  MARKED = 3
+};
+
 class HRViewManager {
 public:
   HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
@@ -101,6 +107,9 @@ private:
   void SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding);
   void CallCustomTsRenderViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
                                     std::function<void(const HippyValue &result)> callback);
+  void reportFirstViewAdd();
+  void reportFirstContentViewAdd();
+  void prepareReportFirstContentViewAdd(std::shared_ptr<HRMutation> &m);
   
   std::shared_ptr<BaseView> CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   
@@ -119,9 +128,13 @@ private:
   std::set<std::string> custom_ts_render_views_;
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
+    
   
   uint32_t callCustomTsCallbackId_ = 0;
   std::unordered_map<uint32_t, std::function<void(const HippyValue &result)>> callCustomTsCallbackMap_;
+    
+  bool isFirstViewAdd = false;
+  FCPType isFirstContentViewAdd = FCPType::NONE;
 };
 
 } // namespace native

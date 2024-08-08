@@ -222,6 +222,16 @@ export class NativeRenderProvider {
   }
 
   // for c-api
+  onFirstPaint(): void {
+    return this.renderImpl.onFirstPaint();
+  }
+
+  // for c-api
+  onFirstContentfulPaint(): void {
+    return this.renderImpl.onFirstContentfulPaint();
+  }
+
+  // for c-api
   createRenderViewForCApi(params: CreateRenderViewParamsForCApi): FrameNode | null {
     return this.renderImpl.createRenderViewForCApi(params)
   }
