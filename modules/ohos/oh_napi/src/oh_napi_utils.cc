@@ -25,6 +25,12 @@
 
 using HippyValueObjectType = HippyValue::HippyValueObjectType;
 
+void OhNapiUtils::CreateArkTs2Callback(napi_env env, napi_value &value, NapiCallback callbackC,
+                                         ScopeNapiAsynCall *scopeCallback) {
+  ArkTS arkTs(env);
+  arkTs.CreateArkTs2Callback(value, callbackC, scopeCallback);
+}
+
 HippyValue OhNapiUtils::NapiValue2HippyValue(napi_env env, napi_value value) {
   ArkTS arkTs(env);
   auto type = arkTs.GetType(value);

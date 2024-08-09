@@ -29,9 +29,20 @@
 #include <string>
 #include <functional>
 #include <variant>
+#include "footstone/hippy_value.h"
 #include "footstone/string_view.h"
 
 using string_view = footstone::string_view;
+using NapiCallback = napi_value (*)(napi_env, napi_callback_info);
+struct SnapshotResult {
+  std::string screenShot = "";
+  std::double_t width = 0;
+  std::double_t height = 0;
+  std::double_t screenScale = 0;
+};
+struct ScopeNapiAsynCall {
+  std::function<void(napi_env, footstone::HippyValue &)> *dataScope;
+};
 
 class OhNapiObjectBuilder;
 class OhNapiObject;
@@ -115,7 +126,7 @@ class ArkTS {
   napi_value GetArrayElement(napi_value array, uint32_t index);
 
   uint32_t GetArrayLength(napi_value array);
-
+    
   std::vector<std::pair<napi_value, napi_value>> GetObjectProperties(napi_value object);
 
   std::string GetString(napi_value value);
@@ -130,9 +141,10 @@ class ArkTS {
 
   void ThrowError(const char *message);
 
-  void PrintValue(napi_value value);
+  void CreateArkTs2Callback(napi_value &callback, NapiCallback callbackC,
+                              ScopeNapiAsynCall *scopeCallback);
 
- private:
+  private:
   napi_env env_;
 
   void MaybeThrowFromStatus(napi_status status, const char *message);

@@ -26,7 +26,7 @@ import { NativeRenderProviderManager } from './NativeRenderProviderManager';
 import { HREventType } from './utils/HREventUtils';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
-import { HippyAny, HippyMap } from '../support/common/HippyTypes';
+import { HippyAny, HippyMap, HippyResource, HippyValue } from '../support/common/HippyTypes';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import {
   CallRenderViewMethodParamsForCApi,
@@ -36,7 +36,9 @@ import {
   SetRenderViewFrameParamsForCApi,
   UpdateEventListenerParamsForCApi,
   UpdatePropsParamsForCApi} from './NativeRenderBuilderForCApi';
-import { FrameNode } from '@kit.ArkUI';
+import { componentSnapshot, componentUtils, display, FrameNode } from '@kit.ArkUI';
+import { image } from '@kit.ImageKit';
+import { util } from '@kit.ArkTS';
 
 export class NativeRenderProvider {
   private readonly TAG = "NativeRenderProvider"
@@ -219,6 +221,54 @@ export class NativeRenderProvider {
       }
     }
     this.libHippy?.NativeRenderProvider_DoCallBack(this.instanceId, result, functionName, rootId, nodeId, callbackId, buffer)
+  }
+
+  // for devtools
+  async getComponentSnapshot(componentId: string, callback: Function) {
+    const scale = 0.4;
+    let pixmap: PixelMap = await componentSnapshot.get("HippyId" + componentId);
+    pixmap.scaleSync(scale, scale);
+    const info = pixmap.getImageInfoSync();
+    const imagePackageApi: image.ImagePacker = image.createImagePacker()
+    let packOpts: image.PackingOption = {
+      format: 'image/png',
+      quality: 100,
+    }
+    const readBuffer = await imagePackageApi.packing(pixmap, packOpts);
+    let base64Helper = new util.Base64Helper();
+    let uint8Arr = new Uint8Array(readBuffer);
+    let pixelStr = base64Helper.encodeToStringSync(uint8Arr);
+    LogUtils.d(this.TAG, "pixelStr::" + pixelStr);
+    interface HippyResult {
+      screenShot?: string;
+      width?: number;
+      height?: number;
+      screenScale?: number;
+    }
+    let hippyResult: HippyResult = {};
+    hippyResult.screenShot = pixelStr;
+    hippyResult.width = info.size.width;
+    hippyResult.height = info.size.height;
+    hippyResult.screenScale = scale;
+    imagePackageApi.release();
+    pixmap.release();
+    callback(hippyResult);
+  }
+
+  getLocationOnScreen(componentId: string): object {
+    interface HippyResult {
+      xOnScreen?: number;
+      yOnScreen?: number;
+      viewWidth?: number;
+      viewHeight?: number;
+    }
+    let info = componentUtils.getRectangleById("HippyId" + componentId);
+    let hippyResult: HippyResult = {};
+    hippyResult.xOnScreen = info.screenOffset.x;
+    hippyResult.yOnScreen = info.screenOffset.y;
+    hippyResult.viewWidth = info.size.width;
+    hippyResult.viewHeight = info.size.height;
+    return hippyResult as object;
   }
 
   // for c-api

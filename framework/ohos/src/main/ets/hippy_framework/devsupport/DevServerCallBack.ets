@@ -26,3 +26,7 @@ export interface DevServerCallBack {
   onDebugReLoad(): void
 
 }
+
+export interface OnReloadListener {
+  onReload(): void
+}

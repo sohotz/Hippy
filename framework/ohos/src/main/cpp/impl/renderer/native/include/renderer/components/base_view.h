@@ -59,7 +59,6 @@ public:
   virtual ArkUINode &GetLocalRootArkUINode() = 0;
   virtual bool SetProp(const std::string &propKey, const HippyValue &propValue);
   virtual void OnSetPropsEnd();
-
   virtual void Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback);
 

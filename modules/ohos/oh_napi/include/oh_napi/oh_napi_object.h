@@ -46,7 +46,7 @@ class OhNapiObject {
 
   napi_value GetProperty(napi_value key);
 
-  std::vector<std::pair<napi_value, napi_value>> GetKeyValuePairs();
+  std::vector<std::pair<napi_value, napi_value>> GetKeyValuePairs();  
 
  private:
   ArkTS arkTs_;

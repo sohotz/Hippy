@@ -683,6 +683,17 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
     result["width"] = HippyValue(viewSize.width);
     result["height"] = HippyValue(viewSize.height);
     callback(HippyValue(result));
+  } else if (method == "getScreenShot") {
+    callback(params.back());
+  } else if (method == "addFrameCallback") {
+
+  } else if (method == "removeFrameCallback") {
+    auto resultMap = HippyValue();
+    callback(resultMap);
+  } else if (method == "getLocationOnScreen") {
+    callback(params.back());
+  } else {
+    FOOTSTONE_DLOG(INFO) << "Unsupported method called: " << method;
   }
 }
 

@@ -17,12 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyGlobalConfigs } from '../../hippy_framework/HippyGlobalConfigs';
-import { DevServerCallBack } from './DevServerCallBack';
-import { DevServerImpl } from './DevServerImpl';
-import { DevServerInterface } from './DevServerInterface';
+
 import { util } from '@kit.ArkTS';
-import { HippyJsException } from '../../hippy_framework/common/HippyJsException';
 import { HippyLibrary } from '../../hippy_library/HippyLibrary';
 import { JsDriver } from '../connector/JsDriver';
 import { DomManager } from '../connector/DomManager';

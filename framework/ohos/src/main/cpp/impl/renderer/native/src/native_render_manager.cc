@@ -879,7 +879,22 @@ void NativeRenderManager::CallFunction_C(std::weak_ptr<RootNode> root_node, std:
   if (hippy_value.IsArray()) {
     hippy_value.ToArray(params);
   }
-  
+
+  if (name == "getScreenShot") {
+    SnapshotResult result;
+    auto snapshotResult = std::make_shared<SnapshotResult>(result);
+    CallGetComponentSnapshotMethod(ts_env_, ts_render_provider_ref_, "getComponentSnapshot",
+                                   root->GetId(), snapshotResult);
+    HippyValueObjectType resultMap{
+        {"screenShot", HippyValue(snapshotResult->screenShot)},
+        {"width", HippyValue(static_cast<int32_t>(snapshotResult->width))},
+        {"height", HippyValue(static_cast<int32_t>(snapshotResult->height))},
+        {"screenScale", HippyValue(snapshotResult->screenScale)}};
+    params.emplace_back(resultMap);
+  } else if (name == "getLocationOnScreen") {
+    params.emplace_back(CallGetLocationOnScreenMethod(ts_env_, ts_render_provider_ref_,
+                                                      "getLocationOnScreen", root->GetId()));
+  }
   c_render_provider_->CallUIFunction(root->GetId(), node->GetId(), cb_id, name, params);
 }
 

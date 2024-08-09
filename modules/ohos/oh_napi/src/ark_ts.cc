@@ -25,8 +25,10 @@
 #include "oh_napi/oh_napi_object_builder.h"
 #include "footstone/logging.h"
 #include <bits/alltypes.h>
+#include <future>
 #include <napi/native_api.h>
 #include <string>
+#include <thread>
 
 ArkTS::ArkTS(napi_env env) {
   env_ = env;
@@ -252,6 +254,11 @@ uint32_t ArkTS::GetArrayLength(napi_value array) {
   return length;
 }
 
+void ArkTS::CreateArkTs2Callback(napi_value &callback, NapiCallback callbackC,
+                                   ScopeNapiAsynCall *scopeCallback) {
+  napi_create_function(env_, nullptr, 0, callbackC, scopeCallback, &callback);
+}
+
 std::vector<std::pair<napi_value, napi_value>> ArkTS::GetObjectProperties(napi_value object) {
   napi_value propertyNames;
   auto status = napi_get_property_names(env_, object, &propertyNames);
@@ -323,71 +330,4 @@ bool ArkTS::IsPromise(napi_value value) {
   bool result;
   napi_is_promise(env_, value, &result);
   return result;
-}
-
-void ArkTS::PrintValue(napi_value value) {
-  napi_valuetype type;
-  auto type_status = napi_typeof(env_, value, &type);
-  this->MaybeThrowFromStatus(type_status, "Failed to get value type");
-  switch(type) {
-    case napi_undefined: {
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: undefined";
-    }
-      break;
-    case napi_null: {
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: null";
-    }
-      break;
-    case napi_boolean: {
-      bool result;
-      auto status = napi_get_value_bool(env_, value, &result);
-      this->MaybeThrowFromStatus(status, "Failed to retrieve boolean value");
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: boolean - " << result;
-    }
-      break;
-    case napi_number: {
-      double result;
-      auto status = napi_get_value_double(env_, value, &result);
-      this->MaybeThrowFromStatus(status, "Failed to retrieve double value");
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: number - " << result;
-    }
-      break;
-    case napi_string: {
-      size_t length = 0;
-      napi_status status;
-      status = napi_get_value_string_utf8(env_, value, nullptr, 0, &length);
-      this->MaybeThrowFromStatus(status, "Failed to get the length of the string");
-      std::string buffer(length, '\0');
-      status = napi_get_value_string_utf8(env_, value, buffer.data(), length + 1, &length);
-      this->MaybeThrowFromStatus(status, "Failed to get the string data");
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: string - " << buffer;
-    }
-      break;
-    case napi_symbol: {
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: symbol";
-    }
-      break;
-    case napi_object: {
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: object";
-    }
-      break;
-    case napi_function: {
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: function";
-    }
-      break;
-    case napi_external: {
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: external";
-    }
-      break;
-    case napi_bigint: {
-      int64_t result;
-      bool lossless;
-      auto status = napi_get_value_bigint_int64(env_, value, &result, &lossless);
-      this->MaybeThrowFromStatus(status, "Failed to retrieve int64 value");
-      FOOTSTONE_LOG(INFO) << "ArkTS::PrintValue: bigint - " << result;
-    }
-      break;
-    default:
-      break;
-  }
 }

@@ -17,19 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyGlobalConfigs } from '../../hippy_framework/HippyGlobalConfigs';
 
 export class DevServerConfig {
-  private static JS_REMOTE_DEBUG = "js_remote_debug";
-  private static HIPPYDEBUGPREF = "hippydebugpref";
-  private sharedPreferences = null;
   private mLiveDebug = false;
   private mServerHost: string
   private mBundleName: string
 
   constructor(serverHost: string, bundleName: string) {
-    // this.sharedPreferences = HippyGlobalConfigs.ContextHolder.getAppContext()
-    //   .getSharedPreferences(HIPPYDEBUGPREF, Context.MODE_PRIVATE);
     this.mServerHost = serverHost;
     this.mBundleName = bundleName;
   }
@@ -43,14 +37,6 @@ export class DevServerConfig {
   }
 
   public enableRemoteDebug(): boolean {
-    // kvStore.get(DevServerConfig.JS_REMOTE_DEBUG, (err, data) => {
-    //   if (err != undefined) {
-    //     console.error(`Failed to get data. Code:${err.code},message:${err.message}`);
-    //     return;
-    //   }
-    //   console.info(`Succeeded in getting data. Data:${data}`);
-    //   return data as boolean
-    // });
     return false
   }
 
