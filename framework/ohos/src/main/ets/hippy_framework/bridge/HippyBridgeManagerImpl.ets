@@ -147,7 +147,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   callFunctionCallBack = (result: number, reason: string) => {
-    LogUtils.i('hippy callFunctionCallBack', result + reason)
+    LogUtils.i('hippy', 'hippy callFunctionCallBack, result: ' + result + ', reason: ' + reason)
   }
 
   getSerializerBuffer(params: Map<string, HippyAny>): Uint8Array {
@@ -186,12 +186,12 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   public callFunctionCallback = (result: number, reason: string) => {
-    LogUtils.i('hippy callFunctionCallback', result + reason);
+    LogUtils.i('hippy', 'hippy callFunctionCallback, result: ' + result + ', reason: ' + reason);
   }
 
   destroyBridge(isReload: boolean): void {
     this.mHippyBridge.destroy((result: number, reason: string) => {
-      LogUtils.i('hippy destroyBridge', result + reason);
+      LogUtils.i('hippy', 'hippy destroyBridge, result: ' + result + ', reason: ' + reason);
       this.onBridgeDestroyed(isReload);
     }, isReload);
     this.destroy();
@@ -214,7 +214,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   public callJavaScriptModuleCallback = (result: number, reason: string) => {
-    LogUtils.i('hippy callJavaScriptModuleCallback', result + reason)
+    LogUtils.i('hippy', 'hippy callJavaScriptModuleCallback, result: ' + result + ', reason: ' + reason)
   }
 
   getThirdPartyAdapter(): HippyThirdPartyAdapter | null {
@@ -251,7 +251,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   initJSBridgeCallback(result: number, reason: string, initBridgeCallback: NativeCallback): void {
     LogUtils.i('hippy', 'jsDriver initialize callback, instanceId: %{public}d' + this.mJsDriver.instanceId);
     if (result != 0) {
-      LogUtils.e('hippy', 'jsDriver initialize error ' + reason);
+      LogUtils.e('hippy', 'jsDriver initialize error, result: ' + result + ', reason: ' + reason);
     }
 
     if (this.mContext != null) {
@@ -305,7 +305,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   }
 
   runBundleCallback = (result: number, reason: string) => {
-    LogUtils.i('hippy bundleLoaderCallback', result + reason)
+    LogUtils.i('hippy', 'hippy bundleLoaderCallback, result: ' + result + ', reason: ' + reason)
     if (this.mContext) {
       if (result === 0) {
         this.mContext.onLoadModuleCompleted(ModuleLoadStatus.STATUS_OK, 'load module success')
