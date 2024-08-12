@@ -24,6 +24,7 @@ import HippyRenderBaseView, {
 import { HippyCustomComponentView } from 'hippy/src/main/ets/renderer_native/components/custom/HippyCustomComponentView'
 import { NativeRenderContext } from 'hippy/src/main/ets/renderer_native/NativeRenderContext'
 import { HRMeasureMode, HRMeasureResult } from 'hippy/src/main/ets/renderer_native/utils/HRMeasure'
+import { HRPadding, HRRect } from 'hippy/src/main/ets/renderer_native/utils/HRTypes'
 import { HippyAny, HippyRenderCallback } from 'hippy/src/main/ets/support/common/HippyTypes'
 
 @Observed
@@ -34,6 +35,19 @@ export class ExampleViewB extends HippyCustomComponentView {
 
   setProp(propKey: string, propValue: HippyAny): boolean {
     return super.setProp(propKey, propValue)
+  }
+
+  updateRenderViewFrame(frame: HRRect, padding: HRPadding | null): void {
+    // For c api, the position is used by container node.
+    if (this.ctx.getNativeRender().isEnableArkCApi()) {
+      this.cssPositionX = 0
+      this.cssPositionY = 0
+    } else {
+      this.cssPositionX = frame.x
+      this.cssPositionY = frame.y
+    }
+    this.cssWidth = frame.width
+    this.cssHeight = frame.height
   }
 
   call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
