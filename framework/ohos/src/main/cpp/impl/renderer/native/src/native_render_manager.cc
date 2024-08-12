@@ -27,7 +27,9 @@
 #include "renderer/utils/hr_pixel_utils.h"
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <utility>
+#include <vector>
 #include "footstone/logging.h"
 #include "footstone/macros.h"
 #include "dom/root_node.h"
@@ -337,7 +339,9 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRCreateMutation>> mutations;
   mutations.resize(len);
+  std::vector<std::shared_ptr<HRCreateMutation>> customMeasureMutations;
   for (uint32_t i = 0; i < len; i++) {
+    bool isCustomMeasure = false;
     const auto& render_info = nodes[i]->GetRenderInfo();
     auto m = std::make_shared<HRCreateMutation>();
     m->tag_ = render_info.id;
@@ -364,6 +368,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       };
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     } else if (IsCustomMeasureNode(nodes[i]->GetViewName())) {
+      isCustomMeasure = true;
       int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
       MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,
                                                                   float height, LayoutMeasureMode height_measure_mode,
@@ -382,6 +387,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       };
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     } else if (IsCustomMeasureCNode(nodes[i]->GetViewName())) {
+      isCustomMeasure = true;
       int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
       MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,
                                                                   float height, LayoutMeasureMode height_measure_mode,
@@ -421,6 +427,14 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       m->is_parent_text_ = true;
     }
     mutations[i] = m;
+    
+    if (isCustomMeasure) {
+      customMeasureMutations.push_back(m);
+    }
+  }
+  
+  if (customMeasureMutations.size() > 0) {
+    c_render_provider_->PreCreateNode(root_id, customMeasureMutations);
   }
   
   c_render_provider_->CreateNode(root_id, mutations);

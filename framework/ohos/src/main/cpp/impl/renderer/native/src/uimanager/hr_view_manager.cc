@@ -186,6 +186,12 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  auto exist_it = view_registry_.find(tag);
+  auto existRenderView = exist_it != view_registry_.end();
+  if (existRenderView) {
+    return exist_it->second;
+  }
+  
   // custom ts view
   if (IsCustomTsRenderView(view_name)) {
     return CreateCustomTsRenderView(tag, view_name, is_parent_text);
@@ -211,6 +217,10 @@ std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::str
     FOOTSTONE_DLOG(INFO) << "CreateRenderView failed, " << view_name;
   }
   return nullptr;
+}
+
+std::shared_ptr<BaseView> HRViewManager::PreCreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  return CreateRenderView(tag, view_name, is_parent_text);
 }
 
 void HRViewManager::RemoveRenderView(uint32_t tag) {

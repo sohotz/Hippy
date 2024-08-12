@@ -62,6 +62,13 @@ void NativeRenderProvider::CreateNode(uint32_t root_id, const std::vector<std::s
   });
 }
 
+void NativeRenderProvider::PreCreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
+  taskRunner->RunSyncTask([render_impl = render_impl_, root_id = root_id, mutations = mutations]() {
+    render_impl->PreCreateNode(root_id, mutations);
+  });
+}
+
 void NativeRenderProvider::UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations) {
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
   taskRunner->RunAsyncTask([render_impl = render_impl_, root_id = root_id, mutations = mutations]() {

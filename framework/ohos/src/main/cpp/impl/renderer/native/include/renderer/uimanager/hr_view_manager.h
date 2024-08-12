@@ -68,6 +68,7 @@ public:
   void ApplyMutation(std::shared_ptr<HRMutation> &m);
   
   std::shared_ptr<BaseView> CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
+  std::shared_ptr<BaseView> PreCreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   void RemoveRenderView(uint32_t tag);
   void RemoveFromRegistry(std::shared_ptr<BaseView> &renderView);
   void InsertSubRenderView(uint32_t parentTag, std::shared_ptr<BaseView> &childView, int32_t index);

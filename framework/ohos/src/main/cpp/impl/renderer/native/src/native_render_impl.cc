@@ -88,6 +88,18 @@ void NativeRenderImpl::CreateNode(uint32_t root_id, const std::vector<std::share
   }
 }
 
+void NativeRenderImpl::PreCreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  
+  for (uint32_t i = 0; i < mutations.size(); i++) {
+    auto &m = mutations[i];
+    view_manager->PreCreateRenderView(m->tag_, m->view_name_, m->is_parent_text_);
+  }
+}
+
 void NativeRenderImpl::UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);
