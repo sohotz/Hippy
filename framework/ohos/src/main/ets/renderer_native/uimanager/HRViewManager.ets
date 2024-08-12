@@ -319,6 +319,11 @@ export class HRViewManager {
   }
 
   // for c-api
+  removeRenderViewForCApi(tag: number): void {
+    this.removeRenderView(tag)
+  }
+
+  // for c-api
   updatePropsForCApi(tag: number, props: HippyMap, deleteProps: Array<string>): void {
     this.updateProps(tag, props, deleteProps)
   }

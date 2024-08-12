@@ -228,6 +228,11 @@ void HRViewManager::RemoveFromRegistry(std::shared_ptr<BaseView> &renderView) {
     RemoveFromRegistry(children[i]);
   }
   view_registry_.erase(renderView->GetTag());
+  
+  // custom ts view
+  if (IsCustomTsRenderView(renderView->GetViewType())) {
+    RemoveCustomTsRenderView(renderView->GetTag());
+  }
 }
 
 void HRViewManager::InsertSubRenderView(uint32_t parentTag, std::shared_ptr<BaseView> &childView, int32_t index) {
@@ -512,6 +517,21 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   view->SetTsRenderProvider(ts_env_, ts_render_provider_ref_);
   view_registry_[tag] = view;
   return view;
+}
+
+void HRViewManager::RemoveCustomTsRenderView(uint32_t tag) {
+  ArkTS arkTs(ts_env_);
+
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("rootTag", ctx_->GetRootId());
+  params_builder.AddProperty("tag", tag);
+  
+  std::vector<napi_value> args = {
+    params_builder.Build()
+  };
+  
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("removeRenderViewForCApi", args);
 }
 
 void HRViewManager::UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {

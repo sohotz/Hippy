@@ -33,6 +33,7 @@ import {
   CreateRenderViewParamsForCApi,
   OnChildInsertedParamsForCApi,
   OnChildRemovedParamsForCApi,
+  RemoveRenderViewParamsForCApi,
   SetRenderViewFrameParamsForCApi,
   UpdateEventListenerParamsForCApi,
   UpdatePropsParamsForCApi} from './NativeRenderBuilderForCApi';
@@ -234,6 +235,11 @@ export class NativeRenderProvider {
   // for c-api
   createRenderViewForCApi(params: CreateRenderViewParamsForCApi): FrameNode | null {
     return this.renderImpl.createRenderViewForCApi(params)
+  }
+
+  // for c-api
+  removeRenderViewForCApi(params: RemoveRenderViewParamsForCApi): void {
+    return this.renderImpl.removeRenderViewForCApi(params)
   }
 
   // for c-api

@@ -102,6 +102,7 @@ public:
 private:
   bool IsCustomTsRenderView(std::string &view_name);
   std::shared_ptr<BaseView> CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
+  void RemoveCustomTsRenderView(uint32_t tag);
   void UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
   void UpdateCustomTsEventListener(uint32_t tag, HippyValueObjectType &props);
   void SetCustomTsRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding);

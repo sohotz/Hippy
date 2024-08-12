@@ -27,6 +27,11 @@ export interface CreateRenderViewParamsForCApi {
   viewName: string
 }
 
+export interface RemoveRenderViewParamsForCApi {
+  rootTag: number
+  tag: number
+}
+
 export interface UpdatePropsParamsForCApi {
   rootTag: number
   tag: number

@@ -35,6 +35,7 @@ import {
   CreateRenderViewParamsForCApi,
   OnChildInsertedParamsForCApi,
   OnChildRemovedParamsForCApi,
+  RemoveRenderViewParamsForCApi,
   SetRenderViewFrameParamsForCApi,
   UpdateEventListenerParamsForCApi,
   UpdatePropsParamsForCApi } from './NativeRenderBuilderForCApi'
@@ -653,6 +654,15 @@ key1               value1
     builderNodeMap.set(params.tag, builderNode);
 
     return builderNode.getFrameNode()!;
+  }
+
+  // for c-api
+  removeRenderViewForCApi(params: RemoveRenderViewParamsForCApi): void {
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.removeRenderViewForCApi(params.tag)
   }
 
   // for c-api
