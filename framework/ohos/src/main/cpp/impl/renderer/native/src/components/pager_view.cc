@@ -139,9 +139,7 @@ void PagerView::OnContentDidScroll(const int32_t currentIndex, const int32_t pag
     return;
   }
   
-  //FOOTSTONE_DLOG(INFO) << "PagerView on gesture swipe, index: " << swiperPageIndex
-  //  << ", position: " << position << ", offset: " << offset
-  //  << ", swiperWidth: " << swiperWidth;
+  // FOOTSTONE_DLOG(INFO) << "PagerView on gesture swipe, position: " << position << ", offset: " << offset;
   
   HippyValueObjectType type = {{PAGE_ITEM_POSITION, HippyValue{position}},
                                {PAGE_ITEM_OFFSET, HippyValue{offset}}};
