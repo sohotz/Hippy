@@ -335,6 +335,10 @@ void HRViewManager::UpdateProps(uint32_t tag, const HippyValueObjectType &props,
   UpdateProps(renderView, props, deleteProps);
 }
 
+void HRViewManager::PreUpdateProps(uint32_t tag, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
+  UpdateProps(tag, props, deleteProps);
+}
+
 void HRViewManager::UpdateEventListener(uint32_t tag, HippyValueObjectType &props) {
   auto it = view_registry_.find(tag);
   std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;

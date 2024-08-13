@@ -55,6 +55,7 @@ public:
   void CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations);
   void PreCreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations);
   void UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations);
+  void PreUpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations);
   void MoveNode(uint32_t root_id, const std::shared_ptr<HRMoveMutation> &mutation);
   void MoveNode2(uint32_t root_id, const std::shared_ptr<HRMove2Mutation> &mutation);
   void DeleteNode(uint32_t root_id, const std::vector<std::shared_ptr<HRDeleteMutation>> &mutations);

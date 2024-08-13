@@ -527,7 +527,7 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRUpdateMutation>> mutations;
-  mutations.resize(len);
+  std::vector<std::shared_ptr<HRUpdateMutation>> customMeasureMutations;
   for (uint32_t i = 0; i < len; i++) {
     const auto &render_info = nodes[i]->GetRenderInfo();
     auto m = std::make_shared<HRUpdateMutation>();
@@ -559,8 +559,18 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     }
     m->props_ = diff_props;
     m->delete_props_ = del_props;
-    mutations[i] = m;
+    
+    if (IsCustomMeasureNode(nodes[i]->GetViewName()) || IsCustomMeasureCNode(nodes[i]->GetViewName())) {
+      customMeasureMutations.push_back(m);
+    } else {
+      mutations.push_back(m);
+    }
   }
+  
+  if (customMeasureMutations.size() > 0) {
+    c_render_provider_->PreUpdateNode(root_id, customMeasureMutations);
+  }
+  
   c_render_provider_->UpdateNode(root_id, mutations);
 }
 

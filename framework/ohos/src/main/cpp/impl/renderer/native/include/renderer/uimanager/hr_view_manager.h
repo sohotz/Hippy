@@ -76,6 +76,7 @@ public:
   void Move2RenderView(std::vector<uint32_t> tags, uint32_t newParentTag, uint32_t oldParentTag, int index);
   void UpdateProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
   void UpdateProps(uint32_t tag, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
+  void PreUpdateProps(uint32_t tag, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps = std::vector<std::string>());
   void UpdateEventListener(uint32_t tag, HippyValueObjectType &props);
   bool CheckRegisteredEvent(uint32_t tag, std::string &eventName);
   void SetRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding);
