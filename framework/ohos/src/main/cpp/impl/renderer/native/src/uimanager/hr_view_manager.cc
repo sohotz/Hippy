@@ -494,12 +494,13 @@ HRPosition HRViewManager::GetViewPositionInRoot(uint32_t node_id) {
   return {viewPos.x - rootPos.x, viewPos.y - rootPos.y};
 }
 
-void HRViewManager::AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y) {
+void HRViewManager::AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position) {
   auto view = std::make_shared<CustomTsView>(ctx_, node_handle);
   view->Init();
   view->SetTag(biz_view_id);
   view->SetViewType("BizView");
   view->SetTsRenderProvider(ts_env_, ts_render_provider_ref_);
+  view->SetPosition(position);
   biz_view_registry_[biz_view_id] = view;
   
   auto tview = std::static_pointer_cast<BaseView>(view);

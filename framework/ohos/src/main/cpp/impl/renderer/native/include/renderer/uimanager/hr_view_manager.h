@@ -50,14 +50,14 @@ public:
     napi_env ts_env, napi_ref ts_render_provider_ref,
     std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
   ~HRViewManager() = default;
-  
+
   void BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t node_id);
   void UnbindNativeRoot(uint32_t node_id);
 
   int GetRootTag() {
     return (int)root_id_;
   }
-  
+
   std::shared_ptr<RootView> &GetRootView() {
     return root_view_;
   }
@@ -66,7 +66,7 @@ public:
 
   void ApplyMutations();
   void ApplyMutation(std::shared_ptr<HRMutation> &m);
-  
+
   std::shared_ptr<BaseView> CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   std::shared_ptr<BaseView> PreCreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   void RemoveRenderView(uint32_t tag);
@@ -83,24 +83,24 @@ public:
 
   void CallViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
                       std::function<void(const HippyValue &result)> callback);
-  
+
   LayoutSize CallCustomMeasure(uint32_t tag,
     float width, LayoutMeasureMode width_measure_mode,
     float height, LayoutMeasureMode height_measure_mode);
-  
+
   void SendTextEllipsizedEvent(uint32_t tag);
 
   uint64_t AddEndBatchCallback(const EndBatchCallback &cb);
   void RemoveEndBatchCallback(uint64_t cbId);
   void NotifyEndBatchCallbacks();
-  
+
   void DoCallbackForCallCustomTsView(uint32_t node_id, uint32_t callback_id, const HippyValue &result);
-  
+
   bool GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
   bool GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
   void SetViewEventListener(uint32_t node_id, napi_ref callback_ref);
   HRPosition GetViewPositionInRoot(uint32_t node_id);
-  void AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y);
+  void AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position);
   void RemoveBizViewInRoot(uint32_t biz_view_id);
   std::shared_ptr<BaseView> GetViewFromRegistry(uint32_t node_id);
 
@@ -116,9 +116,9 @@ private:
   void reportFirstViewAdd();
   void reportFirstContentViewAdd();
   void prepareReportFirstContentViewAdd(std::shared_ptr<HRMutation> &m);
-  
+
   std::shared_ptr<BaseView> CreateCustomRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
-  
+
   std::shared_ptr<NativeRenderContext> ctx_;
   uint32_t root_id_;
   std::unordered_map<uint32_t, ArkUI_NodeContentHandle> nodeContentMap_;
@@ -127,17 +127,17 @@ private:
   std::vector<std::shared_ptr<HRMutation>> mutations_;
   uint64_t end_batch_callback_id_count_ = 0;
   std::map<uint64_t, EndBatchCallback> end_batch_callback_map_;
-  
+
   std::shared_ptr<footstone::value::Serializer> serializer_;
-  
+
   std::map<std::string, std::string> mapping_render_views_;
   std::set<std::string> custom_ts_render_views_;
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
-  
+
   uint32_t callCustomTsCallbackId_ = 0;
   std::unordered_map<uint32_t, std::function<void(const HippyValue &result)>> callCustomTsCallbackMap_;
-  
+
   std::map<uint32_t, std::shared_ptr<CustomTsView>> biz_view_registry_;
 
   bool isFirstViewAdd = false;

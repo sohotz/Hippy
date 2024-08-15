@@ -64,26 +64,26 @@ export class ExampleNativeModule extends HippyNativeModuleBase {
   }
 
   public showMenuWith(params: Array<HippyAny>, promise: HippyModulePromise) {
-    let map = params[0] as HippyMap
-    let instanceId: string = map.get('instanceId') as string
-    let fromView: string = map.get('fromView') as string
-    let rootId = parseInt(instanceId)
-    let fromViewId = parseInt(fromView)
+    // let map = params[0] as HippyMap
+    // let instanceId: string = map.get('instanceId') as string
+    // let fromView: string = map.get('fromView') as string
+    // let rootId = parseInt(instanceId)
+    // let fromViewId = parseInt(fromView)
 
     // Test code
-    rootId = 10
-    fromViewId = 22
+    let rootId = 10
+    let fromViewId = 367
 
     let nativeRender = this.ctx.getNativeRender()
     if (!nativeRender) {
       return
     }
-    let rootView = this.ctx.getRootView(rootId)
-    if (!rootView) {
-      return
-    }
     let pos = nativeRender.getViewPositionInRoot(rootId, fromViewId) as HRPosition
-    let view = new ExampleMenuView(rootView.renderView!.ctx)
-    nativeRender.addBizViewInRoot(rootId, pos, wrapBuilder(buildExampleMenuView), view)
+    let view = new ExampleMenuView()
+    let viewId = nativeRender.addBizViewInRoot(rootId, pos, wrapBuilder(buildExampleMenuView), view)
+
+    view.nativeRender = nativeRender
+    view.rootId = rootId
+    view.viewId = viewId
   }
 }

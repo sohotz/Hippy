@@ -68,9 +68,10 @@ import { HRValueUtils } from './utils/HRValueUtils'
 import { BuilderNode, FrameNode } from '@kit.ArkUI'
 import HippyRenderBaseView from './components/base/HippyRenderBaseView'
 import { HippyRootView } from '.'
-import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
-import call from '@ohos.telephony.call'
+import {
+  WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
 import { HippyRootViewManager } from './HippyRootViewManager'
+import { WrappedHippyBizViewBuilder } from './HippyBizViewBuilder'
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -754,7 +755,7 @@ key1               value1
     return this.libHippy?.NativeRenderProvider_GetViewPositionInRoot(this.instanceId, rootId, nodeId)
   }
 
-  addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyCustomRenderViewBuilder, view: HippyRenderBaseView): number {
+  addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyBizViewBuilder, view: Object): number {
     if (!AppStorage.has('UIContextForHippy')) {
       LogUtils.e("", "AppStorage has no UIContext.");
       return -1
@@ -762,7 +763,7 @@ key1               value1
 
     let context = AppStorage.get<UIContext>('UIContextForHippy');
 
-    let builderNode = new BuilderNode<[HippyRenderBaseView]>(context!);
+    let builderNode = new BuilderNode<[Object]>(context!);
     builderNode.build(viewBuilder, view);
 
     // TODO(hot): save BuilderNode

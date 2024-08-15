@@ -43,15 +43,15 @@ class BaseView : public ArkUINodeDelegate, public std::enable_shared_from_this<B
 public:
   BaseView(std::shared_ptr<NativeRenderContext> &ctx);
   virtual ~BaseView();
-  
+
   virtual void Init();
-  
+
   std::shared_ptr<NativeRenderContext> &GetCtx() { return ctx_; }
   uint32_t GetTag() { return tag_; }
   std::string &GetViewType() { return view_type_; }
   std::vector<std::shared_ptr<BaseView>> &GetChildren() { return children_; }
   std::weak_ptr<BaseView> &GetParent() { return parent_; }
-  
+
   void SetTag(uint32_t tag);
   void SetViewType(const std::string &type) { view_type_ = type; }
   void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
@@ -69,15 +69,17 @@ public:
   void SetRenderViewFrame(const HRRect &frame, const HRPadding &padding = HRPadding(0, 0, 0, 0));
   void UpdateEventListener(HippyValueObjectType &newEvents);
   bool CheckRegisteredEvent(std::string &eventName);
-  
+
   void SetTsRenderProvider(napi_env ts_env, napi_ref ts_render_provider_ref);
   void SetTsEventCallback(napi_ref ts_event_callback_ref);
-  
+
+  void SetPosition(const HRPosition &position);
+
   virtual void OnClick() override;
   virtual void OnAppear() override;
   virtual void OnDisappear() override;
   virtual void OnAreaChange(ArkUI_NumberValue* data) override;
-  
+
 protected:
   virtual void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {}
   virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {}
@@ -90,7 +92,7 @@ protected:
   bool SetBorderProp(const std::string &propKey, const HippyValue &propValue);
   bool SetShadowProp(const std::string &propKey, const HippyValue &propValue);
   bool SetEventProp(const std::string &propKey, const HippyValue &propValue);
-  
+
   void SetClickable(bool flag);
   void SetLongClickable(bool flag);
   void SetPressIn(bool flag);
@@ -103,13 +105,13 @@ protected:
   void SetInterceptPullUp(bool flag);
   void SetAttachedToWindowHandle(bool flag);
   void SetDetachedFromWindowHandle(bool flag);
-  
+
   void HandleInterceptPullUp();
   std::string ConvertToLocalPathIfNeeded(const std::string &uri);
   int64_t GetTimeMilliSeconds();
-  
+
   std::shared_ptr<footstone::value::Serializer> &GetSerializer();
-  
+
   void OnViewComponentEvent(const std::string &event_name, const HippyValueObjectType &hippy_object);
 
   std::shared_ptr<NativeRenderContext> ctx_;
@@ -117,15 +119,15 @@ protected:
   std::string view_type_;
   std::vector<std::shared_ptr<BaseView>> children_;
   std::weak_ptr<BaseView> parent_;
-  
+
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
   napi_ref ts_event_callback_ref_ = nullptr;
-  
+
   static std::shared_ptr<footstone::value::Serializer> serializer_;
-  
+
   HRPosition backgroundImagePosition_ = {0, 0};
-  
+
   float borderTopLeftRadius_ = 0;
   float borderTopRightRadius_ = 0;
   float borderBottomRightRadius_ = 0;
@@ -142,16 +144,16 @@ protected:
   uint32_t borderRightColor_ = 0;
   uint32_t borderBottomColor_ = 0;
   uint32_t borderLeftColor_ = 0;
-  
+
   HRShadow shadow_;
-  
+
   bool toSetBackgroundImagePosition_ = false;
   bool toSetBorderRadius_ = false;
   bool toSetBorderWidth_ = false;
   bool toSetBorderStyle_ = false;
   bool toSetBorderColor_ = false;
   bool toSetShadow = false;
-  
+
   std::function<void()> eventClick_;
   std::function<void()> eventLongPress_;
   std::function<void()> eventPressIn_;
@@ -162,9 +164,9 @@ protected:
   std::function<void()> eventTouchCancel_;
   std::function<void()> eventAttachedToWindow_;
   std::function<void()> eventDetachedFromWindow_;
-  
+
   bool flagInterceptPullUp_ = false;
-  
+
   HippyValueObjectType events_;
 };
 

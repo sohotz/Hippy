@@ -17,46 +17,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import HippyRenderBaseView, {
-  HippyObservedArray,
-  HIPPY_COMPONENT_KEY_PREFIX
-}  from 'hippy/src/main/ets/renderer_native/components/base/HippyRenderBaseView'
-import { HippyCustomComponentView } from 'hippy/src/main/ets/renderer_native/components/custom/HippyCustomComponentView'
-import { buildHippyRenderView } from 'hippy/src/main/ets/renderer_native/HippyRenderViewBuilder'
-import { NativeRenderContext } from 'hippy/src/main/ets/renderer_native/NativeRenderContext'
-import { HRPadding, HRRect } from 'hippy/src/main/ets/renderer_native/utils/HRTypes'
-import { HippyAny, HippyRenderCallback } from 'hippy/src/main/ets/support/common/HippyTypes'
+import { NativeRender } from 'hippy/src/main/ets/renderer_native/NativeRender'
 
 @Observed
-export class ExampleMenuView extends HippyRenderBaseView {
-  constructor(ctx: NativeRenderContext) {
-    super(ctx)
-  }
-
+export class ExampleMenuView {
+  nativeRender: NativeRender | null = null
+  rootId: number = 0
+  viewId: number = 0
 }
 
 @Component
 export struct ExampleMenuComponent {
   @ObjectLink renderView: ExampleMenuView
 
-  aboutToAppear() {
-
-  }
-
-  aboutToDisappear() {
-
-  }
-
   build() {
     Stack() {
       Text("This is a menu component.")
     }
+    .width('100%')
+    .height(50)
+    .backgroundColor(0xffa0ffa0)
+    .onClick((event: ClickEvent) => {
+      let nativeRender = this.renderView.nativeRender
+      if (nativeRender) {
+        let rootId = this.renderView.rootId
+        let viewId = this.renderView.viewId
+        nativeRender.removeBizViewInRoot(rootId, viewId)
+      }
+    })
   }
 }
 
 @Builder
-export function buildExampleMenuView($$: HippyRenderBaseView) {
-  if ($$ instanceof ExampleMenuView) {
-    ExampleMenuComponent({ renderView: $$ as ExampleMenuView })
-  }
+export function buildExampleMenuView($$: Object) {
+  ExampleMenuComponent({ renderView: $$ as ExampleMenuView})
 }

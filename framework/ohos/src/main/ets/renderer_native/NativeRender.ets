@@ -30,7 +30,9 @@ import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter';
 import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
 import { FrameworkProxy } from './FrameworkProxy'
-import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder';
+import { WrappedHippyBizViewBuilder } from './HippyBizViewBuilder';
+import {
+  WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder';
 import { HRManager } from './uimanager/HRManager';
 import { HippyEndBatchCallback } from './uimanager/HRViewManager';
 import { HRPosition } from './utils/HRTypes';
@@ -80,7 +82,7 @@ export interface NativeRender {
   callViewMethod(rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void
   setViewEventListener(rootId: number, nodeId: number, callback: EventListenerCallback | null): void
   getViewPositionInRoot(rootId: number, nodeId: number): HRPosition | null
-  addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyCustomRenderViewBuilder, view: HippyRenderBaseView): number
+  addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyBizViewBuilder, view: Object): number
   removeBizViewInRoot(rootId: number, customViewId: number): void
 
 }

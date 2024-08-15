@@ -1276,9 +1276,9 @@ HRPosition NativeRenderManager::GetViewPositionInRoot(uint32_t root_id, uint32_t
   return {0, 0};
 }
 
-void NativeRenderManager::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y) {
+void NativeRenderManager::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position) {
   if (enable_ark_c_api_) {
-    c_render_provider_->AddBizViewInRoot(root_id, biz_view_id, node_handle, x, y);
+    c_render_provider_->AddBizViewInRoot(root_id, biz_view_id, node_handle, position);
   }
 }
 
