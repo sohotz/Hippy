@@ -19,6 +19,16 @@
  */
 import matrix4 from '@ohos.matrix4'
 
+export class HRPosition {
+  x: number
+  y: number
+
+  constructor(x: number, y: number) {
+    this.x = x
+    this.y = y
+  }
+}
+
 export class HRSize {
   width: number
   height: number

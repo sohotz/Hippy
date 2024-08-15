@@ -135,7 +135,7 @@ bool BaseView::SetLinearGradientProp(const std::string &propKey, const HippyValu
   if (!propValue.ToObject(m)) {
     return false;
   }
-  
+
   auto angleIt = m.find("angle");
   if (angleIt == m.end()) {
     return false;
@@ -159,7 +159,7 @@ bool BaseView::SetLinearGradientProp(const std::string &propKey, const HippyValu
   if (colorStopList.size() == 0) {
     return false;
   }
-  
+
   HRLinearGradient linearGradient;
 
   auto size = colorStopList.size();
@@ -178,7 +178,7 @@ bool BaseView::SetLinearGradientProp(const std::string &propKey, const HippyValu
     linearGradient.colors.push_back(color);
     linearGradient.stops.push_back(ratio);
   }
-  
+
   if (angle == "totopright") {
     linearGradient.direction = ARKUI_LINEAR_GRADIENT_DIRECTION_RIGHT_TOP;
   } else if (angle == "tobottomright") {
@@ -191,7 +191,7 @@ bool BaseView::SetLinearGradientProp(const std::string &propKey, const HippyValu
     int32_t value = static_cast<int32_t>(std::stof(angle)) % 360;
     linearGradient.angle = value;
   }
-  
+
   GetLocalRootArkUINode().SetLinearGradient(linearGradient);
 
   return true;
@@ -634,11 +634,11 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
     if (!callback) {
       return;
     }
-    
+
     float statusBarHeight = NativeRenderParams::StatusBarHeight();
     HRPosition viewPosition = GetLocalRootArkUINode().GetLayoutPositionInScreen();
     HRSize viewSize = GetLocalRootArkUINode().GetSize();
-    
+
     HippyValueObjectType result;
     result["x"] = HippyValue(viewPosition.x);
     result["y"] = HippyValue(viewPosition.y - statusBarHeight);
@@ -650,7 +650,7 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
     if (!callback) {
       return;
     }
-    
+
     bool relToContainer = false;
     if (!params.empty()) {
       HippyValueObjectType param;
@@ -676,7 +676,7 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
       x = viewPosition.x;
       y = viewPosition.y;
     }
-        
+
     HippyValueObjectType result;
     result["x"] = HippyValue(x);
     result["y"] = HippyValue(y);
@@ -749,6 +749,10 @@ void BaseView::SetTsEventCallback(napi_ref ts_event_callback_ref) {
   ts_event_callback_ref_ = ts_event_callback_ref;
 }
 
+void BaseView::SetPosition(const HRPosition &position) {
+  GetLocalRootArkUINode().SetPosition(position);
+}
+
 void BaseView::OnClick() {
   if (eventClick_) {
     eventClick_();
@@ -768,7 +772,7 @@ void BaseView::OnDisappear() {
 }
 
 void BaseView::OnAreaChange(ArkUI_NumberValue* data) {
-  
+
 }
 
 // TODO(hot):
@@ -813,15 +817,15 @@ void BaseView::OnViewComponentEvent(const std::string &event_name, const HippyVa
   if (!ts_event_callback_ref_) {
     return;
   }
-  
+
   ArkTS arkTs(ts_env_);
   auto ts_params = OhNapiUtils::HippyValue2NapiValue(ts_env_, HippyValue(hippy_object));
-  
+
   std::vector<napi_value> args = {
     arkTs.CreateString(event_name),
     ts_params
   };
-  
+
   auto callback = arkTs.GetReferenceValue(ts_event_callback_ref_);
   arkTs.Call(callback, args);
 }
