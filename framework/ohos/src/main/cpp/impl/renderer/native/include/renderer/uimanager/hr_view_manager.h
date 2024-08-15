@@ -99,7 +99,7 @@ public:
   bool GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
   bool GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
   void SetViewEventListener(uint32_t node_id, napi_ref callback_ref);
-  HRPosition GetViewPositionInRoot(uint32_t node_id);
+  HRRect GetViewFrameInRoot(uint32_t node_id);
   void AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position);
   void RemoveBizViewInRoot(uint32_t biz_view_id);
   std::shared_ptr<BaseView> GetViewFromRegistry(uint32_t node_id);

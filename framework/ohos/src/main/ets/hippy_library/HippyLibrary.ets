@@ -27,7 +27,7 @@ import { ResourceDataHolder } from '../vfs/ResourceDataHolder';
 import { VfsManager } from '../vfs/VfsManager';
 import { FrameNode } from '@kit.ArkUI';
 import { NodeContent } from '@ohos.arkui.node';
-import { HRPosition } from '../renderer_native/utils/HRTypes';
+import { HRPosition, HRRect } from '../renderer_native/utils/HRTypes';
 
 export interface HippyRenderViewInfo {
   tag: number
@@ -111,7 +111,7 @@ export interface HippyLibrary {
   NativeRenderProvider_GetViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null;
   NativeRenderProvider_CallViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void;
   NativeRenderProvider_SetViewEventListener(instanceId: number, rootId: number, nodeId: number, callback: EventListenerCallback | null): void
-  NativeRenderProvider_GetViewPositionInRoot(instanceId: number, rootId: number, nodeId: number): HRPosition | null
+  NativeRenderProvider_GetViewFrameInRoot(instanceId: number, rootId: number, nodeId: number): HRRect | null
   NativeRenderProvider_AddBizViewInRoot(instanceId: number, rootId: number, biz_view_id: number, frameNode: FrameNode, x: number, y: number): void
   NativeRenderProvider_RemoveBizViewInRoot(instanceId: number, rootId: number, biz_view_id: number): void
 

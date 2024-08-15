@@ -176,7 +176,7 @@ NativeRenderManager::~NativeRenderManager() {
   arkTs.DeleteReference(ts_render_provider_ref_);
   ts_render_provider_ref_ = 0;
   ts_env_ = 0;
-  
+
   if (enable_ark_c_api_) {
     NativeRenderProviderManager::RemoveRenderProvider(id_);
   }
@@ -190,7 +190,7 @@ void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_a
   ts_render_provider_ref_ = ts_render_provider_ref;
   CallRenderDelegateSetIdMethod(ts_env_, ts_render_provider_ref_, "setInstanceId", id_);
   custom_measure_views_ = custom_measure_views;
-  
+
   enable_ark_c_api_ = enable_ark_c_api;
   if (enable_ark_c_api) {
     c_render_provider_ = std::make_shared<NativeRenderProvider>(id_, bundle_path);
@@ -198,7 +198,7 @@ void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_a
     NativeRenderProviderManager::AddRenderProvider(id_, c_render_provider_);
     c_render_provider_->RegisterCustomTsRenderViews(ts_env, ts_render_provider_ref, custom_views, mapping_views);
   }
-  
+
   NativeRenderManager::GetStyleFilter();
 }
 
@@ -227,7 +227,7 @@ void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node,
   if (!root) {
     return;
   }
-  
+
   uint32_t root_id = root->GetId();
 
   serializer_->Release();
@@ -319,13 +319,13 @@ void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node,
       props[iter->first] = *(iter->second);
       iter++;
     }
-  
+
     dom_node[kProps] = props;
     dom_node_array[i] = dom_node;
   }
   serializer_->WriteValue(HippyValue(dom_node_array));
   std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
-  
+
   CallNativeMethod("createNode", root->GetId(), buffer_pair);
 }
 
@@ -334,7 +334,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
   if (!root) {
     return;
   }
-  
+
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRCreateMutation>> mutations;
@@ -420,23 +420,23 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       props[iter->first] = *(iter->second);
       iter++;
     }
-  
+
     m->props_ = props;
     auto parentNode = nodes[i]->GetParent();
     if (parentNode && parentNode->GetViewName() == "Text") {
       m->is_parent_text_ = true;
     }
     mutations[i] = m;
-    
+
     if (isCustomMeasure) {
       customMeasureMutations.push_back(m);
     }
   }
-  
+
   if (customMeasureMutations.size() > 0) {
     c_render_provider_->PreCreateNode(root_id, customMeasureMutations);
   }
-  
+
   c_render_provider_->CreateNode(root_id, mutations);
 }
 
@@ -559,18 +559,18 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     }
     m->props_ = diff_props;
     m->delete_props_ = del_props;
-    
+
     if (IsCustomMeasureNode(nodes[i]->GetViewName()) || IsCustomMeasureCNode(nodes[i]->GetViewName())) {
       customMeasureMutations.push_back(m);
     } else {
       mutations.push_back(m);
     }
   }
-  
+
   if (customMeasureMutations.size() > 0) {
     c_render_provider_->PreUpdateNode(root_id, customMeasureMutations);
   }
-  
+
   c_render_provider_->UpdateNode(root_id, mutations);
 }
 
@@ -898,12 +898,12 @@ void NativeRenderManager::CallFunction_C(std::weak_ptr<RootNode> root_node, std:
 
   HippyValue hippy_value;
   param.ToObject(hippy_value);
-  
+
   HippyValueArrayType params;
   if (hippy_value.IsArray()) {
     hippy_value.ToArray(params);
   }
-  
+
   c_render_provider_->CallUIFunction(root->GetId(), node->GetId(), cb_id, name, params);
 }
 
@@ -1020,12 +1020,12 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   if (root == nullptr) {
     return;
   }
-  
+
   auto node = dom_node.lock();
   if (node == nullptr) {
     return;
   }
-    
+
   std::vector<std::shared_ptr<DomNode>> imageSpanNode;
   std::map<std::string, std::string> textPropMap;
   std::map<std::string, std::string> spanPropMap;
@@ -1224,7 +1224,7 @@ void NativeRenderManager::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, 
     c_render_provider_->BindNativeRoot(contentHandle, root_id, node_id);
   }
 }
-  
+
 void NativeRenderManager::UnbindNativeRoot(uint32_t root_id, uint32_t node_id) {
   if (enable_ark_c_api_) {
     c_render_provider_->UnbindNativeRoot(root_id, node_id);
@@ -1269,11 +1269,11 @@ void NativeRenderManager::SetViewEventListener(uint32_t root_id, uint32_t node_i
   }
 }
 
-HRPosition NativeRenderManager::GetViewPositionInRoot(uint32_t root_id, uint32_t node_id) {
+HRRect NativeRenderManager::GetViewFrameInRoot(uint32_t root_id, uint32_t node_id) {
   if (enable_ark_c_api_) {
-    return c_render_provider_->GetViewPositionInRoot(root_id, node_id);
+    return c_render_provider_->GetViewFrameInRoot(root_id, node_id);
   }
-  return {0, 0};
+  return {0, 0, 0, 0};
 }
 
 void NativeRenderManager::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position) {

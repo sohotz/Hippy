@@ -482,16 +482,17 @@ void HRViewManager::SetViewEventListener(uint32_t node_id, napi_ref callback_ref
   view->SetTsEventCallback(callback_ref);
 }
 
-HRPosition HRViewManager::GetViewPositionInRoot(uint32_t node_id) {
+HRRect HRViewManager::GetViewFrameInRoot(uint32_t node_id) {
   auto viewIt = view_registry_.find(node_id);
   if (viewIt == view_registry_.end()) {
-    return {0, 0};
+    return {0, 0, 0, 0};
   }
   auto view = viewIt->second;
   auto viewPos = view->GetLocalRootArkUINode().GetLayoutPositionInScreen();
   auto rootPos = root_view_->GetLocalRootArkUINode().GetLayoutPositionInWindow();
+  auto size = view->GetLocalRootArkUINode().GetSize();
 
-  return {viewPos.x - rootPos.x, viewPos.y - rootPos.y};
+  return {viewPos.x - rootPos.x, viewPos.y - rootPos.y, size.width, size.height};
 }
 
 void HRViewManager::AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position) {

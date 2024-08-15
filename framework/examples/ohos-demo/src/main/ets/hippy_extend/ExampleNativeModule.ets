@@ -78,9 +78,9 @@ export class ExampleNativeModule extends HippyNativeModuleBase {
     if (!nativeRender) {
       return
     }
-    let pos = nativeRender.getViewPositionInRoot(rootId, fromViewId) as HRPosition
+    let rect = nativeRender.getViewFrameInRoot(rootId, fromViewId) as HRRect
     let view = new ExampleMenuView()
-    let viewId = nativeRender.addBizViewInRoot(rootId, pos, wrapBuilder(buildExampleMenuView), view)
+    let viewId = nativeRender.addBizViewInRoot(rootId, new HRPosition(rect.x, rect.y), wrapBuilder(buildExampleMenuView), view)
 
     view.nativeRender = nativeRender
     view.rootId = rootId

@@ -413,7 +413,7 @@ static napi_value SetViewEventListener(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
-static napi_value GetViewPositionInRoot(napi_env env, napi_callback_info info) {
+static napi_value GetViewFrameInRoot(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
   uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
@@ -424,14 +424,16 @@ static napi_value GetViewPositionInRoot(napi_env env, napi_callback_info info) {
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
   if (!ret) {
-    FOOTSTONE_DLOG(WARNING) << "GetViewPositionInRoot: render_manager_id invalid";
+    FOOTSTONE_DLOG(WARNING) << "GetViewFrameInRoot: render_manager_id invalid";
     return arkTs.GetNull();
   }
 
-  HRPosition pos = render_manager->GetViewPositionInRoot(root_id, node_id);
+  HRRect rect = render_manager->GetViewFrameInRoot(root_id, node_id);
   auto params_builder = arkTs.CreateObjectBuilder();
-  params_builder.AddProperty("x", pos.x);
-  params_builder.AddProperty("y", pos.y);
+  params_builder.AddProperty("x", rect.x);
+  params_builder.AddProperty("y", rect.y);
+  params_builder.AddProperty("width", rect.width);
+  params_builder.AddProperty("height", rect.height);
   return params_builder.Build();
 }
 
@@ -511,7 +513,7 @@ REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewParent", G
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewChildren", GetViewChildren)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_CallViewMethod", CallViewMethod)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_SetViewEventListener", SetViewEventListener)
-REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewPositionInRoot", GetViewPositionInRoot)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewFrameInRoot", GetViewFrameInRoot)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_AddBizViewInRoot", AddBizViewInRoot)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_RemoveBizViewInRoot", RemoveBizViewInRoot)
 

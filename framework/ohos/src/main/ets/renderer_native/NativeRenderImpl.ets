@@ -751,8 +751,8 @@ key1               value1
     this.libHippy?.NativeRenderProvider_SetViewEventListener(this.instanceId, rootId, nodeId, callback)
   }
 
-  getViewPositionInRoot(rootId: number, nodeId: number): HRPosition | null {
-    return this.libHippy?.NativeRenderProvider_GetViewPositionInRoot(this.instanceId, rootId, nodeId)
+  getViewFrameInRoot(rootId: number, nodeId: number): HRRect | null {
+    return this.libHippy?.NativeRenderProvider_GetViewFrameInRoot(this.instanceId, rootId, nodeId)
   }
 
   addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyBizViewBuilder, view: Object): number {

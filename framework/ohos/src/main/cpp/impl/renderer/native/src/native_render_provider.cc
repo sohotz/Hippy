@@ -213,8 +213,8 @@ void NativeRenderProvider::SetViewEventListener(uint32_t root_id, uint32_t node_
   render_impl_->SetViewEventListener(root_id, node_id, callback_ref);
 }
 
-HRPosition NativeRenderProvider::GetViewPositionInRoot(uint32_t root_id, uint32_t node_id) {
-  return render_impl_->GetViewPositionInRoot(root_id, node_id);
+HRRect NativeRenderProvider::GetViewFrameInRoot(uint32_t root_id, uint32_t node_id) {
+  return render_impl_->GetViewFrameInRoot(root_id, node_id);
 }
 
 void NativeRenderProvider::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position) {

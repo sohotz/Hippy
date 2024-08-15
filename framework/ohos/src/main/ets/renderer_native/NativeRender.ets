@@ -35,7 +35,7 @@ import {
   WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder';
 import { HRManager } from './uimanager/HRManager';
 import { HippyEndBatchCallback } from './uimanager/HRViewManager';
-import { HRPosition } from './utils/HRTypes';
+import { HRPosition, HRRect } from './utils/HRTypes';
 
 export interface NativeRender {
   createRootView(pageName: string, pageData: HippyRecord, wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null): HippyRootView
@@ -81,7 +81,7 @@ export interface NativeRender {
   getViewChildren(rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null
   callViewMethod(rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void
   setViewEventListener(rootId: number, nodeId: number, callback: EventListenerCallback | null): void
-  getViewPositionInRoot(rootId: number, nodeId: number): HRPosition | null
+  getViewFrameInRoot(rootId: number, nodeId: number): HRRect | null
   addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyBizViewBuilder, view: Object): number
   removeBizViewInRoot(rootId: number, customViewId: number): void
 
