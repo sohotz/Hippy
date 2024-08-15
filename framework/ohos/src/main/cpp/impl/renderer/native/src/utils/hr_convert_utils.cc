@@ -133,17 +133,25 @@ bool HRConvertUtils::TransformToArk(HippyValueArrayType &valueArray, HRTransform
         if (!it.second.ToDouble(value)) {
           continue;
         }
-        HRScale scale;
-        scale.x = static_cast<float>(value);
-        transform.scale = scale;
+        if (transform.scale) {
+          transform.scale->x = static_cast<float>(value);
+        } else {
+          HRScale scale;
+          scale.x = static_cast<float>(value);
+          transform.scale = scale;
+        }                      
       } else if (it.first == "scaleY") {
         double value = 0;
         if (!it.second.ToDouble(value)) {
           continue;
         }
-        HRScale scale;
-        scale.y = static_cast<float>(value);
-        transform.scale = scale;
+        if (transform.scale) {
+          transform.scale->y = static_cast<float>(value);
+        } else {
+          HRScale scale;
+          scale.y = static_cast<float>(value);
+          transform.scale = scale;
+        }
       } else if (it.first == "translate") {
         HippyValueArrayType array;
         if (!it.second.IsArray() || !it.second.ToArray(array)) {
@@ -174,17 +182,25 @@ bool HRConvertUtils::TransformToArk(HippyValueArrayType &valueArray, HRTransform
         if (!it.second.ToDouble(value)) {
           continue;
         }
-        HRTranslate translate;
-        translate.x = static_cast<float>(value);
-        transform.translate = translate;
+        if (transform.translate) {
+          transform.translate->x = static_cast<float>(value);
+        } else {
+          HRTranslate translate;
+          translate.x = static_cast<float>(value);
+          transform.translate = translate;
+        }
       } else if (it.first == "translateY") {
         double value = 0;
         if (!it.second.ToDouble(value)) {
           continue;
         }
-        HRTranslate translate;
-        translate.y = static_cast<float>(value);
-        transform.translate = translate;
+        if (transform.translate) {
+          transform.translate->y = static_cast<float>(value);
+        } else {
+          HRTranslate translate;
+          translate.y = static_cast<float>(value);
+          transform.translate = translate;          
+        }
       } else if (it.first == "skewX") {
       } else if (it.first == "skewY") {
       } else {
