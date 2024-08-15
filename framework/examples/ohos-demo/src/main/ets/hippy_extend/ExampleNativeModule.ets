@@ -20,7 +20,7 @@
 import { HippyEngineContext, HippyRootView } from 'hippy';
 import { HippyModulePromise } from 'hippy/src/main/ets/hippy_framework/modules/HippyModulePromise';
 import { HippyNativeModuleBase } from 'hippy/src/main/ets/hippy_framework/modules/native';
-import { HRPosition } from 'hippy/src/main/ets/renderer_native/utils/HRTypes';
+import { HRPosition, HRRect } from 'hippy/src/main/ets/renderer_native/utils/HRTypes';
 import { HippyNativeModule } from 'hippy/src/main/ets/support/annotation/HippyNativeModule';
 import { HippyAny, HippyMap } from 'hippy/src/main/ets/support/common/HippyTypes';
 import { LogUtils } from 'hippy/src/main/ets/support/utils/LogUtils';
