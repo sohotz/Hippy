@@ -1269,6 +1269,25 @@ void NativeRenderManager::SetViewEventListener(uint32_t root_id, uint32_t node_i
   }
 }
 
+HRPosition NativeRenderManager::GetViewPositionInRoot(uint32_t root_id, uint32_t node_id) {
+  if (enable_ark_c_api_) {
+    return c_render_provider_->GetViewPositionInRoot(root_id, node_id);
+  }
+  return {0, 0};
+}
+
+void NativeRenderManager::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->AddBizViewInRoot(root_id, biz_view_id, node_handle, x, y);
+  }
+}
+
+void NativeRenderManager::RemoveBizViewInRoot(uint32_t root_id, uint32_t biz_view_id) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->RemoveBizViewInRoot(root_id, biz_view_id);
+  }
+}
+
 }  // namespace native
 }  // namespace render
 }  // namespace hippy

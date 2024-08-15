@@ -84,6 +84,9 @@ public:
   bool GetViewChildren(uint32_t root_id, uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
   void CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback);
   void SetViewEventListener(uint32_t root_id, uint32_t node_id, napi_ref callback_ref);
+  HRPosition GetViewPositionInRoot(uint32_t root_id, uint32_t node_id);
+  void AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y);
+  void RemoveBizViewInRoot(uint32_t root_id, uint32_t biz_view_id);
   
 private:
   constexpr static const char * EVENT_PREFIX = "on";

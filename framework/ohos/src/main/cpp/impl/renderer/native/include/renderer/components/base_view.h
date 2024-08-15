@@ -53,7 +53,7 @@ public:
   std::weak_ptr<BaseView> &GetParent() { return parent_; }
   
   void SetTag(uint32_t tag);
-  void SetViewType(std::string &type) { view_type_ = type; }
+  void SetViewType(const std::string &type) { view_type_ = type; }
   void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
 
   virtual ArkUINode &GetLocalRootArkUINode() = 0;

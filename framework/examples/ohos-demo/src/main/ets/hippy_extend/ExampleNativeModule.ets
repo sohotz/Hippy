@@ -17,12 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyEngineContext } from 'hippy';
+import { HippyEngineContext, HippyRootView } from 'hippy';
 import { HippyModulePromise } from 'hippy/src/main/ets/hippy_framework/modules/HippyModulePromise';
 import { HippyNativeModuleBase } from 'hippy/src/main/ets/hippy_framework/modules/native';
+import { HRPosition } from 'hippy/src/main/ets/renderer_native/utils/HRTypes';
 import { HippyNativeModule } from 'hippy/src/main/ets/support/annotation/HippyNativeModule';
-import { HippyAny } from 'hippy/src/main/ets/support/common/HippyTypes';
+import { HippyAny, HippyMap } from 'hippy/src/main/ets/support/common/HippyTypes';
 import { LogUtils } from 'hippy/src/main/ets/support/utils/LogUtils';
+import { buildExampleMenuView, ExampleMenuView } from './ExampleMenuView';
 
 
 @HippyNativeModule({ name: "ExampleNativeModule" })
@@ -43,6 +45,10 @@ export class ExampleNativeModule extends HippyNativeModuleBase {
         this.testPromise(params, promise);
         break;
       }
+      case 'showMenuWith': {
+        this.showMenuWith(params, promise);
+        break;
+      }
       default:
         super.call(method, params, promise);
     }
@@ -54,6 +60,30 @@ export class ExampleNativeModule extends HippyNativeModuleBase {
   }
 
   public testPromise(params: Array<HippyAny>, promise: HippyModulePromise) {
-      promise.resolve('test');
+    promise.resolve('test');
+  }
+
+  public showMenuWith(params: Array<HippyAny>, promise: HippyModulePromise) {
+    let map = params[0] as HippyMap
+    let instanceId: string = map.get('instanceId') as string
+    let fromView: string = map.get('fromView') as string
+    let rootId = parseInt(instanceId)
+    let fromViewId = parseInt(fromView)
+
+    // Test code
+    rootId = 10
+    fromViewId = 22
+
+    let nativeRender = this.ctx.getNativeRender()
+    if (!nativeRender) {
+      return
+    }
+    let rootView = this.ctx.getRootView(rootId)
+    if (!rootView) {
+      return
+    }
+    let pos = nativeRender.getViewPositionInRoot(rootId, fromViewId) as HRPosition
+    let view = new ExampleMenuView(rootView.renderView!.ctx)
+    nativeRender.addBizViewInRoot(rootId, pos, wrapBuilder(buildExampleMenuView), view)
   }
 }

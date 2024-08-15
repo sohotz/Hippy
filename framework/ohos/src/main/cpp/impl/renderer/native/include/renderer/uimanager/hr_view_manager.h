@@ -99,6 +99,9 @@ public:
   bool GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
   bool GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
   void SetViewEventListener(uint32_t node_id, napi_ref callback_ref);
+  HRPosition GetViewPositionInRoot(uint32_t node_id);
+  void AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y);
+  void RemoveBizViewInRoot(uint32_t biz_view_id);
   std::shared_ptr<BaseView> GetViewFromRegistry(uint32_t node_id);
 
 private:
@@ -131,11 +134,12 @@ private:
   std::set<std::string> custom_ts_render_views_;
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
-    
   
   uint32_t callCustomTsCallbackId_ = 0;
   std::unordered_map<uint32_t, std::function<void(const HippyValue &result)>> callCustomTsCallbackMap_;
-    
+  
+  std::map<uint32_t, std::shared_ptr<CustomTsView>> biz_view_registry_;
+
   bool isFirstViewAdd = false;
   FCPType isFirstContentViewAdd = FCPType::NONE;
 };

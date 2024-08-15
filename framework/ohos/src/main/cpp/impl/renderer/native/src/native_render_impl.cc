@@ -320,6 +320,30 @@ void NativeRenderImpl::SetViewEventListener(uint32_t root_id, uint32_t node_id, 
   view_manager->SetViewEventListener(node_id, callback_ref);
 }
 
+HRPosition NativeRenderImpl::GetViewPositionInRoot(uint32_t root_id, uint32_t node_id) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return {0, 0};
+  }
+  return view_manager->GetViewPositionInRoot(node_id);
+}
+
+void NativeRenderImpl::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  view_manager->AddBizViewInRoot(biz_view_id, node_handle, x, y);
+}
+
+void NativeRenderImpl::RemoveBizViewInRoot(uint32_t root_id, uint32_t biz_view_id) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  view_manager->RemoveBizViewInRoot(biz_view_id);
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

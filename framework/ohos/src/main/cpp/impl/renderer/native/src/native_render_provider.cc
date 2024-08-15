@@ -213,6 +213,18 @@ void NativeRenderProvider::SetViewEventListener(uint32_t root_id, uint32_t node_
   render_impl_->SetViewEventListener(root_id, node_id, callback_ref);
 }
 
+HRPosition NativeRenderProvider::GetViewPositionInRoot(uint32_t root_id, uint32_t node_id) {
+  return render_impl_->GetViewPositionInRoot(root_id, node_id);
+}
+
+void NativeRenderProvider::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y) {
+  render_impl_->AddBizViewInRoot(root_id, biz_view_id, node_handle, x, y);
+}
+
+void NativeRenderProvider::RemoveBizViewInRoot(uint32_t root_id, uint32_t biz_view_id) {
+  render_impl_->RemoveBizViewInRoot(root_id, biz_view_id);
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

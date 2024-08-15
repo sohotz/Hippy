@@ -413,6 +413,96 @@ static napi_value SetViewEventListener(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
+static napi_value GetViewPositionInRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "GetViewPositionInRoot: render_manager_id invalid";
+    return arkTs.GetNull();
+  }
+  
+  HRPosition pos = render_manager->GetViewPositionInRoot(root_id, node_id);
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("x", pos.x);
+  params_builder.AddProperty("y", pos.y);
+  return params_builder.Build();
+}
+
+static napi_value AddBizViewInRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t biz_view_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  napi_value ts_node = args[3];
+  
+  napi_handle_scope scope = nullptr;
+  napi_open_handle_scope(env, &scope);
+  if (scope == nullptr) {
+    return arkTs.GetUndefined();
+  }
+  
+  napi_valuetype type = arkTs.GetType(ts_node);
+  if (type == napi_null) {
+    FOOTSTONE_LOG(ERROR) << "add custom ts view error, ts_node null";
+    return arkTs.GetUndefined();
+  }
+  
+  ArkUI_NodeHandle node_handle = nullptr;
+  auto status = OH_ArkUI_GetNodeHandleFromNapiValue(env, ts_node, &node_handle);
+  if (status != ARKUI_ERROR_CODE_NO_ERROR) {
+    FOOTSTONE_LOG(ERROR) << "add custom ts view error, nodeHandle fail, status: " << status << ", node_handle: " << node_handle;
+    return arkTs.GetUndefined();
+  }
+  
+  // TODO(hot):
+  napi_close_handle_scope(env, scope);
+  
+  float x = static_cast<float>(arkTs.GetDouble(args[4]));
+  float y = static_cast<float>(arkTs.GetDouble(args[5]));
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "AddCustomViewInRoot: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+  
+  render_manager->AddBizViewInRoot(root_id, biz_view_id, node_handle, x, y);
+  
+  return arkTs.GetUndefined();
+}
+
+static napi_value RemoveBizViewInRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t biz_view_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "RemoveCustomViewInRoot: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+  
+  render_manager->RemoveBizViewInRoot(root_id, biz_view_id);
+  
+  return arkTs.GetUndefined();
+}
+
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_BindNativeRoot", BindNativeRoot)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_UnbindNativeRoot", UnbindNativeRoot)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_DestroyRoot", DestroyRoot)
@@ -421,6 +511,9 @@ REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewParent", G
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewChildren", GetViewChildren)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_CallViewMethod", CallViewMethod)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_SetViewEventListener", SetViewEventListener)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewPositionInRoot", GetViewPositionInRoot)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_AddBizViewInRoot", AddBizViewInRoot)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_RemoveBizViewInRoot", RemoveBizViewInRoot)
 
 }
 }

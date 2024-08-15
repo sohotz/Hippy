@@ -63,13 +63,14 @@ import { HRCreateMutation,
 import { HippyEndBatchCallback } from './uimanager/HRViewManager'
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
 import { HRMeasureResult } from './utils/HRMeasure'
-import { HRRect, HRSize } from './utils/HRTypes'
+import { HRPosition, HRRect, HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
 import { BuilderNode, FrameNode } from '@kit.ArkUI'
 import HippyRenderBaseView from './components/base/HippyRenderBaseView'
 import { HippyRootView } from '.'
 import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
 import call from '@ohos.telephony.call'
+import { HippyRootViewManager } from './HippyRootViewManager'
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -91,6 +92,7 @@ export class NativeRenderImpl implements NativeRender {
   private readonly INVALID_NODE_ID = -1
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private static sRootIdCounter = 0
+  private static sBizViewIdCounter = 0
 
   private libHippy: HippyLibrary
   private enableArkCApi: boolean
@@ -132,10 +134,12 @@ export class NativeRenderImpl implements NativeRender {
     let rootId = NativeRenderImpl.sRootIdCounter
     let rootView = new HippyRootView(this.instanceId, rootId, this.customRenderViewCreatorMap, this,
       wrappedCustomRenderViewBuilder, pageName, pageData)
+    HippyRootViewManager.addRootView(rootId, rootView)
     return rootView
   }
 
   destroyRoot(rootId: number): void {
+    HippyRootViewManager.removeRootView(rootId)
     if (this.frameworkProxy) {
       this.frameworkProxy.destroyRoot(rootId)
     }
@@ -746,6 +750,36 @@ key1               value1
     this.libHippy?.NativeRenderProvider_SetViewEventListener(this.instanceId, rootId, nodeId, callback)
   }
 
+  getViewPositionInRoot(rootId: number, nodeId: number): HRPosition | null {
+    return this.libHippy?.NativeRenderProvider_GetViewPositionInRoot(this.instanceId, rootId, nodeId)
+  }
+
+  addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyCustomRenderViewBuilder, view: HippyRenderBaseView): number {
+    if (!AppStorage.has('UIContextForHippy')) {
+      LogUtils.e("", "AppStorage has no UIContext.");
+      return -1
+    }
+
+    let context = AppStorage.get<UIContext>('UIContextForHippy');
+
+    let builderNode = new BuilderNode<[HippyRenderBaseView]>(context!);
+    builderNode.build(viewBuilder, view);
+
+    // TODO(hot): save BuilderNode
+
+    let frameNode = builderNode.getFrameNode();
+    if (!frameNode) {
+      return -1
+    }
+
+    let bizViewId = ++NativeRenderImpl.sBizViewIdCounter
+    this.libHippy?.NativeRenderProvider_AddBizViewInRoot(this.instanceId, rootId, bizViewId, frameNode, position.x, position.y)
+    return bizViewId
+  }
+
+  removeBizViewInRoot(rootId: number, bizViewId: number): void {
+    this.libHippy?.NativeRenderProvider_RemoveBizViewInRoot(this.instanceId, rootId, bizViewId)
+  }
 
 }
 

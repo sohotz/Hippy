@@ -23,6 +23,8 @@ import { DevSupportManager } from './devsupport/DevSupportManager';
 import { DevtoolsManager } from './devsupport/DevtoolsManager';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyRootView } from '../renderer_native/HippyRootView';
+import { NativeRender } from '../renderer_native/NativeRender';
+import { HippyRootViewManager } from '../renderer_native/HippyRootViewManager';
 
 export class HippyEngineContextImpl implements HippyEngineContext {
   public vfsManager: VfsManager
@@ -288,6 +290,10 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     return this.nativeParams
   }
 
+  getNativeRender(): NativeRender | null {
+    return this.nativeRenderProvider ? this.nativeRenderProvider.getNativeRenderImpl() : null
+  }
+
   getDevtoolsId(): number {
     return this.mDevtoolsManager != null ? this.mDevtoolsManager.getId() : -1;
   }
@@ -304,5 +310,10 @@ export class HippyEngineContextImpl implements HippyEngineContext {
         this.mGlobalConfigs.getExceptionHandler()?.handleNativeException(new HippyJsException('', ''), true);
       }
     }
+  }
+
+  getRootView(rootId: number): HippyRootView | null {
+    let view = HippyRootViewManager.getRootView(rootId)
+    return view ? view : null
   }
 }

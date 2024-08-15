@@ -482,6 +482,42 @@ void HRViewManager::SetViewEventListener(uint32_t node_id, napi_ref callback_ref
   view->SetTsEventCallback(callback_ref);
 }
 
+HRPosition HRViewManager::GetViewPositionInRoot(uint32_t node_id) {
+  auto viewIt = view_registry_.find(node_id);
+  if (viewIt == view_registry_.end()) {
+    return {0, 0};
+  }
+  auto view = viewIt->second;
+  auto viewPos = view->GetLocalRootArkUINode().GetLayoutPositionInScreen();
+  auto rootPos = root_view_->GetLocalRootArkUINode().GetLayoutPositionInWindow();
+
+  return {viewPos.x - rootPos.x, viewPos.y - rootPos.y};
+}
+
+void HRViewManager::AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, float x, float y) {
+  auto view = std::make_shared<CustomTsView>(ctx_, node_handle);
+  view->Init();
+  view->SetTag(biz_view_id);
+  view->SetViewType("BizView");
+  view->SetTsRenderProvider(ts_env_, ts_render_provider_ref_);
+  biz_view_registry_[biz_view_id] = view;
+  
+  auto tview = std::static_pointer_cast<BaseView>(view);
+  InsertSubRenderView(ctx_->GetRootId(), tview, INT_MAX);
+}
+
+void HRViewManager::RemoveBizViewInRoot(uint32_t biz_view_id) {
+  auto it = biz_view_registry_.find(biz_view_id);
+  std::shared_ptr<BaseView> renderView = it != biz_view_registry_.end() ? it->second : nullptr;
+  if (renderView) {
+    renderView->RemoveFromParentView();
+    biz_view_registry_.erase(biz_view_id);
+  }
+  
+  // TODO(hot): remove custom ts view node
+  
+}
+
 bool HRViewManager::IsCustomTsRenderView(std::string &view_name) {
   // custom ts view or WebView (no c-api for WebView)
   return custom_ts_render_views_.find(view_name) != custom_ts_render_views_.end() || view_name == "WebView";

@@ -28,12 +28,16 @@ import { HippyJsException } from './common/HippyJsException';
 import { DevSupportManager } from './devsupport/DevSupportManager';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { DevtoolsManager } from './devsupport/DevtoolsManager';
+import { NativeRender } from '../renderer_native/NativeRender';
+import { HippyRootView } from '../renderer_native/HippyRootView';
 
 export interface HippyEngineContext {
 
   getLibHippy(): HippyLibrary
 
   getNativeParams(): Map<string, Object>
+
+  getNativeRender(): NativeRender | null
 
   getVfsManager(): VfsManager
 
@@ -52,6 +56,8 @@ export interface HippyEngineContext {
   destroyBridge(isReload: boolean): void
 
   handleException(error: HippyJsException): void
+
+  getRootView(rootId: number): HippyRootView | null
 
   // int getEngineId();
 
