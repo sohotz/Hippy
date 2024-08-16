@@ -77,8 +77,7 @@ bool RichTextImageSpanView::SetProp(const std::string &propKey, const HippyValue
   } else if (propKey == "defaultSource") {
     auto value = HRValueUtils::GetString(propValue);
     if (!value.empty()) {
-      auto sourceUrl = HRUrlUtils::convertAssetImageUrl(value);
-      GetLocalRootArkUINode().SetAlt(sourceUrl);
+      FetchAltImage(value);
       return true;
     }
     return false;
@@ -94,6 +93,25 @@ void RichTextImageSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRP
   if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
     GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));
     return;
+  }
+}
+
+void RichTextImageSpanView::FetchAltImage(const std::string &imageUrl) {
+  if (imageUrl.size() > 0) {
+    if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
+      GetLocalRootArkUINode().SetAlt(imageUrl);
+      return;
+    } else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
+      std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
+      GetLocalRootArkUINode().SetAlt(convertUrl);
+      return;
+    } else if (HRUrlUtils::isWebUrl(imageUrl)) {
+      GetLocalRootArkUINode().SetAlt(imageUrl);
+      return;
+    } else if (imageUrl.find(ASSET_PREFIX) == 0) {
+      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(imageUrl);
+      GetLocalRootArkUINode().SetAlt(resourceStr);
+    }
   }
 }
 

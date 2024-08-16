@@ -43,6 +43,7 @@ public:
   std::string GetSrc();
   
 protected:
+  virtual void FetchAltImage(const std::string &imageUrl);
   virtual void FetchImage(const std::string &imageUrl);
   
 private:

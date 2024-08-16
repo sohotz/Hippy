@@ -76,8 +76,7 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
   } else if (propKey == "defaultSource") {
     auto value = HRValueUtils::GetString(propValue);
     if (!value.empty()) {
-      auto sourceUrl = HRUrlUtils::convertAssetImageUrl(value);
-      GetLocalRootArkUINode().SetAlt(sourceUrl);
+      FetchAltImage(value);
       return true;
     }
     return false;
@@ -112,6 +111,25 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
 
 void ImageView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
   BaseView::UpdateRenderViewFrame(frame, padding);
+}
+
+void ImageView::FetchAltImage(const std::string &imageUrl) {
+  if (imageUrl.size() > 0) {
+    if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
+      GetLocalRootArkUINode().SetAlt(imageUrl);
+      return;
+    } else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
+      std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
+      GetLocalRootArkUINode().SetAlt(convertUrl);
+      return;
+    } else if (HRUrlUtils::isWebUrl(imageUrl)) {
+      GetLocalRootArkUINode().SetAlt(imageUrl);
+      return;
+    } else if (imageUrl.find(ASSET_PREFIX) == 0) {
+      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(imageUrl);
+      GetLocalRootArkUINode().SetAlt(resourceStr);
+    }
+  }
 }
 
 void ImageView::FetchImage(const std::string &imageUrl) {

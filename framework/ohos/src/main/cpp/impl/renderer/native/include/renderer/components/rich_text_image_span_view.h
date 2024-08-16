@@ -39,6 +39,7 @@ public:
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
   
 private:
+  void FetchAltImage(const std::string &imageUrl);
   void fetchImage(const std::string &imageUrl);
   
   ImageSpanNode imageSpanNode_;
