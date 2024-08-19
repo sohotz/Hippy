@@ -127,7 +127,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   destroyInstance(id: number): void {
     let map = new Map<string, HippyAny>()
     map.set("id", id)
-    const buffer = this.getSerializerBuffer(map);
+    const buffer = this.getSerializerBufferBinary(map);
     this.mHippyBridge.callFunction(HippyBridgeManagerImpl.FUNCTION_ACTION_DESTROY_INSTANCE, this.callFunctionCallback, buffer);
   }
 
