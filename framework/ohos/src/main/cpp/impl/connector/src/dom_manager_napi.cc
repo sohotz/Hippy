@@ -119,7 +119,12 @@ static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
 static napi_value ReleaseRootResources(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info, 1);
-  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  auto ts_root_id = args[0];
+  if (arkTs.GetType(ts_root_id) != napi_number) {
+    FOOTSTONE_LOG(WARNING) << "Release root resources error, param type is not number";
+    return arkTs.GetUndefined();
+  }
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(ts_root_id));
   auto& persistent_map = RootNode::PersistentMap();
   std::shared_ptr<RootNode> root_node;
   auto flag = persistent_map.Find(root_id, root_node);
