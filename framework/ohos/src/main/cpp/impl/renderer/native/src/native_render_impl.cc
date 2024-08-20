@@ -252,8 +252,11 @@ void NativeRenderImpl::TextEllipsized(uint32_t root_id, uint32_t node_id) {
   if (!view_manager) {
     return;
   }
-
-  view_manager->SendTextEllipsizedEvent(node_id);
+  
+  std::shared_ptr<HRTextEllipsizedEventMutation> m = std::make_shared<HRTextEllipsizedEventMutation>();
+  m->tag_ = node_id;
+  auto tm = std::static_pointer_cast<HRMutation>(m);
+  view_manager->AddMutations(tm);
 }
 
 std::string NativeRenderImpl::GetBundlePath() {

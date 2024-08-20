@@ -70,6 +70,7 @@ private:
   bool toSetTextShadow = false;
   
   bool isListenEllipsized_ = false;
+  bool toSendEllipsizedEvent_ = false;
 };
 
 } // namespace native

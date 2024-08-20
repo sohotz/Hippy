@@ -182,6 +182,9 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
     auto tm = std::static_pointer_cast<HRUpdateEventListenerMutation>(m);
     UpdateProps(tm->tag_, tm->props_);
     UpdateEventListener(tm->tag_, tm->props_);
+  } else if (m->type_ == HRMutationType::TEXT_ELLIPSIZED_EVENT) {
+    auto tm = std::static_pointer_cast<HRTextEllipsizedEventMutation>(m);
+    SendTextEllipsizedEvent(tm->tag_);
   }
 }
 

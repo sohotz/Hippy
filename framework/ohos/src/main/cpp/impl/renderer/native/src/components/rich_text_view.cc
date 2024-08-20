@@ -176,6 +176,10 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     return true;
   } else if (propKey == "ellipsized") {
     isListenEllipsized_ = HRValueUtils::GetBool(propValue, false);
+    if (isListenEllipsized_ && toSendEllipsizedEvent_) {
+      HREventUtils::SendComponentEvent(ctx_, tag_, "ellipsized", nullptr);
+      toSendEllipsizedEvent_ = false;
+    }
     return true;
   }
   
@@ -216,9 +220,11 @@ void RichTextView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, in
 
 void RichTextView::SendTextEllipsizedEvent() {
   if (!isListenEllipsized_) {
+    toSendEllipsizedEvent_ = true;
     return;
   }
   HREventUtils::SendComponentEvent(ctx_, tag_, "ellipsized", nullptr);
+  toSendEllipsizedEvent_ = false;
 }
 
 } // namespace native
