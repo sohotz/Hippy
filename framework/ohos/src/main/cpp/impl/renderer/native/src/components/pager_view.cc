@@ -48,9 +48,12 @@ SwiperNode &PagerView::GetLocalRootArkUINode() { return swiperNode_; }
 
 bool PagerView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "initialPage") {
-    initialPage_ = HRValueUtils::GetInt32(propValue);
-    index_ = initialPage_;
-    GetLocalRootArkUINode().SetSwiperIndex(index_);
+    if (!initialPageUsed_) {
+      initialPageUsed_ = true;
+      initialPage_ = HRValueUtils::GetInt32(propValue);
+      index_ = initialPage_;
+      GetLocalRootArkUINode().SetSwiperIndex(index_);
+    }
     return true;
   } else if (propKey == "scrollEnabled") {
     bool enable = HRValueUtils::GetBool(propValue, true);
@@ -139,7 +142,7 @@ void PagerView::OnContentDidScroll(const int32_t currentIndex, const int32_t pag
     return;
   }
   
-  // FOOTSTONE_DLOG(INFO) << "PagerView on gesture swipe, position: " << position << ", offset: " << offset;
+  // FOOTSTONE_DLOG(INFO) << "PagerView on scroll, position: " << position << ", offset: " << offset;
   
   HippyValueObjectType type = {{PAGE_ITEM_POSITION, HippyValue{position}},
                                {PAGE_ITEM_OFFSET, HippyValue{offset}}};
