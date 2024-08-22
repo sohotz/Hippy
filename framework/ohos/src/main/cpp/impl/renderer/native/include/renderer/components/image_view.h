@@ -41,6 +41,7 @@ public:
   void OnComplete(float width, float height) override;
   void OnError(int32_t errorCode) override;
   std::string GetSrc();
+  void ReSetViewProps() override;
   
 protected:
   virtual void FetchAltImage(const std::string &imageUrl);

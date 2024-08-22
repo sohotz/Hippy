@@ -68,6 +68,44 @@ void BaseView::SetTag(uint32_t tag) {
   GetLocalRootArkUINode().SetId(id_str);
 }
 
+void BaseView::SetNativeRenderContext(std::shared_ptr<NativeRenderContext> ctx) {
+  ctx_ = ctx;
+}
+
+void BaseView::ReSetViewProps() {
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_VISIBILITY);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BACKGROUND_COLOR);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_OPACITY);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_CLIP);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_Z_INDEX);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_ACCESSIBILITY_TEXT);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_ACCESSIBILITY_DESCRIPTION);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_ACCESSIBILITY_MODE);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_FOCUS_STATUS);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_FOCUSABLE);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_LINEAR_GRADIENT);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BACKGROUND_IMAGE);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BACKGROUND_IMAGE_SIZE_WITH_STYLE);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BACKGROUND_IMAGE_POSITION);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BORDER_RADIUS);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BORDER_WIDTH);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BORDER_STYLE);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BORDER_COLOR);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_CUSTOM_SHADOW);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_PADDING);
+  GetLocalRootArkUINode().UnregisterClickEvent();
+  eventClick_ = nullptr;
+  eventLongPress_ = nullptr;
+  eventPressIn_ = nullptr;
+  eventPressOut_ = nullptr;
+  eventTouchDown_ = nullptr;
+  eventTouchUp_ = nullptr;
+  eventTouchMove_ = nullptr;
+  eventTouchCancel_ = nullptr;
+  eventAttachedToWindow_ = nullptr;
+  eventDetachedFromWindow_ = nullptr;
+}
+
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::VISIBILITY) {
     auto value = HRValueUtils::GetString(propValue);

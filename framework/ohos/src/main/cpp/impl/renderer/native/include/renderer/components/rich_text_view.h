@@ -43,6 +43,8 @@ public:
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   
   void SendTextEllipsizedEvent();
+  void ReSetViewProps() override;
+  void CleanAllChildren();
   
 private:
   TextNode textNode_;
