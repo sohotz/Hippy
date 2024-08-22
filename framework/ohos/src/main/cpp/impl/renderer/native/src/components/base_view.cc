@@ -91,8 +91,11 @@ bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) 
     return true;
   } else if (propKey == HRNodeProps::OVERFLOW) {
     auto value = HRValueUtils::GetString(propValue);
-    bool clip = value != HRNodeProps::HIDDEN ? false : true;
-    GetLocalRootArkUINode().SetClip(clip);
+    if (value == HRNodeProps::VISIBLE) {
+      GetLocalRootArkUINode().SetClip(false);
+    } else if (value == HRNodeProps::HIDDEN) {
+      GetLocalRootArkUINode().SetClip(true);
+    }
     return true;
   } else if (propKey == HRNodeProps::Z_INDEX) {
     auto value = HRValueUtils::GetInt32(propValue);
