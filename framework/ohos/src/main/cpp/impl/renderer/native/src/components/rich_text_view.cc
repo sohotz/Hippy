@@ -163,11 +163,10 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
   } else if (propKey == HRNodeProps::ELLIPSIZE_MODE) {
     std::string value = HRValueUtils::GetString(propValue);
     ArkUI_EllipsisMode ellipsisMode = ARKUI_ELLIPSIS_MODE_END;
-    ArkUI_TextOverflow textOverflow = ARKUI_TEXT_OVERFLOW_NONE;
-    if (HRTextConvertUtils::EllipsisModeToArk(value, ellipsisMode, textOverflow)) {
-      GetLocalRootArkUINode().SetTextOverflow(textOverflow);
-      GetLocalRootArkUINode().SetTextEllipsisMode(ellipsisMode);
-    }
+    ArkUI_TextOverflow textOverflow = ARKUI_TEXT_OVERFLOW_ELLIPSIS;
+    HRTextConvertUtils::EllipsisModeToArk(value, ellipsisMode, textOverflow);
+    GetLocalRootArkUINode().SetTextOverflow(textOverflow);
+    GetLocalRootArkUINode().SetTextEllipsisMode(ellipsisMode);
     return true;
   } else if (propKey == HRNodeProps::BREAK_STRATEGY) {
     std::string value = HRValueUtils::GetString(propValue);
