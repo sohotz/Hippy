@@ -19,10 +19,13 @@
  */
 import { HippyEngineContext, HippyRootView } from 'hippy';
 import { HippyModulePromise } from 'hippy/src/main/ets/hippy_framework/modules/HippyModulePromise';
+import {
+  EventDispatcher
+} from 'hippy/src/main/ets/hippy_framework/modules/javascript/EventDispatcher';
 import { HippyNativeModuleBase } from 'hippy/src/main/ets/hippy_framework/modules/native';
 import { HRPosition, HRRect } from 'hippy/src/main/ets/renderer_native/utils/HRTypes';
 import { HippyNativeModule } from 'hippy/src/main/ets/support/annotation/HippyNativeModule';
-import { HippyAny, HippyMap } from 'hippy/src/main/ets/support/common/HippyTypes';
+import { HippyAny, HippyArray, HippyMap } from 'hippy/src/main/ets/support/common/HippyTypes';
 import { LogUtils } from 'hippy/src/main/ets/support/utils/LogUtils';
 import { buildExampleMenuView, ExampleMenuView } from './ExampleMenuView';
 
@@ -49,6 +52,9 @@ export class ExampleNativeModule extends HippyNativeModuleBase {
         this.showMenuWith(params, promise);
         break;
       }
+      case 'testSendEvent': {
+        this.testSendEvent(params, promise);
+      }
       default:
         super.call(method, params, promise);
     }
@@ -61,6 +67,28 @@ export class ExampleNativeModule extends HippyNativeModuleBase {
 
   public testPromise(params: Array<HippyAny>, promise: HippyModulePromise) {
     promise.resolve('test');
+  }
+
+  public testSendEvent(params: Array<HippyAny>, promise: HippyModulePromise) {
+    LogUtils.i(ExampleNativeModule.NAME, 'testSendEvent');
+    if (this.ctx != null && this.ctx.getModuleManager() != null) {
+      const eventModule = this.ctx.getModuleManager().getJavaScriptModule(EventDispatcher.MODULE_NAME);
+      if (eventModule != null) {
+        const event = 'testEvent';
+        const params = new Map<string, HippyAny>();
+        params.set('testString', 'testStringValue');
+
+        const valueMap = new Map<string, HippyAny>();
+        valueMap.set('testString2', 'testStringValue2');
+        params.set('testMap', valueMap);
+
+        const array: HippyArray = [];
+        array.push(valueMap);
+        params.set('testArray', array);
+
+        (eventModule as EventDispatcher).receiveNativeEvent(event, params);
+      }
+    }
   }
 
   public showMenuWith(params: Array<HippyAny>, promise: HippyModulePromise) {

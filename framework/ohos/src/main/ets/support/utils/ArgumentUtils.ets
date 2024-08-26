@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyValue } from '../common/HippyTypes'
+import { HippyAny, HippyArray, HippyValue } from '../common/HippyTypes'
 import { LogUtils } from './LogUtils'
 
 export class ArgumentUtils {
@@ -135,18 +135,32 @@ export class ArgumentUtils {
     return builder
   }
 
-  public static mapToRecord(map: Map<string, HippyAny>) {
+  public static mapToRecord(map: Map<string, HippyAny>): Object {
     let record: Record<string, Object> = {};
     map.forEach((value, key) => {
       if (key != undefined && key != null) {
         if (value instanceof Map) {
           record[key] = ArgumentUtils.mapToRecord(value);
+        } else if (Array.isArray(value)) {
+          record[key] = ArgumentUtils.arrayToRecordArray(value);
         } else {
           record[key] = value as Object;
         }
       }
     })
     return record;
+  }
+
+  public static arrayToRecordArray(array: HippyArray): Object {
+    return array.map((value) => {
+      if (value instanceof Map) {
+        return ArgumentUtils.mapToRecord(value);
+      } else if (Array.isArray(value)) {
+        return ArgumentUtils.arrayToRecordArray(value);
+      } else {
+        return value as Object;
+      }
+    });
   }
 
 }
