@@ -306,11 +306,13 @@ static napi_value RunScriptFromUri(napi_env env, napi_callback_info info) {
   auto args = arkTs.GetCallbackArgs(info);
   uint32_t scope_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
   std::string uri_str = arkTs.GetString(args[1]);
-  auto asset_manager = args[2];
-  bool can_use_code_cache = arkTs.GetBoolean(args[3]);
-  std::string code_cache_dir_str = arkTs.GetString(args[4]);
-  auto vfs_id = static_cast<uint32_t>(arkTs.GetInteger(args[5]));
-  auto callback_ref = arkTs.CreateReference(args[6]);
+  bool is_rawfile = arkTs.GetBoolean(args[2]);
+  auto asset_manager = args[3];
+  auto res_module_name = arkTs.GetString(args[4]);
+  bool can_use_code_cache = arkTs.GetBoolean(args[5]);
+  std::string code_cache_dir_str = arkTs.GetString(args[6]);
+  auto vfs_id = static_cast<uint32_t>(arkTs.GetInteger(args[7]));
+  auto callback_ref = arkTs.CreateReference(args[8]);
 
   auto time_begin = std::chrono::time_point_cast<std::chrono::microseconds>(
       std::chrono::system_clock::now())
@@ -351,7 +353,7 @@ static napi_value RunScriptFromUri(napi_env env, napi_callback_info info) {
   FOOTSTONE_CHECK(engine);
   if (asset_manager) {
     auto asset_handler = std::make_shared<hippy::AssetHandler>();
-    asset_handler->Init(env, asset_manager);
+    asset_handler->Init(env, is_rawfile, asset_manager, res_module_name);
     loader->RegisterUriHandler(kAssetSchema, asset_handler);
   }
 #ifdef ENABLE_INSPECTOR

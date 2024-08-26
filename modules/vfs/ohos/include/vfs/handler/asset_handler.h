@@ -40,7 +40,7 @@ class AssetHandler : public UriHandler {
   AssetHandler() = default;
   virtual ~AssetHandler();
   
-  void Init(napi_env env, napi_value ts_resource_manager);
+  void Init(napi_env env, bool is_rawfile, napi_value ts_resource_manager, std::string &res_module_name);
 
   virtual void RequestUntrustedContent(
       std::shared_ptr<RequestJob> request,
@@ -59,7 +59,9 @@ class AssetHandler : public UriHandler {
 
   std::shared_ptr<TaskRunner> runner_;
   std::mutex mutex_;
-  NativeResourceManager *resource_manager_;
+  bool is_rawfile_ = false;
+  NativeResourceManager *resource_manager_ = nullptr;
+  std::string res_module_name_;
 };
 
 }

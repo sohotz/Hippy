@@ -70,7 +70,9 @@ export interface HippyLibrary {
   JsDriver_RunScriptFromUri(
     instanceId: number,
     uri: string,
+    isRawfile: boolean,
     assetManager: resmgr.ResourceManager,
+    resModuleName: string,
     canUseCodeCache: boolean,
     codeCacheDir: string,
     vfsId: number,
@@ -91,7 +93,7 @@ export interface HippyLibrary {
 
   NativeRenderer_CreateNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider,
     customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null, mappingRenderViews: Array<string> | null,
-    bundlePath: string, density: number): number;
+    bundlePath: string, density: number, isRawfile: boolean, resModuleName: string): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
   NativeRenderer_InitRendererParams(statusBarHeight: number): void;
   NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;

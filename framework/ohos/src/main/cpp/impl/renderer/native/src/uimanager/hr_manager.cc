@@ -26,8 +26,8 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-HRManager::HRManager(uint32_t instance_id, std::shared_ptr<NativeRender> &native_render)
-  : instance_id_(instance_id), native_render_(native_render) {
+HRManager::HRManager(uint32_t instance_id, std::shared_ptr<NativeRender> &native_render, bool is_rawfile, const std::string &res_module_name)
+  : instance_id_(instance_id), native_render_(native_render), is_rawfile_(is_rawfile), res_module_name_(res_module_name) {
   
 }
 
@@ -50,7 +50,7 @@ std::shared_ptr<HRViewManager> HRManager::GetViewManager(uint32_t root_id) {
   if (it == view_manager_map_.end()) {
     auto native_render = native_render_.lock();
     auto view_manager = std::make_shared<HRViewManager>(instance_id_, root_id, native_render,
-      ts_env_, ts_render_provider_ref_, custom_ts_render_views_, mapping_render_views_);
+      ts_env_, ts_render_provider_ref_, custom_ts_render_views_, mapping_render_views_, is_rawfile_, res_module_name_);
     AddViewManager(root_id, view_manager);
     return view_manager;
   }

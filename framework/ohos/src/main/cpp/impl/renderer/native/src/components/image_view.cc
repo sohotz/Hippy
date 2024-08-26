@@ -126,7 +126,7 @@ void ImageView::FetchAltImage(const std::string &imageUrl) {
       GetLocalRootArkUINode().SetAlt(imageUrl);
       return;
     } else if (imageUrl.find(ASSET_PREFIX) == 0) {
-      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(imageUrl);
+      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
       GetLocalRootArkUINode().SetAlt(resourceStr);
     }
   }
@@ -145,7 +145,7 @@ void ImageView::FetchImage(const std::string &imageUrl) {
 			GetLocalRootArkUINode().SetSources(imageUrl);
       return;
 		} else if (imageUrl.find(ASSET_PREFIX) == 0) {
-      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(imageUrl);
+      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
       GetLocalRootArkUINode().SetSources(resourceStr);
 		}
 		// TODO(hot):

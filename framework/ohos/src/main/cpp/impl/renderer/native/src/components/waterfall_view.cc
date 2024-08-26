@@ -107,7 +107,7 @@ void WaterfallView::OnSetPropsEnd(){
 void WaterfallView::Init() {
   BaseView::Init();
   auto weak_view = weak_from_this();
-  auto render = NativeRenderProvider(GetCtx()->GetInstanceId(),"");
+  auto render = NativeRenderProvider(GetCtx()->GetInstanceId(), "", false, ""); // TODO(hot):
   this->cbID = render.GetNativeRenderImpl()->AddEndBatchCallback(GetCtx()->GetRootId(), [weak_view]() {
     auto view = weak_view.lock();
     if (view) {
@@ -263,7 +263,7 @@ void WaterfallView::OnAppear() {
 }
 
 void WaterfallView::OnDisappear() {
-  auto render = NativeRenderProvider(GetCtx()->GetInstanceId(),"");
+  auto render = NativeRenderProvider(GetCtx()->GetInstanceId(), "", false, ""); // TODO(hot):
   render.GetNativeRenderImpl()->RemoveEndBatchCallback(GetCtx()->GetRootId(), this->cbID);
 }  
 

@@ -39,6 +39,7 @@ target_link_libraries(hippy_impl PUBLIC
   libnative_drawing.so
   libjsvm.so
   libnative_display_soloist.so
+  libohfileuri.so
   uv
   footstone
   oh_napi

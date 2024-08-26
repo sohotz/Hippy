@@ -35,7 +35,7 @@ inline namespace native {
 
 class NativeRenderProvider : public std::enable_shared_from_this<NativeRenderProvider>{
 public:
-  NativeRenderProvider(uint32_t instance_id, const std::string &bundle_path);
+  NativeRenderProvider(uint32_t instance_id, const std::string &bundle_path, bool is_rawfile, const std::string &res_module_name);
   ~NativeRenderProvider() = default;
 
   uint32_t GetInstanceId() { return instance_id_; }

@@ -48,7 +48,7 @@ class HRViewManager {
 public:
   HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
     napi_env ts_env, napi_ref ts_render_provider_ref,
-    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views, bool is_rawfile, const std::string &res_module_name);
   ~HRViewManager() = default;
 
   void BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t node_id);

@@ -792,11 +792,11 @@ std::string BaseView::ConvertToLocalPathIfNeeded(const std::string &uri) {
         bundlePath = bundlePath.substr(0, lastPos + 1);
       }
       auto fullPath = bundlePath + relativePath;
-      auto localPath = HRUrlUtils::convertAssetImageUrl(fullPath);
+      auto localPath = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), fullPath);
       return localPath;
     }
   } else if (uri.find("asset:/") == 0) {
-    auto localPath = HRUrlUtils::convertAssetImageUrl(uri);
+    auto localPath = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), uri);
     return localPath;
   }
   return uri;

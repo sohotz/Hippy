@@ -130,7 +130,9 @@ export class HippyBridgeImpl implements HippyBridge {
     } else {
       canUseCodeCache = false;
     }
-    return this.mJsDriver.runScriptFromUri(uri, assetManager, canUseCodeCache, codeCacheDir,
+    let isRawfile = this.mEngineContext.getGlobalConfigs().isLoadFromRawfile();
+    let resModuleName = this.mEngineContext.getGlobalConfigs().getResModuleName();
+    return this.mJsDriver.runScriptFromUri(uri, isRawfile, assetManager, resModuleName, canUseCodeCache, codeCacheDir,
       this.mEngineContext.getVfsId(), callback);
   }
 

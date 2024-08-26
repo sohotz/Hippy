@@ -31,17 +31,18 @@ export class NativeRenderer {
   constructor(libHippy: HippyLibrary, enableArkCApi: boolean, renderProvider: NativeRenderProvider,
               customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null,
               mappingRenderViews: Array<string> | null,
-              bundlePath: string) {
+              bundlePath: string, isRawfile: boolean, resModuleName: string) {
     this.libHippy = libHippy
     this.renderProvider = renderProvider
-    this.instanceId = this.createNativeRenderManager(enableArkCApi, renderProvider, customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath)
+    this.instanceId = this.createNativeRenderManager(enableArkCApi, renderProvider, customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath, isRawfile, resModuleName)
   }
 
   createNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider,
                             customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null,
-                            mappingRenderViews: Array<string> | null, bundlePath: string): number {
+                            mappingRenderViews: Array<string> | null, bundlePath: string,
+                            isRawfile: boolean, resModuleName: string): number {
     return this.libHippy?.NativeRenderer_CreateNativeRenderManager(enableArkCApi, renderProvider,
-      customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath, PixelUtil.getDensity())
+      customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath, PixelUtil.getDensity(), isRawfile, resModuleName)
   }
 
   destroyNativeRenderManager() {

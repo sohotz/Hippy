@@ -15,7 +15,10 @@ inline namespace native {
 class HRUrlUtils {
 public:
   static bool isWebUrl(std::string url);
-  static std::string convertAssetImageUrl(const std::string &assetUrl);
+  static std::string convertAssetImageUrl(bool isRawfile, const std::string &resModuleName, const std::string &assetUrl);
+  
+private:
+  static char *uriPrefix_;
 };
 
 } // namespace native

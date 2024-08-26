@@ -40,10 +40,10 @@ inline namespace native {
 
 HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
     napi_env ts_env, napi_ref ts_render_provider_ref,
-    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views)
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views, bool is_rawfile, const std::string &res_module_name)
   : serializer_(std::make_shared<footstone::value::Serializer>()) {
   root_id_ = root_id;
-  ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id, native_render);
+  ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id, native_render, is_rawfile, res_module_name);
   root_view_ = std::make_shared<RootView>(ctx_);
   root_view_->SetTag(root_id);
   std::string root_view_type = "RootView";

@@ -125,9 +125,11 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
     // Render注册
     let enableArkCApi = globalConfigs.enableArkCApi()
+    let isRawfile = globalConfigs.isLoadFromRawfile()
+    let resModuleName = globalConfigs.getResModuleName()
     this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, enableArkCApi, customRenderViewCreatorMap, customMeasureRenderViews)
     this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider,
-      customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath)
+      customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath, isRawfile, resModuleName)
     this.nativeRenderer.registerCustomFontPaths(customFontPathMap)
     this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
