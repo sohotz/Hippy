@@ -2,6 +2,7 @@
 #include "footstone/logging.h"
 
 static std::string sNextStr;
+static bool sHitFlag = false;
 
 OhMeasureText::OhMeasureText() {}
 
@@ -234,13 +235,18 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     
 //     if (propMap["text"].find("小肥") == 0) propMap["text"] = "小肥";
     
-          if (sNextStr.size() > 0) {
-            propMap["text"] = sNextStr;
-            sNextStr = "";
-          }
-          if (propMap["text"] == "园丁W") {
-            sNextStr = "\x80\x20\x44\xCC\x5C";
-          }
+    if (propMap["text"].find("小肥") == 0) {
+      sHitFlag = true;
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, nick: " << propMap["text"] << ", p: " << (uint64_t)propMap["text"].data() << ", len: " << propMap["text"].length();
+    }
+      
+//           if (sNextStr.size() > 0) {
+//             propMap["text"] = sNextStr;
+//             sNextStr = "";
+//           }
+//           if (propMap["text"] == "园丁W") {
+//             sNextStr = "\x80\x20\x44\xCC\x5C";
+//           }
       
         OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str());
 
@@ -411,6 +417,11 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     OhMeasureResult ret;
     size_t lineCount;
   
+    // debug
+    if (sHitFlag) {
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, in w/h: " << width << ", " << height;
+    }
+  
     auto typography = OH_Drawing_CreateTypography(handler_);
     double maxWidth = double(width) / density;
     if (maxWidth == 0 || std::isnan(maxWidth)) {
@@ -427,6 +438,12 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     lineCount = OH_Drawing_TypographyGetLineCount(typography);
 
     double realHeight = CalcSpanPostion(typography, ret);
+  
+    // debug
+    if (sHitFlag) {
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, mearute res: " << ret.width << ", " << ret.height << ", " << realHeight;
+    }
+  
     ret.height = fmax(ret.height, realHeight);
   
     ret.isEllipsized = OH_Drawing_TypographyDidExceedMaxLines(typography);
@@ -449,6 +466,13 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
   
     ret.width *= density;
     ret.height *= density;
+  
+    // debug
+    if (sHitFlag) {
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, mearute res2: " << ret.width << ", " << ret.height << ", " << (lineHeight_ * density * (double)lineCount);
+    }
+    sHitFlag = false;
+  
     if (lineHeight_ != 0) {
         ret.height = lineHeight_ * density * (double)lineCount;
     

@@ -45,13 +45,25 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
     std::string value = HRValueUtils::GetString(propValue);
 //     if (value.find("小肥") == 0) value = "小肥";
     
-        if (sNextStr.size() > 0) {
-          value = sNextStr;
-          sNextStr = "";
-        }
-        if (value == "园丁W") {
-          sNextStr = "\x80\x20\x44\xCC\x5C";
-        }
+    if (value.find("小肥") == 0) {
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, nick: " << value << ", p: " << (uint64_t)value.data() << ", len: " << value.length();
+      const char *p = value.data();
+      std::string res;
+      for (uint32_t i = 0; i < value.length(); i ++) {
+        char buf[32] = {0};
+        sprintf(buf, "%02x", p[i]);
+        res += buf;
+      }
+      FOOTSTONE_DLOG(INFO) << "xxx hippy, p hex: " << res;
+    }
+    
+//         if (sNextStr.size() > 0) {
+//           value = sNextStr;
+//           sNextStr = "";
+//         }
+//         if (value == "园丁W") {
+//           sNextStr = "\x80\x20\x44\xCC\x5C";
+//         }
       
     if (!text_.has_value() || value != text_) {
       GetLocalRootArkUINode().SetSpanContent(value);
