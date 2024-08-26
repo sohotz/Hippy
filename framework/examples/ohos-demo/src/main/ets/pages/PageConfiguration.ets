@@ -106,11 +106,11 @@ struct PageConfiguration {
 
     params.providers = new Array(new ExampleAPIProvider())
 
-    params.coreJSAssetsPath = "react/vendor.ohos.js"
+    params.coreJSAssetsPath = "react/vendor.android.js"
     if (info.driver === DriverMode.JS_VUE_2) {
-      params.coreJSAssetsPath = "vue2/vendor.ohos.js"
+      params.coreJSAssetsPath = "vue2/vendor.android.js"
     } else if (info.driver === DriverMode.JS_VUE_3) {
-      params.coreJSAssetsPath = "vue3/vendor.ohos.js"
+      params.coreJSAssetsPath = "vue3/vendor.android.js"
     }
 
     let hippyEngine = createHippyEngine(params)
@@ -118,11 +118,11 @@ struct PageConfiguration {
 
     hippyEngine.initEngine((statusCode: EngineInitStatus, msg: string) => {
       if (statusCode == EngineInitStatus.STATUS_OK) {
-        let jsAssetPath = 'react/index.ohos.js'
+        let jsAssetPath = 'react/index.android.js'
         if (info.driver === DriverMode.JS_VUE_2) {
-          jsAssetPath = "vue2/index.ohos.js"
+          jsAssetPath = "vue2/index.android.js"
         } else if (info.driver === DriverMode.JS_VUE_3) {
-          jsAssetPath = "vue3/index.ohos.js"
+          jsAssetPath = "vue3/index.android.js"
         }
 
         let loadParams = new ModuleLoadParams(

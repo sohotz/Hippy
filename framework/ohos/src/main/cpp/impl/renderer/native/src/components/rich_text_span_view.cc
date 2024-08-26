@@ -29,6 +29,8 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+static std::string sNextStr;
+
 RichTextSpanView::RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
 }
 
@@ -41,6 +43,16 @@ SpanNode &RichTextSpanView::GetLocalRootArkUINode() {
 bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
+//     if (value.find("小肥") == 0) value = "小肥";
+    
+        if (sNextStr.size() > 0) {
+          value = sNextStr;
+          sNextStr = "";
+        }
+        if (value == "园丁W") {
+          sNextStr = "\x80\x20\x44\xCC\x5C";
+        }
+      
     if (!text_.has_value() || value != text_) {
       GetLocalRootArkUINode().SetSpanContent(value);
       text_ = value;
