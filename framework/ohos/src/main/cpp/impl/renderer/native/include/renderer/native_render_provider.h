@@ -43,6 +43,7 @@ public:
   std::shared_ptr<NativeRenderImpl> &GetNativeRenderImpl() { return render_impl_; }
 
   void SetTsEnv(napi_env ts_env) { ts_env_ = ts_env; }
+  void SetBundlePath(const std::string &bundle_path);
 
   void BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id);
   void UnbindNativeRoot(uint32_t root_id, uint32_t node_id);

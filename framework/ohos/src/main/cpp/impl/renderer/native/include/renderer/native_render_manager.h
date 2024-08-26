@@ -68,6 +68,7 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   void SetRenderDelegate(napi_env ts_env, bool enable_ark_c_api, napi_ref ts_render_provider_ref,
                          std::set<std::string> &custom_views, std::set<std::string> &custom_measure_views, std::map<std::string, std::string> &mapping_views,
                          std::string &bundle_path, bool is_rawfile, const std::string &res_module_name);
+  void SetBundlePath(const std::string &bundle_path);
   void InitDensity(double density);
   void AddCustomFontPath(const std::string &fontFamilyName, const std::string &fontPath);
 

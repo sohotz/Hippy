@@ -125,6 +125,23 @@ static napi_value DestroyNativeRenderManager(napi_env env, napi_callback_info in
   return arkTs.GetUndefined();
 }
 
+static napi_value SetBundlePath(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  auto bundle_path = arkTs.GetString(args[1]);
+
+  std::any render_manager;
+  auto flag = hippy::global_data_holder.Find(render_id, render_manager);
+  FOOTSTONE_CHECK(flag);
+  auto render_manager_object = std::any_cast<std::shared_ptr<RenderManager>>(render_manager);
+  auto native_render_manager = std::static_pointer_cast<NativeRenderManager>(render_manager_object);
+
+  native_render_manager->SetBundlePath(bundle_path);
+  
+  return arkTs.GetUndefined();
+}
+
 static napi_value InitRendererParams(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
@@ -193,6 +210,7 @@ static napi_value RegisterCustomFontWithPaths(napi_env env, napi_callback_info i
 
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_CreateNativeRenderManager", CreateNativeRenderManager)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_DestroyNativeRenderManager", DestroyNativeRenderManager)
+REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_SetBundlePath", SetBundlePath)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_InitRendererParams", InitRendererParams)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_SetDomManager", SetDomManager)
 REGISTER_OH_NAPI("NativeRenderer", "NativeRenderer_RegisterFontPaths", RegisterCustomFontWithPaths)

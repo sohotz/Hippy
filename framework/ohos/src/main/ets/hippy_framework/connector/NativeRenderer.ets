@@ -49,6 +49,10 @@ export class NativeRenderer {
     this.libHippy?.NativeRenderer_DestroyNativeRenderManager(this.instanceId)
   }
 
+  setBundlePath(bundlePath: string) {
+    this.libHippy?.NativeRenderer_SetBundlePath(this.instanceId, bundlePath)
+  }
+
   initRendererParams(statusBarHeight: number): void {
     this.libHippy?.NativeRenderer_InitRendererParams(statusBarHeight)
   }

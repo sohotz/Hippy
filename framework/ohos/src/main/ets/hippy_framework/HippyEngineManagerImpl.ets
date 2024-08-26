@@ -339,6 +339,8 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     this.mEngineContext?.setComponentName(loadParams.componentName);
     if (!this.params.debugMode) {
       if (this.mCoreBundleLoader != null) {
+        let bundlePath = this.mCoreBundleLoader.getPath()
+        this.mEngineContext?.nativeRenderer?.setBundlePath(bundlePath)
         // load main js bundle
         this.mEngineContext?.getBridgeManager()?.runBundle(0, this.mCoreBundleLoader);
       } else {

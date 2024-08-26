@@ -202,6 +202,12 @@ void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_a
   NativeRenderManager::GetStyleFilter();
 }
 
+void NativeRenderManager::SetBundlePath(const std::string &bundle_path) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->SetBundlePath(bundle_path);
+  }
+}
+
 void NativeRenderManager::InitDensity(double density) {
   density_ = static_cast<float>(density);
   HRPixelUtils::InitDensity(density);

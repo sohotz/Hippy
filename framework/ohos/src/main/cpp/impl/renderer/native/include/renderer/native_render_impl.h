@@ -40,6 +40,8 @@ public:
   void InitRenderManager();
 
   uint32_t GetInstanceId() { return instance_id_; }
+  
+  void SetBundlePath(const std::string &bundle_path);
 
   void BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id);
   void UnbindNativeRoot(uint32_t root_id, uint32_t node_id);

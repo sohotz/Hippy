@@ -35,6 +35,10 @@ void NativeRenderImpl::InitRenderManager() {
   hr_manager_ = std::make_shared<HRManager>(instance_id_, native_render, is_rawfile_, res_module_name_);
 }
 
+void NativeRenderImpl::SetBundlePath(const std::string &bundle_path) {
+  bundle_path_ = bundle_path;
+}
+
 void NativeRenderImpl::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {

@@ -36,6 +36,10 @@ NativeRenderProvider::NativeRenderProvider(uint32_t instance_id, const std::stri
   render_impl_->InitRenderManager();
 }
 
+void NativeRenderProvider::SetBundlePath(const std::string &bundle_path) {
+  render_impl_->SetBundlePath(bundle_path);
+}
+
 void NativeRenderProvider::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id) {
   render_impl_->BindNativeRoot(contentHandle, root_id, node_id);
 }
