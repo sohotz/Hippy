@@ -51,8 +51,6 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_
     auto view = HRViewPool::GetDivView(ctx);
     if (!view) {
       view = std::make_shared<DivView>(ctx);
-    } else {
-      FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<"from pool view_name = "<<view_name;
     }
     view->Init();
     return view;
