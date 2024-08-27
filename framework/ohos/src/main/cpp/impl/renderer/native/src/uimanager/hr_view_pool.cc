@@ -38,7 +38,6 @@ std::shared_ptr<DivView> HRViewPool::GetDivView(std::shared_ptr<NativeRenderCont
 	} else {
     std::shared_ptr<DivView> view = view_queue_.front();
     view->SetNativeRenderContext(ctx);
-    view->ReSetViewProps();
     view_queue_.pop();
     return view;
 	}
@@ -49,6 +48,7 @@ void HRViewPool::SetDivViewToPool(std::shared_ptr<DivView> &view) {
     return;
   } else {
     view->CleanAllChildren();
+    view->ReSetViewProps();
     view_queue_.push(view);
   }
 }
@@ -59,7 +59,6 @@ std::shared_ptr<ImageView> HRViewPool::GetImageView(std::shared_ptr<NativeRender
 	} else {
     std::shared_ptr<ImageView> imageView = image_queue_.front();
     imageView->SetNativeRenderContext(ctx);
-    imageView->ReSetViewProps();
     image_queue_.pop();
     return imageView;
 	}
@@ -80,7 +79,6 @@ std::shared_ptr<RichTextView> HRViewPool::GetRichTextView(std::shared_ptr<Native
   } else {
     std::shared_ptr<RichTextView> textView = text_queue_.front();
     textView->SetNativeRenderContext(ctx);
-    textView->ReSetViewProps();
     text_queue_.pop();
     return textView;
   }
