@@ -199,8 +199,9 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
         OH_Drawing_SetTextStyleDecorationStyle(txtStyle, ds);
     }
 
-    OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
-    // 猜测行高=fontSize*1.25，lineSpacingMultiplier，1.25是猜的，也可能是1.3或其他
+    // If font height is set, measure results for some special char will be wrong.
+    // For example, ε (utf8 code: e0bdbdceb5). Measured height is less than drawn height.
+    // OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
 
     if (HasProp(propMap, "fontFamily")) {
         const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
