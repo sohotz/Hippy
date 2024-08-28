@@ -25,6 +25,7 @@
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_value_utils.h"
+#include "renderer/arkui/native_node_api.h"
 
 namespace hippy {
 inline namespace render {
@@ -203,7 +204,20 @@ void RichTextView::OnSetPropsEnd() {
 }
 
 void RichTextView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrame(frame, padding);
+  // debug
+  HRRect newFrame = frame;
+  auto c = OH_ArkUI_LayoutConstraint_Create();
+  OH_ArkUI_LayoutConstraint_SetMaxWidth(c, (int32_t)frame.width);
+  OH_ArkUI_LayoutConstraint_SetMaxHeight(c, (int32_t)frame.height);
+  auto res = NativeNodeApi::GetInstance()->measureNode(GetLocalRootArkUINode().GetArkUINodeHandle(), c);
+  if (res == ARKUI_ERROR_CODE_NO_ERROR) {
+    auto size = NativeNodeApi::GetInstance()->getMeasuredSize(GetLocalRootArkUINode().GetArkUINodeHandle());
+    FOOTSTONE_DLOG(INFO) << "xxx hippy, measureNode result: " << size.width << ", " << size.height;
+    newFrame.width = (float)size.width;
+    newFrame.height = (float)size.height;
+  }
+  
+  BaseView::UpdateRenderViewFrame(newFrame, padding);
   textNode_.SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
 }
 
