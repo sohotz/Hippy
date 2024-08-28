@@ -280,7 +280,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
                               const string_view& code_cache_dir,
                               const string_view& uri,
                               bool is_local_file) {
-  FOOTSTONE_LOG(INFO) << "RunScript begin, file_name = " << file_name
+  FOOTSTONE_LOG(INFO) << "xxx hippy, RunScript begin, file_name = " << file_name
                       << ", is_use_code_cache = " << is_use_code_cache
                       << ", code_cache_dir = " << code_cache_dir
                       << ", uri = " << uri
@@ -303,8 +303,10 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
     auto engine = scope->GetEngine().lock();
     FOOTSTONE_CHECK(engine);
     auto func = hippy::base::MakeCopyable([p = std::move(read_file_promise), code_cache_path, code_cache_dir]() mutable {
+      FOOTSTONE_LOG(INFO) << "xxx hippy, read cache task begin";
       u8string content;
       HippyFile::ReadFile(code_cache_path, content, true);
+      FOOTSTONE_LOG(INFO) << "xxx hippy, read cache file end";
       if (content.empty()) {
         FOOTSTONE_DLOG(INFO) << "Read code cache failed";
         int ret = HippyFile::RmFullPath(code_cache_dir);
@@ -313,6 +315,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
       } else {
         FOOTSTONE_DLOG(INFO) << "Read code cache succ";
       }
+      FOOTSTONE_LOG(INFO) << "xxx hippy, read cache task set_value";
       p.set_value(std::move(content));
     });
     worker_task_runner->PostTask(std::move(func));
@@ -320,22 +323,25 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
   UriLoader::RetCode code;
   std::unordered_map<std::string, std::string> meta;
   UriLoader::bytes content;
+  FOOTSTONE_LOG(INFO) << "xxx hippy, to req";
   loader->RequestUntrustedContent(uri, {}, code, meta, content);
   auto script_content = string_view::new_from_utf8(content.c_str(), content.length());
+  FOOTSTONE_LOG(INFO) << "xxx hippy, content len: " << content.length();
   auto read_script_flag = false;
   if (code == UriLoader::RetCode::Success && !StringViewUtils::IsEmpty(script_content)) {
     read_script_flag = true;
   }
   if (is_use_code_cache) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, to read_file_future get";
     code_cache_content = read_file_future.get();
   }
 
-  FOOTSTONE_DLOG(INFO) << "uri = " << uri
+  FOOTSTONE_LOG(INFO) << "xxx hippy, uri = " << uri
                        << ", read_script_flag = " << read_script_flag
                        << ", script content = " << script_content;
 
   if (!read_script_flag || StringViewUtils::IsEmpty(script_content)) {
-    FOOTSTONE_LOG(WARNING) << "read_script_flag = " << read_script_flag
+    FOOTSTONE_LOG(WARNING) << "xxx hippy, read_script_flag = " << read_script_flag
                            << ", script content empty, uri = " << uri;
     return false;
   }
@@ -349,8 +355,10 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
   auto ret = std::static_pointer_cast<V8Ctx>(scope->GetContext())->RunScript(
       script_content, file_name, is_use_code_cache, &code_cache_content, true);
 #elif (defined JS_JSH)
+  FOOTSTONE_LOG(INFO) << "xxx hippy, run begin";
   auto ret = std::static_pointer_cast<JSHCtx>(scope->GetContext())->RunScript(
       script_content, file_name, is_use_code_cache, &code_cache_content, true);
+  FOOTSTONE_LOG(INFO) << "xxx hippy, run end";
 #endif
   if (is_use_code_cache) {
     if (!StringViewUtils::IsEmpty(code_cache_content)) {
@@ -388,7 +396,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
   entry->BundleInfoOfUrl(uri).execute_source_end_ = footstone::TimePoint::SystemNow();
 
   auto flag = (ret != nullptr);
-  FOOTSTONE_LOG(INFO) << "runScript end, flag = " << flag;
+  FOOTSTONE_LOG(INFO) << "xxx hippy, runScript end, flag = " << flag;
 
   return flag;
 }
