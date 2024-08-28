@@ -26,6 +26,8 @@
 #include <stack>
 #include "renderer/components/list_item_view.h"
 
+static const uint32_t sListItemLimit = 8;
+
 namespace hippy {
 inline namespace render {
 inline namespace native {
@@ -35,7 +37,8 @@ public:
   ListItemAdapter(std::vector<std::shared_ptr<BaseView>> &itemViews)
       : handle_(OH_ArkUI_NodeAdapter_Create()), itemViews_(itemViews) {
     // 设置懒加载数据。
-    OH_ArkUI_NodeAdapter_SetTotalNodeCount(handle_, static_cast<uint32_t>(itemViews.size()));
+    uint32_t cnt = itemViews.size() > sListItemLimit ? sListItemLimit : (uint32_t)itemViews.size();
+    OH_ArkUI_NodeAdapter_SetTotalNodeCount(handle_, cnt);
     // 设置懒加载回调事件。
     OH_ArkUI_NodeAdapter_RegisterEventReceiver(handle_, this, OnStaticAdapterEvent);
   }
@@ -57,14 +60,16 @@ public:
     // 如果index会导致可视区域元素发生可见性变化，则会回调NODE_ADAPTER_EVENT_ON_REMOVE_NODE_FROM_ADAPTER事件删除元素，
     // 根据是否有新增元素回调NODE_ADAPTER_EVENT_ON_GET_NODE_ID和NODE_ADAPTER_EVENT_ON_ADD_NODE_TO_ADAPTER事件。
     OH_ArkUI_NodeAdapter_RemoveItem(handle_, static_cast<uint32_t>(index), 1);
-    OH_ArkUI_NodeAdapter_SetTotalNodeCount(handle_, static_cast<uint32_t>(itemViews_.size()));
+    uint32_t cnt = itemViews_.size() > sListItemLimit ? sListItemLimit : (uint32_t)itemViews_.size();
+    OH_ArkUI_NodeAdapter_SetTotalNodeCount(handle_, cnt);
   }
 
   void InsertItem(int32_t index) {
     // 如果index会导致可视区域元素发生可见性变化，则会回调NODE_ADAPTER_EVENT_ON_GET_NODE_ID和NODE_ADAPTER_EVENT_ON_ADD_NODE_TO_ADAPTER事件，
     // 根据是否有删除元素回调NODE_ADAPTER_EVENT_ON_REMOVE_NODE_FROM_ADAPTER事件。
     OH_ArkUI_NodeAdapter_InsertItem(handle_, static_cast<uint32_t>(index), 1);
-    OH_ArkUI_NodeAdapter_SetTotalNodeCount(handle_, static_cast<uint32_t>(itemViews_.size()));
+    uint32_t cnt = itemViews_.size() > sListItemLimit ? sListItemLimit : (uint32_t)itemViews_.size();
+    OH_ArkUI_NodeAdapter_SetTotalNodeCount(handle_, cnt);
   }
 
 private:
