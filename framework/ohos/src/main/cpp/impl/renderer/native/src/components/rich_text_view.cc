@@ -162,11 +162,14 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     return true;
   } else if (propKey == HRNodeProps::ELLIPSIZE_MODE) {
     std::string value = HRValueUtils::GetString(propValue);
-    ArkUI_EllipsisMode ellipsisMode = ARKUI_ELLIPSIS_MODE_END;
-    ArkUI_TextOverflow textOverflow = ARKUI_TEXT_OVERFLOW_ELLIPSIS;
-    HRTextConvertUtils::EllipsisModeToArk(value, ellipsisMode, textOverflow);
-    GetLocalRootArkUINode().SetTextOverflow(textOverflow);
-    GetLocalRootArkUINode().SetTextEllipsisMode(ellipsisMode);
+    if (!ellipsizeModeValue_.has_value() || value != ellipsizeModeValue_) {
+      ArkUI_EllipsisMode ellipsisMode = ARKUI_ELLIPSIS_MODE_END;
+      ArkUI_TextOverflow textOverflow = ARKUI_TEXT_OVERFLOW_ELLIPSIS;
+      HRTextConvertUtils::EllipsisModeToArk(value, ellipsisMode, textOverflow);
+      GetLocalRootArkUINode().SetTextOverflow(textOverflow);
+      GetLocalRootArkUINode().SetTextEllipsisMode(ellipsisMode);
+      ellipsizeModeValue_ = value;
+    }
     return true;
   } else if (propKey == HRNodeProps::BREAK_STRATEGY) {
     std::string value = HRValueUtils::GetString(propValue);
@@ -190,6 +193,12 @@ void RichTextView::OnSetPropsEnd() {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;
     GetLocalRootArkUINode().SetFontSize(defaultValue);
     fontSize_ = defaultValue;
+  }
+  if (!ellipsizeModeValue_.has_value()) {
+    std::string defaultValue = "tail";
+    ellipsizeModeValue_ = defaultValue;
+    GetLocalRootArkUINode().SetTextOverflow(ARKUI_TEXT_OVERFLOW_ELLIPSIS);
+    GetLocalRootArkUINode().SetTextEllipsisMode(ARKUI_ELLIPSIS_MODE_END);
   }
   if (toSetTextDecoration_) {
     toSetTextDecoration_ = false;

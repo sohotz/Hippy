@@ -24,6 +24,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/text_node.h"
+#include <optional>
 
 namespace hippy {
 inline namespace render {
@@ -57,6 +58,7 @@ private:
   std::optional<float> lineHeight_;
   std::optional<int32_t> numberOfLines_;
   std::optional<int32_t> textAlign_;
+  std::optional<std::string> ellipsizeModeValue_;
   
   ArkUI_TextDecorationType decorationType_ = ARKUI_TEXT_DECORATION_TYPE_NONE;
   ArkUI_TextDecorationStyle decorationStyle_ = ARKUI_TEXT_DECORATION_STYLE_SOLID;
