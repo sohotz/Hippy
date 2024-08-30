@@ -410,7 +410,9 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
 
     // double realWidth = OH_Drawing_TypographyGetLongestLine(typography); // 实际有像素的宽度
     // ret.width = fmax(realWidth, maxWidth);                   // 宽度
-    ret.width = ceil(OH_Drawing_TypographyGetLongestLine(typography));
+    
+    // MATE 60, beta5, "新品" "商店" text cannot be fully displayed. So add 0.5.
+    ret.width = ceil(OH_Drawing_TypographyGetLongestLine(typography) + 0.5);
     ret.height = OH_Drawing_TypographyGetHeight(typography); // 高度
     lineCount = OH_Drawing_TypographyGetLineCount(typography);
 
