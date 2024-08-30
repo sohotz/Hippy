@@ -105,6 +105,7 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
     float value = HRValueUtils::GetFloat(propValue);
     if (!lineHeight_.has_value() || value != lineHeight_) {
       GetLocalRootArkUINode().SetTextLineHeight(value);
+      GetLocalRootArkUINode().SetTextHalfLeading(true);
       lineHeight_ = value;
     }
     return true;

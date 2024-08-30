@@ -58,6 +58,7 @@ public:
   TextNode &SetFontStyle(int32_t fontStyle);
   TextNode &SetFontWeight(ArkUI_FontWeight fontWeight);
   TextNode &SetTextLineHeight(float textLineHeight);
+  TextNode &SetTextHalfLeading(bool verticalCenter);
   TextNode &SetTextDecoration(ArkUI_TextDecorationType decorationType, uint32_t decorationColor, ArkUI_TextDecorationStyle decorationStyle);
   TextNode &SetTextCase(int32_t textCase);
   TextNode &SetTextLetterSpacing(float textLetterSpacing);
