@@ -58,17 +58,17 @@ void NativeRenderProvider_UpdateRootSize(uint32_t render_manager_id, uint32_t ro
     return;
   }
 
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
-  if (dom_manager == nullptr) {
-    FOOTSTONE_DLOG(WARNING) << "UpdateRootSize dom_manager is nullptr";
-    return;
-  }
-
   auto &root_map = RootNode::PersistentMap();
   std::shared_ptr<RootNode> root_node;
   ret = root_map.Find(root_id, root_node);
   if (!ret) {
     FOOTSTONE_DLOG(WARNING) << "UpdateRootSize root_node is nullptr";
+    return;
+  }
+  
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
+  if (dom_manager == nullptr) {
+    FOOTSTONE_DLOG(WARNING) << "UpdateRootSize dom_manager is nullptr";
     return;
   }
 
@@ -90,18 +90,18 @@ void NativeRenderProvider_UpdateNodeSize(uint32_t render_manager_id, uint32_t ro
     FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize render_manager_id invalid";
     return;
   }
-
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
-  if (dom_manager == nullptr) {
-    FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize dom_manager is nullptr";
-    return;
-  }
-
+  
   auto &root_map = RootNode::PersistentMap();
   std::shared_ptr<RootNode> root_node;
   ret = root_map.Find(root_id, root_node);
   if (!ret) {
     FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize root_node is nullptr";
+    return;
+  }
+  
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
+  if (dom_manager == nullptr) {
+    FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize dom_manager is nullptr";
     return;
   }
 
@@ -154,8 +154,16 @@ void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result,
     FOOTSTONE_DLOG(WARNING) << "DoCallBack render_manager_id invalid";
     return;
   }
+  
+  auto &root_map = RootNode::PersistentMap();
+  std::shared_ptr<RootNode> root_node;
+  ret = root_map.Find(root_id, root_node);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "DoCallBack root_node is nullptr";
+    return;
+  }
 
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
   if (dom_manager == nullptr) {
     FOOTSTONE_DLOG(WARNING) << "DoCallBack dom_manager is nullptr";
     return;

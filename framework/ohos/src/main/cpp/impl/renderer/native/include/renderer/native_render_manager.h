@@ -96,9 +96,6 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   void ReceivedEvent(std::weak_ptr<RootNode> root_node, uint32_t dom_id, const std::string& event_name,
                      const std::shared_ptr<HippyValue>& params, bool capture, bool bubble);
 
-  void SetDomManager(std::weak_ptr<DomManager> dom_manager) { dom_manager_ = dom_manager; }
-  std::shared_ptr<DomManager> GetDomManager() const { return dom_manager_.lock(); }
-
   static footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<NativeRenderManager>>& PersistentMap() {
     return persistent_map_;
   }
@@ -200,8 +197,7 @@ private:
 
   std::shared_ptr<footstone::value::Serializer> serializer_;
   std::map<uint32_t, std::vector<ListenerOp>> event_listener_ops_;
-
-  std::weak_ptr<DomManager> dom_manager_;
+  
   static std::atomic<uint32_t> unique_native_render_manager_id_;
   static footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<NativeRenderManager>> persistent_map_;
 

@@ -39,7 +39,7 @@ export class DomManager {
   }
 
   createDomManager(): number {
-    return this.libHippy?.DomManager_CreateDomManager()
+    return this.libHippy?.DomManager_CreateDomManager(3) // TODO(hot): dom
   }
 
   destroyDomManager(

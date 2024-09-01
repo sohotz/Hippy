@@ -57,12 +57,6 @@ export class NativeRenderer {
     this.libHippy?.NativeRenderer_InitRendererParams(statusBarHeight)
   }
 
-  attachToDom(
-    domManagerId: number
-  ) {
-    this.libHippy?.NativeRenderer_SetDomManager(this.instanceId, domManagerId)
-  }
-
   registerCustomFontPaths(customFontPathMap: Map<string,string> | null) : void {
     const resultArray: string[] = [];
     customFontPathMap?.forEach((value, key) => {

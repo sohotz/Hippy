@@ -44,7 +44,7 @@ export interface HippyLibrary {
   Devtools_OnAttachToRoot(devtoolsId: number, rootId: number): void;
 
   DomManager_SetRenderManager(instanceId: number, renderId: number): void;
-  DomManager_CreateDomManager(): number;
+  DomManager_CreateDomManager(domManagerNum: number): number;
   DomManager_DestroyDomManager(domManagerId: number): void;
   DomManager_CreateRoot(rootId: number, density: number): void;
   DomManager_DestroyRoot(rootId: number): void;
@@ -97,7 +97,6 @@ export interface HippyLibrary {
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
   NativeRenderer_SetBundlePath(instanceId: number, bundlePath: string): void;
   NativeRenderer_InitRendererParams(statusBarHeight: number): void;
-  NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
   NativeRenderer_RegisterFontPaths(instanceId: number, fontFamilyAndPaths: Array<string>): void;
 
   NativeRenderProvider_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number): void;

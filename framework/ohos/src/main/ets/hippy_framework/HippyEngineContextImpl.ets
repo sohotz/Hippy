@@ -131,7 +131,6 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider,
       customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath, isRawfile, resModuleName)
     this.nativeRenderer.registerCustomFontPaths(customFontPathMap)
-    this.nativeRenderer.attachToDom(this.mDomManager.instanceId)
     // DomManager挂载
     this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)
     // ModuleManager注册

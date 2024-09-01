@@ -916,15 +916,16 @@ void NativeRenderManager::CallFunction_C(std::weak_ptr<RootNode> root_node, std:
 void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint32_t dom_id,
                                         const std::string& event_name, const std::shared_ptr<HippyValue>& params,
                                         bool capture, bool bubble) {
-  auto manager = dom_manager_.lock();
-  FOOTSTONE_DCHECK(manager != nullptr);
-  if (manager == nullptr) return;
-
   auto root = root_node.lock();
   FOOTSTONE_DCHECK(root != nullptr);
   if (root == nullptr) return;
-
-  std::vector<std::function<void()>> ops = {[weak_dom_manager = dom_manager_, weak_root_node = root_node, dom_id,
+  
+  auto dom_manager = root->GetDomManager().lock();
+  FOOTSTONE_DCHECK(dom_manager != nullptr);
+  if (dom_manager == nullptr) return;
+  
+  std::weak_ptr<DomManager> weak_dom_manager = dom_manager;
+  std::vector<std::function<void()>> ops = {[weak_dom_manager, weak_root_node = root_node, dom_id,
                                              params = std::move(params), use_capture = capture, use_bubble = bubble,
                                              event_name = std::move(event_name)] {
     auto manager = weak_dom_manager.lock();
@@ -939,7 +940,7 @@ void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint3
     auto event = std::make_shared<DomEvent>(event_name, node, use_capture, use_bubble, params);
     node->HandleEvent(event);
   }};
-  manager->PostTask(Scene(std::move(ops)));
+  dom_manager->PostTask(Scene(std::move(ops)));
 }
 
 float NativeRenderManager::DpToPx(float dp) const { return dp * density_; }
@@ -1015,12 +1016,6 @@ void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_pt
 void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node, const std::weak_ptr<hippy::dom::DomNode> dom_node,
                    const float width, const int32_t width_mode,
                    const float height, const int32_t height_mode, int64_t &result) {
-  auto dom_manager = dom_manager_.lock();
-  FOOTSTONE_DCHECK(dom_manager != nullptr);
-  if (dom_manager == nullptr) {
-    return;
-  }
-
   auto root = root_node.lock();
   FOOTSTONE_DCHECK(root != nullptr);
   if (root == nullptr) {
