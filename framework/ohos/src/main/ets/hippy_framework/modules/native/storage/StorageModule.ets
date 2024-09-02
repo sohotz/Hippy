@@ -101,8 +101,10 @@ export class StorageModule extends HippyNativeModuleBase {
       this.mStorageAdapter?.multiSet(data).then((err) => {
         if (err == undefined) {
           LogUtils.i(STORAGE_MODULE_TAG, "multiSet succ");
-        } else {
           promise.resolve('success');
+        } else {
+          LogUtils.i(STORAGE_MODULE_TAG, "multiSet fail:" + err);
+          promise.reject(JSON.stringify(err));
         }
       })
     } catch (e) {
