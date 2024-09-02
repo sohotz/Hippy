@@ -164,6 +164,8 @@ export class EngineInitParams {
   public enableArkCApi: boolean = true;
   // 可选参数 是否集成JS引擎功能
   public integrateJSEngine: boolean = true;
+  // 可选参数 domManager并行数量，即dom多线程的数量，默认只有1个dom线程
+  public domManagerConcurrentNum: number = 1;
 
   constructor(
     libHippy: HippyLibrary,

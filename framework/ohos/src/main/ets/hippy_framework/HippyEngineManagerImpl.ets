@@ -169,7 +169,7 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     // add init engine perf
     this.mMonitor.beginGroup(TimeMonitor.MONITOR_GROUP_INIT_ENGINE);
     this.mMonitor.addPoint(TimeMonitor.MONITOR_GROUP_INIT_ENGINE, TimeMonitor.MONITOR_POINT_INIT_NATIVE_ENGINE);
-    this.domMgr = new DomManager(this.libHippy)
+    this.domMgr = new DomManager(this.libHippy, this.mGlobalConfigs.getDomManagerConcurrentNum())
     // init HippyEngineContext
     this.mEngineContext = new HippyEngineContextImpl(
       this.params,

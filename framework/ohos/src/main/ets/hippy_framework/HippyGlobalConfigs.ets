@@ -78,6 +78,7 @@ export class HippyGlobalConfigs {
   private mLogAdapter: HippyLogAdapter | null;
   private mEnableTurbo: boolean;
   private mEnableArkCApi: boolean;
+  private mDomManagerConcurrentNum: number;
 
   constructor(params: EngineInitParams) {
     this.mContext = params.context;
@@ -96,6 +97,7 @@ export class HippyGlobalConfigs {
     this.mLogAdapter = params.logAdapter;
     this.mEnableTurbo = params.enableTurbo;
     this.mEnableArkCApi = params.enableArkCApi;
+    this.mDomManagerConcurrentNum = params.domManagerConcurrentNum;
   }
 
   public destroyIfNeed() {
@@ -176,4 +178,7 @@ export class HippyGlobalConfigs {
     return this.mEnableArkCApi;
   }
 
+  public getDomManagerConcurrentNum(): number {
+    return this.mDomManagerConcurrentNum;
+  }
 }

@@ -406,20 +406,6 @@ static napi_value SetRootNode(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
-static napi_value SetDomManager(napi_env env, napi_callback_info info) {
-  ArkTS arkTs(env);
-  auto args = arkTs.GetCallbackArgs(info);
-  uint32_t scope_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
-  uint32_t dom_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
-  std::any dom_manager;
-  auto flag = hippy::global_data_holder.Find(dom_manager_id, dom_manager);
-  FOOTSTONE_CHECK(flag);
-  auto dom_manager_object = std::any_cast<std::shared_ptr<DomManager>>(dom_manager);
-  auto scope = GetScope(scope_id);
-  scope->SetDomManager(dom_manager_object);
-  return arkTs.GetUndefined();
-}
-
 static napi_value OnNativeInitEnd(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
@@ -517,7 +503,6 @@ REGISTER_OH_NAPI("JsDriver", "JsDriver_LoadInstance", LoadInstance)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_UnloadInstance", UnloadInstance)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_RunScriptFromUri", RunScriptFromUri)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_SetRootNode", SetRootNode)
-REGISTER_OH_NAPI("JsDriver", "JsDriver_SetDomManager", SetDomManager)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_OnNativeInitEnd", OnNativeInitEnd)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_OnFirstFrameEnd", OnFirstFrameEnd)
 REGISTER_OH_NAPI("JsDriver", "JsDriver_OnResourceLoadEnd", OnResourceLoadEnd)

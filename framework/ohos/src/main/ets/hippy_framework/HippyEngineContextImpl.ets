@@ -204,7 +204,6 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     if (!this.mJsDriver) {
       return
     }
-    this.mJsDriver.attachToDom(this.mDomManager.instanceId)
     if (this.mDevtoolsManager != null && this.nativeRenderer != null) {
       this.mDevtoolsManager.bind(this.mJsDriver, this.mDomManager, this.nativeRenderer);
     }

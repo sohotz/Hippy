@@ -164,12 +164,6 @@ export class JsDriver {
     this.libHippy?.JsDriver_SetRootNode(this.instanceId, rootId)
   }
 
-  attachToDom(
-    domManagerId: number
-  ) {
-    this.libHippy?.JsDriver_SetDomManager(this.instanceId, domManagerId)
-  }
-
   onNativeInitEnd(
     startTime: number,
     endTime: number

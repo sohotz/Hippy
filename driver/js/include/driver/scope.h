@@ -302,7 +302,15 @@ class Scope : public std::enable_shared_from_this<Scope> {
     dom_manager_ = dom_manager;
   }
 
-  inline std::weak_ptr<DomManager> GetDomManager() { return dom_manager_; }
+  inline std::weak_ptr<DomManager> GetDomManager() {
+#ifdef __OHOS__
+    auto root = root_node_.lock();
+    if (root) {
+      return root->GetDomManager();
+    }
+#endif
+    return dom_manager_;
+  }
 
   inline std::weak_ptr<RootNode> GetRootNode() {
     return root_node_;
