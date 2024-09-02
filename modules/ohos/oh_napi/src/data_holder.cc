@@ -51,7 +51,6 @@ uint32_t GlobalGetNextDomManagerId(uint32_t first_dom_manager_id) {
     }
     hippy::global_dom_manager_current_id_holder.Erase(first_dom_manager_id);
     hippy::global_dom_manager_current_id_holder.Insert(first_dom_manager_id, next_id);
-    return next_id;
   } else {
     next_id = first_dom_manager_id;
     hippy::global_dom_manager_current_id_holder.Insert(first_dom_manager_id, next_id);
