@@ -77,7 +77,8 @@ static napi_value CreateDomManager(napi_env env, napi_callback_info info) {
     auto dom_manager = std::make_shared<DomManager>();
     auto dom_manager_id = hippy::global_data_holder_key.fetch_add(1);
     hippy::global_data_holder.Insert(dom_manager_id, dom_manager);
-    auto worker = std::make_shared<WorkerImpl>(kDomWorkerName, false);
+    std::string worker_name = kDomWorkerName + std::to_string(dom_manager_id);
+    auto worker = std::make_shared<WorkerImpl>(worker_name, false);
     worker->Start();
     auto runner = std::make_shared<TaskRunner>(kDomRunnerName);
     runner->SetWorker(worker);
