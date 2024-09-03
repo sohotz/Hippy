@@ -831,14 +831,16 @@ void NativeRenderManager::BeforeLayout(std::weak_ptr<RootNode> root_node){}
 
 void NativeRenderManager::AfterLayout(std::weak_ptr<RootNode> root_node) {
   // 更新布局信息前处理事件监听
-  HandleListenerOps(root_node, event_listener_ops_, "updateEventListener");
+  auto &ops = root_node.lock()->EventListenerOps();
+  HandleListenerOps(root_node, ops, "updateEventListener");
 }
 
 void NativeRenderManager::AddEventListener(std::weak_ptr<RootNode> root_node,
                                            std::weak_ptr<DomNode> dom_node, const std::string& name) {
   auto node = dom_node.lock();
   if (node) {
-    event_listener_ops_[node->GetId()].emplace_back(ListenerOp(true, dom_node, name));
+    auto &ops = root_node.lock()->EventListenerOps();
+    ops[node->GetId()].emplace_back(ListenerOp(true, dom_node, name));
   }
 }
 
@@ -846,7 +848,8 @@ void NativeRenderManager::RemoveEventListener(std::weak_ptr<RootNode> root_node,
                                               std::weak_ptr<DomNode> dom_node, const std::string& name) {
   auto node = dom_node.lock();
   if (node) {
-    event_listener_ops_[node->GetId()].emplace_back(ListenerOp(false, dom_node, name));
+    auto &ops = root_node.lock()->EventListenerOps();
+    ops[node->GetId()].emplace_back(ListenerOp(false, dom_node, name));
   }
 }
 
