@@ -280,6 +280,7 @@ void WorkerManager::RemoveTaskRunner(const std::shared_ptr<TaskRunner> &runner) 
 }
 
 void WorkerManager::AddTaskRunner(std::shared_ptr<TaskRunner> runner) {
+  FOOTSTONE_LOG(INFO) << "xxx hippy, WorkerManager::AddTaskRunner begin";
   std::vector<std::shared_ptr<TaskRunner>> group{std::move(runner)};
 
   std::lock_guard<std::mutex> lock(mutex_);
@@ -290,6 +291,7 @@ void WorkerManager::AddTaskRunner(std::shared_ptr<TaskRunner> runner) {
   worker->Bind(group);
   UpdateWorkerSpecific(worker, group);
   index_ = (index_ == static_cast<int32_t>(size_ - 1)) ? 0 : (1 + index_);
+  FOOTSTONE_LOG(INFO) << "xxx hippy, WorkerManager::AddTaskRunner end, index_: " << index_;
 }
 
 void WorkerManager::UpdateWorkerSpecific(const std::shared_ptr<Worker> &worker,

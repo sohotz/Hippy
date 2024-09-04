@@ -19,11 +19,13 @@
  */
 
 #include "include/footstone/cv_driver.h"
+#include "footstone/logging.h"
 
 namespace footstone {
 inline namespace runner {
 
 void CVDriver::Notify() {
+  FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::Notify, " << "this: " << this;
   cv_.notify_one();
 }
 
@@ -31,19 +33,24 @@ void CVDriver::WaitFor(const TimeDelta& delta) {
   std::unique_lock<std::mutex> lock(mutex_);
 
   if (delta != TimeDelta::Max() && delta >= TimeDelta::Zero()) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::WaitFor, time: " << delta.ToNanoseconds() << ", " << "this: " << this;
     cv_.wait_for(lock, std::chrono::nanoseconds(delta.ToNanoseconds()));
   } else {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::WaitFor, " << "this: " << this;
     cv_.wait(lock);
   }
 }
 
 void CVDriver::Start() {
+  FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::Start, " << "this: " << this;
   while (!is_terminated_) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::Start to do unit, " << "this: " << this;
     unit_();
   }
 }
 
 void CVDriver::Terminate() {
+  FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::Terminate, " << "this: " << this;
   std::unique_lock<std::mutex> lock(mutex_);
   is_terminated_ = true;
   cv_.notify_one();

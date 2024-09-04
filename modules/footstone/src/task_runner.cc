@@ -108,9 +108,11 @@ bool TaskRunner::RemoveSubTaskRunner(const std::shared_ptr<TaskRunner>& sub_runn
 }
 
 void TaskRunner::PostTask(std::unique_ptr<Task> task) {
+  FOOTSTONE_LOG(INFO) << "xxx hippy, TaskRunner::PostTask begin";
   {
     std::lock_guard<std::mutex> lock(queue_mutex_);
     task_queue_.push(std::move(task));
+    FOOTSTONE_LOG(INFO) << "xxx hippy, TaskRunner::PostTask after push, task_queue_: " << task_queue_.size();
   }
   NotifyWorker();
 }
@@ -204,6 +206,7 @@ void TaskRunner::NotifyWorker() {
   if (!worker) {
     return;
   }
+  FOOTSTONE_LOG(INFO) << "xxx hippy, TaskRunner::NotifyWorker to Notify";
   worker->Notify();
 }
 

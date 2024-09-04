@@ -195,6 +195,7 @@ void Worker::BindGroup(uint32_t father_id, const std::shared_ptr<TaskRunner> &ch
 }
 
 void Worker::Bind(std::vector<std::shared_ptr<TaskRunner>> group) {
+  FOOTSTONE_LOG(INFO) << "xxx hippy, Worker::Bind1, group size: " << group.size();
   {
     std::lock_guard<std::mutex> lock(pending_mutex_);
 
@@ -209,6 +210,7 @@ void Worker::Bind(std::vector<std::shared_ptr<TaskRunner>> group) {
 }
 
 void Worker::Bind(std::list<std::vector<std::shared_ptr<TaskRunner>>> list) {
+  FOOTSTONE_LOG(INFO) << "xxx hippy, Worker::Bind2, list size: " << list.size();
   {
     std::lock_guard<std::mutex> lock(pending_mutex_);
     pending_group_list_.splice(pending_group_list_.end(), list);
