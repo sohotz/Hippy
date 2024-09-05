@@ -187,7 +187,7 @@ export class HippyHttpRequest {
       }
     } catch (e) {
       LogUtils.e(HIPPY_HTTP_REQUEST_TAG, 'http body parse error: ' + this.mBody);
-      return '';
+      return this.mBody;
     }
   }
 
