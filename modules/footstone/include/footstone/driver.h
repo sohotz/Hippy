@@ -23,6 +23,7 @@
 #pragma once
 
 #include <functional>
+#include <mutex>
 
 #include "footstone/time_delta.h"
 
@@ -36,6 +37,8 @@ class Driver {
 
   virtual void Notify() = 0;
   virtual void WaitFor(const TimeDelta& delta) = 0;
+  virtual std::mutex& Mutex() = 0;
+  virtual void WaitFor(const TimeDelta& delta, std::unique_lock<std::mutex>& lock) = 0;
   virtual void Start() = 0;
   virtual void Terminate() = 0;
 

@@ -25,6 +25,7 @@ namespace footstone {
 inline namespace runner {
 
 void CVDriver::Notify() {
+  std::unique_lock<std::mutex> lock(mutex_);
   FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::Notify, " << "this: " << this;
   cv_.notify_one();
 }
@@ -37,6 +38,20 @@ void CVDriver::WaitFor(const TimeDelta& delta) {
     cv_.wait_for(lock, std::chrono::nanoseconds(delta.ToNanoseconds()));
   } else {
     FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::WaitFor, " << "this: " << this;
+    cv_.wait(lock);
+  }
+}
+
+std::mutex& CVDriver::Mutex() {
+  return mutex_;
+}
+
+void CVDriver::WaitFor(const TimeDelta& delta, std::unique_lock<std::mutex>& lock) {
+  if (delta != TimeDelta::Max() && delta >= TimeDelta::Zero()) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::WaitFor2, time: " << delta.ToNanoseconds() << ", " << "this: " << this;
+    cv_.wait_for(lock, std::chrono::nanoseconds(delta.ToNanoseconds()));
+  } else {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, CVDriver::WaitFor2, " << "this: " << this;
     cv_.wait(lock);
   }
 }
