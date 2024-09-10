@@ -125,18 +125,27 @@ void PagerView::OnContentDidScroll(const int32_t currentIndex, const int32_t pag
   // offset: Value from [-1, 1] indicating the offset from the page at position.
   auto position = pageIndex;
   auto offset = pageOffset;
-  
+
   // filter the illegal values
   if (offset < -1.f || offset > 1.f) {
     return;
   }
   
-  if (pageIndex == currentIndex + 1) {
-    position = pageIndex;
-    offset = 1.f - offset;
-  } else if (pageIndex == currentIndex - 1) {
-    position = pageIndex;
-    offset = - (1.f + offset);
+  if (pageIndex > currentIndex) {
+    if (offset > 0.001 && offset < 0.999) {
+      position = pageIndex;
+      offset = 1.f - offset;
+    } else {
+      return;
+    }
+  } else if (pageIndex < currentIndex) {
+    if (offset < -0.001 && offset > -0.999) {
+      position = pageIndex;
+      offset = - (1.f + offset);
+    } else {
+      return;
+    }
+    
   } else {
     // no need to handle current page params
     return;
