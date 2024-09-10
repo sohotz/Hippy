@@ -93,7 +93,7 @@ TextNode &TextNode::SetTextLineHeight(float textLineHeight) {
 }
 
 TextNode &TextNode::SetTextHalfLeading(bool verticalCenter) {
-  // TODO(hot): to update IDE
+  // TODO(hot): invalid prop, still need half_leading config in module.json5
   // ArkUI_NumberValue value[] = {{.i32 = verticalCenter}};
   // ArkUI_AttributeItem item = {.value = value, .size = 1};
   // MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_HALF_LEADING, &item));
