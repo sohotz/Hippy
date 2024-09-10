@@ -145,7 +145,6 @@ void PagerView::OnContentDidScroll(const int32_t currentIndex, const int32_t pag
     } else {
       return;
     }
-    
   } else {
     // no need to handle current page params
     return;
