@@ -346,6 +346,7 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
   
   JSVM_Value result = nullptr;
   status = OH_JSVM_RunScript(env_, script, &result);
+  CheckPendingExeception(env_, status);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   if (!result) {
     return nullptr;
