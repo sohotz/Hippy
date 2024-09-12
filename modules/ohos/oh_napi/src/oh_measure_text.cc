@@ -1,6 +1,8 @@
 #include "oh_napi/oh_measure_text.h"
 #include "footstone/logging.h"
 
+static bool sIs_louzhu_str = false;
+
 OhMeasureText::OhMeasureText() {}
 
 OhMeasureText::~OhMeasureText() {}
@@ -230,6 +232,20 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     // 将文本样式对象加入到handler中
     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle);
     if (HasProp(propMap, "text")) {
+    
+        if (sIs_louzhu_str) {
+          sIs_louzhu_str = false;
+          std::string louzhu_text = propMap["text"];
+          const char *p = louzhu_text.c_str();
+          FOOTSTONE_DLOG(INFO) << "xxx hippy, louzhu text, p: " << p << ", len: " << louzhu_text.length();
+        }
+    
+        std::string span_text = propMap["text"];
+        if (span_text == "sheng") {
+          sIs_louzhu_str = true;
+        }
+
+    
         OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str());
 
 #ifdef MEASURE_TEXT_LOG_RESULT
