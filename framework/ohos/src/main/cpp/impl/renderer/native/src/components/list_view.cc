@@ -22,6 +22,7 @@
 
 #include "renderer/components/list_view.h"
 #include "renderer/components/list_item_view.h"
+#include "renderer/components/refresh_wrapper_view.h"
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
@@ -180,7 +181,12 @@ void ListView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_
 }
 
 void ListView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrame(frame, padding);
+  auto parent = parent_.lock();
+  if (parent && parent->GetViewType() == "RefreshWrapper") {
+    GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
+  } else {
+    BaseView::UpdateRenderViewFrame(frame, padding);
+  }
   width_ = frame.width;
   height_ = frame.height;
 }

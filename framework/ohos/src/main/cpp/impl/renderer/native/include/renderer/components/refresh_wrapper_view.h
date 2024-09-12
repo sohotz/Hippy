@@ -22,23 +22,21 @@
 
 #pragma once
 
-#include "renderer/arkui/list_item_node.h"
+#include "renderer/arkui/refresh_node.h"
 #include "renderer/components/base_view.h"
-#include "renderer/arkui/stack_node.h"
-#include "renderer/arkui/list_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RefreshWrapperView : public BaseView, public ListNodeDelegate {
+class RefreshWrapperView : public BaseView, public RefreshNodeDelegate {
 public:
   RefreshWrapperView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RefreshWrapperView();
   
   void Init() override;
 
-  ListNode &GetLocalRootArkUINode() override;
+  RefreshNode &GetLocalRootArkUINode() override;
   bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
   void Call(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
@@ -46,14 +44,9 @@ public:
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   
-  void OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) override;
-  void OnWillScroll(float offset, ArkUI_ScrollState state) override;
-  void OnScroll(float scrollOffsetX, float scrollOffsetY) override;
-  void OnScrollStart() override;
-  void OnScrollStop() override;
-  void OnReachStart() override;
-  void OnReachEnd() override;
-  void OnTouch(int32_t actionType) override;
+  void OnRefreshing() override;
+  void OnStateChange(int32_t state) override;
+  void OnOffsetChange(float_t offset) override;
   
 private:
   void BounceToHead();
@@ -62,18 +55,13 @@ private:
   
   void SendOnScrollEvent(float y);
   
-  ListNode listNode_;
-  std::vector<std::shared_ptr<ListItemNode>> listItemNodes_;
+  RefreshNode refreshNode_;
   
   int32_t bounceTime_ = 300;
-  bool needRefresh_ = false;
-  bool refreshBarVisible_ = false;
   
   bool scrollEventEnable_ = true;
   int32_t scrollEventThrottle_ = 400;
   int64_t lastScrollEventTimeStamp_ = -1;
-  
-  uint64_t end_batch_callback_id_ = 0;
 };
 
 } // namespace native

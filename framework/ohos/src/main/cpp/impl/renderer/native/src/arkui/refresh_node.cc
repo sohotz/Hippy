@@ -40,7 +40,11 @@ RefreshNode::RefreshNode()
   } 
 }
 
-RefreshNode::~RefreshNode() {}
+RefreshNode::~RefreshNode() {
+  for (auto eventType : REFRESH_NODE_EVENT_TYPES) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
+  }
+}
 
 void RefreshNode::SetRefreshRefreshing(bool flag) {
   ArkUI_NumberValue value[] = {{.i32 = flag}};
@@ -54,22 +58,25 @@ void RefreshNode::SetRefreshContent(ArkUI_NodeHandle nodeHandle) {
 }
 
 void RefreshNode::SetRefreshPullDownRatio(float ratio) {
-//   ArkUI_NumberValue value[] = {{.f32 = ratio}};
-//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_PULL_DOWN_RATIO, &item));
+  ArkUI_NumberValue value[] = {{.f32 = ratio}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_PULL_DOWN_RATIO, &item));
 }
 
 void RefreshNode::SetRefreshOffset(float offset) {
-  // TODO(hot):
-//   ArkUI_NumberValue value[] = {{.f32 = offset}};
-//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_OFFSET, &item));
+  ArkUI_NumberValue value[] = {{.f32 = offset}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_OFFSET, &item));
 }
 
 void RefreshNode::SetRefreshPullToRefresh(bool flag) {
-//   ArkUI_NumberValue value[] = {{.i32 = flag}};
-//   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_PULL_TO_REFRESH, &item));
+  ArkUI_NumberValue value[] = {{.i32 = flag}};
+  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_PULL_TO_REFRESH, &item));
+}
+
+void RefreshNode::ResetRefreshContent() {
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_REFRESH_CONTENT));
 }
 
 void RefreshNode::SetNodeDelegate(RefreshNodeDelegate *refreshNodeDelegate) {
@@ -91,12 +98,6 @@ void RefreshNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     float offset = nodeComponentEvent->data[0].f32;    
     refreshNodeDelegate_->OnOffsetChange(offset);
   }
-}
-
-void RefreshNode::SetRefreshing(bool beRefreshed){
-  ArkUI_NumberValue value[] = {{.i32 = beRefreshed},};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_REFRESH_REFRESHING, &item));
 }
 
 } // namespace native

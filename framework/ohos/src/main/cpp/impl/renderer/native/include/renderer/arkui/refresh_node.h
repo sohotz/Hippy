@@ -51,9 +51,10 @@ public:
   void SetRefreshOffset(float offset);
   void SetRefreshPullToRefresh(bool flag);
   
+  void ResetRefreshContent();
+  
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(RefreshNodeDelegate *refreshNodeDelegate);
-  void SetRefreshing(bool beRefreshed);
 };
 
 } // namespace native
