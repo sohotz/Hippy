@@ -39,23 +39,15 @@ struct OhMeasureResult {
 
 class OhMeasureText {
 public:
-    OhMeasureText();
-    OhMeasureText(const std::unordered_map<std::string, std::string>& fontFamilyList)
-        : fontFamilyList_(fontFamilyList) {}
-    ~OhMeasureText();
+    OhMeasureText(OH_Drawing_FontCollection *fontCollection): fontCollection_(fontCollection) {}
+    ~OhMeasureText() { fontCollection_ = nullptr; }
 
     void StartMeasure(std::map<std::string, std::string> &propMap);
     void AddText(std::map<std::string, std::string> &propMap);
     void AddImage(std::map<std::string, std::string> &propMap);
     OhMeasureResult EndMeasure(int width, int widthMode, int height, int heightMode, float density);
 
-    void RegisterFont(std::string &familyName, std::string &familySrc) {
-        fontFamilyList_[familyName] = familySrc;
-    }
-
 private:
-    std::unordered_map<std::string, std::string> fontFamilyList_;
-
     OH_Drawing_FontWeight FontWeightToDrawing(std::string &str);
     bool HasProp(std::map<std::string, std::string> &propMap, const char *s);
 
@@ -67,7 +59,7 @@ private:
 
     OH_Drawing_TypographyStyle *typoStyle_;
     OH_Drawing_TypographyCreate *handler_;
-    OH_Drawing_FontCollection *fontCollection_;
+    OH_Drawing_FontCollection *fontCollection_ = nullptr;
     double CalcSpanPostion(OH_Drawing_Typography *typography, OhMeasureResult &ret);
     std::vector<OhImageSpanHolder> imageSpans_;
     double lineHeight_ = 0; // 外部指定的行高，最高优先级

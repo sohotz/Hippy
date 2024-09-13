@@ -169,6 +169,7 @@ StyleFilter::StyleFilter() {
 NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"),
       serializer_(std::make_shared<footstone::value::Serializer>()) {
   id_ = unique_native_render_manager_id_.fetch_add(1);
+  font_collection_ = std::make_shared<OhFontCollection>();
 }
 
 NativeRenderManager::~NativeRenderManager() {
@@ -214,9 +215,10 @@ void NativeRenderManager::InitDensity(double density) {
 }
 
 void NativeRenderManager::AddCustomFontPath(const std::string &fontFamilyName, const std::string &fontPath) {
-    if (fontFamilyName.length() && fontPath.length()) {
-        custom_font_path_map_[fontFamilyName] = fontPath;
-    }
+  if (fontFamilyName.length() && fontPath.length()) {
+    custom_font_path_map_[fontFamilyName] = fontPath;
+    font_collection_->RegisterFont(fontFamilyName, fontPath);
+  }
 }
 
 void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
@@ -1036,7 +1038,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   CollectAllProps(textPropMap, node);
 
   float density = GetDensity();
-  OhMeasureText measureInst(custom_font_path_map_);
+  OhMeasureText measureInst(font_collection_->GetDrawingFontCollection());
   OhMeasureResult measureResult;
 
   measureInst.StartMeasure(textPropMap);

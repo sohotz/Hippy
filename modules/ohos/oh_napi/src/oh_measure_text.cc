@@ -1,10 +1,6 @@
 #include "oh_napi/oh_measure_text.h"
 #include "footstone/logging.h"
 
-OhMeasureText::OhMeasureText() {}
-
-OhMeasureText::~OhMeasureText() {}
-
 OH_Drawing_FontWeight OhMeasureText::FontWeightToDrawing(std::string &str) {
   if (str.length() == 0 || str == "normal") {
     return FONT_WEIGHT_400;
@@ -103,19 +99,7 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
         }
         OH_Drawing_SetTypographyTextEllipsisModal(typoStyle_, em);
     }
-
-    fontCollection_ = OH_Drawing_CreateFontCollection();
-    if (HasProp(propMap, "fontFamily")) {
-        auto fontFamilyName = propMap["fontFamily"];
-        if (fontFamilyList_.find(fontFamilyName) != fontFamilyList_.end()) {
-            uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, fontFamilyName.c_str(),
-                                                   fontFamilyList_[fontFamilyName].c_str());
-            FOOTSTONE_DLOG(WARNING) << "Measure Text OH_Drawing_RegisterFont(" << fontFamilyName << ","
-                                    << fontFamilyList_[fontFamilyName] << ") " << (ret == 0 ? "succ" : "fail");
-        } else {
-            FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont not found font:" << fontFamilyName;
-        }
-    }
+  
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
   
     if (HasProp(propMap, "lineHeight") && propMap["lineHeight"].size() > 0) {
@@ -424,7 +408,6 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     OH_Drawing_DestroyTypography(typography);
 
     OH_Drawing_DestroyTypographyHandler(handler_);
-    OH_Drawing_DestroyFontCollection(fontCollection_);
     OH_Drawing_DestroyTypographyStyle(typoStyle_);
 
     if (ret.height < minLineHeight_) {

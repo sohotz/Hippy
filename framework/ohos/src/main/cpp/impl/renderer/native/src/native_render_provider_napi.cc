@@ -428,7 +428,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
   float density = render_manager->GetDensity();
     
   uint32_t p = 0;
-  OhMeasureText measureInst;
+  OhMeasureText measureInst(render_manager->GetFontCollection()->GetDrawingFontCollection());
   OhMeasureResult result;
   while (true) {
     auto measureFlag = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));

@@ -32,6 +32,7 @@
 #include "footstone/persistent_object_map.h"
 #include "footstone/serializer.h"
 #include "footstone/macros.h"
+#include "oh_napi/oh_font_collection.h"
 #include "renderer/native_render_provider.h"
 
 namespace hippy {
@@ -121,6 +122,8 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   void RemoveBizViewInRoot(uint32_t root_id, uint32_t biz_view_id);
   std::shared_ptr<NativeRenderProvider> &GetNativeRenderProvider() { return c_render_provider_; }
 
+  std::shared_ptr<OhFontCollection> &GetFontCollection() { return font_collection_; }
+
 private:
   inline void MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, uint32_t node_id);
 
@@ -182,6 +185,7 @@ private:
 
   std::set<std::string> custom_measure_views_;
   std::unordered_map<std::string, std::string> custom_font_path_map_;
+  std::shared_ptr<OhFontCollection> font_collection_ = nullptr;
 
   std::shared_ptr<footstone::value::Serializer> serializer_;
   
