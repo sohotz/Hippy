@@ -232,14 +232,12 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle);
     if (HasProp(propMap, "text")) {
     
-//     if (propMap["text"].find("小肥") == 0) propMap["text"] = "小肥";
-    
           if (sNextStr.size() > 0) {
             propMap["text"] = sNextStr;
             sNextStr = "";
           }
           if (propMap["text"] == "园丁W") {
-            sNextStr = "\x80\x20\x44\xCC\x5C";
+            sNextStr = "\xee\x98\x8e"; // ee 98 8e
           }
       
         OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str());

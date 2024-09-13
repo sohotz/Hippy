@@ -43,14 +43,13 @@ SpanNode &RichTextSpanView::GetLocalRootArkUINode() {
 bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
-//     if (value.find("小肥") == 0) value = "小肥";
     
         if (sNextStr.size() > 0) {
           value = sNextStr;
           sNextStr = "";
         }
         if (value == "园丁W") {
-          sNextStr = "\x80\x20\x44\xCC\x5C";
+          sNextStr = "\xee\x98\x8e"; // ee 98 8e
         }
       
     if (!text_.has_value() || value != text_) {
