@@ -51,6 +51,17 @@ std::string ImageView::GetSrc() {
   return src_;
 }
 
+void ImageView::ReSetViewProps() {
+  BaseView::ReSetViewProps();
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_IMAGE_SRC);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_IMAGE_OBJECT_FIT);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_IMAGE_ALT);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_IMAGE_COLOR_FILTER);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_BLUR);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_IMAGE_RESIZABLE);
+  src_ = "";
+}
+
 bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "src") {
     auto value = HRValueUtils::GetString(propValue);

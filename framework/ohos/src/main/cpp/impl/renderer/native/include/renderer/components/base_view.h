@@ -53,6 +53,8 @@ public:
   std::weak_ptr<BaseView> &GetParent() { return parent_; }
 
   void SetTag(uint32_t tag);
+  void SetNativeRenderContext(std::shared_ptr<NativeRenderContext> ctx);
+
   void SetViewType(const std::string &type) { view_type_ = type; }
   void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
 
@@ -72,9 +74,9 @@ public:
 
   void SetTsRenderProvider(napi_env ts_env, napi_ref ts_render_provider_ref);
   void SetTsEventCallback(napi_ref ts_event_callback_ref);
-
+  
   void SetPosition(const HRPosition &position);
-
+  virtual void ReSetViewProps();
   virtual void OnClick() override;
   virtual void OnAppear() override;
   virtual void OnDisappear() override;

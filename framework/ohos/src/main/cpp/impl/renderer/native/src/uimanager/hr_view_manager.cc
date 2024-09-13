@@ -32,6 +32,7 @@
 #include "renderer/components/hippy_render_view_creator.h"
 #include "renderer/components/rich_text_view.h"
 #include "renderer/native_render_context.h"
+#include "renderer/uimanager/hr_view_pool.h"
 #include "footstone/logging.h"
 
 namespace hippy {
@@ -186,6 +187,35 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
     auto tm = std::static_pointer_cast<HRTextEllipsizedEventMutation>(m);
     SendTextEllipsizedEvent(tm->tag_);
   }
+}
+
+void HRViewManager::ViewsBackToPool() {
+  std::map<uint32_t, std::shared_ptr<BaseView>>::iterator iter;
+  iter = view_registry_.begin();
+  while(iter != view_registry_.end()) {
+    if (!HRViewPool::IsPoolAllFull()) {
+      std::shared_ptr<BaseView> baseView = iter->second;
+      if (baseView->GetViewType() == "View") {
+        std::shared_ptr<DivView> divView = std::dynamic_pointer_cast<DivView>(baseView);
+        if (divView) {
+          HRViewPool::SetDivViewToPool(divView);
+        }
+			} else if (baseView->GetViewType() == "Image"){
+				std::shared_ptr<ImageView> imageView = std::dynamic_pointer_cast<ImageView>(baseView);
+        if (imageView) {
+          HRViewPool::SetImageToPool(imageView);
+        }
+			} else if (baseView->GetViewType() == "Text") {
+        std::shared_ptr<RichTextView> textView = std::dynamic_pointer_cast<RichTextView>(baseView);
+        if (textView) {
+          HRViewPool::SetRichTextViewToPool(textView);
+        }
+			}
+			iter++;
+		} else {
+			break;
+		}
+	}
 }
 
 std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {

@@ -68,6 +68,10 @@ std::shared_ptr<HRVirtualViewManager> HRManager::GetVirtualNodeManager(uint32_t 
 }
 
 void HRManager::RemoveViewManager(uint32_t root_id) {
+  std::shared_ptr<HRViewManager> hrViewManager = view_manager_map_[root_id];
+  if (hrViewManager != nullptr) {
+    hrViewManager->ViewsBackToPool();
+  }
   view_manager_map_[root_id] = nullptr;
 }
 
