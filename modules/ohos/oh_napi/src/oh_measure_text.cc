@@ -61,7 +61,7 @@ void OhMeasureText::CheckUnusedProp(const char *tag, std::map<std::string, std::
 }
 #endif
 
-void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
+void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames) {
 #ifdef MEASURE_TEXT_CHECK_PROP
     StartCollectProp();
 #endif
@@ -107,13 +107,15 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
     }
 
     fontCollection_ = OH_Drawing_CreateFontCollection();
-    if (HasProp(propMap, "fontFamily")) {
-        auto fontFamilyName = propMap["fontFamily"];
+    for (auto it = fontFamilyNames.begin(); it != fontFamilyNames.end(); it++) {
+        auto &fontFamilyName = *it;
         if (fontFamilyList_.find(fontFamilyName) != fontFamilyList_.end()) {
             uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, fontFamilyName.c_str(),
                                                    fontFamilyList_[fontFamilyName].c_str());
-            FOOTSTONE_DLOG(WARNING) << "Measure Text OH_Drawing_RegisterFont(" << fontFamilyName << ","
-                                    << fontFamilyList_[fontFamilyName] << ") " << (ret == 0 ? "succ" : "fail");
+            if (ret != 0) {
+                FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont(" << fontFamilyName << ","
+                  << fontFamilyList_[fontFamilyName] << ") fail";
+            }
         } else {
             FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont not found font:" << fontFamilyName;
         }

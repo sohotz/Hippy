@@ -1035,7 +1035,21 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   OhMeasureText measureInst(custom_font_path_map_);
   OhMeasureResult measureResult;
 
-  measureInst.StartMeasure(textPropMap);
+  std::set<std::string> fontFamilyNames;
+  auto text_prop_it = textPropMap.find("fontFamily");
+  if (text_prop_it != textPropMap.end()) {
+    fontFamilyNames.insert(text_prop_it->second);
+  }
+  for(uint32_t i = 0; i < node->GetChildCount(); i++) {
+    auto child = node->GetChildAt(i);
+    auto style_map = child->GetStyleMap();
+    auto it = style_map->find("fontFamily");
+    if (it != style_map->end()) {
+      fontFamilyNames.insert(HippyValueToString(*(it->second)));
+    }
+  }
+  
+  measureInst.StartMeasure(textPropMap, fontFamilyNames);
 
   if (node->GetChildCount() == 0) {
     measureInst.AddText(textPropMap);

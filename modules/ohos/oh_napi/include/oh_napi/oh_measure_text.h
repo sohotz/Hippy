@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
-
+#include <set>
 #include <native_drawing/drawing_color.h>
 #include <native_drawing/drawing_font_collection.h>
 #include <native_drawing/drawing_text_declaration.h>
@@ -44,7 +44,7 @@ public:
         : fontFamilyList_(fontFamilyList) {}
     ~OhMeasureText();
 
-    void StartMeasure(std::map<std::string, std::string> &propMap);
+    void StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames);
     void AddText(std::map<std::string, std::string> &propMap);
     void AddImage(std::map<std::string, std::string> &propMap);
     OhMeasureResult EndMeasure(int width, int widthMode, int height, int heightMode, float density);
