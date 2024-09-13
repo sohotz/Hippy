@@ -48,6 +48,8 @@ public:
   void OnStateChange(int32_t state) override;
   void OnOffsetChange(float_t offset) override;
   
+  void SetRefreshOffset(float offset);
+  
 private:
   void BounceToHead();
   void StartRefresh();
@@ -62,6 +64,9 @@ private:
   bool scrollEventEnable_ = true;
   int32_t scrollEventThrottle_ = 400;
   int64_t lastScrollEventTimeStamp_ = -1;
+  
+  float refresh_offset_ = -1000.f;
+  std::weak_ptr<BaseView> item_view_;
 };
 
 } // namespace native

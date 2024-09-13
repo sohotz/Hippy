@@ -81,6 +81,8 @@ void RefreshWrapperView::OnChildInserted(std::shared_ptr<BaseView> const &childV
   
   if (childView->GetViewType() == "RefreshWrapperItemView") {
     refreshNode_.SetRefreshContent(childView->GetLocalRootArkUINode().GetArkUINodeHandle());
+    childView->SetPosition({0, - refresh_offset_});
+    item_view_ = childView;
   }
   
   if (childView->GetViewType() == "ListView") {
@@ -112,7 +114,17 @@ void RefreshWrapperView::OnStateChange(int32_t state) {
 
 void RefreshWrapperView::OnOffsetChange(float_t offset) {
   // FOOTSTONE_DLOG(INFO) << "Refresh wrapper view, OnOffsetChange: " << offset;
+  auto item_view = item_view_.lock();
+  if (item_view) {
+    item_view->SetPosition({0, offset - refresh_offset_});
+  }
+  
   SendOnScrollEvent(-offset);
+}
+
+void RefreshWrapperView::SetRefreshOffset(float offset) {
+  refresh_offset_ = offset;
+  refreshNode_.SetRefreshOffset(offset);
 }
 
 void RefreshWrapperView::BounceToHead() {

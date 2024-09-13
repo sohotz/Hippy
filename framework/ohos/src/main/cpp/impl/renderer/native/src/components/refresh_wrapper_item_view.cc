@@ -49,9 +49,9 @@ void RefreshWrapperItemView::UpdateRenderViewFrame(const HRRect &frame, const HR
   auto parent = parent_.lock();
   if (parent && parent->GetViewType() == "RefreshWrapper") {
     auto refresh_wrapper_view = std::static_pointer_cast<RefreshWrapperView>(parent);
-    refresh_wrapper_view->GetLocalRootArkUINode().SetRefreshOffset(frame.height);
+    refresh_wrapper_view->SetRefreshOffset(frame.height);
   }
-  BaseView::UpdateRenderViewFrame(frame, padding);
+  GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
 }
 
 void RefreshWrapperItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
