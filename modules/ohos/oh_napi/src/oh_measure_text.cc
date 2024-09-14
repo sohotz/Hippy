@@ -105,7 +105,7 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap, co
         }
         OH_Drawing_SetTypographyTextEllipsisModal(typoStyle_, em);
     }
-
+  
     fontCollection_ = OH_Drawing_CreateFontCollection();
     for (auto it = fontFamilyNames.begin(); it != fontFamilyNames.end(); it++) {
         auto &fontFamilyName = *it;
@@ -206,10 +206,17 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
     // 猜测行高=fontSize*1.25，lineSpacingMultiplier，1.25是猜的，也可能是1.3或其他
 
-    if (HasProp(propMap, "fontFamily")) {
-        const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
-        OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
+    // debug code
+    if (sNextStr.size() > 0) {
+      const char *fontFamilies[] = {"QQStockNews"};
+      OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies); // ！！！这个API的调用前后顺序也有关系，放后面不生效。
+    } else {
+      if (HasProp(propMap, "fontFamily")) {
+          const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
+          OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
+      }
     }
+  
     int fontStyle = FONT_STYLE_NORMAL;
     if (HasProp(propMap, "fontStyle") && propMap["fontStyle"] == "italic") {
         fontStyle = FONT_STYLE_ITALIC;

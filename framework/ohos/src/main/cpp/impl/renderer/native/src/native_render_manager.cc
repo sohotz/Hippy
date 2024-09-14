@@ -1049,6 +1049,9 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
     }
   }
   
+  // debug code
+  fontFamilyNames.insert("QQStockNews");
+  
   measureInst.StartMeasure(textPropMap, fontFamilyNames);
 
   if (node->GetChildCount() == 0) {
