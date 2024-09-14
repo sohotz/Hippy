@@ -47,6 +47,8 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
         if (sNextStr.size() > 0) {
           value = sNextStr;
           sNextStr = "";
+      
+          GetLocalRootArkUINode().SetFontFamily("QQStockNews");
         }
         if (value == "园丁W") {
           sNextStr = "\xee\x98\x8e"; // ee 98 8e

@@ -57,6 +57,10 @@ export default class EntryAbility extends UIAbility {
         familyName: 'TTTGB',
         familySrc: '/fonts/TTTGB.otf' // font文件与pages目录同级
       })
+      font.registerFont({
+        familyName: 'QQStockNews',
+        familySrc: '/fonts/QQStockNews.ttf' // font文件与pages目录同级
+      })
       hilog.info(0x0000, 'DemoTag', 'resources/resfile的绝对路径 : %{public}s', this.context.resourceDir);
       // todo :
       // this.context.resourceDir的值是'/data/storage/el1/bundle/entry/resources/resfile'
