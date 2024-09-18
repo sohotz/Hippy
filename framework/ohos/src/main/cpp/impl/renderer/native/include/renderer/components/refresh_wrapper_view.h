@@ -65,7 +65,7 @@ private:
   int32_t scrollEventThrottle_ = 400;
   int64_t lastScrollEventTimeStamp_ = -1;
   
-  float refresh_offset_ = -1000.f;
+  float refresh_offset_ = 1000.f;
   std::weak_ptr<BaseView> item_view_;
 };
 
