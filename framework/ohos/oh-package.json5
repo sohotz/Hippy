@@ -3,7 +3,7 @@
   "devDependencies": {},
   "author": "Tencent",
   "name": "hippy",
-  "description": "Please describe the basic information.",
+  "description": "Hippy is a cross-platform development framework.",
   "version": "1.0.0",
   "dependencies": {}
 }
