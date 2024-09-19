@@ -16,13 +16,13 @@ Install latest DevEco Studio.
 
 ### Integrate hippy
 
-1. Integrate hippy.har
+#### 1. Integrate hippy.har
 
   ```shell
   ohpm i hippy@latest
   ```
 
-2. Initialization code
+#### 2. Initialization code
 
 - Get libhippy.so and UIAbility context.
 
