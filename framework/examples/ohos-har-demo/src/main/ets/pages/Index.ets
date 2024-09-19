@@ -34,6 +34,10 @@ export class ExampleAPIProvider implements HippyAPIProvider {
   getCustomMappingRenderViewMap(): Map<string, string> | null {
     return null
   }
+
+  getCustomFontPathMap(): Map<string, string> | null {
+    return null
+  }
 }
 
 @Builder

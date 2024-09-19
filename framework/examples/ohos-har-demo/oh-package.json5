@@ -6,6 +6,8 @@
   "author": "",
   "license": "",
   "dependencies": {
-    //"hippy": "file:./libs/hippy.har"
-  }
+    "hippy": "1.0.0"
+  },
+  "devDependencies": {},
+  "dynamicDependencies": {}
 }
