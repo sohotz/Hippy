@@ -993,7 +993,7 @@ std::string HippyValueToString(const HippyValue &value) {
     value.ToUint32(ui);
     sv = std::to_string(ui);
   } else {
-    FOOTSTONE_LOG(ERROR) << "Measure Text : unknow value type";
+    FOOTSTONE_LOG(ERROR) << "Measure Text, unknown value type: " << (int32_t)value.GetType();
   }
   return sv;
 }
