@@ -36,7 +36,6 @@ export class HippyRootView {
   pagerName: string
   pagerData: HippyRecord
   private ctx: NativeRenderContext
-  private avoidArea: window.AvoidArea | null = null
   private renderViewSize: HRSize = new HRSize(0, 0)
   private lazyRenderViewTasks: Array<() => void> = []
 
@@ -60,16 +59,12 @@ export class HippyRootView {
   }
 
   private initRenderView() {
-    this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea)
+    this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize)
     this.performAllRenderViewTasks()
   }
 
   getRootId(): number {
     return this.ctx.getRootId()
-  }
-
-  setAvoidArea(avoidArea: window.AvoidArea) {
-    this.avoidArea = avoidArea
   }
 
   onViewSizeChanged(size: HRSize) {
@@ -193,12 +188,6 @@ export struct HippyRoot {
       if (this.initViewSize.width > 0) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
-      window.getLastWindow(getContext(this), (error, data) => {
-        if (this.rootView && data) {
-          let avoidArea = data.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM)
-          this.rootView.setAvoidArea(avoidArea)
-        }
-      })
 
       let libHippy = this.hippyEngine?.getHippyEngineContext()?.getLibHippy()
       libHippy?.NativeRenderProvider_BindNativeRoot(this.rootSlot, this.renderInstanceId, this.rootView.getRootId(), 0)
