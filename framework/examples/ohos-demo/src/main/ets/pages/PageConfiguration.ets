@@ -114,6 +114,9 @@ struct PageConfiguration {
       params.coreJSAssetsPath = "vue3/vendor.ohos.js"
     }
 
+    // debug code - map
+    params.coreJSAssetsPath = "map/tm_index.js";
+
     let hippyEngine = createHippyEngine(params)
     //this.itemInfo.hippyEngine = this.hippyEngine
 
@@ -126,6 +129,9 @@ struct PageConfiguration {
           jsAssetPath = "vue3/index.ohos.js"
         }
 
+        // debug code - map
+        jsAssetPath = "map/demo_index.js";
+
         let loadParams = new ModuleLoadParams(
           jsAssetPath,
           '',
@@ -135,8 +141,8 @@ struct PageConfiguration {
           null,
           null,
         )
-        loadParams.componentName = "Demo"
-        loadParams.codeCacheTag = "Demo"
+        loadParams.componentName = "Index"
+        //loadParams.codeCacheTag = "Demo"
         loadParams.jsParams = new Map<string, HippyValue>()
         loadParams.jsParams.set(
           "msgFromNative",

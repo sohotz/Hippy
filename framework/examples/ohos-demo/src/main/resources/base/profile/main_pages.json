@@ -3,6 +3,7 @@
     "pages/Index",
     "pages/PageManagement",
     "pages/PageSetting",
-    "pages/PageConfiguration"
+    "pages/PageConfiguration",
+    "pages/PageSecond"
   ]
 }

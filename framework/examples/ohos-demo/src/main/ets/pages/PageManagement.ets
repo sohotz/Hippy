@@ -285,7 +285,16 @@ struct HippyFrame {
           this.exception = `${exception.message}\n${exception.stack}`
         },
       })
-        .layoutWeight(1)
+        .layoutWeight(0.8)
+      Button("Next Page")
+        .width('100%')
+        .height(40)
+        .onClick((event: ClickEvent) => {
+          router.pushUrl({
+            url: 'pages/PageSecond',
+            params: {}
+          })
+        })
     }.width('100%')
     .height('100%')
   }
