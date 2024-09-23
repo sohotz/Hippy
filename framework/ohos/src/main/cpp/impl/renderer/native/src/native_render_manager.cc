@@ -998,8 +998,10 @@ std::string HippyValueToString(const HippyValue &value) {
   return sv;
 }
 
-void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_ptr<DomNode> node) {
-  propMap.clear();
+void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_ptr<DomNode> node, bool reset = true) {
+  if (reset) {
+    propMap.clear();
+  }
   // 样式属性
   auto style = node->GetStyleMap();
   auto iter = style->begin();
@@ -1051,6 +1053,14 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
     if (it != style_map->end()) {
       fontFamilyNames.insert(HippyValueToString(*(it->second)));
     }
+    for(uint32_t j = 0; j < child->GetChildCount(); j++) {
+      auto grand_child = child->GetChildAt(j);
+      auto grand_style_map = grand_child->GetStyleMap();
+      auto grand_it = grand_style_map->find("fontFamily");
+      if (grand_it != grand_style_map->end()) {
+        fontFamilyNames.insert(HippyValueToString(*(grand_it->second)));
+      }
+    }
   }
   
   measureInst.StartMeasure(textPropMap, fontFamilyNames);
@@ -1060,15 +1070,35 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   } else {
     for(uint32_t i = 0; i < node->GetChildCount(); i++) {
       auto child = node->GetChildAt(i);
-      CollectAllProps(spanPropMap, child);
-      if (child->GetViewName() == "Text") {
-        measureInst.AddText(spanPropMap);
-      } else if (child->GetViewName() == "Image") {
-        if (spanPropMap.find("width") != spanPropMap.end() && spanPropMap.find("height") != spanPropMap.end()) {
-          measureInst.AddImage(spanPropMap);
-          imageSpanNode.push_back(child);
-        } else {
-          FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
+      auto grand_child_count = child->GetChildCount();
+      if (grand_child_count == 0) {
+        CollectAllProps(spanPropMap, child);
+        if (child->GetViewName() == "Text") {
+          measureInst.AddText(spanPropMap);
+        } else if (child->GetViewName() == "Image") {
+          if (spanPropMap.find("width") != spanPropMap.end() && spanPropMap.find("height") != spanPropMap.end()) {
+            measureInst.AddImage(spanPropMap);
+            imageSpanNode.push_back(child);
+          } else {
+            FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
+          }
+        }
+      } else {
+        CollectAllProps(spanPropMap, child);
+        for(uint32_t j = 0; j < grand_child_count; j++) {
+          auto grand_child = child->GetChildAt(j);
+          std::map<std::string, std::string> grandSpanPropMap = spanPropMap;
+          CollectAllProps(grandSpanPropMap, grand_child, false);
+          if (grand_child->GetViewName() == "Text") {
+            measureInst.AddText(grandSpanPropMap);
+          } else if (grand_child->GetViewName() == "Image") {
+            if (grandSpanPropMap.find("width") != grandSpanPropMap.end() && grandSpanPropMap.find("height") != grandSpanPropMap.end()) {
+              measureInst.AddImage(grandSpanPropMap);
+              imageSpanNode.push_back(grand_child);
+            } else {
+              FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
+            }
+          }
         }
       }
     }
