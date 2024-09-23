@@ -228,6 +228,29 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   }
 }
 
+void CollectAllHippyValueProps(footstone::value::HippyValue::HippyValueObjectType &props, std::shared_ptr<DomNode> &node, bool reset = true) {
+  if (reset) {
+    props.clear();
+  }
+  // 样式属性
+  auto style = node->GetStyleMap();
+  auto iter = style->begin();
+  auto style_filter = NativeRenderManager::GetStyleFilter();
+  while (iter != style->end()) {
+    if (style_filter->Enable(iter->first)) {
+      props[iter->first] = *(iter->second);
+    }
+    iter++;
+  }
+  // 用户自定义属性
+  auto dom_ext = *node->GetExtStyle();
+  iter = dom_ext.begin();
+  while (iter != dom_ext.end()) {
+    props[iter->first] = *(iter->second);
+    iter++;
+  }
+}
+
 void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
   auto root = root_node.lock();
   if (!root) {
@@ -308,23 +331,7 @@ void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node,
     }
 
     footstone::value::HippyValue::HippyValueObjectType props;
-    // 样式属性
-    auto style = nodes[i]->GetStyleMap();
-    auto iter = style->begin();
-    auto style_filter = NativeRenderManager::GetStyleFilter();
-    while (iter != style->end()) {
-      if (style_filter->Enable(iter->first)) {
-        props[iter->first] = *(iter->second);
-      }
-      iter++;
-    }
-    // 用户自定义属性
-    auto dom_ext = *nodes[i]->GetExtStyle();
-    iter = dom_ext.begin();
-    while (iter != dom_ext.end()) {
-      props[iter->first] = *(iter->second);
-      iter++;
-    }
+    CollectAllHippyValueProps(props, nodes[i]);
 
     dom_node[kProps] = props;
     dom_node_array[i] = dom_node;
@@ -409,28 +416,22 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     }
 
     footstone::value::HippyValue::HippyValueObjectType props;
-    // 样式属性
-    auto style = nodes[i]->GetStyleMap();
-    auto iter = style->begin();
-    auto style_filter = NativeRenderManager::GetStyleFilter();
-    while (iter != style->end()) {
-      if (style_filter->Enable(iter->first)) {
-        props[iter->first] = *(iter->second);
-      }
-      iter++;
-    }
-    // 用户自定义属性
-    auto dom_ext = *nodes[i]->GetExtStyle();
-    iter = dom_ext.begin();
-    while (iter != dom_ext.end()) {
-      props[iter->first] = *(iter->second);
-      iter++;
-    }
-
+    CollectAllHippyValueProps(props, nodes[i]);
     m->props_ = props;
+    
     auto parentNode = nodes[i]->GetParent();
     if (parentNode && parentNode->GetViewName() == "Text") {
       m->is_parent_text_ = true;
+      
+      auto grandParentNode = parentNode->GetParent();
+      if (grandParentNode && grandParentNode->GetViewName() == "Text") {
+        footstone::value::HippyValue::HippyValueObjectType mergedProps;
+        CollectAllHippyValueProps(mergedProps, parentNode);
+        for (auto it = props.begin(); it != props.end(); it++) {
+          mergedProps[it->first] = it->second;
+        }
+        m->props_ = mergedProps;
+      }
     }
     mutations[i] = m;
 

@@ -253,7 +253,7 @@ void HRViewManager::InsertSubRenderView(uint32_t parentTag, std::shared_ptr<Base
   std::shared_ptr<BaseView> parentView = it != view_registry_.end() ? it->second : nullptr;
   if (parentView && childView) {
     auto grandParentView = parentView->GetParent().lock();
-    if (grandParentView && grandParentView->GetViewType() == "Text" && parentView->GetViewType() == "Text" && childView->GetViewType() == "Text") {
+    if (grandParentView && grandParentView->GetViewType() == "Text" && parentView->GetViewType() == "Text") {
       grandParentView->AddSubRenderView(childView, INT_MAX);
     } else {
       parentView->AddSubRenderView(childView, index);
