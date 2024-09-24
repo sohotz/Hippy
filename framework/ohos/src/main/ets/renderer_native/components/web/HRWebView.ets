@@ -33,12 +33,27 @@ import { HREventUtils } from '../../utils/HREventUtils';
 import { HRValueUtils } from '../../utils/HRValueUtils';
 import { HRPadding, HRRect } from '../../utils/HRTypes';
 
+class HRWebViewBridge {
+  private renderView: HRWebView
+
+  constructor(renderView: HRWebView) {
+    this.renderView = renderView
+  }
+
+  postMessage(msg: string): void {
+    let params = new Map<string, HippyValue>() as HippyMap;
+    params.set("data", msg);
+    HREventUtils.sendComponentEvent(this.renderView.ctx, this.renderView.tag, "onMessage", params);
+  }
+}
+
 @Observed
 export class HRWebView extends HippyRenderBaseView {
   public url : string | null = null
   public source: HippyMap | null = null
   public update: boolean = false
   public controller: web_webview.WebviewController = new web_webview.WebviewController()
+  public bridge: HRWebViewBridge = new HRWebViewBridge(this)
 
   constructor(ctx: NativeRenderContext) {
     super(ctx)
@@ -162,6 +177,13 @@ export struct HRWeb {
         this.renderView.update = true
       })
       .applyRenderViewBaseAttr(this.renderView)
+      .javaScriptAccess(true)
+      .javaScriptProxy({
+        object: this.renderView.bridge,
+        name: "hippy",
+        methodList: ["postMessage"],
+        controller: this.renderView.controller,
+      })
       .onPageBegin((event) => {
         if (event) {
           LogUtils.d(this.TAG, "onPageBegin: " + event.url)
