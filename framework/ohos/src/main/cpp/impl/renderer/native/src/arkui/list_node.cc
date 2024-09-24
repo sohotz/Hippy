@@ -53,9 +53,7 @@ ListNode::~ListNode() {
   for (auto eventType : LIST_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }
-  if (hasAdapter_) {
-    NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_LIST_NODE_ADAPTER);
-  }
+  ResetLazyAdapter();
 }
 
 void ListNode::RemoveAllChildren() {
@@ -140,6 +138,12 @@ void ListNode::SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle) {
   ArkUI_AttributeItem item{nullptr, 0, nullptr, adapterHandle};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_NODE_ADAPTER, &item));
   hasAdapter_ = true;
+}
+
+void ListNode::ResetLazyAdapter() {
+  if (hasAdapter_) {
+    NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_LIST_NODE_ADAPTER);
+  }
 }
 
 void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {
