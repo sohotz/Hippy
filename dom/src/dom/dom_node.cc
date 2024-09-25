@@ -311,7 +311,17 @@ std::vector<std::shared_ptr<DomEventListenerInfo>> DomNode::GetEventListener(con
   return it->second[kBubble];
 }
 
-void DomNode::ParseLayoutStyleInfo() { layout_node_->SetLayoutStyles(*style_map_, std::vector<std::string>{}); }
+void DomNode::ParseLayoutStyleInfo() { 
+  
+  if (GetViewName() == "SdLivePlayer") {
+    auto it = style_map_->find("height");
+    if (it != style_map_->end()) {
+      FOOTSTONE_LOG(INFO) << "xxx hippy, SdLivePlayer height: " << it->second;
+    }
+  }
+  
+  layout_node_->SetLayoutStyles(*style_map_, std::vector<std::string>{}); 
+}
 
 void DomNode::UpdateLayoutStyleInfo(
     const std::unordered_map<std::string, std::shared_ptr<footstone::value::HippyValue>>& style_update,
