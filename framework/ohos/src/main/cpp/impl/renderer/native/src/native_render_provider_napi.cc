@@ -69,7 +69,7 @@ void CallRenderDelegateMethod(napi_env env, napi_ref render_provider_ref,
     delegateObject.Call(method.c_str(), args);
   });
 }
-
+    
 void CallRenderDelegateMethod(napi_env env, napi_ref render_provider_ref,
   const std::string& method, uint32_t root_id) {
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
@@ -426,7 +426,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
   int height = arkTs.GetInteger(args[4]);
   int heightMode = arkTs.GetInteger(args[5]);
   float density = render_manager->GetDensity();
-    
+
   uint32_t p = 0;
   OhMeasureText measureInst;
   OhMeasureResult result;

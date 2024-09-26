@@ -167,11 +167,11 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
   onBridgeDestroyed(isReload: boolean): void {
     // TODO devtools relaod
-    // if (isReload) {
-    //   this.restartEngineInBackground(true);
-    // } else {
-    //   this.destroy(false);
-    // }
+    if (isReload) {
+      // this.restartEngineInBackground(true);
+    } else {
+      this.destroy(false);
+    }
   }
 
   setLoadModuleCallback(loadModuleCallback: Function | null) {

@@ -125,7 +125,11 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
   }
 
   public destroy(): void {
-    throw new Error('Method not implemented.')
+    this.cachedNativeModuleMap.forEach((module: HippyNativeModuleBase) => {
+      module.destroy();
+    })
+    this.cachedNativeModuleMap.clear();
+    this.cachedJSModuleMap.clear();
   }
 
   public addModules(customNativeModules: Map<string, HippyNativeModuleCreator> | null): void {

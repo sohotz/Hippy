@@ -21,8 +21,8 @@ import { HippyAny } from '../../../support/common/HippyTypes';
 import { HippyEngineContext } from '../../HippyEngineContext';
 import { HippyModulePromise } from '../HippyModulePromise';
 
-export class HippyNativeModuleBase {
 
+export class HippyNativeModuleBase {
   public static readonly NAME: string
   protected ctx: HippyEngineContext
 

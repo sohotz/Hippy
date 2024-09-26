@@ -133,7 +133,7 @@ struct PageConfiguration {
           '',
           null,
           null,
-          null,
+          null
         )
         loadParams.componentName = "Demo"
         loadParams.codeCacheTag = "Demo"
@@ -389,6 +389,7 @@ struct PageConfiguration {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.home_background'))
+    .id("page_configuration")
     //.expandSafeArea()
   }
 }

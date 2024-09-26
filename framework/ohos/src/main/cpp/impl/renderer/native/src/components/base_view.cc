@@ -686,6 +686,19 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
     result["width"] = HippyValue(viewSize.width);
     result["height"] = HippyValue(viewSize.height);
     callback(HippyValue(result));
+  } else if (method == "getScreenShot") {
+    HippyValueObjectType snapshotResult = CallNativeRenderProviderMethod(ts_env_, ts_render_provider_ref_, ctx_->GetRootId(), "getComponentSnapshot");
+    callback(HippyValue(snapshotResult));
+  } else if (method == "addFrameCallback") {
+    // empty
+  } else if (method == "removeFrameCallback") {
+    auto resultMap = HippyValue();
+    callback(resultMap);
+  } else if (method == "getLocationOnScreen") {
+    auto resultMap = CallNativeRenderProviderMethod(ts_env_, ts_render_provider_ref_, ctx_->GetRootId(), "getLocationOnScreen");
+    callback(HippyValue(resultMap));
+  } else {
+    FOOTSTONE_DLOG(INFO) << "Unsupported method called: " << method;
   }
 }
 
@@ -831,6 +844,29 @@ void BaseView::OnViewComponentEvent(const std::string &event_name, const HippyVa
 
   auto callback = arkTs.GetReferenceValue(ts_event_callback_ref_);
   arkTs.Call(callback, args);
+}
+
+HippyValueObjectType BaseView::CallNativeRenderProviderMethod(napi_env env, napi_ref render_provider_ref, uint32_t component_id, const std::string &method) {
+  HippyValue futHippyValue;
+  ArkTS arkTs(env);
+  std::vector<napi_value> args = {arkTs.CreateUint32(component_id)};
+  auto delegateObject = arkTs.GetObject(render_provider_ref);
+  auto napiValue = delegateObject.Call(method.c_str(), args);
+
+  HippyValueObjectType map;
+  OhNapiObject napiObj = arkTs.GetObject(napiValue);
+  std::vector<std::pair<napi_value, napi_value>> pairs = napiObj.GetKeyValuePairs();
+  for (auto it = pairs.begin(); it != pairs.end(); it++) {
+      auto &pair = *it;
+      auto &pairItem1 = pair.first;
+      auto objKey = arkTs.GetString(pairItem1);
+      if (objKey.length() > 0) {
+        auto &pairItem2 = pair.second;
+        auto objValue = OhNapiUtils::NapiValue2HippyValue(env, pairItem2);
+        map[objKey] = objValue;
+      }
+  }
+  return map;
 }
 
 } // namespace native
