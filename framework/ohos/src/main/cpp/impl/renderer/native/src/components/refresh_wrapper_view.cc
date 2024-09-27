@@ -83,9 +83,7 @@ void RefreshWrapperView::OnChildInserted(std::shared_ptr<BaseView> const &childV
     refreshNode_.SetRefreshContent(childView->GetLocalRootArkUINode().GetArkUINodeHandle());
     childView->SetPosition({0, - refresh_offset_});
     item_view_ = childView;
-  }
-  
-  if (childView->GetViewType() == "ListView") {
+  } else {
     refreshNode_.AddChild(childView->GetLocalRootArkUINode());
   }
 }
@@ -95,9 +93,7 @@ void RefreshWrapperView::OnChildRemoved(std::shared_ptr<BaseView> const &childVi
   
   if (childView->GetViewType() == "RefreshWrapperItemView") {
     refreshNode_.ResetRefreshContent();
-  }
-  
-  if (childView->GetViewType() == "ListView") {
+  } else {
     refreshNode_.RemoveChild(childView->GetLocalRootArkUINode());
   }
 }
