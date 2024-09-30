@@ -33,6 +33,7 @@ RefreshWrapperView::RefreshWrapperView(std::shared_ptr<NativeRenderContext> &ctx
   refreshNode_.SetNodeDelegate(this);
   refreshNode_.SetRefreshPullToRefresh(true);
   refreshNode_.SetRefreshRefreshing(false);
+  refreshNode_.SetSizePercent(HRSize(1.f, 1.f));
 }
 
 RefreshWrapperView::~RefreshWrapperView() {

@@ -190,6 +190,9 @@ bool RichTextView::SetProp(const std::string &propKey, const HippyValue &propVal
 }
 
 void RichTextView::OnSetPropsEnd() {
+  // test code
+//   GetLocalRootArkUINode().SetTextLineHeight(15);
+  
   if (!fontSize_.has_value()) {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;
     GetLocalRootArkUINode().SetFontSize(defaultValue);

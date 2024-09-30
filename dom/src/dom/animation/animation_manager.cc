@@ -242,7 +242,7 @@ void AnimationManager::AddActiveAnimation(const std::shared_ptr<Animation>& anim
                                       if (!animation_manager) {
                                         return;
                                       }
-                                      animation_manager->UpdateAnimations();
+                                      //animation_manager->UpdateAnimations();
                                     }};
                                     dom_manager->PostTask(Scene(std::move(ops)));
                                   });

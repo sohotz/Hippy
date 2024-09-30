@@ -618,6 +618,12 @@ void TaitankLayoutNode::SetWidth(float width) {
 }
 
 void TaitankLayoutNode::SetHeight(float height) {
+  
+  FOOTSTONE_LOG(INFO) << "xxx hippy, layout set h: " << height;
+  if (height == 222) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, layout set h 222";
+  }
+  
   assert(engine_node_ != nullptr);
   if (FloatIsEqual(engine_node_->style_.dim_[DIMENSION_HEIGHT], height)) return;
   engine_node_->style_.dim_[DIMENSION_HEIGHT] = height;

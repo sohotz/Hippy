@@ -313,12 +313,12 @@ std::vector<std::shared_ptr<DomEventListenerInfo>> DomNode::GetEventListener(con
 
 void DomNode::ParseLayoutStyleInfo() { 
   
-  if (GetViewName() == "SdLivePlayer") {
+//   if (GetViewName() == "SdLivePlayer") {
     auto it = style_map_->find("height");
     if (it != style_map_->end()) {
-      FOOTSTONE_LOG(INFO) << "xxx hippy, SdLivePlayer height: " << it->second;
+      FOOTSTONE_LOG(INFO) << "xxx hippy, view: " << GetViewName() << ", dom node: " << GetId() << ", set height: " << it->second;
     }
-  }
+//   }
   
   layout_node_->SetLayoutStyles(*style_map_, std::vector<std::string>{}); 
 }

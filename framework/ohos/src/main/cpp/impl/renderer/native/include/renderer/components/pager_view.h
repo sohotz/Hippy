@@ -51,6 +51,8 @@ public:
                           const float_t pageOffset) override;
   void OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) override;
 
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  
 private:
   void SendScrollStateChangeEvent(const std::string &state);
   

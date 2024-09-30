@@ -230,6 +230,18 @@ void PagerView::Call(const std::string &method, const std::vector<HippyValue> pa
     BaseView::Call(method, params, callback);
   }
 }
+
+void PagerView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+//   HRRect rc{frame.x, frame.y, frame.width, 200};
+  if (frame.height > 600 && frame.height < 610) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, pager - update frame";
+  }
+  if (tag_ == 86) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, pager 86 - update frame";
+  }
+  BaseView::UpdateRenderViewFrame(frame, padding);
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

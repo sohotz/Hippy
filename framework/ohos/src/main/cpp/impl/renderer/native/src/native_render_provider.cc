@@ -158,6 +158,13 @@ void NativeRenderProvider::SpanPosition(uint32_t root_id, uint32_t node_id, floa
   });
 }
 
+void NativeRenderProvider::SetLineHeight(uint32_t root_id, uint32_t node_id, float line_height) {
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
+  taskRunner->RunAsyncTask([render_impl = render_impl_, root_id, node_id, line_height]() {
+    render_impl->SetLineHeight(root_id, node_id, line_height);
+  });
+}
+
 void NativeRenderProvider::TextEllipsized(uint32_t root_id, uint32_t node_id) {
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(ts_env_);
   taskRunner->RunAsyncTask([render_impl = render_impl_, root_id, node_id]() {

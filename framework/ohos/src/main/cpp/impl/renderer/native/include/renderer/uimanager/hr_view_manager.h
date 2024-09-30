@@ -80,6 +80,7 @@ public:
   void UpdateEventListener(uint32_t tag, HippyValueObjectType &props);
   bool CheckRegisteredEvent(uint32_t tag, std::string &eventName);
   void SetRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding);
+  void SetLineHeight(uint32_t tag, float line_height);
 
   void CallViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
                       std::function<void(const HippyValue &result)> callback);

@@ -33,6 +33,7 @@ struct OhImageSpanPos {
 struct OhMeasureResult {
     double width;
     double height;
+    double lineHeight;
     std::vector<OhImageSpanPos> spanPos; // 指定imageSpan的位置
     bool isEllipsized;
 };

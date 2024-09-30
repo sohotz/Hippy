@@ -203,7 +203,7 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
 
     // If font height is set, measure results for some special char will be wrong.
     // For example, ε (utf8 code: e0bdbdceb5). Measured height is less than drawn height.
-    // OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
+    //OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
 
     if (HasProp(propMap, "fontFamily")) {
         const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
@@ -442,12 +442,15 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     ret.width *= density;
     ret.height *= density;
     if (lineHeight_ != 0) {
-        ret.height = lineHeight_ * density * (double)lineCount;
+      ret.height = lineHeight_ * density * (double)lineCount;
+//       FOOTSTONE_LOG(INFO) << lineCount;
     
 #ifdef MEASURE_TEXT_LOG_RESULT
         FOOTSTONE_DLOG(INFO) << "hippy text - lineHeight fix result, result height: " << lineHeight_ *  (double)lineCount;
 #endif
     }
+  
+    ret.lineHeight = ret.height / density / (double)lineCount;
   
     return ret;
 }

@@ -29,6 +29,7 @@ inline namespace render {
 inline namespace native {
 
 TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_TEXT)) {
+  SetTextHeightAdaptivePolicy(ARKUI_TEXT_HEIGHT_ADAPTIVE_POLICY_MIN_FONT_SIZE_FIRST);
 }
 
 TextNode::~TextNode() {}

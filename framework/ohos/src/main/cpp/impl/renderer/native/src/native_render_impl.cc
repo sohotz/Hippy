@@ -252,6 +252,15 @@ void NativeRenderImpl::SpanPosition(uint32_t root_id, uint32_t node_id, float x,
   view_manager->AddMutations(tm);
 }
 
+void NativeRenderImpl::SetLineHeight(uint32_t root_id, uint32_t node_id, float line_height) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  
+  view_manager->SetLineHeight(node_id, line_height);
+}
+
 void NativeRenderImpl::TextEllipsized(uint32_t root_id, uint32_t node_id) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
   if (!view_manager) {

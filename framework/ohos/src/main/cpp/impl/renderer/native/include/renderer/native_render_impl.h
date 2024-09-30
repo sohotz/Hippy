@@ -72,6 +72,7 @@ public:
     float height, LayoutMeasureMode height_measure_mode);
 
   void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
+  void SetLineHeight(uint32_t root_id, uint32_t node_id, float line_height);
   void TextEllipsized(uint32_t root_id, uint32_t node_id);
 
   std::string GetBundlePath() override;

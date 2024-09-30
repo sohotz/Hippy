@@ -1047,22 +1047,22 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   if (text_prop_it != textPropMap.end()) {
     fontFamilyNames.insert(text_prop_it->second);
   }
-  for(uint32_t i = 0; i < node->GetChildCount(); i++) {
-    auto child = node->GetChildAt(i);
-    auto style_map = child->GetStyleMap();
-    auto it = style_map->find("fontFamily");
-    if (it != style_map->end()) {
-      fontFamilyNames.insert(HippyValueToString(*(it->second)));
-    }
-    for(uint32_t j = 0; j < child->GetChildCount(); j++) {
-      auto grand_child = child->GetChildAt(j);
-      auto grand_style_map = grand_child->GetStyleMap();
-      auto grand_it = grand_style_map->find("fontFamily");
-      if (grand_it != grand_style_map->end()) {
-        fontFamilyNames.insert(HippyValueToString(*(grand_it->second)));
-      }
-    }
-  }
+//   for(uint32_t i = 0; i < node->GetChildCount(); i++) {
+//     auto child = node->GetChildAt(i);
+//     auto style_map = child->GetStyleMap();
+//     auto it = style_map->find("fontFamily");
+//     if (it != style_map->end()) {
+//       fontFamilyNames.insert(HippyValueToString(*(it->second)));
+//     }
+//     for(uint32_t j = 0; j < child->GetChildCount(); j++) {
+//       auto grand_child = child->GetChildAt(j);
+//       auto grand_style_map = grand_child->GetStyleMap();
+//       auto grand_it = grand_style_map->find("fontFamily");
+//       if (grand_it != grand_style_map->end()) {
+//         fontFamilyNames.insert(HippyValueToString(*(grand_it->second)));
+//       }
+//     }
+//   }
   
   measureInst.StartMeasure(textPropMap, fontFamilyNames);
 
@@ -1119,6 +1119,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       }
     }
   }
+  
+  // test code
+//   c_render_provider_->SetLineHeight(root->GetId(), node->GetId(), (float)measureResult.lineHeight);
+  
   if (measureResult.isEllipsized) {
     if (enable_ark_c_api_) {
       c_render_provider_->TextEllipsized(root->GetId(), node->GetId());
