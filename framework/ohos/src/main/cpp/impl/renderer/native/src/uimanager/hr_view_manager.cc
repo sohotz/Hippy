@@ -31,6 +31,7 @@
 #include "renderer/components/custom_view.h"
 #include "renderer/components/hippy_render_view_creator.h"
 #include "renderer/components/rich_text_view.h"
+#include "renderer/dom_node/hr_node_props.h"
 #include "renderer/native_render_context.h"
 #include "footstone/logging.h"
 
@@ -619,6 +620,20 @@ void HRViewManager::UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const H
   
   auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
   delegateObject.Call("updatePropsForCApi", args);
+  
+  auto it = view_registry_.find(view->GetTag());
+  std::shared_ptr<BaseView> customTsView = it != view_registry_.end() ? it->second : nullptr;
+  if (customTsView) {
+    if (props.size() > 0) {
+      for (auto prop_it = props.begin(); prop_it != props.end(); prop_it++) {
+        auto &key = prop_it->first;
+        if (key == HRNodeProps::VISIBILITY || key == HRNodeProps::TRANSFORM || key == HRNodeProps::OVERFLOW) {
+          customTsView->SetProp(key, prop_it->second);
+        }
+      }
+    }
+    customTsView->OnSetPropsEnd();
+  }
 }
 
 void HRViewManager::UpdateCustomTsEventListener(uint32_t tag, HippyValueObjectType &props) {
