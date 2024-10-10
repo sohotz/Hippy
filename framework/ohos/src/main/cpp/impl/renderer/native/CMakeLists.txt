@@ -111,6 +111,7 @@ set(SOURCE_SET
   src/components/pull_header_view.cc
   src/components/refresh_wrapper_item_view.cc
   src/components/refresh_wrapper_view.cc
+  src/components/rich_text_custom_view.cc
   src/components/rich_text_view.cc
   src/components/rich_text_span_view.cc
   src/components/rich_text_image_span_view.cc
