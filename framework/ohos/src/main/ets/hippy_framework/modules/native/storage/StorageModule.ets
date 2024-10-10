@@ -71,7 +71,7 @@ export class StorageModule extends HippyNativeModuleBase {
     }
     this.mStorageAdapter?.multiGet(keys).then(result => {
       if (result == null || result.length <= 0) {
-        promise.reject('result Null');
+        promise.resolve(null);
       }
       let data = new Array<[key: string, value: string]>();
       result.forEach((value, index, result) => {
