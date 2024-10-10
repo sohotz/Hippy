@@ -167,24 +167,13 @@ void PagerView::SendScrollStateChangeEvent(const std::string &state) {
   OnViewComponentEvent(HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED, payload);
 }
 
-void PagerView::OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {
-  int32_t touchAction = OH_ArkUI_UIInputEvent_GetAction(inputEvent);
-  switch (touchAction) {
-  case UI_TOUCH_EVENT_ACTION_CANCEL:
-    // No specific action needed for cancel, logging suffices.
-    break;
-  case UI_TOUCH_EVENT_ACTION_DOWN:
+void PagerView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
+  if (actionType == UI_TOUCH_EVENT_ACTION_DOWN) {
     SendScrollStateChangeEvent(SCROLL_STATE_DRAGGING);
-    break;
-  case UI_TOUCH_EVENT_ACTION_MOVE:
-    // If needed, handle move action here in the future.
-    break;
-  case UI_TOUCH_EVENT_ACTION_UP:
+  } else if(actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
+  } else if (actionType == UI_TOUCH_EVENT_ACTION_UP) {
     SendScrollStateChangeEvent(SCROLL_STATE_SETTLING);
-    break;
-  default:
-    FOOTSTONE_DLOG(INFO) << "Unknown touch action received: " << touchAction;
-    break;
+  } else if (actionType == UI_TOUCH_EVENT_ACTION_CANCEL) {
   }
 }
 

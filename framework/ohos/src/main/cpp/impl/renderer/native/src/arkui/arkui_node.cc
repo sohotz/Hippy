@@ -50,6 +50,7 @@ ArkUINode::~ArkUINode() {
   
   if (nodeHandle_ != nullptr) {
     UnregisterClickEvent();
+    UnregisterTouchEvent();
     ArkUINodeRegistry::GetInstance().UnregisterNode(this);
     NativeNodeApi::GetInstance()->disposeNode(nodeHandle_);
   }
@@ -528,13 +529,22 @@ void ArkUINode::SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate) {
 }
 
 void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {
-    if (arkUINodeDelegate_ == nullptr) {
+  if (arkUINodeDelegate_ == nullptr) {
     return;
   }
   
   auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
   if (eventType == ArkUI_NodeEventType::NODE_ON_CLICK) {
     arkUINodeDelegate_->OnClick();
+  } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
+    ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
+    auto type = OH_ArkUI_UIInputEvent_GetType(inputEvent);
+    if (type == ARKUI_UIINPUTEVENT_TYPE_TOUCH) {
+      auto action = OH_ArkUI_UIInputEvent_GetAction(inputEvent);
+      float x = OH_ArkUI_PointerEvent_GetDisplayX(inputEvent);
+      float y = OH_ArkUI_PointerEvent_GetDisplayY(inputEvent);
+      arkUINodeDelegate_->OnTouch(action, HRPosition(x, y));
+    }
   } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_APPEAR) {
     arkUINodeDelegate_->OnAppear();
   } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_DISAPPEAR) {
@@ -557,6 +567,20 @@ void ArkUINode::UnregisterClickEvent() {
   if (hasClickEvent_) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_ON_CLICK);
     hasClickEvent_ = false;
+  }
+}
+
+void ArkUINode::RegisterTouchEvent() {
+  if (!hasTouchEvent_) {
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_TOUCH_EVENT, 0, nullptr));
+    hasTouchEvent_ = true;
+  }
+}
+  
+void ArkUINode::UnregisterTouchEvent() {
+  if (hasTouchEvent_) {
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_TOUCH_EVENT);
+    hasTouchEvent_ = false;
   }
 }
 

@@ -247,7 +247,7 @@ void WaterfallView::OnWillScroll(float offset, ArkUI_ScrollState state){
   }  
 }
 
-void WaterfallView::OnTouch(int32_t actionType){
+void WaterfallView::OnTouch(int32_t actionType, const HRPosition &screenPosition){
 //  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" actionType = "<<actionType;  
   if (actionType == UI_TOUCH_EVENT_ACTION_DOWN || actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
     if(!isDragging_)

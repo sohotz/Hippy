@@ -37,17 +37,18 @@ static constexpr ArkUI_NodeEventType SWIPER_NODE_EVENT_TYPES[] = {
   NODE_SWIPER_EVENT_ON_ANIMATION_START,
   NODE_SWIPER_EVENT_ON_ANIMATION_END,
   NODE_SWIPER_EVENT_ON_CONTENT_DID_SCROLL,
-  NODE_TOUCH_EVENT
 };
 
 SwiperNode::SwiperNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_SWIPER)) {
+  RegisterTouchEvent();
   for (auto eventType : SWIPER_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
 }
 
 SwiperNode::~SwiperNode() {
+  UnregisterTouchEvent();
   for (auto eventType : SWIPER_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }
@@ -84,9 +85,6 @@ void SwiperNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     int32_t pageIndex = nodeComponentEvent->data[1].i32;
     float_t pageOffset = nodeComponentEvent->data[2].f32;
     swiperNodeDelegate_->OnContentDidScroll(currentIndex, pageIndex, pageOffset);
-  } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
-    ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
-    swiperNodeDelegate_->OnNodeTouchEvent(inputEvent);
   }
 }
 

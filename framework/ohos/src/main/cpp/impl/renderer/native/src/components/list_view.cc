@@ -34,6 +34,7 @@ inline namespace native {
 
 ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
   stackNode_.AddChild(listNode_);
+  listNode_.SetArkUINodeDelegate(this);
   listNode_.SetNodeDelegate(this);
   listNode_.SetSizePercent(HRSize(1.f, 1.f));
   listNode_.SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
@@ -252,7 +253,7 @@ void ListView::OnReachEnd() {
   SendOnReachedEvent();
 }
 
-void ListView::OnTouch(int32_t actionType) {
+void ListView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
   if (actionType == UI_TOUCH_EVENT_ACTION_DOWN || actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
     CheckBeginDrag();
   } else if (actionType == UI_TOUCH_EVENT_ACTION_UP || actionType == UI_TOUCH_EVENT_ACTION_CANCEL) {

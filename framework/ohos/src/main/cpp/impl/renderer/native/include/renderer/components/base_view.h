@@ -74,6 +74,7 @@ public:
   void SetPosition(const HRPosition &position);
 
   virtual void OnClick() override;
+  virtual void OnTouch(int32_t actionType, const HRPosition &screenPosition) override;
   virtual void OnAppear() override;
   virtual void OnDisappear() override;
   virtual void OnAreaChange(ArkUI_NumberValue* data) override;
@@ -156,10 +157,10 @@ protected:
   std::function<void()> eventLongPress_;
   std::function<void()> eventPressIn_;
   std::function<void()> eventPressOut_;
-  std::function<void()> eventTouchDown_;
-  std::function<void()> eventTouchUp_;
-  std::function<void()> eventTouchMove_;
-  std::function<void()> eventTouchCancel_;
+  std::function<void(const HRPosition &screenPosition)> eventTouchDown_;
+  std::function<void(const HRPosition &screenPosition)> eventTouchUp_;
+  std::function<void(const HRPosition &screenPosition)> eventTouchMove_;
+  std::function<void(const HRPosition &screenPosition)> eventTouchCancel_;
   std::function<void()> eventAttachedToWindow_;
   std::function<void()> eventDetachedFromWindow_;
 

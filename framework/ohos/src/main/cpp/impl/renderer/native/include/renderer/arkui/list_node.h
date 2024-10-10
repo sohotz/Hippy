@@ -39,7 +39,6 @@ public:
   virtual void OnScrollStop() {}
   virtual void OnReachStart() {}
   virtual void OnReachEnd() {}
-  virtual void OnTouch(int32_t actionType) {}
 };
 
 class ListNode : public ArkUINode {

@@ -46,7 +46,7 @@ public:
   void OnScroll(float xOffset, float yOffset) override;
   void OnScrollStart() override;
   void OnScrollStop() override;
-  void OnTouch(int32_t actionType) override;
+  void OnTouch(int32_t actionType, const HRPosition &screenPosition) override;
 
 private:
   void CheckFireBeginDragEvent();

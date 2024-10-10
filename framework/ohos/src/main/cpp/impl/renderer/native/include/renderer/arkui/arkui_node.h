@@ -43,6 +43,7 @@ class ArkUINodeDelegate {
 public:
   virtual ~ArkUINodeDelegate() = default;
   virtual void OnClick() {}
+  virtual void OnTouch(int32_t actionType, const HRPosition &screenPosition) {}
   virtual void OnAppear() {}
   virtual void OnDisappear() {}
   virtual void OnAreaChange(ArkUI_NumberValue* data) {}  
@@ -124,6 +125,8 @@ public:
   virtual ArkUI_NodeHandle GetChildAt(int32_t postion) const;
   void RegisterClickEvent();
   void UnregisterClickEvent();
+  void RegisterTouchEvent();
+  void UnregisterTouchEvent();
   void RegisterAppearEvent();
   void UnregisterAppearEvent();
   void RegisterDisappearEvent();
@@ -153,6 +156,7 @@ protected:
   ArkUINodeDelegate *arkUINodeDelegate_ = nullptr;
   
   bool hasClickEvent_ = false;
+  bool hasTouchEvent_ = false;
   bool hasAppearEvent_ = false;
   bool hasDisappearEvent_ = false;
   bool hasAreaChangeEvent_ = false;  

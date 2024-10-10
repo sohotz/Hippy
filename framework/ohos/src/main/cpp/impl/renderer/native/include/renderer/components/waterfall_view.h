@@ -64,7 +64,7 @@ public:
   void OnScrollIndex(int32_t firstIndex, int32_t lastIndex, int32_t centerIndex) override;
   void OnScroll(float scrollOffsetX, float scrollOffsetY) override;
   void OnWillScroll(float offset, ArkUI_ScrollState state) override;
-  void OnTouch(int32_t actionType) override;
+  void OnTouch(int32_t actionType, const HRPosition &screenPosition) override;
   void OnScrollStart() override;
   void OnScrollStop() override;    
   void OnReachStart() override;       

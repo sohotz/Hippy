@@ -40,7 +40,6 @@ class SwiperNodeDelegate {
   virtual void OnAnimationEnd(const int32_t &currentIndex, const float_t &currentOffset) {}
   virtual void OnContentDidScroll(const int32_t currentIndex, const int32_t pageIndex,
                                   const float_t pageOffset) {}
-  virtual void OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {}
 };
 
 

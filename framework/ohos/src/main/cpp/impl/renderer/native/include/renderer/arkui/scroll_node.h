@@ -35,7 +35,6 @@ public:
   virtual void OnScrollStart() {}
   virtual void OnScrollStop() {}
   virtual float OnScrollFrameBegin(float offset, int32_t scrollState) { return offset; }
-  virtual void OnTouch(int32_t actionType) {}
 };
 
 class ScrollNode : public ArkUINode {

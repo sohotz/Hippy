@@ -49,7 +49,7 @@ public:
   void OnAnimationEnd(const int32_t &currentIndex, const float_t &currentOffset) override;
   void OnContentDidScroll(const int32_t currentIndex, const int32_t pageIndex,
                           const float_t pageOffset) override;
-  void OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) override;
+  void OnTouch(int32_t actionType, const HRPosition &screenPosition) override;
 
 private:
   void SendScrollStateChangeEvent(const std::string &state);

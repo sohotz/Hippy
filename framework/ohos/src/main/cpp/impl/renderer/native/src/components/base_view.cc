@@ -482,12 +482,13 @@ void BaseView::SetTouchDownHandle(bool flag) {
     return;
   }
   if (flag) {
+    GetLocalRootArkUINode().RegisterTouchEvent();
     auto weak_view = weak_from_this();
-    eventTouchDown_ = [weak_view]() {
+    eventTouchDown_ = [weak_view](const HRPosition &screenPosition) {
       auto view = weak_view.lock();
       if (view) {
-        float touchX = 0; // TODO(hot):
-        float touchY = 0;
+        float touchX = screenPosition.x;
+        float touchY = screenPosition.y;
         HRGestureDispatcher::HandleTouchEvent(view->ctx_, view->tag_, touchX, touchY, HRNodeProps::ON_TOUCH_DOWN);
       }
     };
@@ -501,12 +502,13 @@ void BaseView::SetTouchMoveHandle(bool flag) {
     return;
   }
   if (flag) {
+    GetLocalRootArkUINode().RegisterTouchEvent();
     auto weak_view = weak_from_this();
-    eventTouchMove_ = [weak_view]() {
+    eventTouchMove_ = [weak_view](const HRPosition &screenPosition) {
       auto view = weak_view.lock();
       if (view) {
-        float touchX = 0; // TODO(hot):
-        float touchY = 0;
+        float touchX = screenPosition.x;
+        float touchY = screenPosition.y;
         HRGestureDispatcher::HandleTouchEvent(view->ctx_, view->tag_, touchX, touchY, HRNodeProps::ON_TOUCH_MOVE);
       }
     };
@@ -520,12 +522,13 @@ void BaseView::SetTouchEndHandle(bool flag) {
     return;
   }
   if (flag) {
+    GetLocalRootArkUINode().RegisterTouchEvent();
     auto weak_view = weak_from_this();
-    eventTouchUp_ = [weak_view]() {
+    eventTouchUp_ = [weak_view](const HRPosition &screenPosition) {
       auto view = weak_view.lock();
       if (view) {
-        float touchX = 0; // TODO(hot):
-        float touchY = 0;
+        float touchX = screenPosition.x;
+        float touchY = screenPosition.y;
         HRGestureDispatcher::HandleTouchEvent(view->ctx_, view->tag_, touchX, touchY, HRNodeProps::ON_TOUCH_END);
       }
     };
@@ -539,12 +542,13 @@ void BaseView::SetTouchCancelHandle(bool flag) {
     return;
   }
   if (flag) {
+    GetLocalRootArkUINode().RegisterTouchEvent();
     auto weak_view = weak_from_this();
-    eventTouchCancel_ = [weak_view]() {
+    eventTouchCancel_ = [weak_view](const HRPosition &screenPosition) {
       auto view = weak_view.lock();
       if (view) {
-        float touchX = 0; // TODO(hot):
-        float touchY = 0;
+        float touchX = screenPosition.x;
+        float touchY = screenPosition.y;
         HRGestureDispatcher::HandleTouchEvent(view->ctx_, view->tag_, touchX, touchY, HRNodeProps::ON_TOUCH_CANCEL);
       }
     };
@@ -772,6 +776,26 @@ void BaseView::SetPosition(const HRPosition &position) {
 void BaseView::OnClick() {
   if (eventClick_) {
     eventClick_();
+  }
+}
+
+void BaseView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
+  if (actionType == UI_TOUCH_EVENT_ACTION_DOWN) {
+    if (eventTouchDown_) {
+      eventTouchDown_(screenPosition);
+    }
+  } else if(actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
+    if (eventTouchMove_) {
+      eventTouchMove_(screenPosition);
+    }
+  } else if (actionType == UI_TOUCH_EVENT_ACTION_UP) {
+    if (eventTouchUp_) {
+      eventTouchUp_(screenPosition);
+    }
+  } else if (actionType == UI_TOUCH_EVENT_ACTION_CANCEL) {
+    if (eventTouchCancel_) {
+      eventTouchCancel_(screenPosition);
+    }
   }
 }
 

@@ -31,7 +31,6 @@ static constexpr ArkUI_NodeEventType SCROLL_NODE_EVENT_TYPES[] = {
   NODE_SCROLL_EVENT_ON_SCROLL,
   NODE_SCROLL_EVENT_ON_SCROLL_START,
   NODE_SCROLL_EVENT_ON_SCROLL_STOP,
-  NODE_TOUCH_EVENT
 };
 
 ScrollNode::ScrollNode()
@@ -41,6 +40,7 @@ ScrollNode::ScrollNode()
   scrollEventThrottle_ = 30;
   scrollMinOffset_ = 5;
   RegisterAppearEvent();
+  RegisterTouchEvent();
   for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
@@ -48,6 +48,7 @@ ScrollNode::ScrollNode()
 
 ScrollNode::~ScrollNode() {
   UnregisterAppearEvent();
+  UnregisterTouchEvent();
   for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }
@@ -183,13 +184,6 @@ void ScrollNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     float x = nodeComponentEvent->data[0].f32;
     float y = nodeComponentEvent->data[1].f32;
     scrollNodeDelegate_->OnScroll(x, y);
-  } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
-    ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
-    auto type = OH_ArkUI_UIInputEvent_GetType(inputEvent);
-    if (type == ARKUI_UIINPUTEVENT_TYPE_TOUCH) {
-      auto action = OH_ArkUI_UIInputEvent_GetAction(inputEvent);
-      scrollNodeDelegate_->OnTouch(action);
-    }
   }
 }
 
