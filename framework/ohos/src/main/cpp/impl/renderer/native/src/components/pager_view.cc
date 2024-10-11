@@ -168,6 +168,8 @@ void PagerView::SendScrollStateChangeEvent(const std::string &state) {
 }
 
 void PagerView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
+  BaseView::OnTouch(actionType, screenPosition);
+  
   if (actionType == UI_TOUCH_EVENT_ACTION_DOWN) {
     SendScrollStateChangeEvent(SCROLL_STATE_DRAGGING);
   } else if(actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
