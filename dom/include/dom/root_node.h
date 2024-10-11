@@ -65,6 +65,20 @@ struct ListenerOp {
   }
 };
 
+struct CallFunctionParam {
+  uint32_t id;
+  std::string name;
+  DomArgument param;
+  CallFunctionCallback cb;
+  
+  CallFunctionParam(uint32_t id, const std::string& name, const DomArgument& param, const CallFunctionCallback& cb) {
+    this->id = id;
+    this->name = name;
+    this->param = param;
+    this->cb = cb;
+  }
+};
+
 class RootNode : public DomNode {
  public:
   using TaskRunner = footstone::runner::TaskRunner;
@@ -145,6 +159,8 @@ class RootNode : public DomNode {
   std::vector<std::shared_ptr<DomActionInterceptor>> interceptors_;
   std::shared_ptr<AnimationManager> animation_manager_;
   std::unique_ptr<DomNodeStyleDiffer> style_differ_;
+  
+  std::map<uint32_t, std::vector<CallFunctionParam>> call_function_param_cache_;
 
   bool disable_set_root_size_ { false };
 
