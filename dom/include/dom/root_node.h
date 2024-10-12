@@ -132,6 +132,10 @@ class RootNode : public DomNode {
 
  private:
   static void MarkLayoutNodeDirty(const std::vector<std::shared_ptr<DomNode>>& nodes);
+  
+  void SaveCallFunctionParam(uint32_t id, const std::string& name, const DomArgument& param, const CallFunctionCallback& cb);
+  void GetCreatedNodes(std::vector<std::shared_ptr<DomNode>>& created_nodes);
+  void FetchAndCallFunction(std::vector<std::shared_ptr<DomNode>>& created_nodes);
 
   struct DomOperation {
     enum class Op { kOpCreate, kOpUpdate, kOpDelete, kOpMove } op;

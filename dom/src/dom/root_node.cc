@@ -318,21 +318,15 @@ void RootNode::CallFunction(uint32_t id, const std::string& name, const DomArgum
   if (node) {
     node->CallFunction(name, param, cb);
   } else {
-    auto it = call_function_param_cache_.find(id);
-    if (it != call_function_param_cache_.end()) {
-      auto &call_function_params = it->second;
-      call_function_params.push_back(CallFunctionParam(id, name, param, cb));
-    } else {
-      std::vector<CallFunctionParam> params;
-      params.push_back(CallFunctionParam(id, name, param, cb));
-      call_function_param_cache_[id] = params;
-    }
+    SaveCallFunctionParam(id, name, param, cb);
   }
 }
 
 void RootNode::SyncWithRenderManager(const std::shared_ptr<RenderManager>& render_manager) {
   TDF_PERF_DO_STMT_AND_LOG(unsigned long domCnt = dom_operations_.size();, "RootNode::SyncWithRenderManager");
   if (style_differ_ != nullptr) style_differ_->Reset();
+  std::vector<std::shared_ptr<DomNode>> created_nodes;
+  GetCreatedNodes(created_nodes);
   FlushDomOperations(render_manager);
   TDF_PERF_DO_STMT_AND_LOG(unsigned long evCnt = event_operations_.size();
                            , "RootNode::FlushDomOperations Done, dom op count:%lld", domCnt);
@@ -346,6 +340,7 @@ void RootNode::SyncWithRenderManager(const std::shared_ptr<RenderManager>& rende
   }
   render_manager->EndBatch(GetWeakSelf());
   TDF_PERF_LOG("RootNode::SyncWithRenderManager End");
+  FetchAndCallFunction(created_nodes);
 }
 
 void RootNode::AddEvent(uint32_t id, const std::string& event_name) {
@@ -496,20 +491,6 @@ void RootNode::FlushDomOperations(const std::shared_ptr<RenderManager>& render_m
     switch (dom_operation.op) {
       case DomOperation::Op::kOpCreate:
         render_manager->CreateRenderNode(GetWeakSelf(), std::move(dom_operation.nodes));
-      
-        // debug code
-        if (call_function_param_cache_.size() > 0) {
-          for (auto node : dom_operation.nodes) {
-            auto it = call_function_param_cache_.find(node->GetId());
-            if (it != call_function_param_cache_.end()) {
-              auto &call_function_params = it->second;
-              for(auto param : call_function_params) {
-                node->CallFunction(param.name, param.param, param.cb);
-              }
-            }
-          }
-        }
-      
         break;
       case DomOperation::Op::kOpUpdate:
         render_manager->UpdateRenderNode(GetWeakSelf(), std::move(dom_operation.nodes));
@@ -596,6 +577,42 @@ void RootNode::Traverse(const std::function<void(const std::shared_ptr<DomNode>&
     if (!children.empty()) {
       for (auto it = children.rbegin(); it != children.rend(); ++it) {
         stack.push(*it);
+      }
+    }
+  }
+}
+
+void RootNode::SaveCallFunctionParam(uint32_t id, const std::string& name, const DomArgument& param, const CallFunctionCallback& cb) {
+  auto it = call_function_param_cache_.find(id);
+  if (it != call_function_param_cache_.end()) {
+    auto &call_function_params = it->second;
+    call_function_params.push_back(CallFunctionParam(id, name, param, cb));
+  } else {
+    std::vector<CallFunctionParam> params;
+    params.push_back(CallFunctionParam(id, name, param, cb));
+    call_function_param_cache_[id] = params;
+  }
+}
+
+void RootNode::GetCreatedNodes(std::vector<std::shared_ptr<DomNode>>& created_nodes) {
+  for (auto& dom_operation : dom_operations_) {
+    if (dom_operation.op == DomOperation::Op::kOpCreate) {
+      auto &nodes = dom_operation.nodes;
+      created_nodes.insert(created_nodes.end(), nodes.begin(), nodes.end());
+    }
+  }
+}
+
+void RootNode::FetchAndCallFunction(std::vector<std::shared_ptr<DomNode>>& created_nodes) {
+  if (call_function_param_cache_.size() > 0) {
+    for (auto node : created_nodes) {
+      auto it = call_function_param_cache_.find(node->GetId());
+      if (it != call_function_param_cache_.end()) {
+        auto &call_function_params = it->second;
+        for(auto param : call_function_params) {
+          node->CallFunction(param.name, param.param, param.cb);
+        }
+        call_function_param_cache_.erase(it);
       }
     }
   }
