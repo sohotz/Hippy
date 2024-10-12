@@ -46,7 +46,7 @@ inline namespace vm {
 static bool platform_initted = false;
 static std::mutex mutex;
 
-JSHVM::JSHVM() : VM() {
+JSHVM::JSHVM(const std::shared_ptr<JSHVMInitParam>& param) : VM(param) {
   JSVM_VMInfo vmInfo;
   OH_JSVM_GetVMInfo(&vmInfo);
   FOOTSTONE_DLOG(INFO) << "JSHVM begin, apiVersion: " << vmInfo.apiVersion
@@ -56,8 +56,8 @@ JSHVM::JSHVM() : VM() {
     std::lock_guard<std::mutex> lock(mutex);
     if (!platform_initted) {
       
-      // TODO(hot): 临时关闭管控，等 ohos beta3 版本修复后，删除这里。
-      prctl(0x6a6974, 0, 0);
+      // 临时关闭管控，ohos beta3 版本修复后，不需要了。
+      // prctl(0x6a6974, 0, 0);
       
       JSVM_InitOptions init_options;
       memset(&init_options, 0, sizeof(init_options));
@@ -71,8 +71,6 @@ JSHVM::JSHVM() : VM() {
     }
   }
   
-  // TODO(hot): vm params
-  
   JSVM_CreateVMOptions options;
   memset(&options, 0, sizeof(options));
   auto status = OH_JSVM_CreateVM(&options, &vm_);
@@ -80,6 +78,7 @@ JSHVM::JSHVM() : VM() {
   status = OH_JSVM_OpenVMScope(vm_, &vm_scope_);
   FOOTSTONE_CHECK(status == JSVM_OK);
 
+  enable_v8_serialization_ = param->enable_v8_serialization;
   FOOTSTONE_DLOG(INFO) << "V8VM end";
 }
 
@@ -175,7 +174,7 @@ std::shared_ptr<CtxValue> JSHVM::CreateJSHString(JSVM_Env env, const string_view
 }
 
 std::shared_ptr<VM> CreateVM(const std::shared_ptr<VM::VMInitParam>& param) {
-  return std::make_shared<JSHVM>();
+  return std::make_shared<JSHVM>(std::static_pointer_cast<JSHVMInitParam>(param));
 }
 
 std::shared_ptr<CtxValue> JSHVM::ParseJson(const std::shared_ptr<Ctx>& ctx, const string_view& json) {

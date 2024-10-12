@@ -58,7 +58,7 @@ class JSHVM : public VM {
     string_view message;
   };
 
-  JSHVM();
+  JSHVM(const std::shared_ptr<JSHVMInitParam>& param);
   ~JSHVM();
 
   inline void SaveUncaughtExceptionCallback(std::unique_ptr<FunctionWrapper>&& wrapper) {
