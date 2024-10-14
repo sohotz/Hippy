@@ -47,32 +47,6 @@ using CallbackInfo = hippy::CallbackInfo;
 // TODO(hot-js):
 std::map<JSVM_Value, void*> sEmbedderExternalMap;
 
-// TODO(hot-js):
-void CheckPendingExeception(JSVM_Env env_, JSVM_Status status) {
-  if (status != JSVM_OK) {
-    FOOTSTONE_LOG(ERROR) << "JSVM status error: " << status;
-  }
-  if (status == JSVM_PENDING_EXCEPTION) {
-    JSVM_Value error;
-    if (OH_JSVM_GetAndClearLastException((env_), &error) == JSVM_OK) {
-      // 获取异常堆栈
-      JSVM_Value stack;
-      OH_JSVM_GetNamedProperty((env_), error, "stack", &stack);
-
-      JSVM_Value message;
-      OH_JSVM_GetNamedProperty((env_), error, "message", &message);
-
-      char stackstr[256];
-      OH_JSVM_GetValueStringUtf8(env_, stack, stackstr, 256, nullptr);
-      FOOTSTONE_LOG(ERROR) << "JSVM PENDING EXCEPTION, error stack: " << stackstr;
-
-      char messagestr[256];
-      OH_JSVM_GetValueStringUtf8(env_, message, messagestr, 256, nullptr);
-      FOOTSTONE_LOG(ERROR) << "JSVM PENDING EXCEPTION, error message: " << messagestr;
-    }
-  }
-}
-
 JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   size_t argc = 0;
   auto status = OH_JSVM_GetCbInfo(env, info, &argc, nullptr, nullptr, nullptr);
@@ -195,7 +169,8 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
   return thisArg;
 }
 
-JSHCtx::JSHCtx(JSVM_VM vm) : vm_(vm) {
+JSHCtx::JSHCtx(JSVM_VM vm, ExceptionMessageCallback exception_cb, void *external_data) : vm_(vm),
+exception_cb_(exception_cb), exception_cb_external_data_(external_data) {
   auto status = OH_JSVM_CreateEnv(vm_, 0, nullptr, &env_);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   status = OH_JSVM_OpenEnvScope(env_, &env_scope_);
@@ -316,16 +291,18 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
       const string_view::u8string& str = cache->utf8_value();
       bool cacheRejected = false;
       status = OH_JSVM_CompileScript(env_, jsh_source_value->GetValue(), str.c_str(), (size_t)str.length(), true, &cacheRejected, &script);
-      CheckPendingExeception(env_, status);
-      FOOTSTONE_DCHECK(status == JSVM_OK);
+      if(!CheckJSVMStatus(env_, status)) {
+        return nullptr;
+      }
     } else {
       FOOTSTONE_UNREACHABLE();
     }
   } else {
     if (is_use_code_cache && cache) {
       status = OH_JSVM_CompileScript(env_, jsh_source_value->GetValue(), nullptr, 0, true, nullptr, &script);
-      CheckPendingExeception(env_, status);
-      FOOTSTONE_DCHECK(status == JSVM_OK);
+      if(!CheckJSVMStatus(env_, status)) {
+        return nullptr;
+      }
       if (!script) {
         return nullptr;
       }
@@ -338,8 +315,9 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
       delete[] data;
     } else {
       status = OH_JSVM_CompileScript(env_, jsh_source_value->GetValue(), nullptr, 0, true, nullptr, &script);
-      CheckPendingExeception(env_, status);
-      FOOTSTONE_DCHECK(status == JSVM_OK);
+      if(!CheckJSVMStatus(env_, status)) {
+        return nullptr;
+      }
     }
   }
 
@@ -349,8 +327,9 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
 
   JSVM_Value result = nullptr;
   status = OH_JSVM_RunScript(env_, script, &result);
-  CheckPendingExeception(env_, status);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  if(!CheckJSVMStatus(env_, status)) {
+    return nullptr;
+  }
   if (!result) {
     return nullptr;
   }
@@ -405,8 +384,9 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
   auto receiver_object = std::static_pointer_cast<JSHCtxValue>(receiver);
   JSVM_Value result = nullptr;
   auto status = OH_JSVM_CallFunction(env_, receiver_object->GetValue(), ctx_value->GetValue(), argument_count, &args[0], &result);
-  CheckPendingExeception(env_, status);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  if(!CheckJSVMStatus(env_, status)) {
+    return nullptr;
+  }
 
   if (!result) {
     FOOTSTONE_DLOG(INFO) << "maybe_result is empty";
@@ -1389,11 +1369,42 @@ bool JSHCtx::GetByteBuffer(const std::shared_ptr<CtxValue>& value,
   return true;
 }
 
-void  JSHCtx::SetWeak(std::shared_ptr<CtxValue> value,
+void JSHCtx::SetWeak(std::shared_ptr<CtxValue> value,
                      const std::unique_ptr<WeakCallbackWrapper>& wrapper) {
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
   // TODO(hot-js):
+}
+
+bool JSHCtx::CheckJSVMStatus(JSVM_Env env, JSVM_Status status) {
+  if (status != JSVM_OK) {
+    FOOTSTONE_LOG(ERROR) << "JSVM status error: " << status;
+
+    if (status == JSVM_PENDING_EXCEPTION) {
+      JSVM_Value error = nullptr;
+      if (OH_JSVM_GetAndClearLastException(env, &error) == JSVM_OK) {
+        JSVM_Value stack = nullptr;
+        OH_JSVM_GetNamedProperty(env, error, "stack", &stack);
+  
+        JSVM_Value message = nullptr;
+        OH_JSVM_GetNamedProperty(env, error, "message", &message);
+  
+        char stackStr[256] = {0};
+        OH_JSVM_GetValueStringUtf8(env, stack, stackStr, 256, nullptr);
+        FOOTSTONE_LOG(ERROR) << "JSVM status error, PENDING EXCEPTION, stack: " << stackStr;
+  
+        char messageStr[256] = {0};
+        OH_JSVM_GetValueStringUtf8(env, message, messageStr, 256, nullptr);
+        FOOTSTONE_LOG(ERROR) << "JSVM status error, PENDING EXCEPTION, message: " << messageStr;
+        
+        if (exception_cb_) {
+          exception_cb_(env_, error, exception_cb_external_data_);
+        }
+      }
+    }
+  }
+
+  return status == JSVM_OK;
 }
 
 }  // namespace napi

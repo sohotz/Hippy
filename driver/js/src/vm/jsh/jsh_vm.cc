@@ -82,12 +82,29 @@ JSHVM::JSHVM(const std::shared_ptr<JSHVMInitParam>& param) : VM(param) {
   FOOTSTONE_DLOG(INFO) << "V8VM end";
 }
 
-// constexpr static int kScopeWrapperIndex = 5;
+static void UncaughtExceptionMessageCallback(JSVM_Env env, JSVM_Value error, void *external_data) {
+  void *scope_data = nullptr;
+  auto status = OH_JSVM_GetInstanceData(env, &scope_data);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
+  
+  JSVM_Value stack = nullptr;
+  OH_JSVM_GetNamedProperty(env, error, "stack", &stack);
+  JSVM_Value message = nullptr;
+  OH_JSVM_GetNamedProperty(env, error, "message", &message);
+  
+  CallbackInfo callback_info;
+  callback_info.SetSlot(scope_data);
+  callback_info.AddValue(std::make_shared<JSHCtxValue>(env, error));
+  callback_info.AddValue(std::make_shared<JSHCtxValue>(env, message));
+  callback_info.AddValue(std::make_shared<JSHCtxValue>(env, stack));
+
+  FOOTSTONE_CHECK(external_data);
+  auto* func_wrapper = reinterpret_cast<FunctionWrapper*>(external_data);
+  FOOTSTONE_CHECK(func_wrapper && func_wrapper->callback);
+  (func_wrapper->callback)(callback_info, func_wrapper->data);
+}
 
 void JSHVM::AddUncaughtExceptionMessageListener(const std::unique_ptr<FunctionWrapper>& wrapper) const {
-  FOOTSTONE_CHECK(!wrapper->data) << "Snapshot requires the parameter data to be nullptr or the address can be determined during compilation";
-
-  // TODO(hot-js):
 }
 
 JSHVM::~JSHVM() {
@@ -109,7 +126,7 @@ void JSHVM::PlatformDestroy() {
 
 std::shared_ptr<Ctx> JSHVM::CreateContext() {
   FOOTSTONE_DLOG(INFO) << "CreateContext";
-  return std::make_shared<JSHCtx>(vm_);
+  return std::make_shared<JSHCtx>(vm_, UncaughtExceptionMessageCallback, uncaught_exception_.get());
 }
 
 string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value string_value) {
@@ -117,18 +134,7 @@ string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value string_value) {
   
   JSHHandleScope handleScope(env);
   
-  // TODO(hot-js): need handle one byte string?
-//   size_t result = 0;
-//   auto status = OH_JSVM_GetValueStringUtf8(env, string_value, NULL, 0, &result);
-//   if (status != JSVM_OK || result == 0) {
-//     return "";
-//   }
-//   std::string one_byte_string;
-//   one_byte_string.resize(result + 1);
-//   status = OH_JSVM_GetValueStringUtf8(env, string_value, reinterpret_cast<char*>(&one_byte_string[0]), result + 1, &result);
-//   FOOTSTONE_DCHECK(status == JSVM_OK);
-//   one_byte_string.resize(result);
-  
+  // JSVM没有判断字符串是UTF16/UTF8/Latin1的接口，这里使用UTF16的API没问题，使用UTF8的API有问题（返回长度>0，但显示文本是乱的）
   size_t result = 0;
   auto status = OH_JSVM_GetValueStringUtf16(env, string_value, NULL, 0, &result);
   if (status != JSVM_OK || result == 0) {
@@ -139,7 +145,7 @@ string_view JSHVM::ToStringView(JSVM_Env env, JSVM_Value string_value) {
   status = OH_JSVM_GetValueStringUtf16(env, string_value, reinterpret_cast<char16_t*>(&two_byte_string[0]), result + 1, &result);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   two_byte_string.resize(result);
-  
+
   return string_view(two_byte_string);
 }
 

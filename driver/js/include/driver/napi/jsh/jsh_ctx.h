@@ -58,8 +58,9 @@ class JSHHandleScope {
 class JSHCtx : public Ctx {
  public:
   using unicode_string_view = footstone::string_view;
+  using ExceptionMessageCallback = void (*)(JSVM_Env env, JSVM_Value error, void *external_data);
 
-  explicit JSHCtx(JSVM_VM vm);
+  explicit JSHCtx(JSVM_VM vm, ExceptionMessageCallback exception_cb, void *external_data);
 
   ~JSHCtx() {
     template_map_.clear();
@@ -205,6 +206,9 @@ class JSHCtx : public Ctx {
   
   std::unordered_map<void*, void*> func_external_data_map_;
   std::unordered_map<string_view, std::shared_ptr<JSHClassDefinition>> template_map_;
+  
+  ExceptionMessageCallback exception_cb_ = nullptr;
+  void *exception_cb_external_data_ = nullptr;
 
  private:
   std::shared_ptr<CtxValue> CreateTemplate(const std::unique_ptr<FunctionWrapper>& wrapper);
@@ -213,6 +217,7 @@ class JSHCtx : public Ctx {
       const unicode_string_view& file_name,
       bool is_use_code_cache,
       unicode_string_view* cache);
+  bool CheckJSVMStatus(JSVM_Env env, JSVM_Status status);
 };
 
 }
