@@ -349,7 +349,8 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
 void JSHCtx::ThrowException(const std::shared_ptr<CtxValue>& exception) {
   JSHHandleScope handleScope(env_);
 
-  // TODO(hot-js):
+  auto ctx_value = std::static_pointer_cast<JSHCtxValue>(exception);
+  OH_JSVM_Throw(env_, ctx_value->GetValue());
 }
 
 void JSHCtx::ThrowException(const string_view& exception) {
@@ -420,7 +421,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateBoolean(bool b) {
   JSHHandleScope handleScope(env_);
 
   JSVM_Value value = nullptr;
-  auto status = OH_JSVM_CreateInt32(env_, b ? 1 : 0, &value); // TODO(hot-js):
+  auto status = OH_JSVM_GetBoolean(env_, b, &value);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   if (!value) {
     return nullptr;
@@ -528,7 +529,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateMap(const std::map<
   JSHHandleScope handleScope(env_);
 
   JSVM_Value obj = nullptr;
-  auto status = OH_JSVM_CreateObject(env_, &obj); // TODO(hot-js):
+  auto status = OH_JSVM_CreateMap(env_, &obj);
   FOOTSTONE_DCHECK(status == JSVM_OK);
 
   for (const auto& it: map) {
@@ -685,11 +686,10 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
   status = OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   if (!arrayLength) {
-    return true; // TODO(hot-js):
+    return true;
   }
 
-  for (uint32_t i = 0; i < arrayLength; i++)
-  {
+  for (uint32_t i = 0; i < arrayLength; i++) {
     bool hasElement = false;
     status = OH_JSVM_HasElement(env_, propNames, i, &hasElement);
     FOOTSTONE_DCHECK(status == JSVM_OK);
@@ -700,6 +700,9 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
     JSVM_Value propName = nullptr;
     status = OH_JSVM_GetElement(env_, propNames, i, &propName);
     FOOTSTONE_DCHECK(status == JSVM_OK);
+    if (!propName) {
+      continue;
+    }
 
     bool hasProp = false;
     status = OH_JSVM_HasProperty(env_, obj, propName, &hasProp);
@@ -711,6 +714,9 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
     JSVM_Value propValue = nullptr;
     status = OH_JSVM_GetProperty(env_, obj, propName, &propValue);
     FOOTSTONE_DCHECK(status == JSVM_OK);
+    if (!propValue) {
+      continue;
+    }
 
     map[std::make_shared<JSHCtxValue>(env_, propName)] = std::make_shared<JSHCtxValue>(env_, propValue);
   }
@@ -727,8 +733,7 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
   auto js_value = ctx_value->GetValue();
 
   std::shared_ptr<CtxValue> map_key = nullptr;
-
-  // TODO(hot-js):
+  
   bool isJsArray = false;
   auto status = OH_JSVM_IsArray(env_, js_value, &isJsArray);
   FOOTSTONE_DCHECK(status == JSVM_OK);
@@ -750,10 +755,10 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
     }
   }
 
-  bool isJsObj = false;
-  status = OH_JSVM_IsObject(env_, js_value, &isJsObj);
+  bool isMap = false;
+  status = OH_JSVM_IsMap(env_, js_value, &isMap);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isJsObj) {
+  if (isMap) {
     JSVM_Value propNames = nullptr;
     status = OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
     FOOTSTONE_DCHECK(status == JSVM_OK);
@@ -784,6 +789,9 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
       JSVM_Value propName = nullptr;
       status = OH_JSVM_GetElement(env_, propNames, i, &propName);
       FOOTSTONE_DCHECK(status == JSVM_OK);
+      if (!propName) {
+        continue;
+      }
 
       bool hasProp = false;
       status = OH_JSVM_HasProperty(env_, js_value, propName, &hasProp);
@@ -795,6 +803,9 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
       JSVM_Value propValue = nullptr;
       status = OH_JSVM_GetProperty(env_, js_value, propName, &propValue);
       FOOTSTONE_DCHECK(status == JSVM_OK);
+      if (!propValue) {
+        continue;
+      }
 
       map[std::make_shared<JSHCtxValue>(env_, propName)] = std::make_shared<JSHCtxValue>(env_, propValue);
     }
@@ -809,10 +820,9 @@ bool JSHCtx::IsMap(const std::shared_ptr<CtxValue>& value) {
 
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
-
-  // TODO(hot-js):
+  
   bool result = false;
-  auto status = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &result);
+  auto status = OH_JSVM_IsMap(env_, ctx_value->GetValue(), &result);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   return result;
 }
@@ -933,12 +943,11 @@ size_t JSHCtx::GetMapLength(std::shared_ptr<CtxValue>& value) {
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
   auto js_value = ctx_value->GetValue();
-
-  // TODO(hot-js):
-  bool isJsObj = false;
-  auto status = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  
+  bool isMap = false;
+  auto status = OH_JSVM_IsMap(env_, ctx_value->GetValue(), &isMap);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isJsObj) {
+  if (isMap) {
     JSVM_Value propNames = nullptr;
     status = OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
     FOOTSTONE_DCHECK(status == JSVM_OK);
@@ -965,7 +974,9 @@ std::shared_ptr<CtxValue> JSHCtx::ConvertMapToArray(
     return nullptr;
   }
   JSHHandleScope handleScope(env_);
-  // TODO(hot):
+  
+  // not used
+  
   return nullptr;
 }
 
@@ -978,12 +989,11 @@ bool JSHCtx::HasNamedProperty(const std::shared_ptr<CtxValue>& value,
   }
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
-
-  // TODO(hot-js):
-  bool isJsObj = false;
-  auto status = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  
+  bool isMap = false;
+  auto status = OH_JSVM_IsMap(env_, ctx_value->GetValue(), &isMap);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isJsObj) {
+  if (isMap) {
     auto key_value = JSHVM::CreateJSHString(env_, name);
     auto jsh_key_value = std::static_pointer_cast<JSHCtxValue>(key_value);
 
@@ -1004,12 +1014,11 @@ std::shared_ptr<CtxValue> JSHCtx::CopyNamedProperty(
   }
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
-
-  // TODO(hot-js):
-  bool isJsObj = false;
-  auto status = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  
+  bool isMap = false;
+  auto status = OH_JSVM_IsMap(env_, ctx_value->GetValue(), &isMap);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isJsObj) {
+  if (isMap) {
     auto key_value = JSHVM::CreateJSHString(env_, name);
     auto jsh_key_value = std::static_pointer_cast<JSHCtxValue>(key_value);
 
@@ -1058,8 +1067,7 @@ std::shared_ptr<CtxValue> JSHCtx::GetOwnPropertyNames(const std::shared_ptr<CtxV
   if (!isJsObj) {
     return nullptr;
   }
-
-  // TODO(hot-js):
+  
   JSVM_Value propNames = nullptr;
   status = OH_JSVM_GetAllPropertyNames(env_, js_value, JSVM_KEY_OWN_ONLY,
                                 static_cast<JSVM_KeyFilter>(JSVM_KEY_ENUMERABLE | JSVM_KEY_SKIP_SYMBOLS),
@@ -1142,24 +1150,8 @@ bool JSHCtx::IsObject(const std::shared_ptr<CtxValue>& value) {
 }
 
 string_view JSHCtx::CopyFunctionName(const std::shared_ptr<CtxValue>& function) {
-  if (!function) {
-    return {};
-  }
-
-  JSHHandleScope handleScope(env_);
-
-  auto ctx_value = std::static_pointer_cast<JSHCtxValue>(function);
-
-  string_view result;
-
-  bool isFunc = false;
-  auto status = OH_JSVM_IsFunction(env_, ctx_value->GetValue(), &isFunc);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isFunc) {
-    // TODO(hot-js):
-  }
-
-  return result;
+  FOOTSTONE_UNIMPLEMENTED();
+  return "";
 }
 
 bool JSHCtx::SetProperty(std::shared_ptr<CtxValue> object,
@@ -1187,8 +1179,8 @@ bool JSHCtx::SetProperty(std::shared_ptr<CtxValue> object,
   auto jsh_object = std::static_pointer_cast<JSHCtxValue>(object);
   auto jsh_key = std::static_pointer_cast<JSHCtxValue>(key);
   auto jsh_value = std::static_pointer_cast<JSHCtxValue>(value);
-
-  // TODO(hot-js):
+  
+  // no attr api in JSVM
   auto status = OH_JSVM_SetProperty(env_, jsh_object->GetValue(), jsh_key->GetValue(), jsh_value->GetValue());
   FOOTSTONE_DCHECK(status == JSVM_OK);
   return true;
@@ -1250,7 +1242,7 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
 
   if (parent) {
     auto parent_template = std::static_pointer_cast<JSHClassDefinition>(parent);
-    // TODO(hot-js):
+    // JSVM not support inherit
   }
   
   JSVM_PropertyDescriptor *propParams = new JSVM_PropertyDescriptor[property_count];
