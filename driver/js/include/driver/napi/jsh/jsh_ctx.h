@@ -55,6 +55,10 @@ class JSHHandleScope {
   JSVM_HandleScope handle_scope_ = nullptr;
 };
 
+constexpr static int kJSHExternalIndex = 0;
+constexpr static int kJSHScopeWrapperIndex = 1;
+constexpr static int kJSHExternalDataNum = 2;
+
 class JSHCtx : public Ctx {
  public:
   using unicode_string_view = footstone::string_view;
@@ -198,7 +202,7 @@ class JSHCtx : public Ctx {
 
   std::string GetSerializationBuffer(const std::shared_ptr<CtxValue>& value,
                                      std::string& reused_buffer);
-  void SetAlignedPointerInEmbedderData(int index, intptr_t address);
+  void SetPointerInInstanceData(int index, void* address);
   
   JSVM_VM vm_ = nullptr;
   JSVM_Env env_ = nullptr;
@@ -208,7 +212,9 @@ class JSHCtx : public Ctx {
   std::unordered_map<string_view, std::shared_ptr<JSHClassDefinition>> template_map_;
   
   ExceptionMessageCallback exception_cb_ = nullptr;
-  void *exception_cb_external_data_ = nullptr;
+  void* exception_cb_external_data_ = nullptr;
+  
+  void* instance_data_[kJSHExternalDataNum] = {0};
 
  private:
   std::shared_ptr<CtxValue> CreateTemplate(const std::unique_ptr<FunctionWrapper>& wrapper);

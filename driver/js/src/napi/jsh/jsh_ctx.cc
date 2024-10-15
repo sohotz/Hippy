@@ -44,8 +44,20 @@ using StringViewUtils = footstone::StringViewUtils;
 using JSHVM = hippy::vm::JSHVM;
 using CallbackInfo = hippy::CallbackInfo;
 
-// TODO(hot-js):
-std::map<JSVM_Value, void*> sEmbedderExternalMap;
+void* GetPointerInInstanceData(JSVM_Env env, int index) {
+  if (index < 0 || index >= kJSHExternalDataNum) {
+    return nullptr;
+  }
+  
+  void *data = nullptr;
+  auto status = OH_JSVM_GetInstanceData(env, &data);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
+  
+  if (data) {
+    return ((void**)data)[index];
+  }
+  return nullptr;
+}
 
 JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   size_t argc = 0;
@@ -62,9 +74,7 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 
   CallbackInfo cb_info;
 
-  void *scope_data = nullptr;
-  status = OH_JSVM_GetInstanceData(env, &scope_data);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  void *scope_data = GetPointerInInstanceData(env, kJSHScopeWrapperIndex);
   cb_info.SetSlot(scope_data);
 
   void *internal_data = nullptr;
@@ -89,8 +99,7 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 
   auto exception = std::static_pointer_cast<JSHCtxValue>(cb_info.GetExceptionValue()->Get());
   if (exception) {
-    // TODO(hot-js):
-
+    OH_JSVM_Throw(env, exception->GetValue());
     JSVM_Value result = nullptr;
     OH_JSVM_GetUndefined(env, &result);
     return result;
@@ -121,18 +130,12 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
 
   CallbackInfo cb_info;
 
-  void *scope_data = nullptr;
-  status = OH_JSVM_GetInstanceData(env, &scope_data);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  void *scope_data = GetPointerInInstanceData(env, kJSHScopeWrapperIndex);
   cb_info.SetSlot(scope_data);
-
-  // TODO(hot-js):
-  void *external = sEmbedderExternalMap[thisArg];
-  auto new_instance_external = (void*)external;
+  
+  void *new_instance_external = GetPointerInInstanceData(env, kJSHExternalIndex);
   if (new_instance_external) {
     cb_info.SetData(new_instance_external);
-  } else {
-    cb_info.SetData((void*)1); // TODO(hot-js):
   }
 
   cb_info.SetReceiver(std::make_shared<JSHCtxValue>(env, thisArg));
@@ -149,8 +152,7 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
 
   auto exception = std::static_pointer_cast<JSHCtxValue>(cb_info.GetExceptionValue()->Get());
   if (exception) {
-    // TODO(hot-js):
-
+    OH_JSVM_Throw(env, exception->GetValue());
     JSVM_Value result = nullptr;
     OH_JSVM_GetUndefined(env, &result);
     return result;
@@ -196,7 +198,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateFunction(const std::unique_ptr<FunctionW
 }
 
 void JSHCtx::SetExternalData(void* address) {
-  OH_JSVM_SetInstanceData(env_, address, nullptr, nullptr);
+  SetPointerInInstanceData(kJSHScopeWrapperIndex, address);
 }
 
 std::shared_ptr<ClassDefinition> JSHCtx::GetClassDefinition(const string_view& name) {
@@ -204,8 +206,15 @@ std::shared_ptr<ClassDefinition> JSHCtx::GetClassDefinition(const string_view& n
   return template_map_[name];
 }
 
-void JSHCtx::SetAlignedPointerInEmbedderData(int index, intptr_t address) {
+void JSHCtx::SetPointerInInstanceData(int index, void* address) {
+  if (index < 0 || index >= kJSHExternalDataNum) {
+    return;
+  }
+  
   JSHHandleScope handleScope(env_);
+  
+  instance_data_[index] = address;
+  OH_JSVM_SetInstanceData(env_, instance_data_, nullptr, nullptr);
 }
 
 std::string JSHCtx::GetSerializationBuffer(const std::shared_ptr<CtxValue>& value,
@@ -1209,14 +1218,13 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
     auto jsh_value = std::static_pointer_cast<JSHCtxValue>(argv[i]);
     jsh_argv[(size_t)i] = jsh_value->GetValue();
   }
-
+  
+  if (external) {
+    SetPointerInInstanceData(kJSHExternalIndex, external);
+  }
+  
   JSVM_Status status = OH_JSVM_NewInstance(env_, jsh_cls->GetValue(), (size_t)argc, &jsh_argv[0], &instanceValue);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-
-  // TODO(hot-js):
-  if (external) {
-    sEmbedderExternalMap[instanceValue] = external;
-  }
 
   return std::make_shared<JSHCtxValue>(env_, instanceValue);
 }
