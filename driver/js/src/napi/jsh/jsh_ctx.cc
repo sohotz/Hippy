@@ -1223,14 +1223,21 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
 
 void* JSHCtx::GetObjectExternalData(const std::shared_ptr<CtxValue>& object) {
   JSHHandleScope handleScope(env_);
-  // TODO(hot-js):
+  
+  auto jsh_value = std::static_pointer_cast<JSHCtxValue>(object);
+  
+  void* data = nullptr;
+  auto status = OH_JSVM_Unwrap(env_, jsh_value->GetValue(), &data);
+  if (status == JSVM_OK) {
+    return data;
+  }
+
   return nullptr;
 }
 
 std::shared_ptr<CtxValue> JSHCtx::DefineProxy(const std::unique_ptr<FunctionWrapper>& constructor_wrapper) {
-  JSHHandleScope handleScope(env_);
-  // TODO(hot-js):
-  return nullptr;
+  // JSVM impl
+  return CreateFunction(constructor_wrapper);
 }
 
 std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
