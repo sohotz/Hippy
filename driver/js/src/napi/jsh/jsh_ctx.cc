@@ -185,14 +185,14 @@ std::shared_ptr<CtxValue> JSHCtx::CreateTemplate(const std::unique_ptr<FunctionW
 
 std::shared_ptr<CtxValue> JSHCtx::CreateFunction(const std::unique_ptr<FunctionWrapper>& wrapper) {
   JSHHandleScope handleScope(env_);
-
-  // TODO(hot-js):
-  JSVM_CallbackStruct *param = new JSVM_CallbackStruct();
-  param->data = wrapper.get();
-  param->callback = InvokeJsCallback;
-
+  
+  callback_structs_.push_back(new JSVM_CallbackStruct());
+  JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+  callbackParam->data = wrapper.get();
+  callbackParam->callback = InvokeJsCallback;
+  
   JSVM_Value funcValue = nullptr;
-  JSVM_Status status = OH_JSVM_CreateFunction(env_, nullptr, JSVM_AUTO_LENGTH, param, &funcValue);
+  JSVM_Status status = OH_JSVM_CreateFunction(env_, nullptr, JSVM_AUTO_LENGTH, callbackParam, &funcValue);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, funcValue);
 }
@@ -1252,65 +1252,53 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
     auto parent_template = std::static_pointer_cast<JSHClassDefinition>(parent);
     // TODO(hot-js):
   }
-
-  // TODO(hot-js): new and delete
-  JSVM_PropertyDescriptor *propParams = new JSVM_PropertyDescriptor[property_count]; // TODO(hot-js):
-  JSVM_CallbackStruct *callbackParams = new JSVM_CallbackStruct[property_count];
+  
+  JSVM_PropertyDescriptor *propParams = new JSVM_PropertyDescriptor[property_count];
+  prop_descriptor_arrays_.push_back(propParams);
+  
   for (size_t i = 0; i < property_count; i++) {
     const auto &prop_desc = properties[i];
-    auto &propParam = propParams[i];
-    auto &callbackParam = callbackParams[i];
     auto prop_name = std::static_pointer_cast<JSHCtxValue>(prop_desc->name);
+    
+    auto &propParam = propParams[i];
     propParam.utf8name = nullptr;
     propParam.name = prop_name->GetValue();
+    propParam.getter = nullptr;
+    propParam.setter = nullptr;
     propParam.method = nullptr;
     propParam.value = nullptr;
     propParam.attributes = JSVM_DEFAULT;
     if (prop_desc->getter || prop_desc->setter) {
       if (prop_desc->getter) {
-        // TODO(hot-js):
-        JSVM_CallbackStruct *callbackP = new JSVM_CallbackStruct();
-        callbackP->data = prop_desc->getter.get();
-        callbackP->callback = InvokeJsCallback;
-        propParam.getter = callbackP;
-      } else {
-        propParam.getter = nullptr;
+        callback_structs_.push_back(new JSVM_CallbackStruct());
+        JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+        callbackParam->data = prop_desc->getter.get();
+        callbackParam->callback = InvokeJsCallback;
+        propParam.getter = callbackParam;
       }
       if (prop_desc->setter) {
-        // TODO(hot-js):
-        JSVM_CallbackStruct *callbackP = new JSVM_CallbackStruct();
-        callbackP->data = prop_desc->setter.get();
-        callbackP->callback = InvokeJsCallback;
-        propParam.setter = callbackP;
-      } else {
-        propParam.setter = nullptr;
+        callback_structs_.push_back(new JSVM_CallbackStruct());
+        JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+        callbackParam->data = prop_desc->setter.get();
+        callbackParam->callback = InvokeJsCallback;
+        propParam.setter = callbackParam;
       }
     } else if (prop_desc->method) {
-      callbackParam.data = prop_desc->method.get();
-      callbackParam.callback = InvokeJsCallback;
-      propParam.utf8name = nullptr;
-      propParam.name = prop_name->GetValue();
-      propParam.method = &callbackParam;
-      propParam.getter = nullptr;
-      propParam.setter = nullptr;
-      propParam.value = nullptr;
-      propParam.attributes = JSVM_DEFAULT;
+      callback_structs_.push_back(new JSVM_CallbackStruct());
+      JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+      callbackParam->data = prop_desc->method.get();
+      callbackParam->callback = InvokeJsCallback;
+      propParam.method = callbackParam;
     } else {
       auto prop_value = std::static_pointer_cast<JSHCtxValue>(prop_desc->value);
-      propParam.utf8name = nullptr;
-      propParam.name = prop_name->GetValue();
-      propParam.method = nullptr;
-      propParam.getter = nullptr;
-      propParam.setter = nullptr;
       propParam.value = prop_value->GetValue();
-      propParam.attributes = JSVM_DEFAULT;
     }
   }
 
   string_view utf8Name = StringViewUtils::ConvertEncoding(name, string_view::Encoding::Utf8);
 
-  // TODO(hot-js):
-  JSVM_CallbackStruct *constructorParam = new JSVM_CallbackStruct();
+  callback_structs_.push_back(new JSVM_CallbackStruct());
+  JSVM_CallbackStruct* constructorParam = callback_structs_.back();
   constructorParam->data = constructor_wrapper.get();
   constructorParam->callback = InvokeJsCallbackOnConstruct;
 

@@ -67,6 +67,12 @@ class JSHCtx : public Ctx {
   explicit JSHCtx(JSVM_VM vm, ExceptionMessageCallback exception_cb, void *external_data);
 
   ~JSHCtx() {
+    for (auto st : callback_structs_) {
+      delete st;
+    }
+    for (auto arr : prop_descriptor_arrays_) {
+      delete []arr;
+    }
     template_map_.clear();
     OH_JSVM_CloseEnvScope(env_, env_scope_);
     env_scope_ = nullptr;
@@ -215,6 +221,9 @@ class JSHCtx : public Ctx {
   void* exception_cb_external_data_ = nullptr;
   
   void* instance_data_[kJSHExternalDataNum] = {0};
+  
+  std::vector<JSVM_CallbackStruct*> callback_structs_;
+  std::vector<JSVM_PropertyDescriptor*> prop_descriptor_arrays_;
 
  private:
   std::shared_ptr<CtxValue> CreateTemplate(const std::unique_ptr<FunctionWrapper>& wrapper);
