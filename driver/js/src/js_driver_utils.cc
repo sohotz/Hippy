@@ -131,6 +131,36 @@ void AsyncInitializeEngine(const std::shared_ptr<Engine>& engine,
       v8_vm->GetInspectorClient()->SetJsRunner(engine->GetJsTaskRunner());
     }
 #endif
+#elif JS_JSH
+    auto jsh_vm = std::static_pointer_cast<JSHVM>(engine->GetVM());
+    auto wrapper = std::make_unique<FunctionWrapper>([](CallbackInfo& info, void* data) {
+      auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
+      auto scope = scope_wrapper->scope.lock();
+      FOOTSTONE_CHECK(scope);
+      auto exception = info[0];
+      JSHVM::HandleException(scope->GetContext(), "uncaughtException", exception);
+      auto engine = scope->GetEngine().lock();
+      FOOTSTONE_CHECK(engine);
+      auto callback = engine->GetVM()->GetUncaughtExceptionCallback();
+      auto context = scope->GetContext();
+      string_view description;
+      auto flag = context->GetValueString(info[1], &description);
+      FOOTSTONE_CHECK(flag);
+      string_view stack;
+      flag = context->GetValueString(info[2], &stack);
+      FOOTSTONE_CHECK(flag);
+      callback(scope->GetBridge(), description, stack);
+    }, nullptr);
+    jsh_vm->AddUncaughtExceptionMessageListener(wrapper);
+    jsh_vm->SaveUncaughtExceptionCallback(std::move(wrapper));
+#if defined(ENABLE_INSPECTOR) && !defined(V8_WITHOUT_INSPECTOR)
+    if (jsh_vm->IsDebug()) {
+      if (!jsh_vm->GetInspectorClient()) {
+        jsh_vm->SetInspectorClient(std::make_shared<JSHInspectorClientImpl>());
+      }
+      jsh_vm->GetInspectorClient()->SetJsRunner(engine->GetJsTaskRunner());
+    }
+#endif
 #endif
   };
   engine->AsyncInitialize(task_runner, param, engine_initialized_callback);

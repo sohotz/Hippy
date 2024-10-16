@@ -254,6 +254,8 @@ void ListView::OnReachEnd() {
 }
 
 void ListView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
+  BaseView::OnTouch(actionType, screenPosition);
+  
   if (actionType == UI_TOUCH_EVENT_ACTION_DOWN || actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
     CheckBeginDrag();
   } else if (actionType == UI_TOUCH_EVENT_ACTION_UP || actionType == UI_TOUCH_EVENT_ACTION_CANCEL) {

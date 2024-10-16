@@ -44,33 +44,19 @@ using StringViewUtils = footstone::StringViewUtils;
 using JSHVM = hippy::vm::JSHVM;
 using CallbackInfo = hippy::CallbackInfo;
 
-// TODO(hot-js):
-std::map<JSVM_Value, void*> sEmbedderExternalMap;
-
-// TODO(hot-js):
-void CheckPendingExeception(JSVM_Env env_, JSVM_Status status) {
-  if (status != JSVM_OK) {
-    FOOTSTONE_LOG(ERROR) << "JSVM status error: " << status;
+void* GetPointerInInstanceData(JSVM_Env env, int index) {
+  if (index < 0 || index >= kJSHExternalDataNum) {
+    return nullptr;
   }
-  if (status == JSVM_PENDING_EXCEPTION) {
-    JSVM_Value error;
-    if (OH_JSVM_GetAndClearLastException((env_), &error) == JSVM_OK) {
-      // 获取异常堆栈
-      JSVM_Value stack;
-      OH_JSVM_GetNamedProperty((env_), error, "stack", &stack);
-
-      JSVM_Value message;
-      OH_JSVM_GetNamedProperty((env_), error, "message", &message);
-
-      char stackstr[256];
-      OH_JSVM_GetValueStringUtf8(env_, stack, stackstr, 256, nullptr);
-      FOOTSTONE_LOG(ERROR) << "JSVM PENDING EXCEPTION, error stack: " << stackstr;
-
-      char messagestr[256];
-      OH_JSVM_GetValueStringUtf8(env_, message, messagestr, 256, nullptr);
-      FOOTSTONE_LOG(ERROR) << "JSVM PENDING EXCEPTION, error message: " << messagestr;
-    }
+  
+  void *data = nullptr;
+  auto status = OH_JSVM_GetInstanceData(env, &data);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
+  
+  if (data) {
+    return ((void**)data)[index];
   }
+  return nullptr;
 }
 
 JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
@@ -88,9 +74,7 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 
   CallbackInfo cb_info;
 
-  void *scope_data = nullptr;
-  status = OH_JSVM_GetInstanceData(env, &scope_data);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  void *scope_data = GetPointerInInstanceData(env, kJSHScopeWrapperIndex);
   cb_info.SetSlot(scope_data);
 
   void *internal_data = nullptr;
@@ -115,8 +99,7 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
 
   auto exception = std::static_pointer_cast<JSHCtxValue>(cb_info.GetExceptionValue()->Get());
   if (exception) {
-    // TODO(hot-js):
-
+    OH_JSVM_Throw(env, exception->GetValue());
     JSVM_Value result = nullptr;
     OH_JSVM_GetUndefined(env, &result);
     return result;
@@ -147,18 +130,12 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
 
   CallbackInfo cb_info;
 
-  void *scope_data = nullptr;
-  status = OH_JSVM_GetInstanceData(env, &scope_data);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  void *scope_data = GetPointerInInstanceData(env, kJSHScopeWrapperIndex);
   cb_info.SetSlot(scope_data);
-
-  // TODO(hot-js):
-  void *external = sEmbedderExternalMap[thisArg];
-  auto new_instance_external = (void*)external;
+  
+  void *new_instance_external = GetPointerInInstanceData(env, kJSHExternalIndex);
   if (new_instance_external) {
     cb_info.SetData(new_instance_external);
-  } else {
-    cb_info.SetData((void*)1); // TODO(hot-js):
   }
 
   cb_info.SetReceiver(std::make_shared<JSHCtxValue>(env, thisArg));
@@ -175,8 +152,7 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
 
   auto exception = std::static_pointer_cast<JSHCtxValue>(cb_info.GetExceptionValue()->Get());
   if (exception) {
-    // TODO(hot-js):
-
+    OH_JSVM_Throw(env, exception->GetValue());
     JSVM_Value result = nullptr;
     OH_JSVM_GetUndefined(env, &result);
     return result;
@@ -195,7 +171,8 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
   return thisArg;
 }
 
-JSHCtx::JSHCtx(JSVM_VM vm) : vm_(vm) {
+JSHCtx::JSHCtx(JSVM_VM vm, ExceptionMessageCallback exception_cb, void *external_data) : vm_(vm),
+exception_cb_(exception_cb), exception_cb_external_data_(external_data) {
   auto status = OH_JSVM_CreateEnv(vm_, 0, nullptr, &env_);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   status = OH_JSVM_OpenEnvScope(env_, &env_scope_);
@@ -208,20 +185,20 @@ std::shared_ptr<CtxValue> JSHCtx::CreateTemplate(const std::unique_ptr<FunctionW
 
 std::shared_ptr<CtxValue> JSHCtx::CreateFunction(const std::unique_ptr<FunctionWrapper>& wrapper) {
   JSHHandleScope handleScope(env_);
-
-  // TODO(hot-js):
-  JSVM_CallbackStruct *param = new JSVM_CallbackStruct();
-  param->data = wrapper.get();
-  param->callback = InvokeJsCallback;
-
+  
+  callback_structs_.push_back(new JSVM_CallbackStruct());
+  JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+  callbackParam->data = wrapper.get();
+  callbackParam->callback = InvokeJsCallback;
+  
   JSVM_Value funcValue = nullptr;
-  JSVM_Status status = OH_JSVM_CreateFunction(env_, nullptr, JSVM_AUTO_LENGTH, param, &funcValue);
+  JSVM_Status status = OH_JSVM_CreateFunction(env_, nullptr, JSVM_AUTO_LENGTH, callbackParam, &funcValue);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   return std::make_shared<JSHCtxValue>(env_, funcValue);
 }
 
 void JSHCtx::SetExternalData(void* address) {
-  OH_JSVM_SetInstanceData(env_, address, nullptr, nullptr);
+  SetPointerInInstanceData(kJSHScopeWrapperIndex, address);
 }
 
 std::shared_ptr<ClassDefinition> JSHCtx::GetClassDefinition(const string_view& name) {
@@ -229,8 +206,15 @@ std::shared_ptr<ClassDefinition> JSHCtx::GetClassDefinition(const string_view& n
   return template_map_[name];
 }
 
-void JSHCtx::SetAlignedPointerInEmbedderData(int index, intptr_t address) {
+void JSHCtx::SetPointerInInstanceData(int index, void* address) {
+  if (index < 0 || index >= kJSHExternalDataNum) {
+    return;
+  }
+  
   JSHHandleScope handleScope(env_);
+  
+  instance_data_[index] = address;
+  OH_JSVM_SetInstanceData(env_, instance_data_, nullptr, nullptr);
 }
 
 std::string JSHCtx::GetSerializationBuffer(const std::shared_ptr<CtxValue>& value,
@@ -316,16 +300,18 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
       const string_view::u8string& str = cache->utf8_value();
       bool cacheRejected = false;
       status = OH_JSVM_CompileScript(env_, jsh_source_value->GetValue(), str.c_str(), (size_t)str.length(), true, &cacheRejected, &script);
-      CheckPendingExeception(env_, status);
-      FOOTSTONE_DCHECK(status == JSVM_OK);
+      if(!CheckJSVMStatus(env_, status)) {
+        return nullptr;
+      }
     } else {
       FOOTSTONE_UNREACHABLE();
     }
   } else {
     if (is_use_code_cache && cache) {
       status = OH_JSVM_CompileScript(env_, jsh_source_value->GetValue(), nullptr, 0, true, nullptr, &script);
-      CheckPendingExeception(env_, status);
-      FOOTSTONE_DCHECK(status == JSVM_OK);
+      if(!CheckJSVMStatus(env_, status)) {
+        return nullptr;
+      }
       if (!script) {
         return nullptr;
       }
@@ -338,8 +324,9 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
       delete[] data;
     } else {
       status = OH_JSVM_CompileScript(env_, jsh_source_value->GetValue(), nullptr, 0, true, nullptr, &script);
-      CheckPendingExeception(env_, status);
-      FOOTSTONE_DCHECK(status == JSVM_OK);
+      if(!CheckJSVMStatus(env_, status)) {
+        return nullptr;
+      }
     }
   }
 
@@ -349,8 +336,9 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
 
   JSVM_Value result = nullptr;
   status = OH_JSVM_RunScript(env_, script, &result);
-  CheckPendingExeception(env_, status);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  if(!CheckJSVMStatus(env_, status)) {
+    return nullptr;
+  }
   if (!result) {
     return nullptr;
   }
@@ -361,7 +349,8 @@ std::shared_ptr<CtxValue> JSHCtx::InternalRunScript(
 void JSHCtx::ThrowException(const std::shared_ptr<CtxValue>& exception) {
   JSHHandleScope handleScope(env_);
 
-  // TODO(hot-js):
+  auto ctx_value = std::static_pointer_cast<JSHCtxValue>(exception);
+  OH_JSVM_Throw(env_, ctx_value->GetValue());
 }
 
 void JSHCtx::ThrowException(const string_view& exception) {
@@ -405,8 +394,9 @@ std::shared_ptr<CtxValue> JSHCtx::CallFunction(
   auto receiver_object = std::static_pointer_cast<JSHCtxValue>(receiver);
   JSVM_Value result = nullptr;
   auto status = OH_JSVM_CallFunction(env_, receiver_object->GetValue(), ctx_value->GetValue(), argument_count, &args[0], &result);
-  CheckPendingExeception(env_, status);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  if(!CheckJSVMStatus(env_, status)) {
+    return nullptr;
+  }
 
   if (!result) {
     FOOTSTONE_DLOG(INFO) << "maybe_result is empty";
@@ -431,7 +421,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateBoolean(bool b) {
   JSHHandleScope handleScope(env_);
 
   JSVM_Value value = nullptr;
-  auto status = OH_JSVM_CreateInt32(env_, b ? 1 : 0, &value); // TODO(hot-js):
+  auto status = OH_JSVM_GetBoolean(env_, b, &value);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   if (!value) {
     return nullptr;
@@ -539,7 +529,7 @@ std::shared_ptr<CtxValue> JSHCtx::CreateMap(const std::map<
   JSHHandleScope handleScope(env_);
 
   JSVM_Value obj = nullptr;
-  auto status = OH_JSVM_CreateObject(env_, &obj); // TODO(hot-js):
+  auto status = OH_JSVM_CreateMap(env_, &obj);
   FOOTSTONE_DCHECK(status == JSVM_OK);
 
   for (const auto& it: map) {
@@ -696,11 +686,10 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
   status = OH_JSVM_GetArrayLength(env_, propNames, &arrayLength);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   if (!arrayLength) {
-    return true; // TODO(hot-js):
+    return true;
   }
 
-  for (uint32_t i = 0; i < arrayLength; i++)
-  {
+  for (uint32_t i = 0; i < arrayLength; i++) {
     bool hasElement = false;
     status = OH_JSVM_HasElement(env_, propNames, i, &hasElement);
     FOOTSTONE_DCHECK(status == JSVM_OK);
@@ -711,6 +700,9 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
     JSVM_Value propName = nullptr;
     status = OH_JSVM_GetElement(env_, propNames, i, &propName);
     FOOTSTONE_DCHECK(status == JSVM_OK);
+    if (!propName) {
+      continue;
+    }
 
     bool hasProp = false;
     status = OH_JSVM_HasProperty(env_, obj, propName, &hasProp);
@@ -722,6 +714,9 @@ bool JSHCtx::GetEntriesFromObject(const std::shared_ptr<CtxValue>& value,
     JSVM_Value propValue = nullptr;
     status = OH_JSVM_GetProperty(env_, obj, propName, &propValue);
     FOOTSTONE_DCHECK(status == JSVM_OK);
+    if (!propValue) {
+      continue;
+    }
 
     map[std::make_shared<JSHCtxValue>(env_, propName)] = std::make_shared<JSHCtxValue>(env_, propValue);
   }
@@ -738,8 +733,7 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
   auto js_value = ctx_value->GetValue();
 
   std::shared_ptr<CtxValue> map_key = nullptr;
-
-  // TODO(hot-js):
+  
   bool isJsArray = false;
   auto status = OH_JSVM_IsArray(env_, js_value, &isJsArray);
   FOOTSTONE_DCHECK(status == JSVM_OK);
@@ -761,10 +755,10 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
     }
   }
 
-  bool isJsObj = false;
-  status = OH_JSVM_IsObject(env_, js_value, &isJsObj);
+  bool isMap = false;
+  status = OH_JSVM_IsMap(env_, js_value, &isMap);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isJsObj) {
+  if (isMap) {
     JSVM_Value propNames = nullptr;
     status = OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
     FOOTSTONE_DCHECK(status == JSVM_OK);
@@ -795,6 +789,9 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
       JSVM_Value propName = nullptr;
       status = OH_JSVM_GetElement(env_, propNames, i, &propName);
       FOOTSTONE_DCHECK(status == JSVM_OK);
+      if (!propName) {
+        continue;
+      }
 
       bool hasProp = false;
       status = OH_JSVM_HasProperty(env_, js_value, propName, &hasProp);
@@ -806,6 +803,9 @@ bool JSHCtx::GetEntriesFromMap(const std::shared_ptr<CtxValue>& value,
       JSVM_Value propValue = nullptr;
       status = OH_JSVM_GetProperty(env_, js_value, propName, &propValue);
       FOOTSTONE_DCHECK(status == JSVM_OK);
+      if (!propValue) {
+        continue;
+      }
 
       map[std::make_shared<JSHCtxValue>(env_, propName)] = std::make_shared<JSHCtxValue>(env_, propValue);
     }
@@ -820,10 +820,9 @@ bool JSHCtx::IsMap(const std::shared_ptr<CtxValue>& value) {
 
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
-
-  // TODO(hot-js):
+  
   bool result = false;
-  auto status = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &result);
+  auto status = OH_JSVM_IsMap(env_, ctx_value->GetValue(), &result);
   FOOTSTONE_DCHECK(status == JSVM_OK);
   return result;
 }
@@ -944,12 +943,11 @@ size_t JSHCtx::GetMapLength(std::shared_ptr<CtxValue>& value) {
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
   auto js_value = ctx_value->GetValue();
-
-  // TODO(hot-js):
-  bool isJsObj = false;
-  auto status = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  
+  bool isMap = false;
+  auto status = OH_JSVM_IsMap(env_, ctx_value->GetValue(), &isMap);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isJsObj) {
+  if (isMap) {
     JSVM_Value propNames = nullptr;
     status = OH_JSVM_GetPropertyNames(env_, js_value, &propNames);
     FOOTSTONE_DCHECK(status == JSVM_OK);
@@ -976,7 +974,9 @@ std::shared_ptr<CtxValue> JSHCtx::ConvertMapToArray(
     return nullptr;
   }
   JSHHandleScope handleScope(env_);
-  // TODO(hot):
+  
+  // not used
+  
   return nullptr;
 }
 
@@ -989,12 +989,11 @@ bool JSHCtx::HasNamedProperty(const std::shared_ptr<CtxValue>& value,
   }
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
-
-  // TODO(hot-js):
-  bool isJsObj = false;
-  auto status = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  
+  bool isMap = false;
+  auto status = OH_JSVM_IsMap(env_, ctx_value->GetValue(), &isMap);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isJsObj) {
+  if (isMap) {
     auto key_value = JSHVM::CreateJSHString(env_, name);
     auto jsh_key_value = std::static_pointer_cast<JSHCtxValue>(key_value);
 
@@ -1015,12 +1014,11 @@ std::shared_ptr<CtxValue> JSHCtx::CopyNamedProperty(
   }
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
-
-  // TODO(hot-js):
-  bool isJsObj = false;
-  auto status = OH_JSVM_IsObject(env_, ctx_value->GetValue(), &isJsObj);
+  
+  bool isMap = false;
+  auto status = OH_JSVM_IsMap(env_, ctx_value->GetValue(), &isMap);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isJsObj) {
+  if (isMap) {
     auto key_value = JSHVM::CreateJSHString(env_, name);
     auto jsh_key_value = std::static_pointer_cast<JSHCtxValue>(key_value);
 
@@ -1069,8 +1067,7 @@ std::shared_ptr<CtxValue> JSHCtx::GetOwnPropertyNames(const std::shared_ptr<CtxV
   if (!isJsObj) {
     return nullptr;
   }
-
-  // TODO(hot-js):
+  
   JSVM_Value propNames = nullptr;
   status = OH_JSVM_GetAllPropertyNames(env_, js_value, JSVM_KEY_OWN_ONLY,
                                 static_cast<JSVM_KeyFilter>(JSVM_KEY_ENUMERABLE | JSVM_KEY_SKIP_SYMBOLS),
@@ -1153,24 +1150,8 @@ bool JSHCtx::IsObject(const std::shared_ptr<CtxValue>& value) {
 }
 
 string_view JSHCtx::CopyFunctionName(const std::shared_ptr<CtxValue>& function) {
-  if (!function) {
-    return {};
-  }
-
-  JSHHandleScope handleScope(env_);
-
-  auto ctx_value = std::static_pointer_cast<JSHCtxValue>(function);
-
-  string_view result;
-
-  bool isFunc = false;
-  auto status = OH_JSVM_IsFunction(env_, ctx_value->GetValue(), &isFunc);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
-  if (isFunc) {
-    // TODO(hot-js):
-  }
-
-  return result;
+  FOOTSTONE_UNIMPLEMENTED();
+  return "";
 }
 
 bool JSHCtx::SetProperty(std::shared_ptr<CtxValue> object,
@@ -1198,8 +1179,8 @@ bool JSHCtx::SetProperty(std::shared_ptr<CtxValue> object,
   auto jsh_object = std::static_pointer_cast<JSHCtxValue>(object);
   auto jsh_key = std::static_pointer_cast<JSHCtxValue>(key);
   auto jsh_value = std::static_pointer_cast<JSHCtxValue>(value);
-
-  // TODO(hot-js):
+  
+  // no attr api in JSVM
   auto status = OH_JSVM_SetProperty(env_, jsh_object->GetValue(), jsh_key->GetValue(), jsh_value->GetValue());
   FOOTSTONE_DCHECK(status == JSVM_OK);
   return true;
@@ -1229,28 +1210,34 @@ std::shared_ptr<CtxValue> JSHCtx::NewInstance(const std::shared_ptr<CtxValue>& c
     auto jsh_value = std::static_pointer_cast<JSHCtxValue>(argv[i]);
     jsh_argv[(size_t)i] = jsh_value->GetValue();
   }
-
+  
+  if (external) {
+    SetPointerInInstanceData(kJSHExternalIndex, external);
+  }
+  
   JSVM_Status status = OH_JSVM_NewInstance(env_, jsh_cls->GetValue(), (size_t)argc, &jsh_argv[0], &instanceValue);
   FOOTSTONE_DCHECK(status == JSVM_OK);
-
-  // TODO(hot-js):
-  if (external) {
-    sEmbedderExternalMap[instanceValue] = external;
-  }
 
   return std::make_shared<JSHCtxValue>(env_, instanceValue);
 }
 
 void* JSHCtx::GetObjectExternalData(const std::shared_ptr<CtxValue>& object) {
   JSHHandleScope handleScope(env_);
-  // TODO(hot-js):
+  
+  auto jsh_value = std::static_pointer_cast<JSHCtxValue>(object);
+  
+  void* data = nullptr;
+  auto status = OH_JSVM_Unwrap(env_, jsh_value->GetValue(), &data);
+  if (status == JSVM_OK) {
+    return data;
+  }
+
   return nullptr;
 }
 
 std::shared_ptr<CtxValue> JSHCtx::DefineProxy(const std::unique_ptr<FunctionWrapper>& constructor_wrapper) {
-  JSHHandleScope handleScope(env_);
-  // TODO(hot-js):
-  return nullptr;
+  // JSVM impl
+  return CreateFunction(constructor_wrapper);
 }
 
 std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
@@ -1262,67 +1249,55 @@ std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,
 
   if (parent) {
     auto parent_template = std::static_pointer_cast<JSHClassDefinition>(parent);
-    // TODO(hot-js):
+    // JSVM not support inherit
   }
-
-  // TODO(hot-js): new and delete
-  JSVM_PropertyDescriptor *propParams = new JSVM_PropertyDescriptor[property_count]; // TODO(hot-js):
-  JSVM_CallbackStruct *callbackParams = new JSVM_CallbackStruct[property_count];
+  
+  JSVM_PropertyDescriptor *propParams = new JSVM_PropertyDescriptor[property_count];
+  prop_descriptor_arrays_.push_back(propParams);
+  
   for (size_t i = 0; i < property_count; i++) {
     const auto &prop_desc = properties[i];
-    auto &propParam = propParams[i];
-    auto &callbackParam = callbackParams[i];
     auto prop_name = std::static_pointer_cast<JSHCtxValue>(prop_desc->name);
+    
+    auto &propParam = propParams[i];
     propParam.utf8name = nullptr;
     propParam.name = prop_name->GetValue();
+    propParam.getter = nullptr;
+    propParam.setter = nullptr;
     propParam.method = nullptr;
     propParam.value = nullptr;
     propParam.attributes = JSVM_DEFAULT;
     if (prop_desc->getter || prop_desc->setter) {
       if (prop_desc->getter) {
-        // TODO(hot-js):
-        JSVM_CallbackStruct *callbackP = new JSVM_CallbackStruct();
-        callbackP->data = prop_desc->getter.get();
-        callbackP->callback = InvokeJsCallback;
-        propParam.getter = callbackP;
-      } else {
-        propParam.getter = nullptr;
+        callback_structs_.push_back(new JSVM_CallbackStruct());
+        JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+        callbackParam->data = prop_desc->getter.get();
+        callbackParam->callback = InvokeJsCallback;
+        propParam.getter = callbackParam;
       }
       if (prop_desc->setter) {
-        // TODO(hot-js):
-        JSVM_CallbackStruct *callbackP = new JSVM_CallbackStruct();
-        callbackP->data = prop_desc->setter.get();
-        callbackP->callback = InvokeJsCallback;
-        propParam.setter = callbackP;
-      } else {
-        propParam.setter = nullptr;
+        callback_structs_.push_back(new JSVM_CallbackStruct());
+        JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+        callbackParam->data = prop_desc->setter.get();
+        callbackParam->callback = InvokeJsCallback;
+        propParam.setter = callbackParam;
       }
     } else if (prop_desc->method) {
-      callbackParam.data = prop_desc->method.get();
-      callbackParam.callback = InvokeJsCallback;
-      propParam.utf8name = nullptr;
-      propParam.name = prop_name->GetValue();
-      propParam.method = &callbackParam;
-      propParam.getter = nullptr;
-      propParam.setter = nullptr;
-      propParam.value = nullptr;
-      propParam.attributes = JSVM_DEFAULT;
+      callback_structs_.push_back(new JSVM_CallbackStruct());
+      JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+      callbackParam->data = prop_desc->method.get();
+      callbackParam->callback = InvokeJsCallback;
+      propParam.method = callbackParam;
     } else {
       auto prop_value = std::static_pointer_cast<JSHCtxValue>(prop_desc->value);
-      propParam.utf8name = nullptr;
-      propParam.name = prop_name->GetValue();
-      propParam.method = nullptr;
-      propParam.getter = nullptr;
-      propParam.setter = nullptr;
       propParam.value = prop_value->GetValue();
-      propParam.attributes = JSVM_DEFAULT;
     }
   }
 
   string_view utf8Name = StringViewUtils::ConvertEncoding(name, string_view::Encoding::Utf8);
 
-  // TODO(hot-js):
-  JSVM_CallbackStruct *constructorParam = new JSVM_CallbackStruct();
+  callback_structs_.push_back(new JSVM_CallbackStruct());
+  JSVM_CallbackStruct* constructorParam = callback_structs_.back();
   constructorParam->data = constructor_wrapper.get();
   constructorParam->callback = InvokeJsCallbackOnConstruct;
 
@@ -1389,11 +1364,42 @@ bool JSHCtx::GetByteBuffer(const std::shared_ptr<CtxValue>& value,
   return true;
 }
 
-void  JSHCtx::SetWeak(std::shared_ptr<CtxValue> value,
+void JSHCtx::SetWeak(std::shared_ptr<CtxValue> value,
                      const std::unique_ptr<WeakCallbackWrapper>& wrapper) {
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
   // TODO(hot-js):
+}
+
+bool JSHCtx::CheckJSVMStatus(JSVM_Env env, JSVM_Status status) {
+  if (status != JSVM_OK) {
+    FOOTSTONE_LOG(ERROR) << "JSVM status error: " << status;
+
+    if (status == JSVM_PENDING_EXCEPTION) {
+      JSVM_Value error = nullptr;
+      if (OH_JSVM_GetAndClearLastException(env, &error) == JSVM_OK) {
+        JSVM_Value stack = nullptr;
+        OH_JSVM_GetNamedProperty(env, error, "stack", &stack);
+  
+        JSVM_Value message = nullptr;
+        OH_JSVM_GetNamedProperty(env, error, "message", &message);
+  
+        char stackStr[256] = {0};
+        OH_JSVM_GetValueStringUtf8(env, stack, stackStr, 256, nullptr);
+        FOOTSTONE_LOG(ERROR) << "JSVM status error, PENDING EXCEPTION, stack: " << stackStr;
+  
+        char messageStr[256] = {0};
+        OH_JSVM_GetValueStringUtf8(env, message, messageStr, 256, nullptr);
+        FOOTSTONE_LOG(ERROR) << "JSVM status error, PENDING EXCEPTION, message: " << messageStr;
+        
+        if (exception_cb_) {
+          exception_cb_(env_, error, exception_cb_external_data_);
+        }
+      }
+    }
+  }
+
+  return status == JSVM_OK;
 }
 
 }  // namespace napi

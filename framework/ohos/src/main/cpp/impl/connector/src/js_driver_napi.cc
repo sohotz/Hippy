@@ -149,6 +149,7 @@ static napi_value CreateJsDriver(napi_env env, napi_callback_info info) {
   }
 #elif JS_JSH
   auto param = std::make_shared<JSHVMInitParam>();
+  param->is_debug = is_dev_module;
   if (has_vm_init_param) {
     
   }

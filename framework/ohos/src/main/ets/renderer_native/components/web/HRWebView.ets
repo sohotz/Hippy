@@ -177,6 +177,7 @@ export struct HRWeb {
         this.renderView.update = true
       })
       .applyRenderViewBaseAttr(this.renderView)
+      .domStorageAccess(true)
       .javaScriptAccess(true)
       .javaScriptProxy({
         object: this.renderView.bridge,
