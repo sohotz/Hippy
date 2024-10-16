@@ -33,12 +33,14 @@ inline namespace napi {
 struct JSHCtxValue : public CtxValue {
   JSHCtxValue(JSVM_Env env, JSVM_Value value)
       : env_(env) {
-    auto staus = OH_JSVM_CreateReference(env, value, 1, &value_ref_);
-    FOOTSTONE_CHECK(staus == JSVM_OK);
+    auto status = OH_JSVM_CreateReference(env, value, 1, &value_ref_);
+    FOOTSTONE_CHECK(status == JSVM_OK);
   }
   ~JSHCtxValue() {
-    auto staus = OH_JSVM_DeleteReference(env_, value_ref_);
-    FOOTSTONE_CHECK(staus == JSVM_OK);
+    if (value_ref_) {
+      auto status = OH_JSVM_DeleteReference(env_, value_ref_);
+      FOOTSTONE_CHECK(status == JSVM_OK);
+    }
   }
   JSHCtxValue(const JSHCtxValue&) = delete;
   JSHCtxValue& operator=(const JSHCtxValue&) = delete;

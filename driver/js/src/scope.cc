@@ -135,6 +135,7 @@ Scope::Scope(std::weak_ptr<Engine> engine,
 
 Scope::~Scope() {
   FOOTSTONE_DLOG(INFO) << "~Scope";
+  context_->InvalidWeakCallbackWrapper();
   context_ = nullptr;
   auto engine = engine_.lock();
   FOOTSTONE_DCHECK(engine);

@@ -57,7 +57,8 @@ class JSHHandleScope {
 
 constexpr static int kJSHExternalIndex = 0;
 constexpr static int kJSHScopeWrapperIndex = 1;
-constexpr static int kJSHExternalDataNum = 2;
+constexpr static int kJSHWeakCallbackWrapperInvalidIndex = 2;
+constexpr static int kJSHExternalDataNum = 3;
 
 class JSHCtx : public Ctx {
  public:
@@ -199,6 +200,7 @@ class JSHCtx : public Ctx {
   virtual std::shared_ptr<CtxValue> CreateFunction(const std::unique_ptr<FunctionWrapper>& wrapper) override;
   virtual void SetWeak(std::shared_ptr<CtxValue> value,
                        const std::unique_ptr<WeakCallbackWrapper>& wrapper) override;
+  virtual void InvalidWeakCallbackWrapper() override;
 
   virtual std::shared_ptr<CtxValue> GetPropertyNames(const std::shared_ptr<CtxValue>& value);
   virtual std::shared_ptr<CtxValue> GetOwnPropertyNames(const std::shared_ptr<CtxValue>& value);
