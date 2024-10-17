@@ -71,7 +71,7 @@ void ArkUINodeRegistry::ReceiveEvent(ArkUI_NodeEvent *event) {
 
     it->second->OnNodeEvent(event);
   } catch (std::exception& e) {
-    // TODO(hot):
+    FOOTSTONE_LOG(ERROR) << "Node receive event exception: " << e.what();
   }
 }
 

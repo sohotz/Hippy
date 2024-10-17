@@ -107,8 +107,7 @@ void WaterfallView::OnSetPropsEnd(){
 void WaterfallView::Init() {
   BaseView::Init();
   auto weak_view = weak_from_this();
-  auto render = NativeRenderProvider(GetCtx()->GetInstanceId(), "", false, ""); // TODO(hot):
-  this->cbID = render.GetNativeRenderImpl()->AddEndBatchCallback(GetCtx()->GetRootId(), [weak_view]() {
+  end_batch_callback_id_ = ctx_->GetNativeRender().lock()->AddEndBatchCallback(ctx_->GetRootId(), [weak_view]() {
     auto view = weak_view.lock();
     if (view) {
 //      auto waterfallView = std::dynamic_pointer_cast<WaterfallView>(view);
@@ -265,9 +264,8 @@ void WaterfallView::OnAppear() {
 }
 
 void WaterfallView::OnDisappear() {
-  auto render = NativeRenderProvider(GetCtx()->GetInstanceId(), "", false, ""); // TODO(hot):
-  render.GetNativeRenderImpl()->RemoveEndBatchCallback(GetCtx()->GetRootId(), this->cbID);
-}  
+  ctx_->GetNativeRender().lock()->RemoveEndBatchCallback(ctx_->GetRootId(), end_batch_callback_id_);
+}
 
 void WaterfallView::OnFlowItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio){
 

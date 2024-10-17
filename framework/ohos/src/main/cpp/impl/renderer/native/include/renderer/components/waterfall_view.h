@@ -102,8 +102,8 @@ private:
   float_t interItemSpacing_ = 0;
   float_t columnSpacing_ = 0;
   std::string columnsTemplate_ = "1fr 1fr";
-    
-  uint64_t cbID;
+
+  uint64_t end_batch_callback_id_;
   std::shared_ptr<PullHeaderView> headerView = nullptr;
   std::shared_ptr<DivView> bannerView = nullptr;
   std::shared_ptr<PullFooterView> footerView = nullptr;

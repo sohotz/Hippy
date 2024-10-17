@@ -167,9 +167,8 @@ void TextInputNode::SetEnterKeyType(ArkUI_EnterKeyType const &returnKeyType) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_ENTER_KEY_TYPE, &item));
 }
 
-void TextInputNode::SetCancelButtonMode(uint32_t mode) {
-  int32_t cancelButtonStyle = static_cast<int32_t>(ARKUI_CANCELBUTTON_STYLE_INVISIBLE); // TODO(hot):
-  ArkUI_NumberValue value[] = {{.i32 = cancelButtonStyle}};
+void TextInputNode::SetCancelButtonMode(ArkUI_CancelButtonStyle mode) {
+  ArkUI_NumberValue value[] = {{.i32 = mode}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_CANCEL_BUTTON, &item));
 }

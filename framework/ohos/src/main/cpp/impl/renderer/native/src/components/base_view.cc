@@ -86,7 +86,7 @@ bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) 
     if (propValue.IsArray() && propValue.ToArray(valueArray)) {
       HRTransform transform;
       HRConvertUtils::TransformToArk(valueArray, transform);
-      GetLocalRootArkUINode().SetTransform(transform, 1.0f); // TODO(hot):
+      GetLocalRootArkUINode().SetTransform(transform, 1.0f);
     }
     return true;
   } else if (propKey == HRNodeProps::OVERFLOW) {
