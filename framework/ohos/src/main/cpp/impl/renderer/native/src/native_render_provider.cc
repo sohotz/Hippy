@@ -165,14 +165,6 @@ void NativeRenderProvider::TextEllipsized(uint32_t root_id, uint32_t node_id) {
   });
 }
 
-void NativeRenderProvider::OnSize(uint32_t root_id, float width, float height) {
-  NativeRenderProvider_UpdateRootSize(instance_id_, root_id, width, height);
-}
-
-void NativeRenderProvider::OnSize2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync) {
-  NativeRenderProvider_UpdateNodeSize(instance_id_, root_id, node_id, width, height);
-}
-
 void NativeRenderProvider::DispatchEvent(uint32_t root_id, uint32_t node_id, const std::string &event_name,
     const std::shared_ptr<HippyValue> &params, bool capture, bool bubble, HREventType event_type) {
   // Because the native(C++) DOM use lowercase names, convert to lowercase here

@@ -21,6 +21,7 @@
  */
 
 #include "renderer/native_render_impl.h"
+#include "renderer/native_render_provider_capi.h"
 #include "oh_napi/oh_napi_task_runner.h"
 
 namespace hippy {
@@ -266,6 +267,14 @@ void NativeRenderImpl::TextEllipsized(uint32_t root_id, uint32_t node_id) {
 
 std::string NativeRenderImpl::GetBundlePath() {
   return bundle_path_;
+}
+
+void NativeRenderImpl::OnSizeChanged(uint32_t root_id, float width, float height) {
+  NativeRenderProvider_UpdateRootSize(instance_id_, root_id, width, height);
+}
+
+void NativeRenderImpl::OnSizeChanged2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync) {
+  NativeRenderProvider_UpdateNodeSize(instance_id_, root_id, node_id, width, height);
 }
 
 HRPosition NativeRenderImpl::GetRootViewtPositionInWindow(uint32_t root_id) {
