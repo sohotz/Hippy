@@ -33,13 +33,14 @@ PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) 
   swiperNode_.SetNodeDelegate(this);
   GetLocalRootArkUINode().SetShowIndicator(false);
   GetLocalRootArkUINode().SetSwiperLoop(0);
+  adapter_ = std::make_shared<PagerItemAdapter>(children_);
+  swiperNode_.SetLazyAdapter(adapter_->GetHandle());
 }
 
 PagerView::~PagerView() {
+  swiperNode_.ResetLazyAdapter();
+  adapter_.reset();
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      swiperNode_.RemoveChild(child->GetLocalRootArkUINode());
-    }
     children_.clear();
   }
 }
@@ -83,12 +84,12 @@ bool PagerView::SetProp(const std::string &propKey, const HippyValue &propValue)
 
 void PagerView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInserted(childView, index);
-  swiperNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+  adapter_->InsertItem(index);
 }
 
 void PagerView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
-  swiperNode_.RemoveChild(childView->GetLocalRootArkUINode());
+  adapter_->RemoveItem(index);
 }
 
 void PagerView::OnChange(const int32_t &index) {

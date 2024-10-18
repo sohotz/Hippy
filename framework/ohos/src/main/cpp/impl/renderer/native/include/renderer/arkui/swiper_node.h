@@ -62,6 +62,12 @@ public:
   void SetSwiperNextMargin(float fValue);
   void SetSwiperLoop(int32_t enable);
   void SetSwiperDisableSwipe(int32_t disable);
+  
+  void SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle);
+  void ResetLazyAdapter();
+  
+private:
+  bool hasAdapter_ = false;
 };
 
 } // namespace native

@@ -24,6 +24,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/swiper_node.h"
+#include "renderer/components/pager_item_adapter.h"
 
 namespace hippy {
 inline namespace render {
@@ -62,6 +63,8 @@ private:
   constexpr static const char *SCROLL_STATE_SETTLING = "settling";
   
   SwiperNode swiperNode_;
+  
+  std::shared_ptr<PagerItemAdapter> adapter_;
   
   int32_t initialPage_ = 0;
   bool initialPageUsed_ = false;

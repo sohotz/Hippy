@@ -144,6 +144,7 @@ void ListNode::SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle) {
 void ListNode::ResetLazyAdapter() {
   if (hasAdapter_) {
     NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_LIST_NODE_ADAPTER);
+    hasAdapter_ = false;
   }
 }
 
