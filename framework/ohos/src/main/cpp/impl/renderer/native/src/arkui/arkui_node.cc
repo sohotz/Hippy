@@ -626,6 +626,12 @@ void ArkUINode::UnregisterAreaChangeEvent(){
   }      
 }
 
+void ArkUINode::CheckAndLogError(const std::string& message, int count) {
+  if (count < 10 || (count < 1000 && (count % 100 == 0)) || (count % 1000 == 0)) {
+    FOOTSTONE_LOG(ERROR) << message << ", count: " << count;
+  }
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy
