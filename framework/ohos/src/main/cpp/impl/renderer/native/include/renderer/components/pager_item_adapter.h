@@ -103,6 +103,7 @@ private:
   void OnNewItemAttached(ArkUI_NodeAdapterEvent *event) {
     auto index = OH_ArkUI_NodeAdapterEvent_GetItemIndex(event);
     auto view = itemViews_[index];
+    view->CreateArkUINode(true, -1);
     ArkUI_NodeHandle handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
     // 设置需要展示的元素。
     OH_ArkUI_NodeAdapterEvent_SetItem(event, handle);
