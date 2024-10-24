@@ -103,7 +103,8 @@ public:
   void AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position);
   void RemoveBizViewInRoot(uint32_t biz_view_id);
   std::shared_ptr<BaseView> GetViewFromRegistry(uint32_t node_id);
-
+  void ViewsBackToPool();
+  
 private:
   bool IsCustomTsRenderView(std::string &view_name);
   std::shared_ptr<BaseView> CreateCustomTsRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);

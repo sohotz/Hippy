@@ -35,12 +35,52 @@ RichTextView::RichTextView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView
 }
 
 RichTextView::~RichTextView() {
+  CleanAllChildren();
+}
+
+void RichTextView::CleanAllChildren() {
   if (!children_.empty()) {
     for (const auto &child : children_) {
       textNode_.RemoveChild(child->GetLocalRootArkUINode());
     }
     children_.clear();
   }
+}
+
+void RichTextView::ReSetViewProps() {
+  BaseView::ReSetViewProps();
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_CONTENT);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_FONT_COLOR);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_FONT_FAMILY);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_FONT_SIZE);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_FONT_WEIGHT);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_LETTER_SPACING);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_MAX_LINES);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_LINE_HEIGHT);
+  
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_ALIGN);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_OVERFLOW);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_ELLIPSIS_MODE);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_WORD_BREAK);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_DECORATION);
+  GetLocalRootArkUINode().ResetNodeAttribute(NODE_TEXT_TEXT_SHADOW);
+  
+  fontSize_ = 16;
+  GetLocalRootArkUINode().SetFontSize(16);
+  text_ = "";
+  
+  // black uint32_t
+  uint32_t defaultBlackColor = static_cast<uint32_t>(4278190080);
+  color_ = defaultBlackColor;
+  GetLocalRootArkUINode().SetFontColor(defaultBlackColor);
+  fontFamily_ = "";
+  fontStyle_ = 0;
+  fontWeight_ = 0;
+  letterSpacing_ = -1;
+  lineHeight_ = -1;
+  numberOfLines_ = -1;
+  textAlign_ = -1;
+  toSetTextDecoration_ = false;
 }
 
 TextNode &RichTextView::GetLocalRootArkUINode() {

@@ -39,6 +39,7 @@
 #include "renderer/components/text_input_view.h"
 #include "renderer/components/waterfall_item_view.h"
 #include "renderer/components/waterfall_view.h"
+#include "renderer/uimanager/hr_view_pool.h"
 
 namespace hippy {
 inline namespace render {
@@ -47,7 +48,10 @@ inline namespace native {
 std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_parent_text, std::shared_ptr<NativeRenderContext> &ctx) {
 //  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" view_name = "<<view_name;
   if (view_name == "View") {
-    auto view = std::make_shared<DivView>(ctx);
+    auto view = HRViewPool::GetDivView(ctx);
+    if (!view) {
+      view = std::make_shared<DivView>(ctx);
+    }
     view->Init();
     return view;
   } else if (view_name == "Image") {
@@ -56,7 +60,10 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_
       view->Init();
       return view;
     } else {
-      auto view = std::make_shared<ImageView>(ctx);
+      auto view = HRViewPool::GetImageView(ctx);
+      if (!view) {
+        view = std::make_shared<ImageView>(ctx);
+      }
       view->Init();
       return view;
     }
@@ -66,7 +73,10 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_
       view->Init();
       return view;
     } else {
-      auto view = std::make_shared<RichTextView>(ctx);
+      auto view = HRViewPool::GetRichTextView(ctx);
+      if (!view) {
+        view = std::make_shared<RichTextView>(ctx);
+      }
       view->Init();
       return view;
     }
