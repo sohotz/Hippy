@@ -29,41 +29,51 @@ inline namespace render {
 inline namespace native {
 
 ScrollView::ScrollView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  GetLocalRootArkUINode().SetScrollEnabled(true);
-  GetLocalRootArkUINode().SetHorizontal(false);
-  GetLocalRootArkUINode().SetShowScrollIndicator(false);
-  isDragging_ = false;
-  lastScrollOffset_ = 0;
-  lastScrollTime_ = 0;
-  scrollNode_.SetAlignment(ARKUI_ALIGNMENT_TOP_START);
-  scrollNode_.SetNodeDelegate(this);
-  scrollNode_.AddChild(stackNode_);
 }
 
 ScrollView::~ScrollView() {
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    if (stackNode_) {
+      for (const auto &child : children_) {
+        stackNode_->RemoveChild(child->GetLocalRootArkUINode());
+      }
     }
     children_.clear();
   }
-  scrollNode_.RemoveChild(stackNode_);
+  if (scrollNode_) {
+    scrollNode_->RemoveChild(stackNode_.get());
+  }
 }
 
-ScrollNode &ScrollView::GetLocalRootArkUINode() { return scrollNode_; }
+ScrollNode *ScrollView::GetLocalRootArkUINode() { return scrollNode_.get(); }
 
-bool ScrollView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void ScrollView::CreateArkUINodeImpl() {
+  scrollNode_ = std::make_shared<ScrollNode>();
+  stackNode_ = std::make_shared<StackNode>();
+  
+  scrollNode_->SetScrollEnabled(true);
+  scrollNode_->SetHorizontal(false);
+  scrollNode_->SetShowScrollIndicator(false);
+  isDragging_ = false;
+  lastScrollOffset_ = 0;
+  lastScrollTime_ = 0;
+  scrollNode_->SetAlignment(ARKUI_ALIGNMENT_TOP_START);
+  scrollNode_->SetNodeDelegate(this);
+  scrollNode_->AddChild(stackNode_.get());
+}
+
+bool ScrollView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "showScrollIndicator") {
     auto value = HRValueUtils::GetBool(propValue, false);
-    GetLocalRootArkUINode().SetShowScrollIndicator(value);
+    GetLocalRootArkUINode()->SetShowScrollIndicator(value);
     return true;
   } else if (propKey == "pagingEnabled") {
     auto value = HRValueUtils::GetBool(propValue, false);
-    GetLocalRootArkUINode().SetPagingEnabled(value);
+    GetLocalRootArkUINode()->SetPagingEnabled(value);
     return true;
   } else if (propKey == "flingEnabled") {
     auto value = HRValueUtils::GetBool(propValue, false);
-    GetLocalRootArkUINode().SetFlingEnabled(value);
+    GetLocalRootArkUINode()->SetFlingEnabled(value);
     return true;
   } else if (propKey == "contentOffset4Reuse") {
     HippyValueObjectType m;
@@ -71,43 +81,43 @@ bool ScrollView::SetProp(const std::string &propKey, const HippyValue &propValue
       auto x = HRValueUtils::GetFloat(m["x"]);
       auto y = HRValueUtils::GetFloat(m["y"]);
       HRPoint point = {x, y};
-      GetLocalRootArkUINode().SetContentOffset4Reuse(point);
+      GetLocalRootArkUINode()->SetContentOffset4Reuse(point);
       return true;
     } else {
       return false;
     }
   } else if (propKey == "scrollEnabled") {
     auto value = HRValueUtils::GetBool(propValue, false);
-    GetLocalRootArkUINode().SetScrollEnabled(value);
+    GetLocalRootArkUINode()->SetScrollEnabled(value);
     return true;
   } else if (propKey == "horizontal") {
     auto value = HRValueUtils::GetBool(propValue, false);
-    GetLocalRootArkUINode().SetHorizontal(value);
+    GetLocalRootArkUINode()->SetHorizontal(value);
     return true;
   } else if (propKey == "initialContentOffset") {
     auto value = HRValueUtils::GetFloat(propValue, 0);
-    GetLocalRootArkUINode().SetInitialContentOffset(value);
+    GetLocalRootArkUINode()->SetInitialContentOffset(value);
     return true;
   } else if (propKey == "scrollEventThrottle") {
     auto value = HRValueUtils::GetFloat(propValue, 30);
-    GetLocalRootArkUINode().SetScrollEventThrottle(value);
+    GetLocalRootArkUINode()->SetScrollEventThrottle(value);
     return true;
   } else if (propKey == "scrollMinOffset") {
     auto value = HRValueUtils::GetFloat(propValue, 5);
-    GetLocalRootArkUINode().SetScrollMinOffset(value);
+    GetLocalRootArkUINode()->SetScrollMinOffset(value);
     return true;
   }
-  return BaseView::SetProp(propKey, propValue);
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void ScrollView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+void ScrollView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
+  stackNode_->InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void ScrollView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+void ScrollView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
+  stackNode_->RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 void ScrollView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
@@ -149,13 +159,13 @@ void ScrollView::EmitScrollEvent(std::string &eventName) {
   contentInsetObj.insert_or_assign("right", 0);
 
   HippyValueObjectType contentOffsetObj;
-  HRPoint contentOffset = GetLocalRootArkUINode().GetScrollContentOffset();
+  HRPoint contentOffset = GetLocalRootArkUINode()->GetScrollContentOffset();
   contentOffsetObj.insert_or_assign("x", contentOffset.x);
   contentOffsetObj.insert_or_assign("y", contentOffset.y);
 
   HippyValueObjectType contentSizeObj;
-  HRSize layoutSize = scrollNode_.GetSize();
-  HRSize size = children_.size() > 0 ? children_[0]->GetLocalRootArkUINode().GetSize() : layoutSize;
+  HRSize layoutSize = scrollNode_->GetSize();
+  HRSize size = children_.size() > 0 ? children_[0]->GetLocalRootArkUINode()->GetSize() : layoutSize;
   contentSizeObj.insert_or_assign("width", size.width);
   contentSizeObj.insert_or_assign("height", size.height);
 
@@ -175,9 +185,9 @@ void ScrollView::EmitScrollEvent(std::string &eventName) {
 
 void ScrollView::OnScroll(float xOffset, float yOffset) {
   int64_t now = GetTimeMilliSeconds();
-  float minOffset = scrollNode_.GetScrollMinOffset();
+  float minOffset = scrollNode_->GetScrollMinOffset();
   std::string scrollEventName = HREventUtils::EVENT_SCROLLER_ON_SCROLL;
-  if (scrollNode_.GetAxis() == ARKUI_SCROLL_DIRECTION_VERTICAL) {
+  if (scrollNode_->GetAxis() == ARKUI_SCROLL_DIRECTION_VERTICAL) {
     if (minOffset > 0 && fabsf(yOffset - lastScrollOffset_) > minOffset) {
       lastScrollOffset_ = yOffset;
       EmitScrollEvent(scrollEventName);
@@ -191,7 +201,7 @@ void ScrollView::OnScroll(float xOffset, float yOffset) {
     }
   }
   float gap = static_cast<float>(now - lastScrollTime_);
-  if (minOffset <= 0 && gap > scrollNode_.GetScrollEventThrottle()) {
+  if (minOffset <= 0 && gap > scrollNode_->GetScrollEventThrottle()) {
     lastScrollTime_ = now;
     EmitScrollEvent(scrollEventName);
   }
@@ -206,14 +216,14 @@ void ScrollView::OnScrollStop() {
   this->EmitScrollEvent(eventName);
 }
 
-void ScrollView::Call(const std::string &method, const std::vector<HippyValue> params,
+void ScrollView::CallImpl(const std::string &method, const std::vector<HippyValue> params,
                       std::function<void(const HippyValue &)> callback) {
   FOOTSTONE_DLOG(INFO) << "ScrollView call: method " << method << ", params: " << params.size();
   if (method == "scrollTo") {
     auto xOffset = params.size() >= 1 ? HRValueUtils::GetFloat(params[0]) : 0;
     auto yOffset = params.size() >= 2 ? HRValueUtils::GetFloat(params[1]) : 0;
     auto animated = params.size() >= 3 ? HRValueUtils::GetBool(params[2], false) : false;
-    scrollNode_.ScrollTo(xOffset, yOffset, animated);
+    scrollNode_->ScrollTo(xOffset, yOffset, animated);
   } else if (method == "scrollToWithOptions") {
     if (params.size() == 0)
       return;
@@ -233,12 +243,12 @@ void ScrollView::Call(const std::string &method, const std::vector<HippyValue> p
     }
 
     if (duration > 0) {
-      scrollNode_.ScrollTo(xOffset, yOffset, true, duration);
+      scrollNode_->ScrollTo(xOffset, yOffset, true, duration);
     } else {
-      scrollNode_.ScrollTo(xOffset, yOffset, false);
+      scrollNode_->ScrollTo(xOffset, yOffset, false);
     }
   } else {
-    BaseView::Call(method, params, callback);
+    BaseView::CallImpl(method, params, callback);
   }
 }
 

@@ -35,12 +35,13 @@ public:
   ListItemView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ListItemView();
 
-  ListItemNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  ListItemNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
   
   float GetWidth() { return width_; }
   float GetHeight() { return height_; }
@@ -57,8 +58,8 @@ private:
   static const uint32_t EXPOSURE_STATE_INVISIBLE = 2;
   static const uint32_t EXPOSURE_STATE_PART_VISIBLE = 3;
 
-  ListItemNode itemNode_;
-  StackNode stackNode_;
+  std::shared_ptr<ListItemNode> itemNode_;
+  std::shared_ptr<StackNode> stackNode_;
   
   float width_ = 0;
   float height_ = 0;

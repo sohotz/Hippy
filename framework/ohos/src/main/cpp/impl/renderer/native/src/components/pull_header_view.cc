@@ -33,16 +33,16 @@ PullHeaderView::PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx) : List
 
 PullHeaderView::~PullHeaderView() {}
 
-bool PullHeaderView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+bool PullHeaderView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
 //  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" propKey = "<<propKey; 
-  return ListItemView::SetProp(propKey, propValue);
+  return ListItemView::SetPropImpl(propKey, propValue);
 }
 
-void PullHeaderView::OnSetPropsEnd(){
-  return ListItemView::OnSetPropsEnd();  
+void PullHeaderView::OnSetPropsEndImpl(){
+  return ListItemView::OnSetPropsEndImpl();  
 }
 
-void PullHeaderView::Call(const std::string &method, const std::vector<HippyValue> params,
+void PullHeaderView::CallImpl(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) {
   FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
   if (method == "collapsePullHeader") {
@@ -62,7 +62,7 @@ void PullHeaderView::Call(const std::string &method, const std::vector<HippyValu
   } else if (method == "expandPullHeader") {
     OnHeaderRefresh();
   } else {
-    BaseView::Call(method, params, callback);
+    BaseView::CallImpl(method, params, callback);
   }
 }
 

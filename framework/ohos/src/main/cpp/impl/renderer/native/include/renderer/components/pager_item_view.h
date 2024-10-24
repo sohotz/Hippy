@@ -34,15 +34,16 @@ public:
   PagerItemView(std::shared_ptr<NativeRenderContext> &ctx);
   ~PagerItemView();
 
-  StackNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  StackNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
 
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
 
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
 private:
-  StackNode stackNode_;
+  std::shared_ptr<StackNode> stackNode_;
 };
 
 } // namespace native

@@ -51,14 +51,17 @@ public:
   
   void Init() override;
 
-  StackNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void Call(const std::string &method, const std::vector<HippyValue> params,
+  StackNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
   
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
   
   void ScrollToIndex(int32_t index, bool animated);
   void SetScrollNestedMode(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward);
@@ -96,8 +99,8 @@ private:
   constexpr static const char *PULL_FOOTER_VIEW_TYPE = "PullFooterView";
   constexpr static const char *LIST_VIEW_ITEM_TYPE = "ListViewItem";
 
-  StackNode stackNode_;
-  ListNode listNode_;
+  std::shared_ptr<StackNode> stackNode_;
+  std::shared_ptr<ListNode> listNode_;
   
   std::shared_ptr<ListItemAdapter> adapter_;
 

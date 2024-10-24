@@ -30,59 +30,66 @@ inline namespace render {
 inline namespace native {
 
 PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  swiperNode_.SetNodeDelegate(this);
-  GetLocalRootArkUINode().SetShowIndicator(false);
-  GetLocalRootArkUINode().SetSwiperLoop(0);
   adapter_ = std::make_shared<PagerItemAdapter>(children_);
-  swiperNode_.SetLazyAdapter(adapter_->GetHandle());
 }
 
 PagerView::~PagerView() {
-  swiperNode_.ResetLazyAdapter();
+  if (swiperNode_) {
+    swiperNode_->ResetLazyAdapter();
+  }
   adapter_.reset();
   if (!children_.empty()) {
     children_.clear();
   }
 }
 
-SwiperNode &PagerView::GetLocalRootArkUINode() { return swiperNode_; }
+SwiperNode *PagerView::GetLocalRootArkUINode() { return swiperNode_.get(); }
 
-bool PagerView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void PagerView::CreateArkUINodeImpl() {
+  swiperNode_ = std::make_shared<SwiperNode>();
+  
+  swiperNode_->SetNodeDelegate(this);
+  swiperNode_->SetShowIndicator(false);
+  swiperNode_->SetSwiperLoop(0);
+  swiperNode_->SetLazyAdapter(adapter_->GetHandle());
+}
+
+bool PagerView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "initialPage") {
     if (!initialPageUsed_) {
       initialPageUsed_ = true;
       initialPage_ = HRValueUtils::GetInt32(propValue);
       index_ = initialPage_;
-      GetLocalRootArkUINode().SetSwiperIndex(index_);
+      GetLocalRootArkUINode()->SetSwiperIndex(index_);
     }
     return true;
   } else if (propKey == "scrollEnabled") {
     bool enable = HRValueUtils::GetBool(propValue, true);
     disableSwipe_ = !enable;
-    GetLocalRootArkUINode().SetSwiperDisableSwipe(disableSwipe_);
+    GetLocalRootArkUINode()->SetSwiperDisableSwipe(disableSwipe_);
     return true;
   } else if (propKey == "direction") {
     std::string directionVal;
     propValue.ToString(directionVal);
     if (directionVal == "vertical") {
       vertical_ = true;
-      GetLocalRootArkUINode().SetSwiperVertical(1);
+      GetLocalRootArkUINode()->SetSwiperVertical(1);
     }
     return true;
   } else if (propKey == "vertical") {
     vertical_ = true;
-    GetLocalRootArkUINode().SetSwiperVertical(1);
+    GetLocalRootArkUINode()->SetSwiperVertical(1);
     return true;
   } else if (propKey == "pageMargin") {
     prevMargin_ = nextMargin_ = HRValueUtils::GetFloat(propValue);
-    GetLocalRootArkUINode().SetSwiperPrevMargin(prevMargin_);
-    GetLocalRootArkUINode().SetSwiperNextMargin(nextMargin_);
+    GetLocalRootArkUINode()->SetSwiperPrevMargin(prevMargin_);
+    GetLocalRootArkUINode()->SetSwiperNextMargin(nextMargin_);
     return true;
   }
-  return BaseView::SetProp(propKey, propValue);
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void PagerView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
+void PagerView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {
   BaseView::OnChildInserted(childView, index);
   adapter_->InsertItem(index);
 }
@@ -90,6 +97,14 @@ void PagerView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int3
 void PagerView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
   adapter_->RemoveItem(index);
+}
+
+void PagerView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
+}
+
+void PagerView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
 }
 
 void PagerView::OnChange(const int32_t &index) {
@@ -103,7 +118,7 @@ void PagerView::OnChange(const int32_t &index) {
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED,
                                    changedParams);
   OnViewComponentEvent(HREventUtils::EVENT_PAGE_SCROLL_STATE_CHANGED, changedPayload);
-  
+
   index_ = index;
 }
 
@@ -131,7 +146,7 @@ void PagerView::OnContentDidScroll(const int32_t currentIndex, const int32_t pag
   if (offset < -1.f || offset > 1.f) {
     return;
   }
-  
+
   if (pageIndex > currentIndex) {
     if (offset > 0.001 && offset < 0.999) {
       position = pageIndex;
@@ -150,9 +165,9 @@ void PagerView::OnContentDidScroll(const int32_t currentIndex, const int32_t pag
     // no need to handle current page params
     return;
   }
-  
+
   // FOOTSTONE_DLOG(INFO) << "PagerView on scroll, position: " << position << ", offset: " << offset;
-  
+
   HippyValueObjectType type = {{PAGE_ITEM_POSITION, HippyValue{position}},
                                {PAGE_ITEM_OFFSET, HippyValue{offset}}};
   std::shared_ptr<HippyValue> params = std::make_shared<HippyValue>(type);
@@ -170,7 +185,7 @@ void PagerView::SendScrollStateChangeEvent(const std::string &state) {
 
 void PagerView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
   BaseView::OnTouch(actionType, screenPosition);
-  
+
   if (actionType == UI_TOUCH_EVENT_ACTION_DOWN) {
     SendScrollStateChangeEvent(SCROLL_STATE_DRAGGING);
   } else if(actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
@@ -180,31 +195,31 @@ void PagerView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
   }
 }
 
-void PagerView::Call(const std::string &method, const std::vector<HippyValue> params,
+void PagerView::CallImpl(const std::string &method, const std::vector<HippyValue> params,
                      std::function<void(const HippyValue &result)> callback) {
   if (method == "setPage") {
     if (params.empty()) {
       return;
     }
     index_ = HRValueUtils::GetInt32(params[0]);
-    GetLocalRootArkUINode().SetSwiperSwipeToIndex(index_, 1);
+    GetLocalRootArkUINode()->SetSwiperSwipeToIndex(index_, 1);
   } else if (method == "setPageWithoutAnimation") {
     if (params.empty()) {
       return;
     }
     index_ = HRValueUtils::GetInt32(params[0]);
-    GetLocalRootArkUINode().SetSwiperSwipeToIndex(index_, 0);
+    GetLocalRootArkUINode()->SetSwiperSwipeToIndex(index_, 0);
   } else if (method == "next") {
-    int32_t total = static_cast<int32_t>(GetLocalRootArkUINode().GetTotalChildCount());
+    int32_t total = static_cast<int32_t>(GetLocalRootArkUINode()->GetTotalChildCount());
     if (total < 1) {
       return;
     }
     if (index_ < total - 1) {
-      GetLocalRootArkUINode().SetSwiperSwipeToIndex(++index_, 1);
+      GetLocalRootArkUINode()->SetSwiperSwipeToIndex(++index_, 1);
     }
   } else if (method == "prev") {
     if (index_ > 0) {
-      GetLocalRootArkUINode().SetSwiperSwipeToIndex(--index_, 1);
+      GetLocalRootArkUINode()->SetSwiperSwipeToIndex(--index_, 1);
     }
   } else if (method == "setIndex") {
     HippyValueObjectType map;
@@ -216,10 +231,10 @@ void PagerView::Call(const std::string &method, const std::vector<HippyValue> pa
     if (r && map.size() > 0) {
       index_ = HRValueUtils::GetInt32(map["index"]);
       int32_t animated = HRValueUtils::GetBool(map["animated"], 0);
-      GetLocalRootArkUINode().SetSwiperSwipeToIndex(index_, animated);
+      GetLocalRootArkUINode()->SetSwiperSwipeToIndex(index_, animated);
     }
   } else {
-    BaseView::Call(method, params, callback);
+    BaseView::CallImpl(method, params, callback);
   }
 }
 } // namespace native

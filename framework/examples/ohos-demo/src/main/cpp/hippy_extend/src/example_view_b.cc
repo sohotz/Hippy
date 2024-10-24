@@ -41,21 +41,21 @@ ExampleViewB::~ExampleViewB() {
   }
 }
 
-StackNode &ExampleViewB::GetLocalRootArkUINode() {
+StackNode *ExampleViewB::GetLocalRootArkUINode() {
   return stackNode_;
 }
 
-bool ExampleViewB::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  return BaseView::SetProp(propKey, propValue);
+bool ExampleViewB::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void ExampleViewB::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
+void ExampleViewB::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
   stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void ExampleViewB::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
+void ExampleViewB::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
   stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
 }
 

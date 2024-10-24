@@ -32,7 +32,7 @@ PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : List
 
 PullFooterView::~PullFooterView() {}
 
-bool PullFooterView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+bool PullFooterView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "sticky") {
     auto value = HRValueUtils::GetBool(propValue, false);
     if (value) {
@@ -40,32 +40,32 @@ bool PullFooterView::SetProp(const std::string &propKey, const HippyValue &propV
     }
     return true;
   }
-  return ListItemView::SetProp(propKey, propValue);
+  return ListItemView::SetPropImpl(propKey, propValue);
 }
 
-void PullFooterView::OnSetPropsEnd(){
-   return ListItemView::OnSetPropsEnd(); 
+void PullFooterView::OnSetPropsEndImpl(){
+   return ListItemView::OnSetPropsEndImpl();
 }
 
-void PullFooterView::Call(const std::string &method, const std::vector<HippyValue> params,
+void PullFooterView::CallImpl(const std::string &method, const std::vector<HippyValue> params,
                           std::function<void(const HippyValue &result)> callback) {
-  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
+  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method;
   if (method == "collapsePullFooter") {
     Show(false);
   } else {
-    BaseView::Call(method, params, callback);
+    BaseView::CallImpl(method, params, callback);
   }
 }
 
 void PullFooterView::Show(bool show) {
   if (show != isVisible_) {
     isVisible_ = show;
-    GetLocalRootArkUINode().SetVisibility(show);
+    GetLocalRootArkUINode()->SetVisibility(show);
   }
 }
 
-void PullFooterView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding){
-//  BaseView::UpdateRenderViewFrame(frame, padding);
+void PullFooterView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding){
+//  BaseView::UpdateRenderViewFrameImpl(frame, padding);
 }
 
 } // namespace native

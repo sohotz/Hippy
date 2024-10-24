@@ -286,7 +286,7 @@ HRPosition NativeRenderImpl::GetRootViewtPositionInWindow(uint32_t root_id) {
   if (!rootView) {
     return HRPosition{0, 0};
   }
-  return rootView->GetLocalRootArkUINode().GetLayoutPositionInWindow();
+  return rootView->GetLocalRootArkUINode()->GetLayoutPositionInWindow();
 }
 
 uint64_t NativeRenderImpl::AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) {

@@ -49,6 +49,7 @@ HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared
   root_view_->SetTag(root_id);
   std::string root_view_type = "RootView";
   root_view_->SetViewType(root_view_type);
+  root_view_->CreateArkUINode(false);
   view_registry_[root_id] = root_view_;
   
   mapping_render_views_ = mapping_views;
@@ -77,7 +78,7 @@ void HRViewManager::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32
   
   nodeContentMap_[current_id] = contentHandle;
   OH_ArkUI_NodeContent_RegisterCallback(contentHandle, nullptr);
-  OH_ArkUI_NodeContent_AddNode(contentHandle, view->GetLocalRootArkUINode().GetArkUINodeHandle());
+  OH_ArkUI_NodeContent_AddNode(contentHandle, view->GetLocalRootArkUINode()->GetArkUINodeHandle());
   isFirstViewAdd = false;
   isFirstContentViewAdd = FCPType::NONE;  
 }
@@ -95,7 +96,7 @@ void HRViewManager::UnbindNativeRoot(uint32_t node_id) {
     return;
   }
   auto view = viewIt->second;
-  OH_ArkUI_NodeContent_RemoveNode(savedHandle, view->GetLocalRootArkUINode().GetArkUINodeHandle());
+  OH_ArkUI_NodeContent_RemoveNode(savedHandle, view->GetLocalRootArkUINode()->GetArkUINodeHandle());
   nodeContentMap_.erase(current_id);
 }
 
@@ -497,9 +498,9 @@ HRRect HRViewManager::GetViewFrameInRoot(uint32_t node_id) {
     return {0, 0, 0, 0};
   }
   auto view = viewIt->second;
-  auto viewPos = view->GetLocalRootArkUINode().GetLayoutPositionInScreen();
-  auto rootPos = root_view_->GetLocalRootArkUINode().GetLayoutPositionInWindow();
-  auto size = view->GetLocalRootArkUINode().GetSize();
+  auto viewPos = view->GetLocalRootArkUINode()->GetLayoutPositionInScreen();
+  auto rootPos = root_view_->GetLocalRootArkUINode()->GetLayoutPositionInWindow();
+  auto size = view->GetLocalRootArkUINode()->GetSize();
 
   return {viewPos.x - rootPos.x, viewPos.y - rootPos.y, size.width, size.height};
 }

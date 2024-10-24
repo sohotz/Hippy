@@ -48,8 +48,8 @@ public:
   TextNode();
   ~TextNode() override;
 
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
+  void InsertChild(ArkUINode *child, int32_t index);
+  void RemoveChild(ArkUINode *child);
   
   TextNode &SetTextContent(const std::string &text);
   TextNode &SetFontColor(uint32_t fontColor);

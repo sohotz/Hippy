@@ -32,36 +32,42 @@ RefreshWrapperItemView::RefreshWrapperItemView(std::shared_ptr<NativeRenderConte
 
 RefreshWrapperItemView::~RefreshWrapperItemView() {
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    if (stackNode_) {
+      for (const auto &child : children_) {
+        stackNode_->RemoveChild(child->GetLocalRootArkUINode());
+      }
     }
     children_.clear();
   }
 }
 
-StackNode &RefreshWrapperItemView::GetLocalRootArkUINode() { return stackNode_; }
+StackNode *RefreshWrapperItemView::GetLocalRootArkUINode() { return stackNode_.get(); }
 
-bool RefreshWrapperItemView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  return BaseView::SetProp(propKey, propValue);
+void RefreshWrapperItemView::CreateArkUINodeImpl() {
+  stackNode_ = std::make_shared<StackNode>();
 }
 
-void RefreshWrapperItemView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+bool RefreshWrapperItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  return BaseView::SetPropImpl(propKey, propValue);
+}
+
+void RefreshWrapperItemView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   auto parent = parent_.lock();
   if (parent && parent->GetViewType() == "RefreshWrapper") {
     auto refresh_wrapper_view = std::static_pointer_cast<RefreshWrapperView>(parent);
     refresh_wrapper_view->SetRefreshOffset(frame.height);
   }
-  GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
+  GetLocalRootArkUINode()->SetSize(HRSize(frame.width, frame.height));
 }
 
-void RefreshWrapperItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+void RefreshWrapperItemView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
+  stackNode_->InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void RefreshWrapperItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+void RefreshWrapperItemView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
+  stackNode_->RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

@@ -73,17 +73,26 @@ void ArkUINode::MarkDirty() {
   NativeNodeApi::GetInstance()->markDirty(GetArkUINodeHandle(), ArkUI_NodeDirtyFlag::NODE_NEED_MEASURE);
 }
 
-void ArkUINode::AddChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
+void ArkUINode::AddChild(ArkUINode *child) {
+  if (!child) {
+    return;
+  }
+  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child->GetArkUINodeHandle()));
 }
 
-void ArkUINode::InsertChild(ArkUINode &child, int32_t index) {
+void ArkUINode::InsertChild(ArkUINode *child, int32_t index) {
+  if (!child) {
+    return;
+  }
   MaybeThrow(
-    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
+    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child->GetArkUINodeHandle(), static_cast<int32_t>(index)));
 }
 
-void ArkUINode::RemoveChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
+void ArkUINode::RemoveChild(ArkUINode *child) {
+  if (!child) {
+    return;
+  }
+  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child->GetArkUINodeHandle()));
 }
 
 ArkUINode &ArkUINode::SetId(const std::string &id) {
