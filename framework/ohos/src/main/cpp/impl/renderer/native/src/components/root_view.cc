@@ -28,19 +28,25 @@ inline namespace render {
 inline namespace native {
 
 RootView::RootView(std::shared_ptr<NativeRenderContext> &ctx) : DivView(ctx) {
-  GetLocalRootArkUINode().RegisterDisappearEvent();
 }
 
 RootView::~RootView() {
-  GetLocalRootArkUINode().UnregisterDisappearEvent();
+  if (GetLocalRootArkUINode()) {
+    GetLocalRootArkUINode()->UnregisterDisappearEvent();
+  }
   HRDisplaySyncUtils::UnregisterDoFrameListener(ctx_->GetInstanceId(), tag_);
 }
 
-bool RootView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void RootView::CreateArkUINodeImpl() {
+  DivView::CreateArkUINodeImpl();
+  GetLocalRootArkUINode()->RegisterDisappearEvent();
+}
+
+bool RootView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey.length() > 0 && propValue.IsBoolean()) {
     HandleRootEvent(propKey, propValue.ToBooleanChecked());
   }
-  return BaseView::SetProp(propKey, propValue);
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
 void RootView::HandleRootEvent(const std::string &event, bool enable) {

@@ -37,21 +37,25 @@ static const std::string ASSET_PREFIX = "asset:/";
 static const std::string INTERNET_IMAGE_PREFIX = "http";
 
 ImageView::ImageView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  imageNode_.SetNodeDelegate(this);
-  GetLocalRootArkUINode().SetDraggable(false);
 }
 
 ImageView::~ImageView() {}
 
-ImageNode &ImageView::GetLocalRootArkUINode() {
-  return imageNode_;
+ImageNode *ImageView::GetLocalRootArkUINode() {
+  return imageNode_.get();
+}
+
+void ImageView::CreateArkUINodeImpl() {
+  imageNode_ = std::make_shared<ImageNode>();
+  imageNode_->SetNodeDelegate(this);
+  imageNode_->SetDraggable(false);
 }
 
 std::string ImageView::GetSrc() {
   return src_;
 }
 
-bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+bool ImageView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "src") {
     auto value = HRValueUtils::GetString(propValue);
     if (value != src_) {
@@ -71,7 +75,7 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
 		} else if (value == "stretch") {
 			mode = HRImageResizeMode::FitXY;
 		}
-    GetLocalRootArkUINode().SetResizeMode(mode);
+    GetLocalRootArkUINode()->SetResizeMode(mode);
     return true;
   } else if (propKey == "defaultSource") {
     auto value = HRValueUtils::GetString(propValue);
@@ -82,11 +86,11 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
     return false;
   } else if (propKey == "tintColor") {
     uint32_t value = HRValueUtils::GetUint32(propValue);
-    GetLocalRootArkUINode().SetTintColor(value);
+    GetLocalRootArkUINode()->SetTintColor(value);
     return true;
   } else if (propKey == "tintColorBlendMode") {
     auto value = HRValueUtils::GetInt32(propValue);
-    GetLocalRootArkUINode().SetTintColorBlendMode(value);
+    GetLocalRootArkUINode()->SetTintColorBlendMode(value);
     return true;
   } else if (propKey == "capInsets") {
     HippyValueObjectType m;
@@ -95,39 +99,39 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
       auto top = HRValueUtils::GetFloat(m["top"]);
       auto right = HRValueUtils::GetFloat(m["right"]);
       auto bottom = HRValueUtils::GetFloat(m["bottom"]);
-      GetLocalRootArkUINode().SetResizeable(left, top, right, bottom);
+      GetLocalRootArkUINode()->SetResizeable(left, top, right, bottom);
     } else {
       return false;
     }
 	} else if (propKey == "blur") {
 		auto value = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(propValue));
-    GetLocalRootArkUINode().SetBlur(value);
+    GetLocalRootArkUINode()->SetBlur(value);
 	} else if (propKey == "draggable") {
 		auto value = HRValueUtils::GetBool(propValue, false);
-    GetLocalRootArkUINode().SetDraggable(value);
+    GetLocalRootArkUINode()->SetDraggable(value);
 	}
-	return BaseView::SetProp(propKey, propValue);
+	return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void ImageView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrame(frame, padding);
+void ImageView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrameImpl(frame, padding);
 }
 
 void ImageView::FetchAltImage(const std::string &imageUrl) {
   if (imageUrl.size() > 0) {
     if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
-      GetLocalRootArkUINode().SetAlt(imageUrl);
+      GetLocalRootArkUINode()->SetAlt(imageUrl);
       return;
     } else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
       std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
-      GetLocalRootArkUINode().SetAlt(convertUrl);
+      GetLocalRootArkUINode()->SetAlt(convertUrl);
       return;
     } else if (HRUrlUtils::isWebUrl(imageUrl)) {
-      GetLocalRootArkUINode().SetAlt(imageUrl);
+      GetLocalRootArkUINode()->SetAlt(imageUrl);
       return;
     } else if (imageUrl.find(ASSET_PREFIX) == 0) {
       std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
-      GetLocalRootArkUINode().SetAlt(resourceStr);
+      GetLocalRootArkUINode()->SetAlt(resourceStr);
     }
   }
 }
@@ -135,18 +139,18 @@ void ImageView::FetchAltImage(const std::string &imageUrl) {
 void ImageView::FetchImage(const std::string &imageUrl) {
   if (imageUrl.size() > 0) {
     if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
-      GetLocalRootArkUINode().SetSources(imageUrl);
+      GetLocalRootArkUINode()->SetSources(imageUrl);
       return;
 		} else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
 			std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
-      GetLocalRootArkUINode().SetSources(convertUrl);
+      GetLocalRootArkUINode()->SetSources(convertUrl);
       return;
 		} else if (HRUrlUtils::isWebUrl(imageUrl)) {
-			GetLocalRootArkUINode().SetSources(imageUrl);
+			GetLocalRootArkUINode()->SetSources(imageUrl);
       return;
 		} else if (imageUrl.find(ASSET_PREFIX) == 0) {
       std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
-      GetLocalRootArkUINode().SetSources(resourceStr);
+      GetLocalRootArkUINode()->SetSources(resourceStr);
 		}
 		// TODO(hot):
 	}

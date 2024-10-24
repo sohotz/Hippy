@@ -34,7 +34,8 @@ public:
   RootView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RootView();
 
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   
   void OnDisappear() override;
   

@@ -32,29 +32,35 @@ DivView::DivView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
 
 DivView::~DivView() {
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    if (stackNode_) {
+      for (const auto &child : children_) {
+        stackNode_->RemoveChild(child->GetLocalRootArkUINode());
+      }
     }
     children_.clear();
   }
 }
 
-StackNode &DivView::GetLocalRootArkUINode() {
-  return stackNode_;
+StackNode *DivView::GetLocalRootArkUINode() {
+  return stackNode_.get();
 }
 
-bool DivView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  return BaseView::SetProp(propKey, propValue);
+void DivView::CreateArkUINodeImpl() {
+  stackNode_ = std::make_shared<StackNode>();
 }
 
-void DivView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+bool DivView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void DivView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+void DivView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
+  stackNode_->InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void DivView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
+  stackNode_->RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

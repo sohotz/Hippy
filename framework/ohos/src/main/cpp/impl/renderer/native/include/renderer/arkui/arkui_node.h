@@ -65,9 +65,9 @@ public:
 
   void MarkDirty();
   
-  void AddChild(ArkUINode &child);
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
+  void AddChild(ArkUINode *child);
+  void InsertChild(ArkUINode *child, int32_t index);
+  void RemoveChild(ArkUINode *child);
 
   virtual ArkUINode &SetId(const std::string &id);
   virtual ArkUINode &SetPosition(const HRPosition &position);

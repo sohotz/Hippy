@@ -53,13 +53,22 @@ public:
   std::weak_ptr<BaseView> &GetParent() { return parent_; }
 
   void SetTag(uint32_t tag);
-  void SetViewType(const std::string &type) { view_type_ = type; }
-  void SetParent(std::shared_ptr<BaseView> parent) { parent_ = parent; }
+  void SetViewType(const std::string &type);
+  void SetParent(std::shared_ptr<BaseView> parent);
+  
+  bool IsLazyCreate() { return isLazyCreate_; }
 
-  virtual ArkUINode &GetLocalRootArkUINode() = 0;
-  virtual bool SetProp(const std::string &propKey, const HippyValue &propValue);
-  virtual void OnSetPropsEnd();
-  virtual void Call(const std::string &method, const std::vector<HippyValue> params,
+  virtual ArkUINode *GetLocalRootArkUINode() = 0;
+  void CreateArkUINode(bool isFromLazy, int index = -1);
+  virtual void CreateArkUINodeImpl() = 0;
+  
+  bool SetProp(const std::string &propKey, const HippyValue &propValue);
+  void OnSetPropsEnd();
+  virtual bool SetPropImpl(const std::string &propKey, const HippyValue &propValue);
+  virtual void OnSetPropsEndImpl();
+  void Call(const std::string &method, const std::vector<HippyValue> params,
+                    std::function<void(const HippyValue &result)> callback);
+  virtual void CallImpl(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback);
   void AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index);
   void RemoveSubView(std::shared_ptr<BaseView> &subView);
@@ -80,9 +89,12 @@ public:
   virtual void OnAreaChange(ArkUI_NumberValue* data) override;
 
 protected:
-  virtual void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {}
-  virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {}
-  virtual void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding);
+  virtual void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index);
+  virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index);
+  virtual void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int index) {}
+  virtual void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {}
+  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding);
+  virtual void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding);
   virtual bool HandleGestureBySelf() { return false; }
 
 protected:
@@ -108,6 +120,7 @@ protected:
   void HandleInterceptPullUp();
   std::string ConvertToLocalPathIfNeeded(const std::string &uri);
   int64_t GetTimeMilliSeconds();
+  int32_t IndexOfChild(const std::shared_ptr<BaseView> child);
 
   std::shared_ptr<footstone::value::Serializer> &GetSerializer();
 
@@ -167,7 +180,11 @@ protected:
   bool flagInterceptPullUp_ = false;
 
   HippyValueObjectType events_;
-    
+
+  bool isLazyCreate_ = false;
+  HippyValueObjectType lazyProps_;
+  std::optional<HRRect> lazyFrame_;
+  std::optional<HRPadding> lazyPadding_;
 private:
   HippyValueObjectType CallNativeRenderProviderMethod(napi_env env, napi_ref render_provider_ref, uint32_t component_id, const std::string &method);  
 };

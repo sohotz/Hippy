@@ -34,13 +34,14 @@ public:
   RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RichTextSpanView();
 
-  SpanNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void OnSetPropsEnd() override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  SpanNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void OnSetPropsEndImpl() override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
   
 private:
-  SpanNode spanNode_;
+  std::shared_ptr<SpanNode> spanNode_;
   
   std::optional<std::string> text_;
   std::optional<uint32_t> color_;

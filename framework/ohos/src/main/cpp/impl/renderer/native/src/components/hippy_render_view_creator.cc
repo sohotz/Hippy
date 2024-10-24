@@ -129,6 +129,13 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_
   return nullptr;
 }
 
+bool HippyIsLazyCreateView(const std::string &view_type) {
+  if (view_type == "ViewPagerItem" || view_type == "ListViewItem") {
+    return true;
+  }
+  return false;
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

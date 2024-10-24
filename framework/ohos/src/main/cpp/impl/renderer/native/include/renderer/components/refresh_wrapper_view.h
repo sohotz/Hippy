@@ -33,38 +33,39 @@ class RefreshWrapperView : public BaseView, public RefreshNodeDelegate {
 public:
   RefreshWrapperView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RefreshWrapperView();
-  
+
   void Init() override;
 
-  RefreshNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void Call(const std::string &method, const std::vector<HippyValue> params,
+  RefreshNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
-  
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
+
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+
   void OnRefreshing() override;
   void OnStateChange(int32_t state) override;
   void OnOffsetChange(float_t offset) override;
-  
+
   void SetRefreshOffset(float offset);
-  
+
 private:
   void BounceToHead();
   void StartRefresh();
   void RefreshComplected();
-  
+
   void SendOnScrollEvent(float y);
-  
-  RefreshNode refreshNode_;
-  
+
+  std::shared_ptr<RefreshNode> refreshNode_;
+
   int32_t bounceTime_ = 300;
-  
+
   bool scrollEventEnable_ = true;
   int32_t scrollEventThrottle_ = 400;
   int64_t lastScrollEventTimeStamp_ = -1;
-  
+
   float refresh_offset_ = 1000.f;
   std::weak_ptr<BaseView> item_view_;
 };
