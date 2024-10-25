@@ -60,6 +60,8 @@ constexpr static int kJSHScopeWrapperIndex = 1;
 constexpr static int kJSHWeakCallbackWrapperInvalidIndex = 2;
 constexpr static int kJSHExternalDataNum = 3;
 
+extern void* GetPointerInInstanceData(JSVM_Env env, int index);
+
 class JSHCtx : public Ctx {
  public:
   using unicode_string_view = footstone::string_view;

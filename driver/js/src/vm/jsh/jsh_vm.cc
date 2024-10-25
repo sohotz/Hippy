@@ -83,9 +83,7 @@ JSHVM::JSHVM(const std::shared_ptr<JSHVMInitParam>& param) : VM(param) {
 }
 
 static void UncaughtExceptionMessageCallback(JSVM_Env env, JSVM_Value error, void *external_data) {
-  void *scope_data = nullptr;
-  auto status = OH_JSVM_GetInstanceData(env, &scope_data);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
+  void *scope_data =  GetPointerInInstanceData(env, kJSHScopeWrapperIndex);
   
   JSVM_Value stack = nullptr;
   OH_JSVM_GetNamedProperty(env, error, "stack", &stack);
