@@ -32,6 +32,8 @@
 #include "footstone/macros.h"
 #include "footstone/string_view.h"
 
+#define HIPPY_OHOS_MEM_CHECK 1
+
 namespace footstone {
 inline namespace log {
 

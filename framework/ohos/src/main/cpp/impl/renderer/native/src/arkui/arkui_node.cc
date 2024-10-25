@@ -35,7 +35,7 @@ ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : nodeHandle_(nodeHandle) {
 #if HIPPY_OHOS_MEM_CHECK
   static int sCount = 0;
   ++sCount;
-  FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, ArkUINode handle, new: " << nodeHandle_ << ", count: " << sCount;
+  FOOTSTONE_LOG(INFO) << "Hippy ohos mem check, ArkUINode handle, new: " << nodeHandle_ << ", count: " << sCount;
 #endif
   
   ArkUINodeRegistry::GetInstance().RegisterNode(this);
@@ -45,7 +45,7 @@ ArkUINode::~ArkUINode() {
 #if HIPPY_OHOS_MEM_CHECK
   static int sCount = 0;
   ++sCount;
-  FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, ArkUINode handle, del: " << nodeHandle_ << ", count: " << sCount;
+  FOOTSTONE_LOG(INFO) << "Hippy ohos mem check, ArkUINode handle, del: " << nodeHandle_ << ", count: " << sCount;
 #endif
   
   if (nodeHandle_ != nullptr) {

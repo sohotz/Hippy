@@ -50,6 +50,7 @@ import { FileRequestAdapter } from './adapter/file/FileRequestAdapter';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyRootView } from '../renderer_native';
 import { WrappedHippyCustomRenderViewBuilder } from '../renderer_native/HippyRenderViewBuilder';
+import { hidebug } from '@kit.PerformanceAnalysisKit';
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
@@ -69,7 +70,21 @@ export interface HippyEngine {
   sendEvent(event: string, params: HippyAny): void;
 }
 
+function dumpMemInfo(): void {
+  let nativeHeapSize = hidebug.getNativeHeapSize()
+  let nativeHeapAllocatedSize = hidebug.getNativeHeapAllocatedSize()
+  let nativeHeapFreeSize = hidebug.getNativeHeapFreeSize()
+  let nativeMemInfo: hidebug.NativeMemInfo = hidebug.getAppNativeMemInfo();
+  let vmMemory: hidebug.VMMemoryInfo = hidebug.getAppVMMemoryInfo();
+
+  LogUtils.e('Hippy', `Hippy ohos mem check, nativeHeapSize: ${nativeHeapSize}, nativeHeapAllocatedSize: ${nativeHeapAllocatedSize}, nativeHeapFreeSize: ${nativeHeapFreeSize}, nativeMemInfo.pss: ${nativeMemInfo.pss}, nativeMemInfo.vss: ${nativeMemInfo.vss}, nativeMemInfo.rss: ${nativeMemInfo.rss}, nativeMemInfo.sharedDirty: ${nativeMemInfo.sharedDirty}, nativeMemInfo.privateDirty: ${nativeMemInfo.privateDirty}, nativeMemInfo.sharedClean: ${nativeMemInfo.sharedClean}, nativeMemInfo.privateClean: ${nativeMemInfo.privateClean}, vmMemory.totalHeap: ${vmMemory.totalHeap}, vmMemory.heapUsed: ${vmMemory.heapUsed}, vmMemory.allArraySize: ${vmMemory.allArraySize}`)
+}
+
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
+  setInterval(()=> {
+    dumpMemInfo()
+  }, 5000)
+
   params.check()
   LogUtils.enableDebugLog(params.enableLog)
   params.libHippy?.Setting_SetFlags(params.enableUpdateAnimLog);

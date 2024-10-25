@@ -30,8 +30,6 @@
 #include "footstone/logging.h"
 #include "renderer/utils/hr_types.h"
 
-#define HIPPY_OHOS_MEM_CHECK 0
-
 namespace hippy {
 inline namespace render {
 inline namespace native {

@@ -34,12 +34,24 @@ using namespace std::literals;
 
 ImageNode::ImageNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_IMAGE)) {
+#if HIPPY_OHOS_MEM_CHECK
+  static int sCount = 0;
+  ++sCount;
+  FOOTSTONE_LOG(INFO) << "Hippy ohos mem check, ImageNode handle, new: " << nodeHandle_ << ", count: " << sCount;
+#endif
+  
   for (auto eventType : IMAGE_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
 }
 
 ImageNode::~ImageNode() {
+#if HIPPY_OHOS_MEM_CHECK
+  static int sCount = 0;
+  ++sCount;
+  FOOTSTONE_LOG(INFO) << "Hippy ohos mem check, ImageNode handle, del: " << nodeHandle_ << ", count: " << sCount;
+#endif
+  
   for (auto eventType : IMAGE_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }

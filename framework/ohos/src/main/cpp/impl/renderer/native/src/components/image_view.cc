@@ -37,11 +37,23 @@ static const std::string ASSET_PREFIX = "asset:/";
 static const std::string INTERNET_IMAGE_PREFIX = "http";
 
 ImageView::ImageView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
+#if HIPPY_OHOS_MEM_CHECK
+  static int sCount = 0;
+  ++sCount;
+  FOOTSTONE_LOG(INFO) << "Hippy ohos mem check, ImageView, new: " << this << ", count: " << sCount;
+#endif
+  
   imageNode_.SetNodeDelegate(this);
   GetLocalRootArkUINode().SetDraggable(false);
 }
 
-ImageView::~ImageView() {}
+ImageView::~ImageView() {
+#if HIPPY_OHOS_MEM_CHECK
+  static int sCount = 0;
+  ++sCount;
+  FOOTSTONE_LOG(INFO) << "Hippy ohos mem check, ImageView, del: " << this << ", count: " << sCount;
+#endif
+}
 
 ImageNode &ImageView::GetLocalRootArkUINode() {
   return imageNode_;

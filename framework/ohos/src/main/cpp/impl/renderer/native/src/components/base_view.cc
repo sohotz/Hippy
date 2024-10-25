@@ -46,7 +46,7 @@ BaseView::BaseView(std::shared_ptr<NativeRenderContext> &ctx) : ctx_(ctx), tag_(
 #if HIPPY_OHOS_MEM_CHECK
   static int sCount = 0;
   ++sCount;
-  FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, view, new: " << this << ", type: " << view_type_ << ", count: " << sCount;
+  FOOTSTONE_LOG(INFO) << "Hippy ohos mem check, view, type: " << view_type_ << ", new: " << this << ", count: " << sCount;
 #endif
 }
 
@@ -54,7 +54,7 @@ BaseView::~BaseView() {
 #if HIPPY_OHOS_MEM_CHECK
   static int sCount = 0;
   ++sCount;
-  FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, view, del: " << this << ", type: " << view_type_ << ", count: " << sCount;
+  FOOTSTONE_LOG(INFO) << "Hippy ohos mem check, view, type: " << view_type_ << ", del: " << this << ", count: " << sCount;
 #endif
 }
 
