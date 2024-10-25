@@ -91,6 +91,24 @@ void ListItemView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPaddin
   height_ = frame.height;
 }
 
+float ListItemView::GetWidth() {
+  if (width_ > 0) {
+    return width_;
+  } else if (lazyFrame_.has_value()) {
+    return lazyFrame_.value().width;
+  }
+  return 0;
+}
+
+float ListItemView::GetHeight() {
+  if (height_ > 0) {
+    return height_;
+  } else if (lazyFrame_.has_value()) {
+    return lazyFrame_.value().height;
+  }
+  return 0;
+}
+
 void ListItemView::CheckExposureView(float currentRatio) {
   auto newState = CalculateExposureState(currentRatio);
   MoveToExposureState(newState);

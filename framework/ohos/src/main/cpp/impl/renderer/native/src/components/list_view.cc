@@ -79,6 +79,8 @@ void ListView::CreateArkUINodeImpl() {
   listNode_->SetListCachedCount(4);
   listNode_->SetScrollNestedScroll(ARKUI_SCROLL_NESTED_MODE_SELF_FIRST, ARKUI_SCROLL_NESTED_MODE_SELF_FIRST);
   listNode_->SetLazyAdapter(adapter_->GetHandle());
+  
+  CheckInitOffset();
 }
 
 bool ListView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -190,6 +192,10 @@ void ListView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, i
   if (index == 0 && childView->GetViewType() == PULL_HEADER_VIEW_TYPE) {
     listNode_->SetListInitialIndex(1);
   }
+  
+  auto itemView = std::static_pointer_cast<ListItemView>(childView);
+  itemView->GetLocalRootArkUINode()->SetNodeDelegate(this);
+  itemView->GetLocalRootArkUINode()->SetItemIndex(index);
 }
 
 void ListView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
@@ -308,8 +314,10 @@ void ListView::HandleOnChildrenUpdated() {
     // Index must be recalculated.
     for (uint32_t i = 0; i < childrenCount; i++) {
       auto itemView = std::static_pointer_cast<ListItemView>(children_[i]);
-      itemView->GetLocalRootArkUINode()->SetNodeDelegate(this); // TODO(hot): lazy
-      itemView->GetLocalRootArkUINode()->SetItemIndex((int32_t)i);
+      auto node = itemView->GetLocalRootArkUINode();
+      if (node) {
+        node->SetItemIndex((int32_t)i); 
+      }
     }
     
     if (children_[0]->GetViewType() == PULL_HEADER_VIEW_TYPE) {
@@ -540,16 +548,15 @@ void ListView::CheckStickyOnItemVisibleAreaChange(int32_t index, bool isVisible,
 }
 
 void ListView::CheckInitOffset() {
-  if (!initOffsetUsed_) {
-    initOffsetUsed_ = true;
-    
+  if (listNode_) {
     if (initialOffset_ > 0) {
       float y = 0;
       if (headerView_ != nullptr) {
         y = headerView_->GetHeight();
       }
       y += initialOffset_;
-      listNode_->ScrollTo(0, y, true); // TODO(hot): lazy
+      listNode_->ScrollTo(0, y, true);
+      initialOffset_ = 0;
     }
   }
 }

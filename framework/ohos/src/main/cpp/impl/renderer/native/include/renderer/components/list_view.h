@@ -135,8 +135,7 @@ private:
   
   bool isDragging_ = false;
   float lastMoveY_ = 0;
-
-  bool initOffsetUsed_ = false;
+  
   bool headerViewFullVisible_ = false;
   bool footerViewFullVisible_ = false;
   float lastItemFullVisibleYOffset_ = 0;

@@ -32,6 +32,11 @@ PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : List
 
 PullFooterView::~PullFooterView() {}
 
+void PullFooterView::CreateArkUINodeImpl() {
+  ListItemView::CreateArkUINodeImpl();
+  GetLocalRootArkUINode()->SetVisibility(isVisible_);
+}
+
 bool PullFooterView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "sticky") {
     auto value = HRValueUtils::GetBool(propValue, false);
@@ -60,7 +65,10 @@ void PullFooterView::CallImpl(const std::string &method, const std::vector<Hippy
 void PullFooterView::Show(bool show) {
   if (show != isVisible_) {
     isVisible_ = show;
-    GetLocalRootArkUINode()->SetVisibility(show);
+    auto node = GetLocalRootArkUINode();
+    if (node) {
+      node->SetVisibility(show);
+    }
   }
 }
 

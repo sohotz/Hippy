@@ -43,13 +43,12 @@ public:
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
   
-  float GetWidth() { return width_; }
-  float GetHeight() { return height_; }
+  float GetWidth();
+  float GetHeight();
   std::string &GetType() { return type_; }
   bool IsSticky() { return sticky_; }
 
   void CheckExposureView(float currentRatio);
-  
 private:
   uint32_t CalculateExposureState(float currentRatio);
   void MoveToExposureState(uint32_t state);
