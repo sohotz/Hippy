@@ -26,6 +26,7 @@
 #include "oh_napi/oh_napi_object.h"
 #include "oh_napi/oh_napi_object_builder.h"
 #include "oh_napi/oh_napi_utils.h"
+#include "renderer/components/hippy_render_view_creator.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/native_render_params.h"
 #include "renderer/utils/hr_pixel_utils.h"
@@ -68,7 +69,7 @@ void BaseView::SetTag(uint32_t tag) {
 void BaseView::SetViewType(const std::string &type) {
   view_type_ = type;
   
-  if (type == "ViewPagerItem") {
+  if (HippyIsLazyCreateView(type)) {
     isLazyCreate_ = true;
   }
 }
@@ -87,6 +88,7 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
   }
   
   CreateArkUINodeImpl();
+  isLazyCreate_ = false;
   
   auto parent = parent_.lock();
   if (parent) {
@@ -118,7 +120,9 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
   if (isFromLazy) {
     for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
       auto subView = children_[(uint32_t)i];
-      subView->CreateArkUINode(true, i);
+      if (!HippyIsLazyCreateView(subView->GetViewType())) {
+        subView->CreateArkUINode(true, i);
+      }
     }
   }
 }
