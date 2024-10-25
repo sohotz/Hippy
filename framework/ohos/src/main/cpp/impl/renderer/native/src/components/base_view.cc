@@ -92,8 +92,11 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
   
   auto parent = parent_.lock();
   if (parent) {
-    auto child_index = index < 0 ? parent->IndexOfChild(shared_from_this()) : index;
-    parent->OnChildInsertedImpl(shared_from_this(), child_index);
+    FOOTSTONE_DCHECK(parent->GetLocalRootArkUINode());
+    if (parent->GetLocalRootArkUINode()) {
+      auto child_index = index < 0 ? parent->IndexOfChild(shared_from_this()) : index;
+      parent->OnChildInsertedImpl(shared_from_this(), child_index);
+    }
   }
   
   GetLocalRootArkUINode()->SetArkUINodeDelegate(this);
