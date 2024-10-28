@@ -38,6 +38,7 @@ ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : nodeHandle_(nodeHandle) {
   FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, ArkUINode handle, new: " << nodeHandle_ << ", count: " << sCount;
 #endif
   
+  SetHitTestMode(ARKUI_HIT_TEST_MODE_TRANSPARENT);
   ArkUINodeRegistry::GetInstance().RegisterNode(this);
 }
 
