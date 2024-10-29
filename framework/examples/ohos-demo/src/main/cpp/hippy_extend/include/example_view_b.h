@@ -36,6 +36,7 @@ public:
   virtual ~ExampleViewB();
 
   StackNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   
   LayoutSize CustomMeasure(float width, LayoutMeasureMode width_measure_mode,
@@ -47,8 +48,8 @@ public:
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   
 private:
-  StackNode stackNode_;
-  TextNode textNode_;
+  std::shared_ptr<StackNode> stackNode_;
+  std::shared_ptr<TextNode> textNode_;
 };
 
 } // namespace native

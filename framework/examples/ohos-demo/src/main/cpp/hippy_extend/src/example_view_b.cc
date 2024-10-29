@@ -28,21 +28,28 @@ inline namespace render {
 inline namespace native {
 
 ExampleViewB::ExampleViewB(std::shared_ptr<NativeRenderContext> &ctx) : CustomView(ctx) {
-  stackNode_.AddChild(textNode_);
-  textNode_.SetTextContent("This is a custom component B.");
 }
 
 ExampleViewB::~ExampleViewB() {
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    if (stackNode_) {
+      for (const auto &child : children_) {
+        stackNode_->RemoveChild(child->GetLocalRootArkUINode());
+      }
     }
     children_.clear();
   }
 }
 
 StackNode *ExampleViewB::GetLocalRootArkUINode() {
-  return stackNode_;
+  return stackNode_.get();
+}
+
+void ExampleViewB::CreateArkUINodeImpl() {
+  stackNode_ = std::make_shared<StackNode>();
+  textNode_ = std::make_shared<TextNode>();
+  stackNode_->AddChild(textNode_.get());
+  textNode_->SetTextContent("This is a custom component B.");
 }
 
 bool ExampleViewB::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -51,12 +58,12 @@ bool ExampleViewB::SetPropImpl(const std::string &propKey, const HippyValue &pro
 
 void ExampleViewB::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInsertedImpl(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+  stackNode_->InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
 void ExampleViewB::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemovedImpl(childView, index);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+  stackNode_->RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native
