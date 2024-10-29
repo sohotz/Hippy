@@ -541,6 +541,14 @@ void RootNode::FlushEventOperations(const std::shared_ptr<RenderManager>& render
 }
 
 void RootNode::OnDomNodeCreated(const std::shared_ptr<DomNode>& node) {
+  if (node->GetId() == 308 || node->GetId() == 393) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, OnDomNodeCreated, nodeId: " << node->GetId() << ", type: " << node->GetViewName();
+    auto parent = node->GetParent();
+    while (parent) {
+      FOOTSTONE_LOG(INFO) << "xxx hippy, OnDomNodeCreated, parentId: " << parent->GetId() << ", type: " << node->GetViewName();
+      parent = parent->GetParent();
+    }
+  }
   nodes_.insert(std::make_pair(node->GetId(), node));
 }
 
@@ -550,6 +558,9 @@ void RootNode::OnDomNodeDeleted(const std::shared_ptr<DomNode>& node) {
       if (child) {
         OnDomNodeDeleted(child);
       }
+    }
+    if (node->GetId() == 308 || node->GetId() == 393) {
+      FOOTSTONE_LOG(INFO) << "xxx hippy, OnDomNodeDeleted, nodeId: " << node->GetId();
     }
     nodes_.erase(node->GetId());
   }

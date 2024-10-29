@@ -386,6 +386,10 @@ void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const 
     
     // build-in view
     renderView->SetRenderViewFrame(frame, padding);
+    
+    if (tag == 308 || tag == 393) {
+      FOOTSTONE_LOG(INFO) << "xxx hippy, SetRenderViewFrame, id: " << tag << ", frame: " << frame.x << "," << frame.y << "," << frame.width << "," << frame.height;
+    }
   }
 }
 
