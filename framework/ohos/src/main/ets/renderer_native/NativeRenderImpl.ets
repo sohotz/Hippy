@@ -149,7 +149,7 @@ export class NativeRenderImpl implements NativeRender {
       this.frameworkProxy.destroyRoot(rootId)
     }
 
-    // this.renderManager.destroyViewManager(rootId)
+    this.renderManager.destroyViewManager(rootId)
     this.libHippy?.NativeRenderProvider_UnbindNativeRoot(this.instanceId, rootId, 0)
     this.libHippy.NativeRenderProvider_DestroyRoot(this.instanceId, rootId)
   }

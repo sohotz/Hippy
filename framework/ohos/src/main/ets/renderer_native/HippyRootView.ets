@@ -72,8 +72,8 @@ export class HippyRootView {
     this.rootSlot = rootSlot;
   }
 
-  onViewSizeChanged(size: HRSize) {
-    if (this.renderViewSize.width == size.width && this.renderViewSize.height == size.height) {
+  onViewSizeChanged(size: HRSize, force = false) {
+    if (!force && this.renderViewSize.width == size.width && this.renderViewSize.height == size.height) {
       return
     }
     this.renderViewSize = size

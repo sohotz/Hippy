@@ -211,7 +211,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
     if (this.mJsDriver && this.rootView != null && this.mDebugMode) {
       this.attachRootView(this.rootView);
       this.nativeRenderProvider!.getNativeRenderImpl().reloadRootView(this.rootView);
-      this.rootView.onViewSizeChanged(this.rootView.renderViewSize);
+      this.rootView.onViewSizeChanged(this.rootView.renderViewSize, true);
       if (this.rootView.rootSlot) {
         const renderInstanceId = this.getNativeRenderProvider()?.getInstanceId()
         let libHippy = this.getLibHippy()
