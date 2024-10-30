@@ -142,6 +142,9 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
   for (size_t i = 0; i < argc; i++) {
     cb_info.AddValue(std::make_shared<JSHCtxValue>(env, argv[i]));
   }
+  
+  status = OH_JSVM_Wrap(env, thisArg, cb_info.GetData(), nullptr, nullptr, nullptr);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
 
   auto function_wrapper = reinterpret_cast<FunctionWrapper*>(data);
   FOOTSTONE_CHECK(function_wrapper);
@@ -164,7 +167,10 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
     OH_JSVM_GetUndefined(env, &result);
     return result;
   }
-
+  
+  void *result = nullptr;
+  status = OH_JSVM_RemoveWrap(env, thisArg, &result);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
   status = OH_JSVM_Wrap(env, thisArg, cb_info.GetData(), nullptr, nullptr, nullptr);
   FOOTSTONE_DCHECK(status == JSVM_OK);
 
@@ -1364,11 +1370,33 @@ bool JSHCtx::GetByteBuffer(const std::shared_ptr<CtxValue>& value,
   return true;
 }
 
+void JSH_Finalize(JSVM_Env env, void* finalizeData, void* finalizeHint) {
+  if (!finalizeData) {
+    return;
+  }
+  void* invalid = GetPointerInInstanceData(env, kJSHWeakCallbackWrapperInvalidIndex);
+  if (invalid) {
+    return;
+  }
+  auto wrapper = reinterpret_cast<WeakCallbackWrapper*>(finalizeData);
+  wrapper->callback(wrapper->data, finalizeHint);
+}
+
 void JSHCtx::SetWeak(std::shared_ptr<CtxValue> value,
                      const std::unique_ptr<WeakCallbackWrapper>& wrapper) {
   JSHHandleScope handleScope(env_);
   auto ctx_value = std::static_pointer_cast<JSHCtxValue>(value);
-  // TODO(hot-js):
+  void *internal_data = nullptr;
+  auto status = OH_JSVM_Unwrap(env_, ctx_value->GetValue(), &internal_data);
+  if (status == JSVM_OK) {
+    if (internal_data) {
+      OH_JSVM_AddFinalizer(env_, ctx_value->GetValue(), wrapper.get(), JSH_Finalize, internal_data, nullptr);
+    }
+  }
+}
+
+void JSHCtx::InvalidWeakCallbackWrapper() {
+  SetPointerInInstanceData(kJSHWeakCallbackWrapperInvalidIndex, (void*)1);
 }
 
 bool JSHCtx::CheckJSVMStatus(JSVM_Env env, JSVM_Status status) {

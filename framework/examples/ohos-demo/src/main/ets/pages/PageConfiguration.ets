@@ -104,6 +104,7 @@ struct PageConfiguration {
     params.debugMode = info.isDebugMode as boolean
     // params.isLoadFromRawfile = false
     // params.enableLog = true
+    // params.enableUpdateAnimLog = false
 
     params.providers = new Array(new ExampleAPIProvider())
 

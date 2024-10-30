@@ -73,9 +73,7 @@ public:
 
   void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
   void TextEllipsized(uint32_t root_id, uint32_t node_id);
-
-  void OnSize(uint32_t root_id, float width, float height);
-  void OnSize2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync);
+  
   void DispatchEvent(uint32_t root_id, uint32_t node_id, const std::string &event_name,
       const std::shared_ptr<HippyValue> &params, bool capture, bool bubble, HREventType event_type);
   void DoCallBack(int32_t result, uint32_t cb_id, const std::string &func_name,

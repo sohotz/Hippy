@@ -156,6 +156,19 @@ int GetVlogVerbosity();
 
 bool ShouldCreateLogMessage(LogSeverity severity);
 
+extern bool gEnableUpdateAnimLog;
+extern bool gInUpdateAnimScope;
+
+class AutoInUpdateAnimScope {
+public:
+  AutoInUpdateAnimScope() {
+    gInUpdateAnimScope = true;
+  }
+  ~AutoInUpdateAnimScope() {
+    gInUpdateAnimScope = false;
+  }
+};
+
 }  // namespace base
 }  // namespace tdf
 

@@ -24,15 +24,15 @@
 
 #include <arkui/native_node.h>
 #include <stack>
-#include "renderer/components/list_item_view.h"
+#include "renderer/components/pager_item_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class ListItemAdapter {
+class PagerItemAdapter {
 public:
-  ListItemAdapter(std::vector<std::shared_ptr<BaseView>> &itemViews)
+  PagerItemAdapter(std::vector<std::shared_ptr<BaseView>> &itemViews)
       : handle_(OH_ArkUI_NodeAdapter_Create()), itemViews_(itemViews) {
     // 设置懒加载数据。
     OH_ArkUI_NodeAdapter_SetTotalNodeCount(handle_, static_cast<uint32_t>(itemViews.size()));
@@ -40,7 +40,7 @@ public:
     OH_ArkUI_NodeAdapter_RegisterEventReceiver(handle_, this, OnStaticAdapterEvent);
   }
 
-  ~ListItemAdapter() {
+  ~PagerItemAdapter() {
     // 释放创建的组件。
     while (!cachedItems_.empty()) {
       cachedItems_.pop();
@@ -70,7 +70,7 @@ public:
 private:
   static void OnStaticAdapterEvent(ArkUI_NodeAdapterEvent *event) {
     // 获取实例对象，回调实例事件。
-    auto itemAdapter = reinterpret_cast<ListItemAdapter *>(OH_ArkUI_NodeAdapterEvent_GetUserData(event));
+    auto itemAdapter = reinterpret_cast<PagerItemAdapter *>(OH_ArkUI_NodeAdapterEvent_GetUserData(event));
     itemAdapter->OnAdapterEvent(event);
   }
 
@@ -115,16 +115,14 @@ private:
   }
 
   ArkUI_NodeAdapterHandle handle_ = nullptr;
-
+  
   std::vector<std::shared_ptr<BaseView>> &itemViews_;
-
-  // TODO(hot): 复用逻辑
-
+  
   // 管理NodeAdapter生成的元素。
-  std::unordered_map<ArkUI_NodeHandle, std::shared_ptr<ListItemView>> items_;
+  std::unordered_map<ArkUI_NodeHandle, std::shared_ptr<PagerItemView>> items_;
 
   // 管理回收复用组件池。
-  std::stack<std::shared_ptr<ListItemView>> cachedItems_;
+  std::stack<std::shared_ptr<PagerItemView>> cachedItems_;
 };
 
 } // namespace native

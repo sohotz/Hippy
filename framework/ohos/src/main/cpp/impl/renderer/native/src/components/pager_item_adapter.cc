@@ -20,30 +20,12 @@
  *
  */
 
-#pragma once
+#include "renderer/components/pager_item_adapter.h"
 
-#include "renderer/components/base_view.h"
-#include "renderer/arkui/stack_node.h"
-#include "renderer/arkui/water_flow_item_node.h"
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class WaterfallItemView : public BaseView {
-public:
-  WaterfallItemView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~WaterfallItemView();
-
-  WaterFlowItemNode *GetLocalRootArkUINode() override;
-  void CreateArkUINodeImpl() override;
-  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
-  void OnSetPropsEndImpl() override;
-  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
-private:
-  std::shared_ptr<WaterFlowItemNode> itemNode_;
-};
 
 } // namespace native
 } // namespace render

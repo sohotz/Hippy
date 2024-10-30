@@ -65,9 +65,9 @@ public:
 
   void MarkDirty();
   
-  void AddChild(ArkUINode &child);
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
+  void AddChild(ArkUINode *child);
+  void InsertChild(ArkUINode *child, int32_t index);
+  void RemoveChild(ArkUINode *child);
 
   virtual ArkUINode &SetId(const std::string &id);
   virtual ArkUINode &SetPosition(const HRPosition &position);
@@ -134,22 +134,32 @@ public:
   void RegisterAreaChangeEvent();
   void UnregisterAreaChangeEvent();
 protected:
+
+#define ARKUI_NODE_CHECK_AND_LOG_ERROR \
+  static int count = 0; \
+  ++count; \
+  CheckAndLogError(message, count);
+  
   void MaybeThrow(int32_t status) {
     if (status != 0) {
       auto message = std::string("ArkUINode operation failed with status: ") + std::to_string(status);
       if (status == ARKUI_ERROR_CODE_PARAM_INVALID) {
-        FOOTSTONE_LOG(ERROR) << message;
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
       } else if (status == ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED) {
-        // Comment for too many log.
-        // FOOTSTONE_LOG(ERROR) << message;
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
       } else if (status == ARKUI_ERROR_CODE_ARKTS_NODE_NOT_SUPPORTED) {
-        FOOTSTONE_LOG(ERROR) << message;
-      } else if (status == ARKUI_ERROR_CODE_ADAPTER_NOT_BOUND || status == ARKUI_ERROR_CODE_ADAPTER_EXIST) {
-        FOOTSTONE_LOG(ERROR) << message;
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
+      } else if (status == ARKUI_ERROR_CODE_ADAPTER_NOT_BOUND) {
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
+      } else if (status == ARKUI_ERROR_CODE_ADAPTER_EXIST) {
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
       }
-      // throw std::runtime_error(std::move(message));
     }
   }
+  
+#undef ARKUI_NODE_CHECK_AND_LOG_ERROR
+  
+  void CheckAndLogError(const std::string& message, int count);
 
   ArkUI_NodeHandle nodeHandle_;
   

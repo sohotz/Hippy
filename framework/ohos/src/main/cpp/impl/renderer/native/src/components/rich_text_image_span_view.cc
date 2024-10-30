@@ -37,23 +37,27 @@ static const std::string ASSET_PREFIX = "asset:/";
 static const std::string INTERNET_IMAGE_PREFIX = "http";
 
 RichTextImageSpanView::RichTextImageSpanView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  imageSpanNode_.SetImageObjectFit(ARKUI_OBJECT_FIT_FILL);
 }
 
 RichTextImageSpanView::~RichTextImageSpanView() {}
 
-ImageSpanNode &RichTextImageSpanView::GetLocalRootArkUINode() {
-  return imageSpanNode_;
+ImageSpanNode *RichTextImageSpanView::GetLocalRootArkUINode() {
+  return imageSpanNode_.get();
 }
 
-bool RichTextImageSpanView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void RichTextImageSpanView::CreateArkUINodeImpl() {
+  imageSpanNode_ = std::make_shared<ImageSpanNode>();
+  imageSpanNode_->SetImageObjectFit(ARKUI_OBJECT_FIT_FILL);
+}
+
+bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::WIDTH) {
     auto value = HRValueUtils::GetFloat(propValue);
-    GetLocalRootArkUINode().SetWidth(value);
+    GetLocalRootArkUINode()->SetWidth(value);
     return true;
   } else if (propKey == HRNodeProps::HEIGHT) {
     auto value = HRValueUtils::GetFloat(propValue);
-    GetLocalRootArkUINode().SetHeight(value);
+    GetLocalRootArkUINode()->SetHeight(value);
     return true;
   } else if (propKey == "verticalAlign") {
     auto t = HRValueUtils::GetString(propValue);
@@ -89,9 +93,9 @@ bool RichTextImageSpanView::SetProp(const std::string &propKey, const HippyValue
   // Not to set some attributes for text span.
 }
 
-void RichTextImageSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+void RichTextImageSpanView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
-    GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));
+    GetLocalRootArkUINode()->SetPosition(HRPosition(frame.x, frame.y));
     return;
   }
 }
@@ -99,18 +103,18 @@ void RichTextImageSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRP
 void RichTextImageSpanView::FetchAltImage(const std::string &imageUrl) {
   if (imageUrl.size() > 0) {
     if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
-      GetLocalRootArkUINode().SetAlt(imageUrl);
+      GetLocalRootArkUINode()->SetAlt(imageUrl);
       return;
     } else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
       std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
-      GetLocalRootArkUINode().SetAlt(convertUrl);
+      GetLocalRootArkUINode()->SetAlt(convertUrl);
       return;
     } else if (HRUrlUtils::isWebUrl(imageUrl)) {
-      GetLocalRootArkUINode().SetAlt(imageUrl);
+      GetLocalRootArkUINode()->SetAlt(imageUrl);
       return;
     } else if (imageUrl.find(ASSET_PREFIX) == 0) {
       std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
-      GetLocalRootArkUINode().SetAlt(resourceStr);
+      GetLocalRootArkUINode()->SetAlt(resourceStr);
     }
   }
 }
@@ -118,18 +122,18 @@ void RichTextImageSpanView::FetchAltImage(const std::string &imageUrl) {
 void RichTextImageSpanView::fetchImage(const std::string &imageUrl) {
   if (imageUrl.size() > 0) {
     if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
-      GetLocalRootArkUINode().SetSources(imageUrl);
+      GetLocalRootArkUINode()->SetSources(imageUrl);
       return;
 		} else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
 			std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
-      GetLocalRootArkUINode().SetSources(convertUrl);
+      GetLocalRootArkUINode()->SetSources(convertUrl);
       return;
 		} else if (HRUrlUtils::isWebUrl(imageUrl)) {
-			GetLocalRootArkUINode().SetSources(imageUrl);
+			GetLocalRootArkUINode()->SetSources(imageUrl);
       return;
 		} else if (imageUrl.find(ASSET_PREFIX) == 0) {
       std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
-      GetLocalRootArkUINode().SetSources(resourceStr);
+      GetLocalRootArkUINode()->SetSources(resourceStr);
 		}
     
     // TODO(hot):

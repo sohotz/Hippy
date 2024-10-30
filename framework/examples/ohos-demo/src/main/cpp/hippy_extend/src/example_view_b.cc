@@ -28,35 +28,42 @@ inline namespace render {
 inline namespace native {
 
 ExampleViewB::ExampleViewB(std::shared_ptr<NativeRenderContext> &ctx) : CustomView(ctx) {
-  stackNode_.AddChild(textNode_);
-  textNode_.SetTextContent("This is a custom component B.");
 }
 
 ExampleViewB::~ExampleViewB() {
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    if (stackNode_) {
+      for (const auto &child : children_) {
+        stackNode_->RemoveChild(child->GetLocalRootArkUINode());
+      }
     }
     children_.clear();
   }
 }
 
-StackNode &ExampleViewB::GetLocalRootArkUINode() {
-  return stackNode_;
+StackNode *ExampleViewB::GetLocalRootArkUINode() {
+  return stackNode_.get();
 }
 
-bool ExampleViewB::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  return BaseView::SetProp(propKey, propValue);
+void ExampleViewB::CreateArkUINodeImpl() {
+  stackNode_ = std::make_shared<StackNode>();
+  textNode_ = std::make_shared<TextNode>();
+  stackNode_->AddChild(textNode_.get());
+  textNode_->SetTextContent("This is a custom component B.");
 }
 
-void ExampleViewB::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+bool ExampleViewB::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void ExampleViewB::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+void ExampleViewB::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
+  stackNode_->InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void ExampleViewB::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
+  stackNode_->RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 } // namespace native

@@ -31,21 +31,27 @@ inline namespace native {
 const int DURATION = 200;
 
 ModalView::ModalView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  GetLocalRootArkUINode().RegisterAppearEvent();
-  GetLocalRootArkUINode().RegisterDisappearEvent();
-  GetLocalRootArkUINode().RegisterAreaChangeEvent();
-  GetLocalRootArkUINode().ResetNodeAttribute(ArkUI_NodeAttributeType::NODE_OPACITY_TRANSITION);
 }
 
 ModalView::~ModalView() {
-  GetLocalRootArkUINode().UnregisterAppearEvent();
-  GetLocalRootArkUINode().UnregisterDisappearEvent();
-  GetLocalRootArkUINode().UnregisterAreaChangeEvent();
+  if (stackNode_) {
+    stackNode_->UnregisterAppearEvent();
+    stackNode_->UnregisterDisappearEvent();
+    stackNode_->UnregisterAreaChangeEvent();
+  }
 }
 
-StackNode &ModalView::GetLocalRootArkUINode() { return stackNode_; }
+StackNode *ModalView::GetLocalRootArkUINode() { return stackNode_.get(); }
 
-bool ModalView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void ModalView::CreateArkUINodeImpl() {
+  stackNode_ = std::make_shared<StackNode>();
+  stackNode_->RegisterAppearEvent();
+  stackNode_->RegisterDisappearEvent();
+  stackNode_->RegisterAreaChangeEvent();
+  stackNode_->ResetNodeAttribute(ArkUI_NodeAttributeType::NODE_OPACITY_TRANSITION);
+}
+
+bool ModalView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if(propKey == "transparent"){
     this->transparent = HRValueUtils::GetBool(propValue, true);
   } else if(propKey == "animationType"){
@@ -53,40 +59,41 @@ bool ModalView::SetProp(const std::string &propKey, const HippyValue &propValue)
   } else if(propKey == "darkStatusBarText"){
     this->darkStatusBarText = HRValueUtils::GetBool(propValue, false);
   } 
-  return BaseView::SetProp(propKey, propValue);
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void ModalView::OnSetPropsEnd(){
+void ModalView::OnSetPropsEndImpl(){
   if(this->animationType == "fade"){
-    GetLocalRootArkUINode().SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
+    GetLocalRootArkUINode()->SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
   }else if(this->animationType == "slide"){
-    GetLocalRootArkUINode().SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);
+    GetLocalRootArkUINode()->SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);
   }else if(this->animationType == "slide_fade"){
-    GetLocalRootArkUINode().SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
-    GetLocalRootArkUINode().SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);   
+    GetLocalRootArkUINode()->SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
+    GetLocalRootArkUINode()->SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);   
   }
-  BaseView::OnSetPropsEnd();
+  BaseView::OnSetPropsEndImpl();
 }
 
-void ModalView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding){
+void ModalView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding){
 //should overwrite this function ,but do nothing, size will change in OnAreaChange
   FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" frame("<<(int)frame.x<<","<<(int)frame.y<<","<<(int)frame.width<<","<<(int)frame.height<<")";
 }
 
-void ModalView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int index){
-  BaseView::OnChildInserted(childView, index);
-  if(childView){
-     GetLocalRootArkUINode().InsertChild(childView->GetLocalRootArkUINode(), index);
+void ModalView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int index){
+  BaseView::OnChildInsertedImpl(childView, index);
+  if(childView) {
+     GetLocalRootArkUINode()->InsertChild(childView->GetLocalRootArkUINode(), index);
   }
 }
 
-void ModalView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index){
-  BaseView::OnChildRemoved(childView, index);
-  if(childView)
-    GetLocalRootArkUINode().RemoveChild(childView->GetLocalRootArkUINode());
+void ModalView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index){
+  BaseView::OnChildRemovedImpl(childView, index);
+  if(childView) {
+    GetLocalRootArkUINode()->RemoveChild(childView->GetLocalRootArkUINode());
+  }
 }
 
-void ModalView:: OnAppear(){
+void ModalView::OnAppear() {
   if(this->transparent)
     dialog_.SetBackgroundColor(0x00000000);
   dialog_.EnableCustomAnimation(true);
@@ -95,30 +102,29 @@ void ModalView:: OnAppear(){
   dialog_.SetContentAlignment(ArkUI_Alignment::ARKUI_ALIGNMENT_TOP_START, 0, 0);
   dialog_.SetCornerRadius(0, 0, 0, 0);
   dialog_.SetModalMode(true);
-  dialog_.SetContent(GetLocalRootArkUINode().GetArkUINodeHandle());
+  dialog_.SetContent(GetLocalRootArkUINode()->GetArkUINodeHandle());
   dialog_.Show();
   HREventUtils::SendComponentEvent(GetCtx(), GetTag(),HREventUtils::EVENT_MODAL_SHOW, nullptr);
 
   if(this->transparent)
-    GetLocalRootArkUINode().SetBackgroundColor(0x00000000);
-  GetLocalRootArkUINode().SetSizePercent(HRSize(1.f,1.f));
-  GetLocalRootArkUINode().SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk
+    GetLocalRootArkUINode()->SetBackgroundColor(0x00000000);
+  GetLocalRootArkUINode()->SetSizePercent(HRSize(1.f,1.f));
+  GetLocalRootArkUINode()->SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk
 }
 
-void ModalView::OnDisappear(){
+void ModalView::OnDisappear() {
   dialog_.Close();
   HREventUtils::SendComponentEvent(GetCtx(), GetTag(),HREventUtils::EVENT_MODAL_REQUEST_CLOSE, nullptr);
 }
 
 void ModalView::OnAreaChange(ArkUI_NumberValue* data) {
-  if(GetLocalRootArkUINode().GetTotalChildCount() == 0){
+  if(GetLocalRootArkUINode()->GetTotalChildCount() == 0){
     FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" no child" ;    
     return;       
   }
   float_t width = data[6].f32;
   float_t height = data[7].f32;
-  auto render = NativeRenderProvider(GetCtx()->GetInstanceId(), "", false, ""); // TODO(hot): to fix
-  render.OnSize2(GetCtx()->GetRootId(), GetTag(), width, height, false);
+  ctx_->GetNativeRender().lock()->OnSizeChanged2(ctx_->GetRootId(), tag_, width, height, false);
 }
 
 } // namespace native

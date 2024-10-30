@@ -75,6 +75,10 @@ public:
   void TextEllipsized(uint32_t root_id, uint32_t node_id);
 
   std::string GetBundlePath() override;
+  
+  void OnSizeChanged(uint32_t root_id, float width, float height) override;
+  void OnSizeChanged2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync) override;
+
   HRPosition GetRootViewtPositionInWindow(uint32_t root_id) override;
 
   uint64_t AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) override;

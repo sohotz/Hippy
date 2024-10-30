@@ -38,6 +38,7 @@ ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : nodeHandle_(nodeHandle) {
   FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, ArkUINode handle, new: " << nodeHandle_ << ", count: " << sCount;
 #endif
   
+  SetHitTestMode(ARKUI_HIT_TEST_MODE_TRANSPARENT);
   ArkUINodeRegistry::GetInstance().RegisterNode(this);
 }
 
@@ -73,17 +74,26 @@ void ArkUINode::MarkDirty() {
   NativeNodeApi::GetInstance()->markDirty(GetArkUINodeHandle(), ArkUI_NodeDirtyFlag::NODE_NEED_MEASURE);
 }
 
-void ArkUINode::AddChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child.GetArkUINodeHandle()));
+void ArkUINode::AddChild(ArkUINode *child) {
+  if (!child) {
+    return;
+  }
+  MaybeThrow(NativeNodeApi::GetInstance()->addChild(nodeHandle_, child->GetArkUINodeHandle()));
 }
 
-void ArkUINode::InsertChild(ArkUINode &child, int32_t index) {
+void ArkUINode::InsertChild(ArkUINode *child, int32_t index) {
+  if (!child) {
+    return;
+  }
   MaybeThrow(
-    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child.GetArkUINodeHandle(), static_cast<int32_t>(index)));
+    NativeNodeApi::GetInstance()->insertChildAt(nodeHandle_, child->GetArkUINodeHandle(), static_cast<int32_t>(index)));
 }
 
-void ArkUINode::RemoveChild(ArkUINode &child) {
-  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child.GetArkUINodeHandle()));
+void ArkUINode::RemoveChild(ArkUINode *child) {
+  if (!child) {
+    return;
+  }
+  MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child->GetArkUINodeHandle()));
 }
 
 ArkUINode &ArkUINode::SetId(const std::string &id) {
@@ -624,6 +634,12 @@ void ArkUINode::UnregisterAreaChangeEvent(){
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_AREA_CHANGE);
     hasAreaChangeEvent_ = false ; 
   }      
+}
+
+void ArkUINode::CheckAndLogError(const std::string& message, int count) {
+  if (count < 10 || (count < 1000 && (count % 100 == 0)) || (count % 1000 == 0)) {
+    FOOTSTONE_LOG(ERROR) << message << ", count: " << count;
+  }
 }
 
 } // namespace native

@@ -138,6 +138,7 @@ Scope::~Scope() {
  * JSObjectFinalizeCallback will be called when you call JSContextGroupRelease, so it is necessary to hold the wrapper when ctx is destroyed.
  */
 #else
+  context_->InvalidWeakCallbackWrapper();
   auto engine = engine_.lock();
   FOOTSTONE_DCHECK(engine);
   if (engine) {

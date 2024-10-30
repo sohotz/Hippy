@@ -105,6 +105,7 @@ set(SOURCE_SET
   src/components/list_item_view.cc
   src/components/list_view.cc
   src/components/modal_view.cc
+  src/components/pager_item_adapter.cc
   src/components/pager_item_view.cc
   src/components/pager_view.cc
   src/components/pull_footer_view.cc

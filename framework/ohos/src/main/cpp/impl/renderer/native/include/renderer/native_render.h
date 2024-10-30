@@ -35,6 +35,9 @@ public:
   
   virtual std::string GetBundlePath() = 0;
   
+  virtual void OnSizeChanged(uint32_t root_id, float width, float height) = 0;
+  virtual void OnSizeChanged2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync) = 0;
+
   virtual HRPosition GetRootViewtPositionInWindow(uint32_t root_id) = 0;
 
   virtual uint64_t AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) = 0;

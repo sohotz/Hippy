@@ -312,6 +312,8 @@ Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目
   AppStorage.setOrCreate("abilityContext", this.context)
   ```
 
+> 注：App 直接集成 Hippy，context 使用 UIAbility context；如果 App 在一个模块里集成 Hippy，js 等资源也集成在模块里，context 使用 getContext().createModuleContext("moduleName")，否则会找不到 js 等资源。
+
  - 创建 HippyEngine、初始化 HippyEngine、加载业务 bundle
  
   ```TypeScript

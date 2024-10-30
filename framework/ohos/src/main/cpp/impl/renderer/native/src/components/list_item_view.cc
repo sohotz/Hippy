@@ -29,22 +29,31 @@ inline namespace render {
 inline namespace native {
 
 ListItemView::ListItemView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  itemNode_.AddChild(stackNode_);
 }
 
 ListItemView::~ListItemView() {
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    if (stackNode_) {
+      for (const auto &child : children_) {
+        stackNode_->RemoveChild(child->GetLocalRootArkUINode());
+      }
     }
     children_.clear();
   }
-  itemNode_.RemoveChild(stackNode_);
+  if (itemNode_) {
+    itemNode_->RemoveChild(stackNode_.get());
+  }
 }
 
-ListItemNode &ListItemView::GetLocalRootArkUINode() { return itemNode_; }
+ListItemNode *ListItemView::GetLocalRootArkUINode() { return itemNode_.get(); }
 
-bool ListItemView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void ListItemView::CreateArkUINodeImpl() {
+  itemNode_ = std::make_shared<ListItemNode>();
+  stackNode_ = std::make_shared<StackNode>();
+  itemNode_->AddChild(stackNode_.get());
+}
+
+bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "type" || propKey == "itemViewType") {
     if (propValue.IsString()) {
       propValue.ToString(type_);
@@ -62,24 +71,42 @@ bool ListItemView::SetProp(const std::string &propKey, const HippyValue &propVal
     }
     return true;
   }
-  return BaseView::SetProp(propKey, propValue);
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void ListItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+void ListItemView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
+  stackNode_->InsertChild(childView->GetLocalRootArkUINode(), index);
 }
 
-void ListItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+void ListItemView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
+  stackNode_->RemoveChild(childView->GetLocalRootArkUINode());
 }
 
-void ListItemView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  stackNode_.SetPosition(HRPosition(0, 0));
-  stackNode_.SetSize(HRSize(frame.width, frame.height));
+void ListItemView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
+  stackNode_->SetPosition(HRPosition(0, 0));
+  stackNode_->SetSize(HRSize(frame.width, frame.height));
   width_ = frame.width;
   height_ = frame.height;
+}
+
+float ListItemView::GetWidth() {
+  if (width_ > 0) {
+    return width_;
+  } else if (lazyFrame_.has_value()) {
+    return lazyFrame_.value().width;
+  }
+  return 0;
+}
+
+float ListItemView::GetHeight() {
+  if (height_ > 0) {
+    return height_;
+  } else if (lazyFrame_.has_value()) {
+    return lazyFrame_.value().height;
+  }
+  return 0;
 }
 
 void ListItemView::CheckExposureView(float currentRatio) {

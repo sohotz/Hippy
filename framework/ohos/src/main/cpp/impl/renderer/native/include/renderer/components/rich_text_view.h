@@ -35,18 +35,19 @@ public:
   RichTextView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RichTextView();
 
-  TextNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void OnSetPropsEnd() override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  TextNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void OnSetPropsEndImpl() override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
   
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   
   void SendTextEllipsizedEvent();
   
 private:
-  TextNode textNode_;
+  std::shared_ptr<TextNode> textNode_;
   
   std::optional<std::string> text_;
   std::optional<uint32_t> color_;

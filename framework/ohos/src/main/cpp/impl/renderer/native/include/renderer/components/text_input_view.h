@@ -62,14 +62,15 @@ public:
   TextInputView(std::shared_ptr<NativeRenderContext> &ctx);
   ~TextInputView();
 
-  StackNode &GetLocalRootArkUINode() override;
+  StackNode *GetLocalRootArkUINode() override;
   TextInputBaseNode &GetTextNode();
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void OnSetPropsEnd() override;
-  void Call(const std::string &method, const std::vector<HippyValue> params,
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void OnSetPropsEndImpl() override;
+  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
                    std::function<void(const HippyValue &result)> callback) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
-    
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
+
   void OnChange(std::string text) override;
   void OnBlur() override;
   void OnFocus() override;
@@ -77,7 +78,7 @@ public:
   void OnPaste() override;
   void OnTextSelectionChange(int32_t location, int32_t length) override;
 
-public:    
+public:
   void InitNode();
   void SetFontWeight(const HippyValue &propValue);
   void SetTextAlign(const HippyValue &propValue);
@@ -95,9 +96,9 @@ private:
   void SetPropFlag(TextInputPropFlag flag) { propFlags_ |= flag; }
   void UnsetPropFlag(TextInputPropFlag flag) { propFlags_ &= ~flag; }
   bool IsPropFlag(TextInputPropFlag flag) { return (propFlags_ & flag) ? true : false; }
-  
+
   uint32_t propFlags_ = 0;
-  
+
   std::optional<uint32_t> caretColor_;
   std::optional<uint32_t> color_;
   std::optional<std::string> value_;
@@ -116,7 +117,7 @@ private:
   std::optional<uint32_t> textAlignVertical_;
 
 private:
-  StackNode stackNode_;
+  std::shared_ptr<StackNode> stackNode_;
   std::shared_ptr<TextInputBaseNode> inputBaseNodePtr_ = nullptr;
 
   bool isListenChangeText_ = false;

@@ -26,6 +26,7 @@
 #include "oh_napi/oh_napi_object.h"
 #include "oh_napi/oh_napi_object_builder.h"
 #include "oh_napi/oh_napi_utils.h"
+#include "renderer/components/hippy_render_view_creator.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/native_render_params.h"
 #include "renderer/utils/hr_pixel_utils.h"
@@ -59,60 +60,136 @@ BaseView::~BaseView() {
 }
 
 void BaseView::Init() {
-  GetLocalRootArkUINode().SetArkUINodeDelegate(this);
 }
 
 void BaseView::SetTag(uint32_t tag) {
   tag_ = tag;
-  std::string id_str = "HippyId" + std::to_string(tag);
-  GetLocalRootArkUINode().SetId(id_str);
+}
+
+void BaseView::SetViewType(const std::string &type) {
+  view_type_ = type;
+  
+  if (HippyIsLazyCreateView(type)) {
+    isLazyCreate_ = true;
+  }
+}
+
+void BaseView::SetParent(std::shared_ptr<BaseView> parent) {
+  parent_ = parent; 
+  
+  if (parent && parent->IsLazyCreate()) {
+    isLazyCreate_ = true;
+  }
+}
+
+void BaseView::CreateArkUINode(bool isFromLazy, int index) {
+  if (GetLocalRootArkUINode()) {
+    return;
+  }
+  
+  CreateArkUINodeImpl();
+  isLazyCreate_ = false;
+  
+  auto parent = parent_.lock();
+  if (parent) {
+    FOOTSTONE_DCHECK(parent->GetLocalRootArkUINode());
+    if (parent->GetLocalRootArkUINode()) {
+      auto child_index = index < 0 ? parent->IndexOfChild(shared_from_this()) : index;
+      parent->OnChildInsertedImpl(shared_from_this(), child_index);
+    }
+  }
+  
+  GetLocalRootArkUINode()->SetArkUINodeDelegate(this);
+  std::string id_str = "HippyId" + std::to_string(tag_);
+  GetLocalRootArkUINode()->SetId(id_str);
+  
+  if (lazyProps_.size() > 0) {
+    for (auto it = lazyProps_.begin(); it != lazyProps_.end(); it++) {
+      // value maybe empty string / false / 0
+      auto &key = it->first;
+      if (key.length() > 0) {
+        SetPropImpl(key, it->second);
+      }
+    }
+    OnSetPropsEndImpl();
+    lazyProps_.clear();
+  }
+  if (lazyFrame_.has_value() && lazyPadding_.has_value()) {
+    UpdateRenderViewFrameImpl(lazyFrame_.value(), lazyPadding_.value());
+    lazyFrame_.reset();
+    lazyPadding_.reset();
+  }
+  
+  if (isFromLazy) {
+    for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
+      auto subView = children_[(uint32_t)i];
+      if (!HippyIsLazyCreateView(subView->GetViewType())) {
+        subView->CreateArkUINode(true, i);
+      }
+    }
+  }
 }
 
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+  if (!isLazyCreate_) {
+    return SetPropImpl(propKey, propValue);
+  } else {
+    lazyProps_[propKey] = propValue;
+    return true;
+  }
+}
+
+void BaseView::OnSetPropsEnd() {
+  if (!isLazyCreate_) {
+    OnSetPropsEndImpl();
+  }
+}
+
+bool BaseView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::VISIBILITY) {
     auto value = HRValueUtils::GetString(propValue);
-    GetLocalRootArkUINode().SetVisibility(value != HRNodeProps::HIDDEN ? true : false);
+    GetLocalRootArkUINode()->SetVisibility(value != HRNodeProps::HIDDEN ? true : false);
     return true;
   } else if (propKey == HRNodeProps::BACKGROUND_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
-    GetLocalRootArkUINode().SetBackgroundColor(value);
+    GetLocalRootArkUINode()->SetBackgroundColor(value);
     return true;
   } else if (propKey == HRNodeProps::OPACITY) {
     auto value = HRValueUtils::GetFloat(propValue, 1.f);
-    GetLocalRootArkUINode().SetOpacity(value);
+    GetLocalRootArkUINode()->SetOpacity(value);
     return true;
   } else if (propKey == HRNodeProps::TRANSFORM) {
     HippyValueArrayType valueArray;
     if (propValue.IsArray() && propValue.ToArray(valueArray)) {
       HRTransform transform;
       HRConvertUtils::TransformToArk(valueArray, transform);
-      GetLocalRootArkUINode().SetTransform(transform, 1.0f); // TODO(hot):
+      GetLocalRootArkUINode()->SetTransform(transform, 1.0f);
     }
     return true;
   } else if (propKey == HRNodeProps::OVERFLOW) {
     auto value = HRValueUtils::GetString(propValue);
     if (value == HRNodeProps::VISIBLE) {
-      GetLocalRootArkUINode().SetClip(false);
+      GetLocalRootArkUINode()->SetClip(false);
     } else if (value == HRNodeProps::HIDDEN) {
-      GetLocalRootArkUINode().SetClip(true);
+      GetLocalRootArkUINode()->SetClip(true);
     }
     return true;
   } else if (propKey == HRNodeProps::Z_INDEX) {
     auto value = HRValueUtils::GetInt32(propValue);
-    GetLocalRootArkUINode().SetZIndex(value);
+    GetLocalRootArkUINode()->SetZIndex(value);
     return true;
   } else if (propKey == HRNodeProps::PROP_ACCESSIBILITY_LABEL) {
     auto value = HRValueUtils::GetString(propValue);
-    GetLocalRootArkUINode().SetAccessibilityText(value);
+    GetLocalRootArkUINode()->SetAccessibilityText(value);
     return true;
   } else if (propKey == HRNodeProps::FOCUSABLE) {
     auto value = HRValueUtils::GetBool(propValue, false);
-    GetLocalRootArkUINode().SetFocusable(value);
+    GetLocalRootArkUINode()->SetFocusable(value);
     return true;
   } else if (propKey == HRNodeProps::REQUEST_FOCUS) {
     auto value = HRValueUtils::GetBool(propValue, false);
     if (value) {
-      GetLocalRootArkUINode().SetFocusStatus(1);
+      GetLocalRootArkUINode()->SetFocusStatus(1);
     }
     return true;
   } else if (propKey == HRNodeProps::LINEAR_GRADIENT) {
@@ -195,7 +272,7 @@ bool BaseView::SetLinearGradientProp(const std::string &propKey, const HippyValu
     linearGradient.angle = value;
   }
 
-  GetLocalRootArkUINode().SetLinearGradient(linearGradient);
+  GetLocalRootArkUINode()->SetLinearGradient(linearGradient);
 
   return true;
 }
@@ -204,7 +281,7 @@ bool BaseView::SetBackgroundImageProp(const std::string &propKey, const HippyVal
   if (propKey == HRNodeProps::BACKGROUND_IMAGE) {
     std::string value;
     if (propValue.ToString(value)) {
-      GetLocalRootArkUINode().SetBackgroundImage(ConvertToLocalPathIfNeeded(value));
+      GetLocalRootArkUINode()->SetBackgroundImage(ConvertToLocalPathIfNeeded(value));
     }
     return true;
   } else if (propKey == HRNodeProps::BACKGROUND_POSITION_X) {
@@ -218,7 +295,7 @@ bool BaseView::SetBackgroundImageProp(const std::string &propKey, const HippyVal
   } else if (propKey == HRNodeProps::BACKGROUND_SIZE) {
     auto value = HRValueUtils::GetString(propValue);
     auto imageSize = HRConvertUtils::BackgroundImageSizeToArk(value);
-    GetLocalRootArkUINode().SetBackgroundImageSize(imageSize);
+    GetLocalRootArkUINode()->SetBackgroundImageSize(imageSize);
     return true;
   }
   return false;
@@ -412,7 +489,7 @@ void BaseView::SetClickable(bool flag) {
     return;
   }
   if (flag) {
-    GetLocalRootArkUINode().RegisterClickEvent();
+    GetLocalRootArkUINode()->RegisterClickEvent();
     auto weak_view = weak_from_this();
     eventClick_ = [weak_view]() {
       auto view = weak_view.lock();
@@ -421,7 +498,7 @@ void BaseView::SetClickable(bool flag) {
       }
     };
   } else {
-    GetLocalRootArkUINode().UnregisterClickEvent();
+    GetLocalRootArkUINode()->UnregisterClickEvent();
     eventClick_ = nullptr;
   }
 }
@@ -482,7 +559,7 @@ void BaseView::SetTouchDownHandle(bool flag) {
     return;
   }
   if (flag) {
-    GetLocalRootArkUINode().RegisterTouchEvent();
+    GetLocalRootArkUINode()->RegisterTouchEvent();
     auto weak_view = weak_from_this();
     eventTouchDown_ = [weak_view](const HRPosition &screenPosition) {
       auto view = weak_view.lock();
@@ -502,7 +579,7 @@ void BaseView::SetTouchMoveHandle(bool flag) {
     return;
   }
   if (flag) {
-    GetLocalRootArkUINode().RegisterTouchEvent();
+    GetLocalRootArkUINode()->RegisterTouchEvent();
     auto weak_view = weak_from_this();
     eventTouchMove_ = [weak_view](const HRPosition &screenPosition) {
       auto view = weak_view.lock();
@@ -522,7 +599,7 @@ void BaseView::SetTouchEndHandle(bool flag) {
     return;
   }
   if (flag) {
-    GetLocalRootArkUINode().RegisterTouchEvent();
+    GetLocalRootArkUINode()->RegisterTouchEvent();
     auto weak_view = weak_from_this();
     eventTouchUp_ = [weak_view](const HRPosition &screenPosition) {
       auto view = weak_view.lock();
@@ -542,7 +619,7 @@ void BaseView::SetTouchCancelHandle(bool flag) {
     return;
   }
   if (flag) {
-    GetLocalRootArkUINode().RegisterTouchEvent();
+    GetLocalRootArkUINode()->RegisterTouchEvent();
     auto weak_view = weak_from_this();
     eventTouchCancel_ = [weak_view](const HRPosition &screenPosition) {
       auto view = weak_view.lock();
@@ -561,7 +638,7 @@ void BaseView::SetInterceptTouch(bool flag) {
   if (HandleGestureBySelf()) {
     return;
   }
-  GetLocalRootArkUINode().SetHitTestMode(flag ? ARKUI_HIT_TEST_MODE_BLOCK : ARKUI_HIT_TEST_MODE_DEFAULT);
+  GetLocalRootArkUINode()->SetHitTestMode(flag ? ARKUI_HIT_TEST_MODE_BLOCK : ARKUI_HIT_TEST_MODE_TRANSPARENT);
 }
 
 void BaseView::SetInterceptPullUp(bool flag) {
@@ -603,18 +680,18 @@ void BaseView::SetDetachedFromWindowHandle(bool flag) {
   }
 }
 
-void BaseView::OnSetPropsEnd() {
+void BaseView::OnSetPropsEndImpl() {
   if (toSetBackgroundImagePosition_) {
     toSetBackgroundImagePosition_ = false;
-    GetLocalRootArkUINode().SetBackgroundImagePosition(backgroundImagePosition_);
+    GetLocalRootArkUINode()->SetBackgroundImagePosition(backgroundImagePosition_);
   }
   if (toSetBorderRadius_) {
     toSetBorderRadius_ = false;
-    GetLocalRootArkUINode().SetBorderRadius(borderTopLeftRadius_, borderTopRightRadius_, borderBottomLeftRadius_, borderBottomRightRadius_);
+    GetLocalRootArkUINode()->SetBorderRadius(borderTopLeftRadius_, borderTopRightRadius_, borderBottomLeftRadius_, borderBottomRightRadius_);
   }
   if (toSetBorderWidth_) {
     toSetBorderWidth_ = false;
-    GetLocalRootArkUINode().SetBorderWidth(borderTopWidth_, borderRightWidth_, borderBottomWidth_, borderLeftWidth_);
+    GetLocalRootArkUINode()->SetBorderWidth(borderTopWidth_, borderRightWidth_, borderBottomWidth_, borderLeftWidth_);
   }
   if (toSetBorderStyle_) {
     toSetBorderStyle_ = false;
@@ -622,19 +699,27 @@ void BaseView::OnSetPropsEnd() {
     ArkUI_BorderStyle rightStyle = HRConvertUtils::BorderStyleToArk(borderRightStyle_);
     ArkUI_BorderStyle bottomStyle = HRConvertUtils::BorderStyleToArk(borderBottomStyle_);
     ArkUI_BorderStyle leftStyle = HRConvertUtils::BorderStyleToArk(borderLeftStyle_);
-    GetLocalRootArkUINode().SetBorderStyle(topStyle, rightStyle, bottomStyle, leftStyle);
+    GetLocalRootArkUINode()->SetBorderStyle(topStyle, rightStyle, bottomStyle, leftStyle);
   }
   if (toSetBorderColor_) {
     toSetBorderColor_ = false;
-    GetLocalRootArkUINode().SetBorderColor(borderTopColor_, borderRightColor_, borderBottomColor_, borderLeftColor_);
+    GetLocalRootArkUINode()->SetBorderColor(borderTopColor_, borderRightColor_, borderBottomColor_, borderLeftColor_);
   }
   if (toSetShadow) {
     toSetShadow = false;
-    GetLocalRootArkUINode().SetShadow(shadow_);
+    GetLocalRootArkUINode()->SetShadow(shadow_);
   }
 }
 
 void BaseView::Call(const std::string &method, const std::vector<HippyValue> params,
+                    std::function<void(const HippyValue &result)> callback) {
+  if (!GetLocalRootArkUINode()) {
+    return;
+  }
+  CallImpl(method, params, callback);
+}
+
+void BaseView::CallImpl(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) {
   FOOTSTONE_DLOG(INFO) << "BaseView call: method " << method << ", params: " << params.size();
   if (method == "measureInWindow") {
@@ -643,8 +728,8 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
     }
 
     float statusBarHeight = NativeRenderParams::StatusBarHeight();
-    HRPosition viewPosition = GetLocalRootArkUINode().GetLayoutPositionInScreen();
-    HRSize viewSize = GetLocalRootArkUINode().GetSize();
+    HRPosition viewPosition = GetLocalRootArkUINode()->GetLayoutPositionInScreen();
+    HRSize viewSize = GetLocalRootArkUINode()->GetSize();
 
     HippyValueObjectType result;
     result["x"] = HippyValue(viewPosition.x);
@@ -667,9 +752,9 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
     }
     float x = 0;
     float y = 0;
-    HRSize viewSize = GetLocalRootArkUINode().GetSize();
+    HRSize viewSize = GetLocalRootArkUINode()->GetSize();
     if (relToContainer) {
-      HRPosition viewPosition = GetLocalRootArkUINode().GetLayoutPositionInWindow();
+      HRPosition viewPosition = GetLocalRootArkUINode()->GetLayoutPositionInWindow();
       x = viewPosition.x;
       y = viewPosition.y;
       auto render = ctx_->GetNativeRender().lock();
@@ -679,7 +764,7 @@ void BaseView::Call(const std::string &method, const std::vector<HippyValue> par
         y -= rootViewPosition.y;
       }
     } else {
-      HRPosition viewPosition = GetLocalRootArkUINode().GetLayoutPositionInScreen();
+      HRPosition viewPosition = GetLocalRootArkUINode()->GetLayoutPositionInScreen();
       x = viewPosition.x;
       y = viewPosition.y;
     }
@@ -735,13 +820,34 @@ void BaseView::RemoveFromParentView() {
   }
 }
 
+void BaseView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {
+  if (!childView->IsLazyCreate()) {
+    childView->CreateArkUINode(false, index);
+  }
+}
+
+void BaseView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  if (childView->GetLocalRootArkUINode()) {
+    OnChildRemovedImpl(childView, index);
+  }
+}
+
 void BaseView::SetRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
   UpdateRenderViewFrame(frame, padding);
 }
 
 void BaseView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  GetLocalRootArkUINode().SetPosition(HRPosition(frame.x, frame.y));
-  GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
+  if (!isLazyCreate_) {
+    UpdateRenderViewFrameImpl(frame, padding);
+  } else {
+    lazyFrame_ = frame;
+    lazyPadding_ = padding;
+  }
+}
+
+void BaseView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
+  GetLocalRootArkUINode()->SetPosition(HRPosition(frame.x, frame.y));
+  GetLocalRootArkUINode()->SetSize(HRSize(frame.width, frame.height));
 }
 
 void BaseView::UpdateEventListener(HippyValueObjectType &newEvents) {
@@ -770,7 +876,10 @@ void BaseView::SetTsEventCallback(napi_ref ts_event_callback_ref) {
 }
 
 void BaseView::SetPosition(const HRPosition &position) {
-  GetLocalRootArkUINode().SetPosition(position);
+  auto node = GetLocalRootArkUINode();
+  if (node) {
+    node->SetPosition(position);
+  }
 }
 
 void BaseView::OnClick() {
@@ -844,6 +953,15 @@ int64_t BaseView::GetTimeMilliSeconds() {
   auto duration = now.time_since_epoch();
   auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
   return millis;
+}
+
+int32_t BaseView::IndexOfChild(const std::shared_ptr<BaseView> child) {
+  auto it = std::find(children_.begin(), children_.end(), child);
+  if (it != children_.end()) {
+    int32_t index = static_cast<int32_t>(it - children_.begin());
+    return index;
+  }
+  return -1;
 }
 
 std::shared_ptr<footstone::value::Serializer> &BaseView::GetSerializer() {

@@ -124,4 +124,5 @@ export interface HippyLibrary {
   VfsManager_OnJniDelegateInvokeAsync(id: number, holder: ResourceDataHolder, callback: FetchResourceCallback): void;
   VfsManager_OnJniDelegateInvokeSync(id: number, holder: ResourceDataHolder): void;
 
+  Setting_SetFlags(enableUpdateAnimLog: boolean): void;
 }

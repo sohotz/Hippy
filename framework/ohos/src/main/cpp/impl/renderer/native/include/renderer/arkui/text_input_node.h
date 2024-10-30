@@ -66,7 +66,7 @@ public:
   void SetCaretHidden(bool hidden);
   void SetSelectedBackgroundColor(uint32_t const &color);
   void SetPasswordIconVisibility(bool isVisible);
-  void SetCancelButtonMode(uint32_t mode);
+  void SetCancelButtonMode(ArkUI_CancelButtonStyle mode);
   void ResetSelectedBackgroundColor();
     
 };

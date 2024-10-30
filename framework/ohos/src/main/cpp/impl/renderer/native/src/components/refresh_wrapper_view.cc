@@ -30,15 +30,14 @@ inline namespace render {
 inline namespace native {
 
 RefreshWrapperView::RefreshWrapperView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  refreshNode_.SetNodeDelegate(this);
-  refreshNode_.SetRefreshPullToRefresh(true);
-  refreshNode_.SetRefreshRefreshing(false);
 }
 
 RefreshWrapperView::~RefreshWrapperView() {
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      refreshNode_.RemoveChild(child->GetLocalRootArkUINode());
+    if (refreshNode_) {
+      for (const auto &child : children_) {
+        refreshNode_->RemoveChild(child->GetLocalRootArkUINode());
+      }
     }
     children_.clear();
   }
@@ -48,9 +47,16 @@ void RefreshWrapperView::Init() {
   BaseView::Init();
 }
 
-RefreshNode &RefreshWrapperView::GetLocalRootArkUINode() { return refreshNode_; }
+RefreshNode *RefreshWrapperView::GetLocalRootArkUINode() { return refreshNode_.get(); }
 
-bool RefreshWrapperView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void RefreshWrapperView::CreateArkUINodeImpl() {
+  refreshNode_ = std::make_shared<RefreshNode>();
+  refreshNode_->SetNodeDelegate(this);
+  refreshNode_->SetRefreshPullToRefresh(true);
+  refreshNode_->SetRefreshRefreshing(false);
+}
+
+bool RefreshWrapperView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "bounceTime") {
     bounceTime_ = HRValueUtils::GetInt32(propValue);
     return true;
@@ -61,10 +67,10 @@ bool RefreshWrapperView::SetProp(const std::string &propKey, const HippyValue &p
     scrollEventThrottle_ = HRValueUtils::GetInt32(propValue, 30);
     return true;
   }
-  return BaseView::SetProp(propKey, propValue);
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void RefreshWrapperView::Call(const std::string &method, const std::vector<HippyValue> params,
+void RefreshWrapperView::CallImpl(const std::string &method, const std::vector<HippyValue> params,
                               std::function<void(const HippyValue &result)> callback) {
   FOOTSTONE_DLOG(INFO) << "RefreshWrapperView call: method " << method << ", params: " << params.size();
   if (method == "refreshComplected") {
@@ -72,35 +78,35 @@ void RefreshWrapperView::Call(const std::string &method, const std::vector<Hippy
   } else if (method == "startRefresh") {
     StartRefresh();
   } else {
-    BaseView::Call(method, params, callback);
+    BaseView::CallImpl(method, params, callback);
   }
 }
 
-void RefreshWrapperView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
+void RefreshWrapperView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
   
   if (childView->GetViewType() == "RefreshWrapperItemView") {
-    refreshNode_.SetRefreshContent(childView->GetLocalRootArkUINode().GetArkUINodeHandle());
+    refreshNode_->SetRefreshContent(childView->GetLocalRootArkUINode()->GetArkUINodeHandle());
     childView->SetPosition({0, - refresh_offset_});
     item_view_ = childView;
   } else {
-    refreshNode_.AddChild(childView->GetLocalRootArkUINode());
+    refreshNode_->AddChild(childView->GetLocalRootArkUINode());
   }
 }
 
-void RefreshWrapperView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
+void RefreshWrapperView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
   
   if (childView->GetViewType() == "RefreshWrapperItemView") {
-    refreshNode_.ResetRefreshContent();
+    refreshNode_->ResetRefreshContent();
   } else {
-    refreshNode_.RemoveChild(childView->GetLocalRootArkUINode());
+    refreshNode_->RemoveChild(childView->GetLocalRootArkUINode());
   }
 }
 
 void RefreshWrapperView::OnRefreshing() {
   FOOTSTONE_DLOG(INFO) << "Refresh wrapper view, OnRefreshing";
-  refreshNode_.SetRefreshRefreshing(true);
+  refreshNode_->SetRefreshRefreshing(true);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_REFRESH_WRAPPER_REFRESH, nullptr);
 }
 
@@ -120,11 +126,11 @@ void RefreshWrapperView::OnOffsetChange(float_t offset) {
 
 void RefreshWrapperView::SetRefreshOffset(float offset) {
   refresh_offset_ = offset;
-  refreshNode_.SetRefreshOffset(offset);
+  refreshNode_->SetRefreshOffset(offset);
 }
 
 void RefreshWrapperView::BounceToHead() {
-  refreshNode_.SetRefreshRefreshing(false);
+  refreshNode_->SetRefreshRefreshing(false);
   
   // TODO(hot): setTimeout bounceTime
 }

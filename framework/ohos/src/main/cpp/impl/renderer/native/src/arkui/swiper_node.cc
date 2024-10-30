@@ -140,6 +140,19 @@ void SwiperNode::SetSwiperDisableSwipe(int32_t disable) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_DISABLE_SWIPE, &item));
 }
 
+void SwiperNode::SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle) {
+  ArkUI_AttributeItem item{nullptr, 0, nullptr, adapterHandle};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_NODE_ADAPTER, &item));
+  hasAdapter_ = true;
+}
+
+void SwiperNode::ResetLazyAdapter() {
+  if (hasAdapter_) {
+    NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_SWIPER_NODE_ADAPTER);
+    hasAdapter_ = false;
+  }
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy

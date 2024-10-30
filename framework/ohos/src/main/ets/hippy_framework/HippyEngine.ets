@@ -72,6 +72,7 @@ export interface HippyEngine {
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
   params.check()
   LogUtils.enableDebugLog(params.enableLog)
+  params.libHippy?.Setting_SetFlags(params.enableUpdateAnimLog);
   return new HippyEngineManagerImpl(params)
 }
 
@@ -131,6 +132,8 @@ export class EngineInitParams {
   public enableV8Serialization = false;
   // 可选参数 是否打印引擎的完整的log。默认为false
   public enableLog = false;
+  // 可选参数 是否打印更新动画的log。默认为true
+  public enableUpdateAnimLog = true;
   // 可选参数 code cache的名字，如果设置为空，则不启用code cache，默认为 ""
   public codeCacheTag = "";
   //可选参数 接收RuntimeId

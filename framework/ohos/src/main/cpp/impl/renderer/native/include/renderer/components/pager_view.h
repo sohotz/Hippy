@@ -24,6 +24,7 @@
 
 #include "renderer/components/base_view.h"
 #include "renderer/arkui/swiper_node.h"
+#include "renderer/components/pager_item_adapter.h"
 
 namespace hippy {
 inline namespace render {
@@ -34,13 +35,16 @@ public:
   PagerView(std::shared_ptr<NativeRenderContext> &ctx);
   ~PagerView();
 
-  SwiperNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void Call(const std::string &method, const std::vector<HippyValue> params,
+  SwiperNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
             std::function<void(const HippyValue &result)> callback) override;
   
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
 
   void OnChange(const int32_t &index) override;
   void OnAnimationStart(const int32_t &currentIndex, const int32_t &targetIndex,
@@ -61,7 +65,9 @@ private:
   constexpr static const char *SCROLL_STATE_DRAGGING = "dragging";
   constexpr static const char *SCROLL_STATE_SETTLING = "settling";
   
-  SwiperNode swiperNode_;
+  std::shared_ptr<SwiperNode> swiperNode_;
+  
+  std::shared_ptr<PagerItemAdapter> adapter_;
   
   int32_t initialPage_ = 0;
   bool initialPageUsed_ = false;

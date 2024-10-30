@@ -36,7 +36,7 @@ TextInputView::TextInputView(std::shared_ptr<NativeRenderContext> &ctx) : BaseVi
 
 TextInputView::~TextInputView() {}
 
-StackNode &TextInputView::GetLocalRootArkUINode() { return stackNode_; }
+StackNode *TextInputView::GetLocalRootArkUINode() { return stackNode_.get(); }
 
 TextInputBaseNode &TextInputView::GetTextNode() {
   return *inputBaseNodePtr_.get();
@@ -56,13 +56,17 @@ void TextInputView::InitNode() {
     textAreaNodePtr->SetTextAreaNodeDelegate(this);
     inputBaseNodePtr_ = textAreaNodePtr;
   }
-  stackNode_.AddChild(GetTextNode());
+  stackNode_->AddChild(&GetTextNode());
 
   GetTextNode().SetBorderRadius(0, 0, 0, 0);
   GetTextNode().SetBackgroundColor(0x00000000);
 }
 
-bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void TextInputView::CreateArkUINodeImpl() {
+  stackNode_ = std::make_shared<StackNode>();
+}
+
+bool TextInputView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   // FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" propkey = "<<propKey;
   if (propKey == "caret-color") {
     auto value = HRValueUtils::GetUint32(propValue);
@@ -185,10 +189,10 @@ bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propVa
     isListenContentSizeChange_ = HRValueUtils::GetBool(propValue, false);
     return true;
   }
-  return BaseView::SetProp(propKey, propValue);
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void TextInputView::OnSetPropsEnd(){
+void TextInputView::OnSetPropsEndImpl(){
   InitNode();
   
   // default prop values
@@ -292,7 +296,7 @@ void TextInputView::OnSetPropsEnd(){
     UnsetPropFlag(TextInputPropReturnKeyType);
   }
   
-  return BaseView::OnSetPropsEnd();
+  return BaseView::OnSetPropsEndImpl();
 }
 
 void TextInputView::SetFontWeight(const HippyValue &propValue) {
@@ -370,7 +374,7 @@ void TextInputView::SetEntryKeyType(const HippyValue &propValue){
   }
 }
 
-void TextInputView::Call(const std::string &method, const std::vector<HippyValue> params,
+void TextInputView::CallImpl(const std::string &method, const std::vector<HippyValue> params,
                    std::function<void(const HippyValue &result)> callback){
   // FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method;
   if (method == "focusTextInput") {
@@ -425,8 +429,8 @@ void TextInputView::HideInputMethod(const HippyValueArrayType &param){
   GetTextNode().SetTextEditing(false);
 }
 
-void TextInputView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding){
-  BaseView::UpdateRenderViewFrame(frame, padding);
+void TextInputView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding){
+  BaseView::UpdateRenderViewFrameImpl(frame, padding);
   GetTextNode().SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
   HRSize size(frame.width, frame.height);
   GetTextNode().SetSize(size);
