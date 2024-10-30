@@ -1402,27 +1402,25 @@ void JSHCtx::InvalidWeakCallbackWrapper() {
 bool JSHCtx::CheckJSVMStatus(JSVM_Env env, JSVM_Status status) {
   if (status != JSVM_OK) {
     FOOTSTONE_LOG(ERROR) << "JSVM status error: " << status;
-
-    if (status == JSVM_PENDING_EXCEPTION) {
-      JSVM_Value error = nullptr;
-      if (OH_JSVM_GetAndClearLastException(env, &error) == JSVM_OK) {
-        JSVM_Value stack = nullptr;
-        OH_JSVM_GetNamedProperty(env, error, "stack", &stack);
+    
+    JSVM_Value error = nullptr;
+    if (OH_JSVM_GetAndClearLastException(env, &error) == JSVM_OK) {
+      JSVM_Value stack = nullptr;
+      OH_JSVM_GetNamedProperty(env, error, "stack", &stack);
   
-        JSVM_Value message = nullptr;
-        OH_JSVM_GetNamedProperty(env, error, "message", &message);
+      JSVM_Value message = nullptr;
+      OH_JSVM_GetNamedProperty(env, error, "message", &message);
   
-        char stackStr[256] = {0};
-        OH_JSVM_GetValueStringUtf8(env, stack, stackStr, 256, nullptr);
-        FOOTSTONE_LOG(ERROR) << "JSVM status error, PENDING EXCEPTION, stack: " << stackStr;
+      char stackStr[256] = {0};
+      OH_JSVM_GetValueStringUtf8(env, stack, stackStr, 256, nullptr);
+      FOOTSTONE_LOG(ERROR) << "JSVM status error, PENDING EXCEPTION, stack: " << stackStr;
   
-        char messageStr[256] = {0};
-        OH_JSVM_GetValueStringUtf8(env, message, messageStr, 256, nullptr);
-        FOOTSTONE_LOG(ERROR) << "JSVM status error, PENDING EXCEPTION, message: " << messageStr;
-        
-        if (exception_cb_) {
-          exception_cb_(env_, error, exception_cb_external_data_);
-        }
+      char messageStr[256] = {0};
+      OH_JSVM_GetValueStringUtf8(env, message, messageStr, 256, nullptr);
+      FOOTSTONE_LOG(ERROR) << "JSVM status error, PENDING EXCEPTION, message: " << messageStr;
+      
+      if (exception_cb_) {
+        exception_cb_(env_, error, exception_cb_external_data_);
       }
     }
   }
