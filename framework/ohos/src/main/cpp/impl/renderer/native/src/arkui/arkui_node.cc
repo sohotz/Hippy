@@ -564,7 +564,9 @@ void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {
     ArkUI_NumberValue* data = nodeComponentEvent->data;   
     arkUINodeDelegate_->OnAreaChange(data);    
   } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_VISIBLE_AREA_CHANGE) {
-
+    static int cc = 0;
+    ++cc;
+    FOOTSTONE_LOG(INFO) << "xxx hippy, visible area change, " << cc;
   }
 }
 

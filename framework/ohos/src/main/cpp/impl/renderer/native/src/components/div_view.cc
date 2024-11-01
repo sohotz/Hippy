@@ -50,6 +50,13 @@ void DivView::CreateArkUINodeImpl() {
 }
 
 bool DivView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  static bool f = true;
+  if (f) {
+    f = false;
+    
+    GetLocalRootArkUINode()->RegisterVisibleAreaChangeEvent();
+  }
+  
   return BaseView::SetPropImpl(propKey, propValue);
 }
 
