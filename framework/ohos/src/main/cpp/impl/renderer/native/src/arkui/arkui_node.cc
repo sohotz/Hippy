@@ -563,6 +563,8 @@ void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {
     auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
     ArkUI_NumberValue* data = nodeComponentEvent->data;   
     arkUINodeDelegate_->OnAreaChange(data);    
+  } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_VISIBLE_AREA_CHANGE) {
+
   }
 }
 
@@ -633,7 +635,21 @@ void ArkUINode::UnregisterAreaChangeEvent(){
   if (hasAreaChangeEvent_){
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_AREA_CHANGE);
     hasAreaChangeEvent_ = false ; 
-  }      
+  }
+}
+
+void ArkUINode::RegisterVisibleAreaChangeEvent() {
+  if (!hasVisibleAreaChangeEvent_){
+    MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_EVENT_ON_VISIBLE_AREA_CHANGE, 0, nullptr));
+    hasVisibleAreaChangeEvent_ = true ; 
+  }
+}
+
+void ArkUINode::UnregisterVisibleAreaChangeEvent() {
+  if (hasVisibleAreaChangeEvent_){
+    NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_VISIBLE_AREA_CHANGE);
+    hasVisibleAreaChangeEvent_ = false ; 
+  }
 }
 
 void ArkUINode::CheckAndLogError(const std::string& message, int count) {

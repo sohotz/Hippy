@@ -133,6 +133,9 @@ public:
   void UnregisterDisappearEvent();
   void RegisterAreaChangeEvent();
   void UnregisterAreaChangeEvent();
+  void RegisterVisibleAreaChangeEvent();
+  void UnregisterVisibleAreaChangeEvent();
+
 protected:
 
 #define ARKUI_NODE_CHECK_AND_LOG_ERROR \
@@ -169,7 +172,8 @@ protected:
   bool hasTouchEvent_ = false;
   bool hasAppearEvent_ = false;
   bool hasDisappearEvent_ = false;
-  bool hasAreaChangeEvent_ = false;  
+  bool hasAreaChangeEvent_ = false;
+  bool hasVisibleAreaChangeEvent_ = false;  
 };
 
 } // namespace native
