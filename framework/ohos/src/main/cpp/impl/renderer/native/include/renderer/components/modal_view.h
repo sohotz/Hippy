@@ -50,7 +50,7 @@ public:
 
 private:
   std::shared_ptr<StackNode> stackNode_;
-  DialogController dialog_;
+  std::shared_ptr<DialogController> dialog_;
   bool transparent = true;
   std::string animationType = "fade";
   bool darkStatusBarText = false;

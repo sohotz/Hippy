@@ -94,16 +94,19 @@ void ModalView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, i
 }
 
 void ModalView::OnAppear() {
+  if (!dialog_) {
+    dialog_ = std::make_shared<DialogController>();
+  }
   if(this->transparent)
-    dialog_.SetBackgroundColor(0x00000000);
-  dialog_.EnableCustomAnimation(true);
-  dialog_.EnableCustomStyle(true);
-  dialog_.SetAutoCancel(true);
-  dialog_.SetContentAlignment(ArkUI_Alignment::ARKUI_ALIGNMENT_TOP_START, 0, 0);
-  dialog_.SetCornerRadius(0, 0, 0, 0);
-  dialog_.SetModalMode(true);
-  dialog_.SetContent(GetLocalRootArkUINode()->GetArkUINodeHandle());
-  dialog_.Show();
+    dialog_->SetBackgroundColor(0x00000000);
+  dialog_->EnableCustomAnimation(true);
+  dialog_->EnableCustomStyle(true);
+  dialog_->SetAutoCancel(true);
+  dialog_->SetContentAlignment(ArkUI_Alignment::ARKUI_ALIGNMENT_TOP_START, 0, 0);
+  dialog_->SetCornerRadius(0, 0, 0, 0);
+  dialog_->SetModalMode(true);
+  dialog_->SetContent(GetLocalRootArkUINode()->GetArkUINodeHandle());
+  dialog_->Show();
   HREventUtils::SendComponentEvent(GetCtx(), GetTag(),HREventUtils::EVENT_MODAL_SHOW, nullptr);
 
   if(this->transparent)
@@ -113,7 +116,12 @@ void ModalView::OnAppear() {
 }
 
 void ModalView::OnDisappear() {
-  dialog_.Close();
+  if (!dialog_) {
+    return;
+  }
+  dialog_->RemoveContent();
+  dialog_->Close();
+  dialog_.reset();
   HREventUtils::SendComponentEvent(GetCtx(), GetTag(),HREventUtils::EVENT_MODAL_REQUEST_CLOSE, nullptr);
 }
 
