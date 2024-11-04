@@ -67,6 +67,7 @@ public:
   void ApplyMutations();
   void ApplyMutation(std::shared_ptr<HRMutation> &m);
 
+  std::shared_ptr<BaseView> FindRenderView(uint32_t tag);
   std::shared_ptr<BaseView> CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   std::shared_ptr<BaseView> PreCreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text);
   void RemoveRenderView(uint32_t tag);
@@ -124,6 +125,7 @@ private:
   std::unordered_map<uint32_t, ArkUI_NodeContentHandle> nodeContentMap_;
   std::shared_ptr<RootView> root_view_;
   std::map<uint32_t, std::shared_ptr<BaseView>> view_registry_;
+  
   std::vector<std::shared_ptr<HRMutation>> mutations_;
   uint64_t end_batch_callback_id_count_ = 0;
   std::map<uint64_t, EndBatchCallback> end_batch_callback_map_;

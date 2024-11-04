@@ -35,18 +35,15 @@ ModalView::ModalView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) 
 
 ModalView::~ModalView() {
   if (stackNode_) {
-    stackNode_->UnregisterAppearEvent();
-    stackNode_->UnregisterDisappearEvent();
     stackNode_->UnregisterAreaChangeEvent();
   }
+  CloseDialog();
 }
 
 StackNode *ModalView::GetLocalRootArkUINode() { return stackNode_.get(); }
 
 void ModalView::CreateArkUINodeImpl() {
   stackNode_ = std::make_shared<StackNode>();
-  stackNode_->RegisterAppearEvent();
-  stackNode_->RegisterDisappearEvent();
   stackNode_->RegisterAreaChangeEvent();
   stackNode_->ResetNodeAttribute(ArkUI_NodeAttributeType::NODE_OPACITY_TRANSITION);
 }
@@ -93,12 +90,18 @@ void ModalView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, i
   }
 }
 
-void ModalView::OnAppear() {
+void ModalView::Show() {
+  CreateArkUINode(false);
+  OpenDialog();
+}
+
+void ModalView::OpenDialog() {
   if (!dialog_) {
     dialog_ = std::make_shared<DialogController>();
   }
-  if(this->transparent)
+  if(this->transparent) {
     dialog_->SetBackgroundColor(0x00000000);
+  }
   dialog_->EnableCustomAnimation(true);
   dialog_->EnableCustomStyle(true);
   dialog_->SetAutoCancel(true);
@@ -109,13 +112,14 @@ void ModalView::OnAppear() {
   dialog_->Show();
   HREventUtils::SendComponentEvent(GetCtx(), GetTag(),HREventUtils::EVENT_MODAL_SHOW, nullptr);
 
-  if(this->transparent)
+  if(this->transparent) {
     GetLocalRootArkUINode()->SetBackgroundColor(0x00000000);
+  }
   GetLocalRootArkUINode()->SetSizePercent(HRSize(1.f,1.f));
   GetLocalRootArkUINode()->SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk
 }
 
-void ModalView::OnDisappear() {
+void ModalView::CloseDialog() {
   if (!dialog_) {
     return;
   }

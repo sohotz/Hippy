@@ -30,6 +30,7 @@
 #include "renderer/components/custom_ts_view.h"
 #include "renderer/components/custom_view.h"
 #include "renderer/components/hippy_render_view_creator.h"
+#include "renderer/components/modal_view.h"
 #include "renderer/components/rich_text_view.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/native_render_context.h"
@@ -190,11 +191,20 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
   }
 }
 
-std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+std::shared_ptr<BaseView> HRViewManager::FindRenderView(uint32_t tag) {
   auto exist_it = view_registry_.find(tag);
-  auto existRenderView = exist_it != view_registry_.end();
-  if (existRenderView) {
+  auto exist_view = exist_it != view_registry_.end();
+  if (exist_view) {
     return exist_it->second;
+  }
+  
+  return nullptr;
+}
+
+std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  auto exist_view = FindRenderView(tag);
+  if (exist_view) {
+    return exist_view;
   }
   
   // custom ts view
@@ -229,8 +239,7 @@ std::shared_ptr<BaseView> HRViewManager::PreCreateRenderView(uint32_t tag, std::
 }
 
 void HRViewManager::RemoveRenderView(uint32_t tag) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     renderView->RemoveFromParentView();
     RemoveFromRegistry(renderView);
@@ -242,6 +251,7 @@ void HRViewManager::RemoveFromRegistry(std::shared_ptr<BaseView> &renderView) {
   for (uint32_t i = 0; i < children.size(); i++) {
     RemoveFromRegistry(children[i]);
   }
+  
   view_registry_.erase(renderView->GetTag());
   
   // custom ts view
@@ -251,8 +261,13 @@ void HRViewManager::RemoveFromRegistry(std::shared_ptr<BaseView> &renderView) {
 }
 
 void HRViewManager::InsertSubRenderView(uint32_t parentTag, std::shared_ptr<BaseView> &childView, int32_t index) {
-  auto it = view_registry_.find(parentTag);
-  std::shared_ptr<BaseView> parentView = it != view_registry_.end() ? it->second : nullptr;
+  if (childView->GetViewType() == "Modal") {
+    auto modalView = std::static_pointer_cast<ModalView>(childView);
+    modalView->Show();
+    return;
+  }
+  
+  auto parentView = FindRenderView(parentTag);
   if (parentView && childView) {
     auto grandParentView = parentView->GetParent().lock();
     if (grandParentView && grandParentView->GetViewType() == "Text" && parentView->GetViewType() == "Text") {
@@ -270,8 +285,7 @@ static bool SortMoveNodeInfo(const HRMoveNodeInfo &lhs, const HRMoveNodeInfo &rh
 }
 
 void HRViewManager::MoveRenderView(std::vector<HRMoveNodeInfo> nodeInfos, uint32_t parentTag) {
-  auto it = view_registry_.find(parentTag);
-  std::shared_ptr<BaseView> parentView = it != view_registry_.end() ? it->second : nullptr;
+  auto parentView = FindRenderView(parentTag);
   if (!parentView) {
     FOOTSTONE_LOG(WARNING) << "MoveRenderView fail";
     return;
@@ -280,9 +294,8 @@ void HRViewManager::MoveRenderView(std::vector<HRMoveNodeInfo> nodeInfos, uint32
   std::sort(nodeInfos.begin(), nodeInfos.end(), SortMoveNodeInfo);
   for (uint32_t i = 0; i < nodeInfos.size(); i++) {
     auto &info = nodeInfos[i];
-    auto childIt = view_registry_.find(info.tag_);
-    if (childIt != view_registry_.end()) {
-      auto &child = childIt->second;
+    auto child = FindRenderView(info.tag_);
+    if (child) {
       child->RemoveFromParentView();
       parentView->AddSubRenderView(child, info.index_);
     }
@@ -290,19 +303,16 @@ void HRViewManager::MoveRenderView(std::vector<HRMoveNodeInfo> nodeInfos, uint32
 }
 
 void HRViewManager::Move2RenderView(std::vector<uint32_t> tags, uint32_t newParentTag, uint32_t oldParentTag, int index) {
-  auto it1 = view_registry_.find(oldParentTag);
-  std::shared_ptr<BaseView> oldParent = it1 != view_registry_.end() ? it1->second : nullptr;
-  auto it2 = view_registry_.find(newParentTag);
-  std::shared_ptr<BaseView> newParent = it2 != view_registry_.end() ? it2->second : nullptr;
+  auto oldParent = FindRenderView(oldParentTag);
+  auto newParent = FindRenderView(newParentTag);
   if (!oldParent || !newParent) {
     FOOTSTONE_LOG(WARNING) << "Move2RenderView fail, oldParent=" << oldParentTag << ", newParent=" << newParentTag;
     return;
   }
   
   for (uint32_t i = 0; i < tags.size(); i++) {
-    auto childIt = view_registry_.find(tags[i]);
-    if (childIt != view_registry_.end()) {
-      auto &child = childIt->second;
+    auto child = FindRenderView(tags[i]);
+    if (child) {
       child->RemoveFromParentView();
       newParent->AddSubRenderView(child, (int)i + index);
     }
@@ -340,8 +350,7 @@ void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, const HippyValu
 }
 
 void HRViewManager::UpdateProps(uint32_t tag, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   UpdateProps(renderView, props, deleteProps);
 }
 
@@ -350,8 +359,7 @@ void HRViewManager::PreUpdateProps(uint32_t tag, const HippyValueObjectType &pro
 }
 
 void HRViewManager::UpdateEventListener(uint32_t tag, HippyValueObjectType &props) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     // custom ts view
     if (IsCustomTsRenderView(renderView->GetViewType())) {
@@ -365,8 +373,7 @@ void HRViewManager::UpdateEventListener(uint32_t tag, HippyValueObjectType &prop
 }
 
 bool HRViewManager::CheckRegisteredEvent(uint32_t tag, std::string &eventName) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     return renderView->CheckRegisteredEvent(eventName);
   }
@@ -374,8 +381,7 @@ bool HRViewManager::CheckRegisteredEvent(uint32_t tag, std::string &eventName) {
 }
 
 void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     // custom ts view
     if (IsCustomTsRenderView(renderView->GetViewType())) {
@@ -391,8 +397,7 @@ void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const 
 
 void HRViewManager::CallViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     // custom ts view
     if (IsCustomTsRenderView(renderView->GetViewType())) {
@@ -408,8 +413,7 @@ void HRViewManager::CallViewMethod(uint32_t tag, const std::string &method, cons
 LayoutSize HRViewManager::CallCustomMeasure(uint32_t tag,
     float width, LayoutMeasureMode width_measure_mode,
     float height, LayoutMeasureMode height_measure_mode) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     auto customView = std::static_pointer_cast<CustomView>(renderView);
     return customView->CustomMeasure(width, width_measure_mode, height, height_measure_mode);
@@ -418,8 +422,7 @@ LayoutSize HRViewManager::CallCustomMeasure(uint32_t tag,
 }
 
 void HRViewManager::SendTextEllipsizedEvent(uint32_t tag) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView && renderView->GetViewType() == "Text") {
     auto textView = std::static_pointer_cast<RichTextView>(renderView);
     textView->SendTextEllipsizedEvent();
@@ -454,11 +457,10 @@ void HRViewManager::DoCallbackForCallCustomTsView(uint32_t node_id, uint32_t cal
 }
 
 bool HRViewManager::GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type) {
-  auto viewIt = view_registry_.find(node_id);
-  if (viewIt == view_registry_.end()) {
+  auto view = FindRenderView(node_id);
+  if (!view) {
     return false;
   }
-  auto view = viewIt->second;
   auto parentView = view->GetParent().lock();
   if (parentView) {
     parent_id = parentView->GetTag();
@@ -469,11 +471,10 @@ bool HRViewManager::GetViewParent(uint32_t node_id, uint32_t &parent_id, std::st
 }
 
 bool HRViewManager::GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types) {
-  auto viewIt = view_registry_.find(node_id);
-  if (viewIt == view_registry_.end()) {
+  auto view = FindRenderView(node_id);
+  if (!view) {
     return false;
   }
-  auto view = viewIt->second;
   auto childrenViews = view->GetChildren();
   for (int i = 0; i < (int)childrenViews.size(); i++) {
     auto &child = childrenViews[(size_t)i];
@@ -484,20 +485,18 @@ bool HRViewManager::GetViewChildren(uint32_t node_id, std::vector<uint32_t> &chi
 }
 
 void HRViewManager::SetViewEventListener(uint32_t node_id, napi_ref callback_ref) {
-  auto viewIt = view_registry_.find(node_id);
-  if (viewIt == view_registry_.end()) {
+  auto view = FindRenderView(node_id);
+  if (!view) {
     return;
   }
-  auto view = viewIt->second;
   view->SetTsEventCallback(callback_ref);
 }
 
 HRRect HRViewManager::GetViewFrameInRoot(uint32_t node_id) {
-  auto viewIt = view_registry_.find(node_id);
-  if (viewIt == view_registry_.end()) {
+  auto view = FindRenderView(node_id);
+  if (!view) {
     return {0, 0, 0, 0};
   }
-  auto view = viewIt->second;
   auto viewPos = view->GetLocalRootArkUINode()->GetLayoutPositionInScreen();
   auto rootPos = root_view_->GetLocalRootArkUINode()->GetLayoutPositionInWindow();
   auto size = view->GetLocalRootArkUINode()->GetSize();

@@ -42,13 +42,16 @@ public:
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int index) override;
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-
-  //StackNodeDelegate
-  void OnAppear() override;
-  void OnDisappear() override;
+  
   void OnAreaChange(ArkUI_NumberValue* data) override;
 
+  void Show();
+  
 private:
+  
+  void OpenDialog();
+  void CloseDialog();
+  
   std::shared_ptr<StackNode> stackNode_;
   std::shared_ptr<DialogController> dialog_;
   bool transparent = true;
