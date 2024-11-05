@@ -20,30 +20,20 @@
  *
  */
 
-#pragma once
-
-#include "renderer/components/base_view.h"
-#include "renderer/components/list_item_view.h"
-#include <cstdint>
+#include "renderer/recycle/recycle_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class PullHeaderView : public ListItemView {
-public:
-  PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~PullHeaderView();
-  
-  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
-  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
-                    std::function<void(const HippyValue &result)> callback) override;
-  void OnSetPropsEndImpl() override;
-
-private:
-  void OnHeadRefreshFinish(int32_t delay = 0);
-  void OnHeaderRefresh();
-};
+bool HippyIsRecycledView(const std::string &view_type) {
+  if (view_type == "View" || view_type == "Image" || view_type == "Text" || view_type == "TextInput"
+    || view_type == "ListViewItem" || view_type == "PullHeaderView" || view_type == "PullFooterView"
+    || view_type == "WaterfallItem") {
+    return true;
+  }
+  return false;
+}
 
 } // namespace native
 } // namespace render

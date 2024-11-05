@@ -53,6 +53,22 @@ void ListItemView::CreateArkUINodeImpl() {
   itemNode_->AddChild(stackNode_.get());
 }
 
+bool ListItemView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  recycleView->cachedNodes_.resize(2);
+  recycleView->cachedNodes_[0] = itemNode_;
+  recycleView->cachedNodes_[1] = stackNode_;
+  return true;
+}
+
+bool ListItemView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 2) {
+    return false;
+  }
+  itemNode_ = std::static_pointer_cast<ListItemNode>(recycleView->cachedNodes_[0]);
+  stackNode_ = std::static_pointer_cast<StackNode>(recycleView->cachedNodes_[1]);
+  return true;
+}
+
 bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "type" || propKey == "itemViewType") {
     if (propValue.IsString()) {

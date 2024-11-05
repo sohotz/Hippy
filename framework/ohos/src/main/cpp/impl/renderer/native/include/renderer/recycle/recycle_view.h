@@ -22,29 +22,25 @@
 
 #pragma once
 
-#include "renderer/components/base_view.h"
-#include "renderer/components/list_item_view.h"
-#include <cstdint>
+#include "renderer/arkui/arkui_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class PullHeaderView : public ListItemView {
+class RecycleView : public std::enable_shared_from_this<RecycleView> {
 public:
-  PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~PullHeaderView();
+  RecycleView() {}
+  ~RecycleView() {}
   
-  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
-  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
-                    std::function<void(const HippyValue &result)> callback) override;
-  void OnSetPropsEndImpl() override;
-
-private:
-  void OnHeadRefreshFinish(int32_t delay = 0);
-  void OnHeaderRefresh();
+  std::string cachedViewType_;
+  std::vector<std::shared_ptr<ArkUINode>> cachedNodes_;
+  
+  std::vector<std::shared_ptr<RecycleView>> children_;
 };
 
-} // namespace native
-} // namespace render
-} // namespace hippy
+bool HippyIsRecycledView(const std::string &view_type);
+
+}  // namespace native
+}  // namespace render
+}  // namespace hippy

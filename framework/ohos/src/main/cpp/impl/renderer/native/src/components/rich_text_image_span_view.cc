@@ -50,6 +50,20 @@ void RichTextImageSpanView::CreateArkUINodeImpl() {
   imageSpanNode_->SetImageObjectFit(ARKUI_OBJECT_FIT_FILL);
 }
 
+bool RichTextImageSpanView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  recycleView->cachedNodes_.resize(1);
+  recycleView->cachedNodes_[0] = imageSpanNode_;
+  return true;
+}
+
+bool RichTextImageSpanView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 1) {
+    return false;
+  }
+  imageSpanNode_ = std::static_pointer_cast<ImageSpanNode>(recycleView->cachedNodes_[0]);
+  return true;
+}
+
 bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::WIDTH) {
     auto value = HRValueUtils::GetFloat(propValue);

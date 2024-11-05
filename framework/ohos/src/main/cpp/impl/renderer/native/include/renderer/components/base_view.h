@@ -30,6 +30,7 @@
 #include "renderer/arkui/arkui_node.h"
 #include "renderer/native_render_context.h"
 #include "footstone/hippy_value.h"
+#include "renderer/recycle/recycle_view.h"
 
 namespace hippy {
 inline namespace render {
@@ -61,6 +62,13 @@ public:
   virtual ArkUINode *GetLocalRootArkUINode() = 0;
   void CreateArkUINode(bool isFromLazy, int index = -1);
   virtual void CreateArkUINodeImpl() = 0;
+  
+  // TODO(hot): DestroyArkUINode
+  
+  std::shared_ptr<RecycleView> RecycleArkUINode();
+  virtual bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) { return false; }
+  void ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView);
+  virtual bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) { return false; }
   
   bool SetProp(const std::string &propKey, const HippyValue &propValue);
   void OnSetPropsEnd();

@@ -66,6 +66,22 @@ void TextInputView::CreateArkUINodeImpl() {
   stackNode_ = std::make_shared<StackNode>();
 }
 
+bool TextInputView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  recycleView->cachedNodes_.resize(2);
+  recycleView->cachedNodes_[0] = stackNode_;
+  recycleView->cachedNodes_[1] = inputBaseNodePtr_;
+  return true;
+}
+
+bool TextInputView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 2) {
+    return false;
+  }
+  stackNode_ = std::static_pointer_cast<StackNode>(recycleView->cachedNodes_[0]);
+  inputBaseNodePtr_ = std::static_pointer_cast<TextInputBaseNode>(recycleView->cachedNodes_[1]);
+  return true;
+}
+
 bool TextInputView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   // FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" propkey = "<<propKey;
   if (propKey == "caret-color") {
