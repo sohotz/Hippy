@@ -87,18 +87,123 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
     return;
   }
   
+  auto parent = parent_.lock();
+  if (parent && !parent->GetLocalRootArkUINode()) {
+    return;
+  }
+  
   CreateArkUINodeImpl();
+  isLazyCreate_ = false;
+  
+  if (parent) {
+    auto child_index = index < 0 ? parent->IndexOfChild(shared_from_this()) : index;
+    parent->OnChildInsertedImpl(shared_from_this(), child_index);
+  }
+  
+  UpdateLazyProps();
+  
+  if (isFromLazy) {
+    for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
+      auto subView = children_[(uint32_t)i];
+      if (!HippyIsLazyCreateView(subView->GetViewType())) {
+        subView->CreateArkUINode(true, i);
+      }
+    }
+  }
+}
+
+void BaseView::DestroyArkUINode() {
+  auto node = GetLocalRootArkUINode();
+  if (!node) {
+    return;
+  }
+  
+  GetLocalRootArkUINode()->RemoveSelfFromParent();
+  DestroyArkUINodeImpl();
+  isLazyCreate_ = true;
+  for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
+    auto subView = children_[(uint32_t)i];
+    subView->DestroyArkUINode();
+  }
+}
+
+std::shared_ptr<RecycleView> BaseView::RecycleArkUINode() {
+  if (!HippyIsRecycledView(GetViewType())) {
+    DestroyArkUINode();
+    return nullptr;
+  }
+  
+  auto recycleView = std::make_shared<RecycleView>();
+  recycleView->cachedViewType_ = GetViewType();
+  bool result = RecycleArkUINodeImpl(recycleView);
+  if (!result) {
+    DestroyArkUINode();
+    return nullptr;
+  }
+  
+  isLazyCreate_ = true;
+  
+  for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
+    auto subView = children_[(uint32_t)i];
+    auto subRecycleView = subView->RecycleArkUINode();
+    if (!subRecycleView) {
+      for (int32_t j = i + 1; j < (int32_t)children_.size(); j++) {
+        auto subView2 = children_[(uint32_t)j];
+        subView2->DestroyArkUINode();
+      }
+      break;
+    }
+    recycleView->children_.emplace_back(subRecycleView);
+  }
+  
+  return recycleView;
+}
+
+bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t index) {
+  if (recycleView->cachedViewType_ != GetViewType()) {
+    CreateArkUINode(true, index);
+    return false;
+  }
+  
+  bool result = ReuseArkUINodeImpl(recycleView);
+  if (!result) {
+    CreateArkUINode(true, index);
+    return false;
+  }
+  
   isLazyCreate_ = false;
   
   auto parent = parent_.lock();
   if (parent) {
-    FOOTSTONE_DCHECK(parent->GetLocalRootArkUINode());
-    if (parent->GetLocalRootArkUINode()) {
-      auto child_index = index < 0 ? parent->IndexOfChild(shared_from_this()) : index;
-      parent->OnChildInsertedImpl(shared_from_this(), child_index);
+    parent->OnChildReusedImpl(shared_from_this(), index);
+  }
+  
+  UpdateLazyProps();
+  
+  if (recycleView->children_.size() > children_.size()) {
+    for (int32_t k = (int32_t)recycleView->children_.size() - 1; k >= (int32_t)children_.size() ; k--) {
+      recycleView->RemoveSubView(k);
     }
   }
   
+  for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
+    auto subView = children_[(uint32_t)i];
+    if ((int32_t)recycleView->children_.size() > i) {
+      auto subRecycleView = recycleView->children_[(uint32_t)i];
+      bool subResult = subView->ReuseArkUINode(subRecycleView, i);
+      if (!subResult) {
+        for (int32_t j = (int32_t)recycleView->children_.size() - 1; j >= i ; j--) {
+          recycleView->RemoveSubView(j);
+        }
+      }
+    } else {
+      subView->CreateArkUINode(true, i);
+    }
+  }
+  return true;
+}
+
+void BaseView::UpdateLazyProps() {
   GetLocalRootArkUINode()->SetArkUINodeDelegate(this);
   std::string id_str = "HippyId" + std::to_string(tag_);
   GetLocalRootArkUINode()->SetId(id_str);
@@ -112,35 +217,29 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
       }
     }
     OnSetPropsEndImpl();
-    lazyProps_.clear();
   }
   if (lazyFrame_.has_value() && lazyPadding_.has_value()) {
     UpdateRenderViewFrameImpl(lazyFrame_.value(), lazyPadding_.value());
-    lazyFrame_.reset();
-    lazyPadding_.reset();
-  }
-  
-  if (isFromLazy) {
-    for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
-      auto subView = children_[(uint32_t)i];
-      if (!HippyIsLazyCreateView(subView->GetViewType())) {
-        subView->CreateArkUINode(true, i);
-      }
-    }
   }
 }
 
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  if (!isLazyCreate_) {
-    return SetPropImpl(propKey, propValue);
-  } else {
-    lazyProps_[propKey] = propValue;
+  bool handled = SetViewProp(propKey, propValue);
+  if (handled) {
     return true;
   }
+  
+  lazyProps_[propKey] = propValue;
+  
+  if (GetLocalRootArkUINode()) {
+    return SetPropImpl(propKey, propValue);
+  }
+  
+  return true;
 }
 
 void BaseView::OnSetPropsEnd() {
-  if (!isLazyCreate_) {
+  if (GetLocalRootArkUINode()) {
     OnSetPropsEndImpl();
   }
 }
@@ -799,6 +898,10 @@ void BaseView::AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t inde
   subView->SetParent(shared_from_this());
   children_.insert(it, subView);
   OnChildInserted(subView, index);
+  
+  // if (subView->GetViewType() == "ListViewItem") {
+  //   FOOTSTONE_LOG(INFO) << "hippy, list child inserted: " << index << ", count: " << children_.size() << ", parent: " << this << ", view: " << subView;
+  // }
 }
 
 void BaseView::RemoveSubView(std::shared_ptr<BaseView> &subView) {
@@ -808,6 +911,10 @@ void BaseView::RemoveSubView(std::shared_ptr<BaseView> &subView) {
     int32_t index = static_cast<int32_t>(it - children_.begin());
     children_.erase(it);
     OnChildRemoved(view, index);
+    
+    // if (view->GetViewType() == "ListViewItem") {
+    //   FOOTSTONE_LOG(INFO) << "hippy, list child removed: " << index << ", count: " << children_.size() << ", parent: " << this << ", view: " << view;
+    // }
   }
 }
 
@@ -837,11 +944,11 @@ void BaseView::SetRenderViewFrame(const HRRect &frame, const HRPadding &padding)
 }
 
 void BaseView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  if (!isLazyCreate_) {
+  lazyFrame_ = frame;
+  lazyPadding_ = padding;
+  
+  if (GetLocalRootArkUINode()) {
     UpdateRenderViewFrameImpl(frame, padding);
-  } else {
-    lazyFrame_ = frame;
-    lazyPadding_ = padding;
   }
 }
 

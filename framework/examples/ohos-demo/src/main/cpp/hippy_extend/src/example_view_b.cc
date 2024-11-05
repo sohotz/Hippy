@@ -52,6 +52,11 @@ void ExampleViewB::CreateArkUINodeImpl() {
   textNode_->SetTextContent("This is a custom component B.");
 }
 
+void ExampleViewB::DestroyArkUINodeImpl() {
+  stackNode_ = nullptr;
+  textNode_ = nullptr;
+}
+
 bool ExampleViewB::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetPropImpl(propKey, propValue);
 }

@@ -28,13 +28,19 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : ListItemView(ctx) {}
+PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : ListItemView(ctx) {
+  type_ = "PullFooter";
+}
 
 PullFooterView::~PullFooterView() {}
 
 void PullFooterView::CreateArkUINodeImpl() {
   ListItemView::CreateArkUINodeImpl();
   GetLocalRootArkUINode()->SetVisibility(isVisible_);
+}
+
+void PullFooterView::DestroyArkUINodeImpl() {
+  ListItemView::DestroyArkUINodeImpl();
 }
 
 bool PullFooterView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -64,9 +70,9 @@ void PullFooterView::CallImpl(const std::string &method, const std::vector<Hippy
 
 void PullFooterView::Show(bool show) {
   if (show != isVisible_) {
-    isVisible_ = show;
     auto node = GetLocalRootArkUINode();
     if (node) {
+      isVisible_ = show;
       node->SetVisibility(show);
     }
   }

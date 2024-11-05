@@ -46,7 +46,7 @@ void TextInputView::InitNode() {
   if (inputBaseNodePtr_) {
     return;
   }
-  
+
   if (multiline_ == false) {
     auto textInputNodePtr = std::make_shared<TextInputNode>();
     textInputNodePtr->SetTextInputNodeDelegate(this);
@@ -64,6 +64,44 @@ void TextInputView::InitNode() {
 
 void TextInputView::CreateArkUINodeImpl() {
   stackNode_ = std::make_shared<StackNode>();
+}
+
+void TextInputView::DestroyArkUINodeImpl() {
+  stackNode_ = nullptr;
+  inputBaseNodePtr_ = nullptr;
+}
+
+bool TextInputView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  recycleView->cachedNodes_.resize(2);
+  recycleView->cachedNodes_[0] = stackNode_;
+  recycleView->cachedNodes_[1] = inputBaseNodePtr_;
+  stackNode_ = nullptr;
+  inputBaseNodePtr_ = nullptr;
+  caretColor_.reset();
+  color_.reset();
+  value_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  maxLength_.reset();
+  placeholder_.reset();
+  placeholderTextColor_.reset();
+  maxLines_.reset();
+  keyboardType_.reset();
+  returnKeyType_.reset();
+  textAlign_.reset();
+  textAlignVertical_.reset();
+  return true;
+}
+
+bool TextInputView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 2) {
+    return false;
+  }
+  stackNode_ = std::static_pointer_cast<StackNode>(recycleView->cachedNodes_[0]);
+  inputBaseNodePtr_ = std::static_pointer_cast<TextInputBaseNode>(recycleView->cachedNodes_[1]);
+  return true;
 }
 
 bool TextInputView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -165,7 +203,7 @@ bool TextInputView::SetPropImpl(const std::string &propKey, const HippyValue &pr
     SetEntryKeyType(propValue);
     return true;
   } else if (propKey == "changetext") {
-    isListenChangeText_ = HRValueUtils::GetBool(propValue, false);    
+    isListenChangeText_ = HRValueUtils::GetBool(propValue, false);
     return true;
   } else if (propKey == "selectionchange") {
     isListenSelectionChange_ = HRValueUtils::GetBool(propValue, false);
@@ -194,7 +232,7 @@ bool TextInputView::SetPropImpl(const std::string &propKey, const HippyValue &pr
 
 void TextInputView::OnSetPropsEndImpl(){
   InitNode();
-  
+
   // default prop values
   if (!value_.has_value()) {
     value_ = "";
@@ -295,7 +333,7 @@ void TextInputView::OnSetPropsEndImpl(){
     GetTextNode().SetEnterKeyType((ArkUI_EnterKeyType)returnKeyType_.value());
     UnsetPropFlag(TextInputPropReturnKeyType);
   }
-  
+
   return BaseView::OnSetPropsEndImpl();
 }
 
@@ -418,7 +456,7 @@ void TextInputView::SetText(const HippyValueArrayType &params){
 }
 
 void TextInputView::FocusTextInput(const HippyValueArrayType &param){
-  GetTextNode().SetFocusStatus(true);  
+  GetTextNode().SetFocusStatus(true);
 }
 
 void TextInputView::BlurTextInput(const HippyValueArrayType &param){
@@ -440,14 +478,14 @@ void TextInputView::OnChange(std::string text) {
   if(value_ == text) {
     return;
   }
-  
+
   value_ = text;
   if(isListenChangeText_) {
     HippyValueObjectType params;
     params["text"] = HippyValue(text);
     const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
     HREventUtils::SendComponentEvent(ctx_, tag_, "changetext", obj);
-  }  
+  }
   if(isListenContentSizeChange_) {
      HRRect rect = GetTextNode().GetTextContentRect();
      if(previousContentWidth_ != rect.width || previousContentHeight_ != rect.height){
@@ -469,19 +507,19 @@ void TextInputView::OnBlur() {
   if (!isListenBlur_) {
     return;
   }
-  
+
   HippyValueObjectType params;
   params["text"] = HippyValue(value_.value());
   const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
   HREventUtils::SendComponentEvent(ctx_, tag_, "blur", obj);
 }
 
-void TextInputView::OnFocus() { 
+void TextInputView::OnFocus() {
   focus_ = true;
   if(!isListenFocus_) {
     return;
   }
-  
+
   HippyValueObjectType params;
   params["text"] = HippyValue(value_.value());
   const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
@@ -496,11 +534,11 @@ void TextInputView::OnPaste() {
 
 }
 
-void TextInputView::OnTextSelectionChange(int32_t location, int32_t length) { 
+void TextInputView::OnTextSelectionChange(int32_t location, int32_t length) {
   if(!isListenSelectionChange_) {
     return;
   }
-  
+
   HippyValueObjectType selection;
   selection["start"] = HippyValue(location);
   selection["end"] = HippyValue(location + length);
@@ -514,14 +552,14 @@ void TextInputView::OnEventEndEditing(ArkUI_EnterKeyType enterKeyType) {
   if(!isListenEndEditing_) {
     return;
   }
-  
+
   HippyValueObjectType params;
   params["text"] = value_.value();
   const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
   HREventUtils::SendComponentEvent(ctx_, tag_, "endediting", obj);
-  
+
   params["actionCode"] = enterKeyType;
-  switch (enterKeyType) { 
+  switch (enterKeyType) {
     case ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_GO:
       params["actionName"] = "go";
       break;

@@ -37,6 +37,7 @@ public:
 
   StackNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
 
@@ -44,15 +45,15 @@ public:
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
+
 private:
   void OnCustomTsViewChildInserted(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index);
   void OnCustomTsViewChildRemoved(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index);
-  
+
   std::shared_ptr<StackNode> containerNode_;
   std::shared_ptr<CustomTsNode> tsNode_;
   std::shared_ptr<StackNode> subContainerNode_;
-  
+
   ArkUI_NodeHandle customNodeHandle_ = nullptr;
 };
 

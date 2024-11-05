@@ -53,6 +53,48 @@ void RichTextView::CreateArkUINodeImpl() {
   textNode_ = std::make_shared<TextNode>();
 }
 
+void RichTextView::DestroyArkUINodeImpl() {
+  textNode_ = nullptr;
+  text_.reset();
+  color_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  letterSpacing_.reset();
+  lineHeight_.reset();
+  numberOfLines_.reset();
+  textAlign_.reset();
+  ellipsizeModeValue_.reset();
+}
+
+bool RichTextView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  recycleView->cachedNodes_.resize(1);
+  recycleView->cachedNodes_[0] = textNode_;
+  textNode_->ResetAllAttributes();
+  textNode_ = nullptr;
+  text_.reset();
+  color_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  letterSpacing_.reset();
+  lineHeight_.reset();
+  numberOfLines_.reset();
+  textAlign_.reset();
+  ellipsizeModeValue_.reset();
+  return true;
+}
+
+bool RichTextView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 1) {
+    return false;
+  }
+  textNode_ = std::static_pointer_cast<TextNode>(recycleView->cachedNodes_[0]);
+  return true;
+}
+
 bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);

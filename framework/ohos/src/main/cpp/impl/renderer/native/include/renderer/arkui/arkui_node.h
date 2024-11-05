@@ -46,7 +46,7 @@ public:
   virtual void OnTouch(int32_t actionType, const HRPosition &screenPosition) {}
   virtual void OnAppear() {}
   virtual void OnDisappear() {}
-  virtual void OnAreaChange(ArkUI_NumberValue* data) {}  
+  virtual void OnAreaChange(ArkUI_NumberValue* data) {}
 };
 
 class ArkUINode {
@@ -62,12 +62,15 @@ public:
   virtual ~ArkUINode();
 
   ArkUI_NodeHandle GetArkUINodeHandle();
+  
+  void MarkReleaseHandle(bool isRelease) { isReleaseHandle_ = isRelease; }
 
   void MarkDirty();
-  
+
   void AddChild(ArkUINode *child);
   void InsertChild(ArkUINode *child, int32_t index);
   void RemoveChild(ArkUINode *child);
+  void RemoveSelfFromParent();
 
   virtual ArkUINode &SetId(const std::string &id);
   virtual ArkUINode &SetPosition(const HRPosition &position);
@@ -105,21 +108,22 @@ public:
   virtual ArkUINode &SetMargin(float left, float top, float right, float bottom);
   virtual ArkUINode &SetAlignment(ArkUI_Alignment align);
   virtual ArkUINode &SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk
-  virtual ArkUINode &SetTransitionMove(const ArkUI_TransitionEdge edgeType,int32_t duration,ArkUI_AnimationCurve curveType = ARKUI_CURVE_EASE);  
+  virtual ArkUINode &SetTransitionMove(const ArkUI_TransitionEdge edgeType,int32_t duration,ArkUI_AnimationCurve curveType = ARKUI_CURVE_EASE);
   virtual ArkUINode &SetTransitionOpacity(const ArkUI_AnimationCurve curveType,int32_t duration);
   virtual ArkUINode &SetTransitionTranslate(float distanceX,float distanceY,float distanceZ,ArkUI_AnimationCurve curveType,int32_t duration);
 //  virtual ArkUINode &SetPadding(float top, float right, float bottom, float left);
   virtual void ResetNodeAttribute(ArkUI_NodeAttributeType type);
+  virtual void ResetAllAttributes();
   virtual HRSize GetSize() const;
   virtual uint32_t GetTotalChildCount() const;
   virtual HRPosition GetPostion() const;
   virtual HRPosition GetAbsolutePosition() const;
   virtual HRPosition GetLayoutPositionInScreen() const;
   virtual HRPosition GetLayoutPositionInWindow() const;
-  
+
   void SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate);
   virtual void OnNodeEvent(ArkUI_NodeEvent *event);
-    
+
   virtual ArkUI_NodeHandle GetFirstChild() const;
   virtual ArkUI_NodeHandle GetLastChild() const;
   virtual ArkUI_NodeHandle GetChildAt(int32_t postion) const;
@@ -139,7 +143,7 @@ protected:
   static int count = 0; \
   ++count; \
   CheckAndLogError(message, count);
-  
+
   void MaybeThrow(int32_t status) {
     if (status != 0) {
       auto message = std::string("ArkUINode operation failed with status: ") + std::to_string(status);
@@ -156,20 +160,21 @@ protected:
       }
     }
   }
-  
+
 #undef ARKUI_NODE_CHECK_AND_LOG_ERROR
-  
+
   void CheckAndLogError(const std::string& message, int count);
 
   ArkUI_NodeHandle nodeHandle_;
+  bool isReleaseHandle_ = true;
   
   ArkUINodeDelegate *arkUINodeDelegate_ = nullptr;
-  
+
   bool hasClickEvent_ = false;
   bool hasTouchEvent_ = false;
   bool hasAppearEvent_ = false;
   bool hasDisappearEvent_ = false;
-  bool hasAreaChangeEvent_ = false;  
+  bool hasAreaChangeEvent_ = false;
 };
 
 } // namespace native

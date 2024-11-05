@@ -33,7 +33,7 @@ inline namespace render {
 inline namespace native {
 
 ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  adapter_ = std::make_shared<ListItemAdapter>(children_);
+  
 }
 
 ListView::~ListView() {
@@ -78,9 +78,21 @@ void ListView::CreateArkUINodeImpl() {
   listNode_->SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
   listNode_->SetListCachedCount(4);
   listNode_->SetScrollNestedScroll(ARKUI_SCROLL_NESTED_MODE_SELF_FIRST, ARKUI_SCROLL_NESTED_MODE_SELF_FIRST);
+  
+  adapter_ = std::make_shared<ListItemAdapter>(children_);
   listNode_->SetLazyAdapter(adapter_->GetHandle());
   
   CheckInitOffset();
+}
+
+void ListView::DestroyArkUINodeImpl() {
+  listNode_->SetArkUINodeDelegate(nullptr);
+  listNode_->SetNodeDelegate(nullptr);
+  listNode_->ResetLazyAdapter();
+  
+  stackNode_ = nullptr;
+  listNode_ = nullptr;
+  adapter_.reset();
 }
 
 bool ListView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -174,12 +186,16 @@ void ListView::CallImpl(const std::string &method, const std::vector<HippyValue>
 
 void ListView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {
   BaseView::OnChildInserted(childView, index);
-  adapter_->InsertItem(index);
+  if (adapter_) {
+    adapter_->InsertItem(index);
+  }
 }
 
 void ListView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
-  adapter_->RemoveItem(index);
+  if (adapter_) {
+    adapter_->RemoveItem(index);
+  }
 }
 
 void ListView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
@@ -202,6 +218,13 @@ void ListView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, in
   BaseView::OnChildRemovedImpl(childView, index);
 }
 
+void ListView::OnChildReusedImpl(std::shared_ptr<BaseView> const &childView, int index) {
+  BaseView::OnChildReusedImpl(childView, index);
+  
+  auto itemView = std::static_pointer_cast<ListItemView>(childView);
+  itemView->GetLocalRootArkUINode()->SetItemIndex(index);
+}
+
 void ListView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   auto parent = parent_.lock();
   if (parent && parent->GetViewType() == "RefreshWrapper") {
@@ -211,6 +234,8 @@ void ListView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &p
   }
   width_ = frame.width;
   height_ = frame.height;
+  
+  CheckValidListSize();
 }
 
 void ListView::ScrollToIndex(int32_t index, bool animated) {
@@ -557,6 +582,23 @@ void ListView::CheckInitOffset() {
       y += initialOffset_;
       listNode_->ScrollTo(0, y, true);
       initialOffset_ = 0;
+    }
+  }
+}
+
+void ListView::CheckValidListSize() {
+  if (width_ == 0 && height_ == 0) {
+    isListZeroSize = true;
+    for (uint32_t i = 0; i < children_.size(); i++) {
+      children_[i]->DestroyArkUINode();
+    }
+    listNode_->ResetLazyAdapter();
+    adapter_.reset();
+  } else {
+    if (isListZeroSize) {
+      isListZeroSize = false;
+      adapter_ = std::make_shared<ListItemAdapter>(children_);
+      listNode_->SetLazyAdapter(adapter_->GetHandle());
     }
   }
 }

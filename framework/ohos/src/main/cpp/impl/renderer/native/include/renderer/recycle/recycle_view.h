@@ -22,31 +22,27 @@
 
 #pragma once
 
-#include "renderer/components/base_view.h"
-#include "renderer/arkui/stack_node.h"
+#include "renderer/arkui/arkui_node.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RefreshWrapperItemView : public BaseView {
+class RecycleView : public std::enable_shared_from_this<RecycleView> {
 public:
-  RefreshWrapperItemView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~RefreshWrapperItemView();
+  RecycleView() {}
+  ~RecycleView() {}
 
-  StackNode *GetLocalRootArkUINode() override;
-  void CreateArkUINodeImpl() override;
-  void DestroyArkUINodeImpl() override;
-  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
-  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
+  void RemoveSubView(int32_t index);
 
-  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  std::string cachedViewType_;
+  std::vector<std::shared_ptr<ArkUINode>> cachedNodes_;
 
-private:
-  std::shared_ptr<StackNode> stackNode_;
+  std::vector<std::shared_ptr<RecycleView>> children_;
 };
 
-} // namespace native
-} // namespace render
-} // namespace hippy
+bool HippyIsRecycledView(const std::string &view_type);
+
+}  // namespace native
+}  // namespace render
+}  // namespace hippy

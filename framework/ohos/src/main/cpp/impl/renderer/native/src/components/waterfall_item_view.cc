@@ -46,6 +46,25 @@ void WaterfallItemView::CreateArkUINodeImpl() {
   itemNode_ = std::make_shared<WaterFlowItemNode>();
 }
 
+void WaterfallItemView::DestroyArkUINodeImpl() {
+  itemNode_ = nullptr;
+}
+
+bool WaterfallItemView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  recycleView->cachedNodes_.resize(1);
+  recycleView->cachedNodes_[0] = itemNode_;
+  itemNode_ = nullptr;
+  return true;
+}
+
+bool WaterfallItemView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 1) {
+    return false;
+  }
+  itemNode_ = std::static_pointer_cast<WaterFlowItemNode>(recycleView->cachedNodes_[0]);
+  return true;
+}
+
 bool WaterfallItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "type") {
     return true;
@@ -54,7 +73,7 @@ bool WaterfallItemView::SetPropImpl(const std::string &propKey, const HippyValue
 }
 
 void WaterfallItemView::OnSetPropsEndImpl(){
-  return BaseView::OnSetPropsEndImpl();  
+  return BaseView::OnSetPropsEndImpl();
 }
 
 void WaterfallItemView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {

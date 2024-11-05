@@ -53,7 +53,30 @@ void ListItemView::CreateArkUINodeImpl() {
   itemNode_->AddChild(stackNode_.get());
 }
 
-bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+void ListItemView::DestroyArkUINodeImpl() {
+  itemNode_ = nullptr;
+  stackNode_ = nullptr;
+}
+
+bool ListItemView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  recycleView->cachedNodes_.resize(2);
+  recycleView->cachedNodes_[0] = itemNode_;
+  recycleView->cachedNodes_[1] = stackNode_;
+  itemNode_ = nullptr;
+  stackNode_ = nullptr;
+  return true;
+}
+
+bool ListItemView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 2) {
+    return false;
+  }
+  itemNode_ = std::static_pointer_cast<ListItemNode>(recycleView->cachedNodes_[0]);
+  stackNode_ = std::static_pointer_cast<StackNode>(recycleView->cachedNodes_[1]);
+  return true;
+}
+
+bool ListItemView::SetViewProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "type" || propKey == "itemViewType") {
     if (propValue.IsString()) {
       propValue.ToString(type_);
@@ -63,6 +86,7 @@ bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     } else {
       type_ = "NoType" + std::to_string(tag_);
     }
+    // FOOTSTONE_LOG(INFO) << "hippy, list child, set type: " << type_ << ", view: " << this;
     return true;
   } else if (propKey == "sticky") {
     auto value = HRValueUtils::GetBool(propValue, false);
@@ -71,6 +95,10 @@ bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     }
     return true;
   }
+  return false;
+}
+
+bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetPropImpl(propKey, propValue);
 }
 

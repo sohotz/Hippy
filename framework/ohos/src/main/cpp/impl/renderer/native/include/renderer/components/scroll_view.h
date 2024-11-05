@@ -37,6 +37,7 @@ public:
 
   ScrollNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void CallImpl(const std::string &method, const std::vector<HippyValue> params,
             std::function<void(const HippyValue &result)> callback) override;

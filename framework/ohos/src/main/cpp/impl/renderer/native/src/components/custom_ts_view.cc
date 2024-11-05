@@ -25,6 +25,7 @@
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_napi_object.h"
 #include "oh_napi/oh_napi_object_builder.h"
+#include "renderer/arkui/native_node_api.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -40,13 +41,17 @@ CustomTsView::~CustomTsView() {
     if (subContainerNode_) {
       for (const auto &child : children_) {
         subContainerNode_->RemoveChild(child->GetLocalRootArkUINode());
-      } 
+      }
     }
     children_.clear();
   }
   if (containerNode_) {
     containerNode_->RemoveChild(tsNode_.get());
     containerNode_->RemoveChild(subContainerNode_.get());
+  }
+  if (customNodeHandle_) {
+    NativeNodeApi::GetInstance()->disposeNode(customNodeHandle_);
+    customNodeHandle_ = nullptr;
   }
 }
 
@@ -57,14 +62,21 @@ StackNode *CustomTsView::GetLocalRootArkUINode() {
 void CustomTsView::CreateArkUINodeImpl() {
   containerNode_ = std::make_shared<StackNode>();
   tsNode_ = std::make_shared<CustomTsNode>(customNodeHandle_);
+  tsNode_->MarkReleaseHandle(false);
   subContainerNode_ = std::make_shared<StackNode>();
-  
+
   containerNode_->AddChild(tsNode_.get());
   containerNode_->AddChild(subContainerNode_.get());
   containerNode_->SetClip(true);
   subContainerNode_->SetWidthPercent(1.f);
   subContainerNode_->SetHeightPercent(1.f);
   subContainerNode_->SetHitTestMode(ARKUI_HIT_TEST_MODE_NONE);
+}
+
+void CustomTsView::DestroyArkUINodeImpl() {
+  containerNode_ = nullptr;
+  tsNode_ = nullptr;
+  subContainerNode_ = nullptr;
 }
 
 bool CustomTsView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -79,7 +91,7 @@ void CustomTsView::OnChildInserted(std::shared_ptr<BaseView> const &childView, i
   BaseView::OnChildInserted(childView, index);
   OnCustomTsViewChildInserted(tag_, childView, index);
 }
-  
+
 void CustomTsView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
   OnCustomTsViewChildRemoved(tag_, childView, index);
@@ -104,11 +116,11 @@ void CustomTsView::OnCustomTsViewChildInserted(uint32_t tag, std::shared_ptr<Bas
   params_builder.AddProperty("childTag", childView->GetTag());
   params_builder.AddProperty("childViewName", childView->GetViewType());
   params_builder.AddProperty("childIndex", index);
-  
+
   std::vector<napi_value> args = {
     params_builder.Build()
   };
-  
+
   auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
   delegateObject.Call("onChildInsertedForCApi", args);
 }
@@ -122,11 +134,11 @@ void CustomTsView::OnCustomTsViewChildRemoved(uint32_t tag, std::shared_ptr<Base
   params_builder.AddProperty("childTag", childView->GetTag());
   params_builder.AddProperty("childViewName", childView->GetViewType());
   params_builder.AddProperty("childIndex", index);
-  
+
   std::vector<napi_value> args = {
     params_builder.Build()
   };
-  
+
   auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
   delegateObject.Call("onChildRemovedForCApi", args);
 }

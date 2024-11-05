@@ -20,32 +20,29 @@
  *
  */
 
-#pragma once
-
-#include "renderer/components/base_view.h"
-#include "renderer/arkui/stack_node.h"
+#include "renderer/recycle/recycle_view.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-class RefreshWrapperItemView : public BaseView {
-public:
-  RefreshWrapperItemView(std::shared_ptr<NativeRenderContext> &ctx);
-  ~RefreshWrapperItemView();
+void RecycleView::RemoveSubView(int32_t index) {
+  if (index < 0 || index >= (int32_t)children_.size()) {
+    return;
+  }
+  auto &subView = children_[(uint32_t)index];
+  subView->cachedNodes_[0]->RemoveSelfFromParent();
+  children_.erase(children_.begin() + index);
+}
 
-  StackNode *GetLocalRootArkUINode() override;
-  void CreateArkUINodeImpl() override;
-  void DestroyArkUINodeImpl() override;
-  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
-  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
-
-  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-
-private:
-  std::shared_ptr<StackNode> stackNode_;
-};
+bool HippyIsRecycledView(const std::string &view_type) {
+  if (view_type == "View" || view_type == "Image" || view_type == "Text" || view_type == "TextInput"
+    || view_type == "ListViewItem" || view_type == "PullHeaderView" || view_type == "PullFooterView"
+    || view_type == "WaterfallItem") {
+    return true;
+  }
+  return false;
+}
 
 } // namespace native
 } // namespace render

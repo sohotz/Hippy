@@ -48,6 +48,10 @@ void ModalView::CreateArkUINodeImpl() {
   stackNode_->ResetNodeAttribute(ArkUI_NodeAttributeType::NODE_OPACITY_TRANSITION);
 }
 
+void ModalView::DestroyArkUINodeImpl() {
+  stackNode_ = nullptr;
+}
+
 bool ModalView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if(propKey == "transparent"){
     this->transparent = HRValueUtils::GetBool(propValue, true);
@@ -55,7 +59,7 @@ bool ModalView::SetPropImpl(const std::string &propKey, const HippyValue &propVa
     this->animationType = HRValueUtils::GetString(propValue);
   } else if(propKey == "darkStatusBarText"){
     this->darkStatusBarText = HRValueUtils::GetBool(propValue, false);
-  } 
+  }
   return BaseView::SetPropImpl(propKey, propValue);
 }
 
@@ -66,7 +70,7 @@ void ModalView::OnSetPropsEndImpl(){
     GetLocalRootArkUINode()->SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);
   }else if(this->animationType == "slide_fade"){
     GetLocalRootArkUINode()->SetTransitionOpacity(ArkUI_AnimationCurve::ARKUI_CURVE_EASE, DURATION);
-    GetLocalRootArkUINode()->SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);   
+    GetLocalRootArkUINode()->SetTransitionMove(ArkUI_TransitionEdge::ARKUI_TRANSITION_EDGE_BOTTOM,DURATION);
   }
   BaseView::OnSetPropsEndImpl();
 }
@@ -131,8 +135,8 @@ void ModalView::CloseDialog() {
 
 void ModalView::OnAreaChange(ArkUI_NumberValue* data) {
   if(GetLocalRootArkUINode()->GetTotalChildCount() == 0){
-    FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" no child" ;    
-    return;       
+    FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" no child" ;
+    return;
   }
   float_t width = data[6].f32;
   float_t height = data[7].f32;

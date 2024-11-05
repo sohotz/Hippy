@@ -30,6 +30,7 @@
 #include "renderer/arkui/arkui_node.h"
 #include "renderer/native_render_context.h"
 #include "footstone/hippy_value.h"
+#include "renderer/recycle/recycle_view.h"
 
 namespace hippy {
 inline namespace render {
@@ -61,9 +62,17 @@ public:
   virtual ArkUINode *GetLocalRootArkUINode() = 0;
   void CreateArkUINode(bool isFromLazy, int index = -1);
   virtual void CreateArkUINodeImpl() = 0;
+  void DestroyArkUINode();
+  virtual void DestroyArkUINodeImpl() = 0;
+  
+  std::shared_ptr<RecycleView> RecycleArkUINode();
+  virtual bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) { return false; }
+  bool ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t index);
+  virtual bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) { return false; }
   
   bool SetProp(const std::string &propKey, const HippyValue &propValue);
   void OnSetPropsEnd();
+  virtual bool SetViewProp(const std::string &propKey, const HippyValue &propValue) { return false; }
   virtual bool SetPropImpl(const std::string &propKey, const HippyValue &propValue);
   virtual void OnSetPropsEndImpl();
   void Call(const std::string &method, const std::vector<HippyValue> params,
@@ -93,6 +102,7 @@ protected:
   virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index);
   virtual void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int index) {}
   virtual void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {}
+  virtual void OnChildReusedImpl(std::shared_ptr<BaseView> const &childView, int index) {}
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding);
   virtual void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding);
   virtual bool HandleGestureBySelf() { return false; }
@@ -116,6 +126,8 @@ protected:
   void SetInterceptPullUp(bool flag);
   void SetAttachedToWindowHandle(bool flag);
   void SetDetachedFromWindowHandle(bool flag);
+  
+  void UpdateLazyProps();
 
   void HandleInterceptPullUp();
   std::string ConvertToLocalPathIfNeeded(const std::string &uri);

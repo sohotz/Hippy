@@ -30,7 +30,7 @@ inline namespace render {
 inline namespace native {
 
 PagerView::PagerView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  adapter_ = std::make_shared<PagerItemAdapter>(children_);
+
 }
 
 PagerView::~PagerView() {
@@ -47,11 +47,19 @@ SwiperNode *PagerView::GetLocalRootArkUINode() { return swiperNode_.get(); }
 
 void PagerView::CreateArkUINodeImpl() {
   swiperNode_ = std::make_shared<SwiperNode>();
-  
   swiperNode_->SetNodeDelegate(this);
   swiperNode_->SetShowIndicator(false);
   swiperNode_->SetSwiperLoop(0);
+
+  adapter_ = std::make_shared<PagerItemAdapter>(children_);
   swiperNode_->SetLazyAdapter(adapter_->GetHandle());
+}
+
+void PagerView::DestroyArkUINodeImpl() {
+  swiperNode_->SetNodeDelegate(nullptr);
+  swiperNode_->ResetLazyAdapter();
+  swiperNode_ = nullptr;
+  adapter_.reset();
 }
 
 bool PagerView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -91,12 +99,16 @@ bool PagerView::SetPropImpl(const std::string &propKey, const HippyValue &propVa
 
 void PagerView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {
   BaseView::OnChildInserted(childView, index);
-  adapter_->InsertItem(index);
+  if (adapter_) {
+    adapter_->InsertItem(index);
+  }
 }
 
 void PagerView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
-  adapter_->RemoveItem(index);
+  if (adapter_) {
+    adapter_->RemoveItem(index);
+  }
 }
 
 void PagerView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {

@@ -51,6 +51,31 @@ void ImageView::CreateArkUINodeImpl() {
   imageNode_->SetDraggable(false);
 }
 
+void ImageView::DestroyArkUINodeImpl() {
+  imageNode_->SetNodeDelegate(nullptr);
+  imageNode_ = nullptr;
+  src_.clear();
+}
+
+bool ImageView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  imageNode_->SetNodeDelegate(nullptr);
+  imageNode_->ResetAllAttributes();
+  recycleView->cachedNodes_.resize(1);
+  recycleView->cachedNodes_[0] = imageNode_;
+  imageNode_ = nullptr;
+  src_.clear();
+  return true;
+}
+
+bool ImageView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 1) {
+    return false;
+  }
+  imageNode_ = std::static_pointer_cast<ImageNode>(recycleView->cachedNodes_[0]);
+  imageNode_->SetNodeDelegate(this);
+  return true;
+}
+
 std::string ImageView::GetSrc() {
   return src_;
 }

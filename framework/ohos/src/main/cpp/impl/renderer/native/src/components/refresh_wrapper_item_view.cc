@@ -47,6 +47,10 @@ void RefreshWrapperItemView::CreateArkUINodeImpl() {
   stackNode_ = std::make_shared<StackNode>();
 }
 
+void RefreshWrapperItemView::DestroyArkUINodeImpl() {
+  stackNode_ = nullptr;
+}
+
 bool RefreshWrapperItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetPropImpl(propKey, propValue);
 }

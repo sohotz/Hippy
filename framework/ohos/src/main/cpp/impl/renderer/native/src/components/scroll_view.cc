@@ -50,7 +50,7 @@ ScrollNode *ScrollView::GetLocalRootArkUINode() { return scrollNode_.get(); }
 void ScrollView::CreateArkUINodeImpl() {
   scrollNode_ = std::make_shared<ScrollNode>();
   stackNode_ = std::make_shared<StackNode>();
-  
+
   scrollNode_->SetScrollEnabled(true);
   scrollNode_->SetHorizontal(false);
   scrollNode_->SetShowScrollIndicator(false);
@@ -60,6 +60,12 @@ void ScrollView::CreateArkUINodeImpl() {
   scrollNode_->SetAlignment(ARKUI_ALIGNMENT_TOP_START);
   scrollNode_->SetNodeDelegate(this);
   scrollNode_->AddChild(stackNode_.get());
+}
+
+void ScrollView::DestroyArkUINodeImpl() {
+  scrollNode_->SetNodeDelegate(nullptr);
+  scrollNode_ = nullptr;
+  stackNode_ = nullptr;
 }
 
 bool ScrollView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -122,7 +128,7 @@ void ScrollView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, 
 
 void ScrollView::OnTouch(int32_t actionType, const HRPosition &screenPosition) {
   BaseView::OnTouch(actionType, screenPosition);
-  
+
   if (actionType == UI_TOUCH_EVENT_ACTION_DOWN || actionType == UI_TOUCH_EVENT_ACTION_MOVE) {
     CheckFireBeginDragEvent();
   } else if (actionType == UI_TOUCH_EVENT_ACTION_UP || actionType == UI_TOUCH_EVENT_ACTION_CANCEL) {

@@ -50,6 +50,25 @@ void RichTextImageSpanView::CreateArkUINodeImpl() {
   imageSpanNode_->SetImageObjectFit(ARKUI_OBJECT_FIT_FILL);
 }
 
+void RichTextImageSpanView::DestroyArkUINodeImpl() {
+  imageSpanNode_ = nullptr;
+}
+
+bool RichTextImageSpanView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  recycleView->cachedNodes_.resize(1);
+  recycleView->cachedNodes_[0] = imageSpanNode_;
+  imageSpanNode_ = nullptr;
+  return true;
+}
+
+bool RichTextImageSpanView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 1) {
+    return false;
+  }
+  imageSpanNode_ = std::static_pointer_cast<ImageSpanNode>(recycleView->cachedNodes_[0]);
+  return true;
+}
+
 bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == HRNodeProps::WIDTH) {
     auto value = HRValueUtils::GetFloat(propValue);
@@ -64,11 +83,11 @@ bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyV
     if (t == "top") {
       // TODO(hot):
     } else if (t == "middle") {
-      
+
     } else if (t == "bottom") {
-      
+
     } else if (t == "baseline") {
-      
+
     }
     return true;
   } else if (propKey == "src") {
@@ -89,7 +108,7 @@ bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyV
     bool handled = SetEventProp(propKey, propValue);
     return handled;
   }
-  
+
   // Not to set some attributes for text span.
 }
 
@@ -135,7 +154,7 @@ void RichTextImageSpanView::fetchImage(const std::string &imageUrl) {
       std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
       GetLocalRootArkUINode()->SetSources(resourceStr);
 		}
-    
+
     // TODO(hot):
 	}
 }

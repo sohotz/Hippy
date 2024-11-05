@@ -42,6 +42,10 @@ void RootView::CreateArkUINodeImpl() {
   GetLocalRootArkUINode()->RegisterDisappearEvent();
 }
 
+void RootView::DestroyArkUINodeImpl() {
+  DivView::DestroyArkUINodeImpl();
+}
+
 bool RootView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey.length() > 0 && propValue.IsBoolean()) {
     HandleRootEvent(propKey, propValue.ToBooleanChecked());

@@ -278,6 +278,26 @@ TextNode &TextNode::SetPadding(float top, float right, float bottom, float left)
   return *this;
 }
 
+void TextNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_CONTENT));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_FONT_COLOR));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_FONT_FAMILY));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_FONT_SIZE));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_FONT_STYLE));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_FONT_WEIGHT));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_LETTER_SPACING));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_LINE_HEIGHT));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_MAX_LINES));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_ALIGN));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_OVERFLOW));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_ELLIPSIS_MODE));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_WORD_BREAK));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_FONT_SIZE));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_DECORATION));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_TEXT_SHADOW));
+}
+
 } // namespace native
 } // namespace render
 } // namespace hippy
