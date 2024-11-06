@@ -69,7 +69,7 @@ bool ListItemView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView)
   return true;
 }
 
-bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+bool ListItemView::SetViewProp(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "type" || propKey == "itemViewType") {
     if (propValue.IsString()) {
       propValue.ToString(type_);
@@ -87,6 +87,10 @@ bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     }
     return true;
   }
+  return false;
+}
+
+bool ListItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetPropImpl(propKey, propValue);
 }
 

@@ -179,18 +179,17 @@ void BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView) {
 }
 
 bool BaseView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  if (!isLazyCreate_) {
-    return SetPropImpl(propKey, propValue);
-  } else {
-    lazyProps_[propKey] = propValue;
+  bool handled = SetViewProp(propKey, propValue);
+  if (handled) {
     return true;
   }
+  
+  lazyProps_[propKey] = propValue;
+  return true;
 }
 
 void BaseView::OnSetPropsEnd() {
-  if (!isLazyCreate_) {
-    OnSetPropsEndImpl();
-  }
+  
 }
 
 bool BaseView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {

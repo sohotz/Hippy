@@ -72,6 +72,7 @@ public:
   
   bool SetProp(const std::string &propKey, const HippyValue &propValue);
   void OnSetPropsEnd();
+  virtual bool SetViewProp(const std::string &propKey, const HippyValue &propValue) { return false; }
   virtual bool SetPropImpl(const std::string &propKey, const HippyValue &propValue);
   virtual void OnSetPropsEndImpl();
   void Call(const std::string &method, const std::vector<HippyValue> params,

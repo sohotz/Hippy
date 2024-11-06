@@ -153,8 +153,8 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
     auto tm = std::static_pointer_cast<HRCreateMutation>(m);
     auto view = CreateRenderView(tm->tag_, tm->view_name_, tm->is_parent_text_);
     if (view) {
-      InsertSubRenderView(tm->parent_tag_, view, tm->index_);
       UpdateProps(view, tm->props_);
+      InsertSubRenderView(tm->parent_tag_, view, tm->index_);
     }
     if (!isFirstViewAdd) {
       reportFirstViewAdd();

@@ -39,6 +39,7 @@ public:
   void CreateArkUINodeImpl() override;
   bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool SetViewProp(const std::string &propKey, const HippyValue &propValue) override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
