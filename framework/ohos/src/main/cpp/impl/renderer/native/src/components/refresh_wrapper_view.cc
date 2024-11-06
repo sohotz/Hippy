@@ -56,6 +56,11 @@ void RefreshWrapperView::CreateArkUINodeImpl() {
   refreshNode_->SetRefreshRefreshing(false);
 }
 
+void RefreshWrapperView::DestroyArkUINodeImpl() {
+  refreshNode_->SetNodeDelegate(nullptr);
+  refreshNode_ = nullptr;
+}
+
 bool RefreshWrapperView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "bounceTime") {
     bounceTime_ = HRValueUtils::GetInt32(propValue);
@@ -84,7 +89,7 @@ void RefreshWrapperView::CallImpl(const std::string &method, const std::vector<H
 
 void RefreshWrapperView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInsertedImpl(childView, index);
-  
+
   if (childView->GetViewType() == "RefreshWrapperItemView") {
     refreshNode_->SetRefreshContent(childView->GetLocalRootArkUINode()->GetArkUINodeHandle());
     childView->SetPosition({0, - refresh_offset_});
@@ -96,7 +101,7 @@ void RefreshWrapperView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &ch
 
 void RefreshWrapperView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemovedImpl(childView, index);
-  
+
   if (childView->GetViewType() == "RefreshWrapperItemView") {
     refreshNode_->ResetRefreshContent();
   } else {
@@ -120,7 +125,7 @@ void RefreshWrapperView::OnOffsetChange(float_t offset) {
   if (item_view) {
     item_view->SetPosition({0, offset - refresh_offset_});
   }
-  
+
   SendOnScrollEvent(-offset);
 }
 
@@ -131,7 +136,7 @@ void RefreshWrapperView::SetRefreshOffset(float offset) {
 
 void RefreshWrapperView::BounceToHead() {
   refreshNode_->SetRefreshRefreshing(false);
-  
+
   // TODO(hot): setTimeout bounceTime
 }
 

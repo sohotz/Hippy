@@ -48,21 +48,22 @@ class ListView : public BaseView, public ListNodeDelegate, public ListItemNodeDe
 public:
   ListView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ListView();
-  
+
   void Init() override;
 
   StackNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void CallImpl(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
-  
+
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
-  
+
   void ScrollToIndex(int32_t index, bool animated);
   void SetScrollNestedMode(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward);
 
@@ -76,12 +77,12 @@ public:
   void OnReachStart() override;
   void OnReachEnd() override;
   void OnTouch(int32_t actionType, const HRPosition &screenPosition) override;
-  
+
   void OnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio) override;
 
 private:
   void HandleOnChildrenUpdated();
-  
+
   void EmitScrollEvent(const std::string &eventName);
   void CheckSendOnScrollEvent();
   void CheckSendReachEndEvent(int32_t lastIndex);
@@ -101,12 +102,12 @@ private:
 
   std::shared_ptr<StackNode> stackNode_;
   std::shared_ptr<ListNode> listNode_;
-  
+
   std::shared_ptr<ListItemAdapter> adapter_;
 
   float width_ = 0;
   float height_ = 0;
-  
+
   bool isVertical_ = true;
   float initialOffset_ = 0;
   int32_t scrollEventThrottle_ = 30;
@@ -122,7 +123,7 @@ private:
 
   bool hasPullHeader_ = false;
   float pullHeaderHeight_ = 0;
-  
+
   ScrollAction pullAction_ = ScrollAction::None;
   std::shared_ptr<PullHeaderView> headerView_ = nullptr;
   std::shared_ptr<PullFooterView> footerView_ = nullptr;
@@ -132,14 +133,14 @@ private:
   int32_t stickyIndex_ = INVALID_STICKY_INDEX;
   std::vector<int32_t> stickyArray_;
   std::vector<int32_t> stickyStack_;
-  
+
   bool isDragging_ = false;
   float lastMoveY_ = 0;
-  
+
   bool headerViewFullVisible_ = false;
   bool footerViewFullVisible_ = false;
   float lastItemFullVisibleYOffset_ = 0;
-  
+
   uint64_t end_batch_callback_id_ = 0;
 };
 

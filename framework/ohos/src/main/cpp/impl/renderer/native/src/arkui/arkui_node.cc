@@ -37,7 +37,7 @@ ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : nodeHandle_(nodeHandle) {
   ++sCount;
   FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, ArkUINode handle, new: " << nodeHandle_ << ", count: " << sCount;
 #endif
-  
+
   SetHitTestMode(ARKUI_HIT_TEST_MODE_TRANSPARENT);
   ArkUINodeRegistry::GetInstance().RegisterNode(this);
 }
@@ -48,7 +48,7 @@ ArkUINode::~ArkUINode() {
   ++sCount;
   FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, ArkUINode handle, del: " << nodeHandle_ << ", count: " << sCount;
 #endif
-  
+
   if (nodeHandle_ != nullptr) {
     UnregisterClickEvent();
     UnregisterTouchEvent();
@@ -94,6 +94,13 @@ void ArkUINode::RemoveChild(ArkUINode *child) {
     return;
   }
   MaybeThrow(NativeNodeApi::GetInstance()->removeChild(nodeHandle_, child->GetArkUINodeHandle()));
+}
+
+void ArkUINode::RemoveSelfFromParent() {
+  auto parentHandle = NativeNodeApi::GetInstance()->getParent(nodeHandle_);
+  if (parentHandle) {
+    MaybeThrow(NativeNodeApi::GetInstance()->removeChild(parentHandle, nodeHandle_));
+  }
 }
 
 ArkUINode &ArkUINode::SetId(const std::string &id) {
@@ -166,7 +173,7 @@ ArkUINode &ArkUINode::SetSize(const HRSize &size) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_HEIGHT, &heightItem));
   return *this;
 }
- 
+
 ArkUINode &ArkUINode::SetWidth(float width) {
   ArkUI_NumberValue widthValue[] = {{width}};
   ArkUI_AttributeItem widthItem = {widthValue, sizeof(widthValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
@@ -200,15 +207,15 @@ uint32_t ArkUINode::GetTotalChildCount() const {
 }
 
 ArkUI_NodeHandle ArkUINode::GetFirstChild() const{
-  return NativeNodeApi::GetInstance()->getFirstChild(nodeHandle_);   
+  return NativeNodeApi::GetInstance()->getFirstChild(nodeHandle_);
 }
 
-ArkUI_NodeHandle ArkUINode::GetLastChild() const{ 
-  return NativeNodeApi::GetInstance()->getLastChild(nodeHandle_);  
+ArkUI_NodeHandle ArkUINode::GetLastChild() const{
+  return NativeNodeApi::GetInstance()->getLastChild(nodeHandle_);
 }
 
 ArkUI_NodeHandle ArkUINode::GetChildAt(int32_t postion) const{
-  return NativeNodeApi::GetInstance()->getChildAt(nodeHandle_,postion);  
+  return NativeNodeApi::GetInstance()->getChildAt(nodeHandle_,postion);
 }
 
 //ArkUINode &ArkUINode::SetPadding(float top, float right, float bottom, float left){
@@ -505,29 +512,29 @@ ArkUINode &ArkUINode::SetAlignment(ArkUI_Alignment align) {
 ArkUINode &ArkUINode::SetExpandSafeArea(){
 //TODO  NODE_EXPAND_SAFE_AREA not define in devEco 5.0.0.400 will add in later
 //  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_EXPAND_SAFE_AREA,nullptr ));
-  return *this;    
+  return *this;
 }
 
 ArkUINode &ArkUINode::SetTransitionMove(const ArkUI_TransitionEdge edgeType,int32_t duration,ArkUI_AnimationCurve curveType){
   ArkUI_NumberValue value[] = {{.i32 = edgeType}, {.i32 = duration}, {.i32 = curveType}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MOVE_TRANSITION, &item));
-  return *this;    
+  return *this;
 }
 
 ArkUINode &ArkUINode::SetTransitionOpacity(const ArkUI_AnimationCurve curveType,int32_t duration){
   ArkUI_NumberValue value[] = {{.f32 = 0},{.i32 = duration},{.i32 = curveType}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_OPACITY_TRANSITION, &item));  
-  return *this;     
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_OPACITY_TRANSITION, &item));
+  return *this;
 }
 
 ArkUINode &ArkUINode::SetTransitionTranslate(float distanceX,float distanceY,float distanceZ,ArkUI_AnimationCurve curveType,int32_t duration)
 {
   ArkUI_NumberValue value[] = {{.f32 = distanceX},{.f32 = distanceY},{.f32 = distanceZ},{.i32 = duration},{.i32 = curveType}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TRANSLATE_TRANSITION, &item));      
-  return *this;   
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TRANSLATE_TRANSITION, &item));
+  return *this;
 }
 
 void ArkUINode::ResetNodeAttribute(ArkUI_NodeAttributeType type){
@@ -542,7 +549,7 @@ void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {
   if (arkUINodeDelegate_ == nullptr) {
     return;
   }
-  
+
   auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
   if (eventType == ArkUI_NodeEventType::NODE_ON_CLICK) {
     arkUINodeDelegate_->OnClick();
@@ -561,8 +568,8 @@ void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {
     arkUINodeDelegate_->OnDisappear();
   } else if (eventType == ArkUI_NodeEventType::NODE_EVENT_ON_AREA_CHANGE) {
     auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
-    ArkUI_NumberValue* data = nodeComponentEvent->data;   
-    arkUINodeDelegate_->OnAreaChange(data);    
+    ArkUI_NumberValue* data = nodeComponentEvent->data;
+    arkUINodeDelegate_->OnAreaChange(data);
   }
 }
 
@@ -586,7 +593,7 @@ void ArkUINode::RegisterTouchEvent() {
     hasTouchEvent_ = true;
   }
 }
-  
+
 void ArkUINode::UnregisterTouchEvent() {
   if (hasTouchEvent_) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_TOUCH_EVENT);
@@ -625,15 +632,15 @@ void ArkUINode::UnregisterDisappearEvent() {
 void ArkUINode::RegisterAreaChangeEvent(){
   if (!hasAreaChangeEvent_){
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, NODE_EVENT_ON_AREA_CHANGE, 0, nullptr));
-    hasAreaChangeEvent_ = true ; 
-  }  
+    hasAreaChangeEvent_ = true ;
+  }
 }
 
 void ArkUINode::UnregisterAreaChangeEvent(){
   if (hasAreaChangeEvent_){
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, NODE_EVENT_ON_AREA_CHANGE);
-    hasAreaChangeEvent_ = false ; 
-  }      
+    hasAreaChangeEvent_ = false ;
+  }
 }
 
 void ArkUINode::CheckAndLogError(const std::string& message, int count) {

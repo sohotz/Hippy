@@ -37,10 +37,11 @@ public:
 
   SwiperNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void CallImpl(const std::string &method, const std::vector<HippyValue> params,
             std::function<void(const HippyValue &result)> callback) override;
-  
+
   void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
@@ -57,18 +58,18 @@ public:
 
 private:
   void SendScrollStateChangeEvent(const std::string &state);
-  
+
   constexpr static const char *PAGE_ITEM_POSITION = "position";
   constexpr static const char *PAGE_ITEM_OFFSET = "offset";
   constexpr static const char *PAGE_SCROLL_STATE = "pageScrollState";
   constexpr static const char *SCROLL_STATE_IDLE = "idle";
   constexpr static const char *SCROLL_STATE_DRAGGING = "dragging";
   constexpr static const char *SCROLL_STATE_SETTLING = "settling";
-  
+
   std::shared_ptr<SwiperNode> swiperNode_;
-  
+
   std::shared_ptr<PagerItemAdapter> adapter_;
-  
+
   int32_t initialPage_ = 0;
   bool initialPageUsed_ = false;
   int32_t index_ = 0;

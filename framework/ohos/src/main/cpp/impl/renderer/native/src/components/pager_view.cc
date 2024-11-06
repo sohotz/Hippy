@@ -47,11 +47,17 @@ SwiperNode *PagerView::GetLocalRootArkUINode() { return swiperNode_.get(); }
 
 void PagerView::CreateArkUINodeImpl() {
   swiperNode_ = std::make_shared<SwiperNode>();
-  
+
   swiperNode_->SetNodeDelegate(this);
   swiperNode_->SetShowIndicator(false);
   swiperNode_->SetSwiperLoop(0);
   swiperNode_->SetLazyAdapter(adapter_->GetHandle());
+}
+
+void PagerView::DestroyArkUINodeImpl() {
+  swiperNode_->SetNodeDelegate(nullptr);
+  swiperNode_->ResetLazyAdapter();
+  swiperNode_ = nullptr;
 }
 
 bool PagerView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {

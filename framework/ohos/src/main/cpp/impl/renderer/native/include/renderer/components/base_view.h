@@ -62,12 +62,12 @@ public:
   virtual ArkUINode *GetLocalRootArkUINode() = 0;
   void CreateArkUINode(bool isFromLazy, int index = -1);
   virtual void CreateArkUINodeImpl() = 0;
-  
-  // TODO(hot): DestroyArkUINode
+  void DestroyArkUINode();
+  virtual void DestroyArkUINodeImpl() = 0;
   
   std::shared_ptr<RecycleView> RecycleArkUINode();
   virtual bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) { return false; }
-  void ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView);
+  bool ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView);
   virtual bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) { return false; }
   
   bool SetProp(const std::string &propKey, const HippyValue &propValue);
@@ -125,6 +125,8 @@ protected:
   void SetInterceptPullUp(bool flag);
   void SetAttachedToWindowHandle(bool flag);
   void SetDetachedFromWindowHandle(bool flag);
+  
+  void UpdateLazyProps();
 
   void HandleInterceptPullUp();
   std::string ConvertToLocalPathIfNeeded(const std::string &uri);

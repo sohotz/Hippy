@@ -36,6 +36,7 @@ public:
 
   StackNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
 
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;

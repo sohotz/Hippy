@@ -33,8 +33,9 @@ class PullFooterView : public ListItemView {
 public:
   PullFooterView(std::shared_ptr<NativeRenderContext> &ctx);
   ~PullFooterView();
-  
+
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void OnSetPropsEndImpl() override;
   void CallImpl(const std::string &method, const std::vector<HippyValue> params,
@@ -44,7 +45,7 @@ public:
 
 private:
   bool isVisible_ = true;
-  
+
   bool sticky_ = false;
 };
 

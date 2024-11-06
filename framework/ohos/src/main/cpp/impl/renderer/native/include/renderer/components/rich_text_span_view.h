@@ -36,15 +36,16 @@ public:
 
   SpanNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void OnSetPropsEndImpl() override;
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
-  
+
 private:
   std::shared_ptr<SpanNode> spanNode_;
-  
+
   std::optional<std::string> text_;
   std::optional<uint32_t> color_;
   std::optional<std::string> fontFamily_;
@@ -53,7 +54,7 @@ private:
   std::optional<int32_t> fontWeight_;
   std::optional<float> letterSpacing_;
   std::optional<float> lineHeight_;
-  
+
   ArkUI_TextDecorationType decorationType_ = ARKUI_TEXT_DECORATION_TYPE_NONE;
   ArkUI_TextDecorationStyle decorationStyle_ = ARKUI_TEXT_DECORATION_STYLE_SOLID;
   uint32_t decorationColor_ = 0xff000000;
@@ -61,7 +62,7 @@ private:
   float textShadowOffsetX_ = 0.f;
   float textShadowOffsetY_ = 0.f;
   uint32_t textShadowColor_ = 0xff000000;
-  
+
   bool toSetTextDecoration_ = false;
   bool toSetTextShadow = false;
 };

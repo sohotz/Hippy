@@ -41,7 +41,6 @@ public:
 
   ~ListItemAdapter() {
     cachedTypeRecycleViews_.clear();
-    allRecycleViews_.clear();
 
     OH_ArkUI_NodeAdapter_UnregisterEventReceiver(handle_);
     OH_ArkUI_NodeAdapter_Dispose(handle_);
@@ -111,10 +110,6 @@ private:
       // 创建新的元素
       view->CreateArkUINode(true, -1);
       handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
-      auto recycleView = view->RecycleArkUINode();
-      if (recycleView) {
-        allRecycleViews_.emplace(handle, recycleView);
-      }
     }
     
     // 设置需要展示的元素
@@ -123,20 +118,19 @@ private:
 
   // Item从可见区域移除
   void OnItemDetached(ArkUI_NodeAdapterEvent *event) {
-    auto itemHandle = OH_ArkUI_NodeAdapterEvent_GetRemovedNode(event);
-    auto it = allRecycleViews_.find(itemHandle);
-    if (it != allRecycleViews_.end()) {
-      auto index = OH_ArkUI_NodeAdapterEvent_GetItemIndex(event);
-      auto view = itemViews_[index];
+    auto index = OH_ArkUI_NodeAdapterEvent_GetItemIndex(event);
+    auto view = itemViews_[index];
+    auto recycleView = view->RecycleArkUINode();
+    if (recycleView) {
       auto itemView = std::static_pointer_cast<ListItemView>(view);
       auto cachedIt = cachedTypeRecycleViews_.find(itemView->GetType());
       if (cachedIt == cachedTypeRecycleViews_.end()) {
         std::stack<std::shared_ptr<RecycleView>> cached;
-        cached.emplace(it->second);
+        cached.emplace(recycleView);
         cachedTypeRecycleViews_[itemView->GetType()] = cached;
       } else {
         auto &cached = cachedIt->second;
-        cached.emplace(it->second);
+        cached.emplace(recycleView);
       }
     }
   }
@@ -144,8 +138,7 @@ private:
   ArkUI_NodeAdapterHandle handle_ = nullptr;
 
   std::vector<std::shared_ptr<BaseView>> &itemViews_;
-  
-  std::unordered_map<ArkUI_NodeHandle, std::shared_ptr<RecycleView>> allRecycleViews_;
+
   std::unordered_map<std::string, std::stack<std::shared_ptr<RecycleView>>> cachedTypeRecycleViews_;
 };
 

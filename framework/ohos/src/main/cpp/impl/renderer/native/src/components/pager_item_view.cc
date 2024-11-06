@@ -46,6 +46,10 @@ void PagerItemView::CreateArkUINodeImpl() {
   stackNode_ = std::make_shared<StackNode>();
 }
 
+void PagerItemView::DestroyArkUINodeImpl() {
+  stackNode_ = nullptr;
+}
+
 bool PagerItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   return BaseView::SetPropImpl(propKey, propValue);
 }

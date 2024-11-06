@@ -46,6 +46,10 @@ void WaterfallItemView::CreateArkUINodeImpl() {
   itemNode_ = std::make_shared<WaterFlowItemNode>();
 }
 
+void WaterfallItemView::DestroyArkUINodeImpl() {
+  itemNode_ = nullptr;
+}
+
 bool WaterfallItemView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = itemNode_;
@@ -68,7 +72,7 @@ bool WaterfallItemView::SetPropImpl(const std::string &propKey, const HippyValue
 }
 
 void WaterfallItemView::OnSetPropsEndImpl(){
-  return BaseView::OnSetPropsEndImpl();  
+  return BaseView::OnSetPropsEndImpl();
 }
 
 void WaterfallItemView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {

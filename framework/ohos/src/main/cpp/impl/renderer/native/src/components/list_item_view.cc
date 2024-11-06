@@ -53,6 +53,11 @@ void ListItemView::CreateArkUINodeImpl() {
   itemNode_->AddChild(stackNode_.get());
 }
 
+void ListItemView::DestroyArkUINodeImpl() {
+  itemNode_ = nullptr;
+  stackNode_ = nullptr;
+}
+
 bool ListItemView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
   recycleView->cachedNodes_.resize(2);
   recycleView->cachedNodes_[0] = itemNode_;

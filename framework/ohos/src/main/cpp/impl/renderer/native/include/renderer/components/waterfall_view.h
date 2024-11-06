@@ -47,6 +47,7 @@ public:
   //baseview override
   ArkUINode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   void Init() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void OnSetPropsEndImpl() override;

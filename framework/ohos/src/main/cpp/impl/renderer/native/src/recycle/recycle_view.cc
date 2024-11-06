@@ -26,6 +26,15 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+void RecycleView::RemoveSubView(int32_t index) {
+  if (index < 0 || index >= (int32_t)children_.size()) {
+    return;
+  }
+  auto &subView = children_[(uint32_t)index];
+  subView->cachedNodes_[0]->RemoveSelfFromParent();
+  children_.erase(children_.begin() + index);
+}
+
 bool HippyIsRecycledView(const std::string &view_type) {
   if (view_type == "View" || view_type == "Image" || view_type == "Text" || view_type == "TextInput"
     || view_type == "ListViewItem" || view_type == "PullHeaderView" || view_type == "PullFooterView"

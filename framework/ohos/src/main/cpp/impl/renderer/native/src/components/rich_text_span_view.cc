@@ -42,6 +42,10 @@ void RichTextSpanView::CreateArkUINodeImpl() {
   spanNode_ = std::make_shared<SpanNode>();
 }
 
+void RichTextSpanView::DestroyArkUINodeImpl() {
+  spanNode_ = nullptr;
+}
+
 bool RichTextSpanView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = spanNode_;

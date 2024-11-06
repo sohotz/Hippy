@@ -36,13 +36,14 @@ public:
 
   StackNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
 
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
+
 private:
   std::shared_ptr<StackNode> stackNode_;
 };

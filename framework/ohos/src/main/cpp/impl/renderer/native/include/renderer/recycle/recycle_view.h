@@ -32,10 +32,12 @@ class RecycleView : public std::enable_shared_from_this<RecycleView> {
 public:
   RecycleView() {}
   ~RecycleView() {}
-  
+
+  void RemoveSubView(int32_t index);
+
   std::string cachedViewType_;
   std::vector<std::shared_ptr<ArkUINode>> cachedNodes_;
-  
+
   std::vector<std::shared_ptr<RecycleView>> children_;
 };
 

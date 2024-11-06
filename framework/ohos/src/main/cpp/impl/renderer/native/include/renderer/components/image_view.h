@@ -36,19 +36,20 @@ public:
 
   ImageNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
-  
+
   void OnComplete(float width, float height) override;
   void OnError(int32_t errorCode) override;
   std::string GetSrc();
-  
+
 protected:
   virtual void FetchAltImage(const std::string &imageUrl);
   virtual void FetchImage(const std::string &imageUrl);
-  
+
 private:
   std::shared_ptr<ImageNode> imageNode_;
   std::string src_;

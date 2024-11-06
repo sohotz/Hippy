@@ -49,6 +49,10 @@ void DivView::CreateArkUINodeImpl() {
   stackNode_ = std::make_shared<StackNode>();
 }
 
+void DivView::DestroyArkUINodeImpl() {
+  stackNode_ = nullptr;
+}
+
 bool DivView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = stackNode_;

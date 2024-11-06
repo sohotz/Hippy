@@ -36,6 +36,7 @@ public:
 
   WaterFlowItemNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;

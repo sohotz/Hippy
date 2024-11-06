@@ -39,6 +39,10 @@ void PullFooterView::CreateArkUINodeImpl() {
   GetLocalRootArkUINode()->SetVisibility(isVisible_);
 }
 
+void PullFooterView::DestroyArkUINodeImpl() {
+  ListItemView::DestroyArkUINodeImpl();
+}
+
 bool PullFooterView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "sticky") {
     auto value = HRValueUtils::GetBool(propValue, false);

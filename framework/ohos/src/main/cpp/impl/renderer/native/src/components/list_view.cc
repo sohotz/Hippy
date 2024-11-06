@@ -83,6 +83,15 @@ void ListView::CreateArkUINodeImpl() {
   CheckInitOffset();
 }
 
+void ListView::DestroyArkUINodeImpl() {
+  listNode_->SetArkUINodeDelegate(nullptr);
+  listNode_->SetNodeDelegate(nullptr);
+  listNode_->ResetLazyAdapter();
+  
+  stackNode_ = nullptr;
+  listNode_ = nullptr;
+}
+
 bool ListView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "nestedScrollTopPriority") {
     ArkUI_ScrollNestedMode scrollForward = ARKUI_SCROLL_NESTED_MODE_SELF_FIRST;

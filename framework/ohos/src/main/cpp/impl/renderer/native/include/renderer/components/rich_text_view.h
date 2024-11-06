@@ -37,20 +37,21 @@ public:
 
   TextNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void OnSetPropsEndImpl() override;
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
-  
+
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
+
   void SendTextEllipsizedEvent();
-  
+
 private:
   std::shared_ptr<TextNode> textNode_;
-  
+
   std::optional<std::string> text_;
   std::optional<uint32_t> color_;
   std::optional<std::string> fontFamily_;
@@ -62,7 +63,7 @@ private:
   std::optional<int32_t> numberOfLines_;
   std::optional<int32_t> textAlign_;
   std::optional<std::string> ellipsizeModeValue_;
-  
+
   ArkUI_TextDecorationType decorationType_ = ARKUI_TEXT_DECORATION_TYPE_NONE;
   ArkUI_TextDecorationStyle decorationStyle_ = ARKUI_TEXT_DECORATION_STYLE_SOLID;
   uint32_t decorationColor_ = 0xff000000;
@@ -70,10 +71,10 @@ private:
   float textShadowOffsetX_ = 0.f;
   float textShadowOffsetY_ = 0.f;
   uint32_t textShadowColor_ = 0xff000000;
-  
+
   bool toSetTextDecoration_ = false;
   bool toSetTextShadow = false;
-  
+
   bool isListenEllipsized_ = false;
   bool toSendEllipsizedEvent_ = false;
 };

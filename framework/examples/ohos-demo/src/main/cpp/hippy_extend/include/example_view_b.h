@@ -37,8 +37,9 @@ public:
 
   StackNode *GetLocalRootArkUINode() override;
   void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
-  
+
   LayoutSize CustomMeasure(float width, LayoutMeasureMode width_measure_mode,
                            float height, LayoutMeasureMode height_measure_mode) override {
     return {100, 100};
@@ -46,7 +47,7 @@ public:
 
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
+
 private:
   std::shared_ptr<StackNode> stackNode_;
   std::shared_ptr<TextNode> textNode_;
