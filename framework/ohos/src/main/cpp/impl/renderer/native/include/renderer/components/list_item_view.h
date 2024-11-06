@@ -51,7 +51,7 @@ public:
   bool IsSticky() { return sticky_; }
 
   void CheckExposureView(float currentRatio);
-private:
+protected:
   uint32_t CalculateExposureState(float currentRatio);
   void MoveToExposureState(uint32_t state);
   

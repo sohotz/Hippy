@@ -29,7 +29,9 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-PullHeaderView::PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx) : ListItemView(ctx) {}
+PullHeaderView::PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx) : ListItemView(ctx) {
+  type_ = "PullHeader";
+}
 
 PullHeaderView::~PullHeaderView() {}
 

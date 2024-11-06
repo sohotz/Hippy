@@ -100,12 +100,11 @@ private:
   void OnNewItemAttached(ArkUI_NodeAdapterEvent *event) {
     auto index = OH_ArkUI_NodeAdapterEvent_GetItemIndex(event);
     auto view = itemViews_[index];
-    
     ArkUI_NodeHandle handle = nullptr;
     if (!cachedRecycleViews_.empty()) {
       auto recycleView = cachedRecycleViews_.top();
       view->ReuseArkUINode(recycleView);
-      handle = recycleView->cachedNodes_[0]->GetArkUINodeHandle();
+      handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
       cachedRecycleViews_.pop();
     } else {
       // 创建新的元素
@@ -124,7 +123,10 @@ private:
   // Item从可见区域移除
   void OnItemDetached(ArkUI_NodeAdapterEvent *event) {
     auto itemHandle = OH_ArkUI_NodeAdapterEvent_GetRemovedNode(event);
-    cachedRecycleViews_.emplace(allRecycleViews_[itemHandle]);
+    auto it = allRecycleViews_.find(itemHandle);
+    if (it != allRecycleViews_.end()) {
+      cachedRecycleViews_.emplace(it->second);
+    }
   }
 
   ArkUI_NodeAdapterHandle handle_ = nullptr;

@@ -28,7 +28,9 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : ListItemView(ctx) {}
+PullFooterView::PullFooterView(std::shared_ptr<NativeRenderContext> &ctx) : ListItemView(ctx) {
+  type_ = "PullFooter";
+}
 
 PullFooterView::~PullFooterView() {}
 
