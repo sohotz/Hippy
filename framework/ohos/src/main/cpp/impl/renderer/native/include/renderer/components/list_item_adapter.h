@@ -40,9 +40,7 @@ public:
   }
 
   ~ListItemAdapter() {
-    while (!cachedRecycleViews_.empty()) {
-      cachedRecycleViews_.pop();
-    }
+    cachedTypeRecycleViews_.clear();
     allRecycleViews_.clear();
 
     OH_ArkUI_NodeAdapter_UnregisterEventReceiver(handle_);
@@ -101,11 +99,14 @@ private:
     auto index = OH_ArkUI_NodeAdapterEvent_GetItemIndex(event);
     auto view = itemViews_[index];
     ArkUI_NodeHandle handle = nullptr;
-    if (!cachedRecycleViews_.empty()) {
-      auto recycleView = cachedRecycleViews_.top();
+    
+    auto itemView = std::static_pointer_cast<ListItemView>(view);
+    auto cachedIt = cachedTypeRecycleViews_.find(itemView->GetType());
+    if (cachedIt != cachedTypeRecycleViews_.end() && !cachedIt->second.empty()) {
+      auto recycleView = cachedIt->second.top();
       view->ReuseArkUINode(recycleView);
       handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
-      cachedRecycleViews_.pop();
+      cachedIt->second.pop();
     } else {
       // 创建新的元素
       view->CreateArkUINode(true, -1);
@@ -125,7 +126,18 @@ private:
     auto itemHandle = OH_ArkUI_NodeAdapterEvent_GetRemovedNode(event);
     auto it = allRecycleViews_.find(itemHandle);
     if (it != allRecycleViews_.end()) {
-      cachedRecycleViews_.emplace(it->second);
+      auto index = OH_ArkUI_NodeAdapterEvent_GetItemIndex(event);
+      auto view = itemViews_[index];
+      auto itemView = std::static_pointer_cast<ListItemView>(view);
+      auto cachedIt = cachedTypeRecycleViews_.find(itemView->GetType());
+      if (cachedIt == cachedTypeRecycleViews_.end()) {
+        std::stack<std::shared_ptr<RecycleView>> cached;
+        cached.emplace(it->second);
+        cachedTypeRecycleViews_[itemView->GetType()] = cached;
+      } else {
+        auto &cached = cachedIt->second;
+        cached.emplace(it->second);
+      }
     }
   }
 
@@ -134,7 +146,7 @@ private:
   std::vector<std::shared_ptr<BaseView>> &itemViews_;
   
   std::unordered_map<ArkUI_NodeHandle, std::shared_ptr<RecycleView>> allRecycleViews_;
-  std::stack<std::shared_ptr<RecycleView>> cachedRecycleViews_;
+  std::unordered_map<std::string, std::stack<std::shared_ptr<RecycleView>>> cachedTypeRecycleViews_;
 };
 
 } // namespace native
