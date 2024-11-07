@@ -62,6 +62,7 @@ public:
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildReusedImpl(std::shared_ptr<BaseView> const &childView, int index) override;
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
 
   void ScrollToIndex(int32_t index, bool animated);

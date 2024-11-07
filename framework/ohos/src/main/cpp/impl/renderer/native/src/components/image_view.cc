@@ -60,6 +60,7 @@ bool ImageView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) 
   imageNode_->SetNodeDelegate(nullptr);
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = imageNode_;
+  imageNode_ = nullptr;
   return true;
 }
 

@@ -67,7 +67,7 @@ public:
   
   std::shared_ptr<RecycleView> RecycleArkUINode();
   virtual bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) { return false; }
-  bool ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView);
+  bool ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t index);
   virtual bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) { return false; }
   
   bool SetProp(const std::string &propKey, const HippyValue &propValue);
@@ -102,6 +102,7 @@ protected:
   virtual void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index);
   virtual void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int index) {}
   virtual void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {}
+  virtual void OnChildReusedImpl(std::shared_ptr<BaseView> const &childView, int index) {}
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding);
   virtual void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding);
   virtual bool HandleGestureBySelf() { return false; }

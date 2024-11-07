@@ -75,6 +75,8 @@ bool TextInputView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleVi
   recycleView->cachedNodes_.resize(2);
   recycleView->cachedNodes_[0] = stackNode_;
   recycleView->cachedNodes_[1] = inputBaseNodePtr_;
+  stackNode_ = nullptr;
+  inputBaseNodePtr_ = nullptr;
   return true;
 }
 

@@ -211,6 +211,13 @@ void ListView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, in
   BaseView::OnChildRemovedImpl(childView, index);
 }
 
+void ListView::OnChildReusedImpl(std::shared_ptr<BaseView> const &childView, int index) {
+  BaseView::OnChildReusedImpl(childView, index);
+  
+  auto itemView = std::static_pointer_cast<ListItemView>(childView);
+  itemView->GetLocalRootArkUINode()->SetItemIndex(index);
+}
+
 void ListView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   auto parent = parent_.lock();
   if (parent && parent->GetViewType() == "RefreshWrapper") {

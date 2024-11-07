@@ -62,6 +62,8 @@ bool ListItemView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleVie
   recycleView->cachedNodes_.resize(2);
   recycleView->cachedNodes_[0] = itemNode_;
   recycleView->cachedNodes_[1] = stackNode_;
+  itemNode_ = nullptr;
+  stackNode_ = nullptr;
   return true;
 }
 

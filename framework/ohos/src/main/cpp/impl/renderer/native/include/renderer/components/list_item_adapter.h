@@ -23,6 +23,7 @@
 #pragma once
 
 #include <arkui/native_node.h>
+#include <map>
 #include <stack>
 #include "renderer/components/list_item_view.h"
 #include "renderer/recycle/recycle_view.h"
@@ -102,23 +103,37 @@ private:
     auto itemView = std::static_pointer_cast<ListItemView>(view);
     auto cachedIt = cachedTypeRecycleViews_.find(itemView->GetType());
     if (cachedIt != cachedTypeRecycleViews_.end() && !cachedIt->second.empty()) {
+      // FOOTSTONE_LOG(INFO) << "hippy, list OnNewItemAttached, index: " << index << ", to reuse";
       auto recycleView = cachedIt->second.top();
-      view->ReuseArkUINode(recycleView);
+      view->ReuseArkUINode(recycleView, (int32_t)index);
       handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
       cachedIt->second.pop();
     } else {
+      // FOOTSTONE_LOG(INFO) << "hippy, list OnNewItemAttached, index: " << index << ", to new";
       // 创建新的元素
-      view->CreateArkUINode(true, -1);
+      view->CreateArkUINode(true, (int32_t)index);
       handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
     }
     
     // 设置需要展示的元素
     OH_ArkUI_NodeAdapterEvent_SetItem(event, handle);
+    attachedHandleIndexMap_[handle] = index;
   }
 
   // Item从可见区域移除
   void OnItemDetached(ArkUI_NodeAdapterEvent *event) {
-    auto index = OH_ArkUI_NodeAdapterEvent_GetItemIndex(event);
+    auto itemHandle = OH_ArkUI_NodeAdapterEvent_GetRemovedNode(event);
+    auto it = attachedHandleIndexMap_.find(itemHandle);
+    if (it == attachedHandleIndexMap_.end()) {
+      FOOTSTONE_UNREACHABLE();
+      return;
+    }
+    
+    auto index = it->second;
+    attachedHandleIndexMap_.erase(it);
+    
+    // FOOTSTONE_LOG(INFO) << "hippy, list OnItemDetached, index: " << index;
+    
     auto view = itemViews_[index];
     auto recycleView = view->RecycleArkUINode();
     if (recycleView) {
@@ -140,6 +155,8 @@ private:
   std::vector<std::shared_ptr<BaseView>> &itemViews_;
 
   std::unordered_map<std::string, std::stack<std::shared_ptr<RecycleView>>> cachedTypeRecycleViews_;
+  
+  std::map<ArkUI_NodeHandle, uint32_t> attachedHandleIndexMap_;
 };
 
 } // namespace native

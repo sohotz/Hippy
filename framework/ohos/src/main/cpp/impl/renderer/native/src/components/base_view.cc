@@ -151,16 +151,21 @@ std::shared_ptr<RecycleView> BaseView::RecycleArkUINode() {
   return recycleView;
 }
 
-bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView) {
+bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t index) {
   if (recycleView->cachedViewType_ != GetViewType()) {
-    CreateArkUINode(true);
+    CreateArkUINode(true, index);
     return false;
   }
   
   bool result = ReuseArkUINodeImpl(recycleView);
   if (!result) {
-    CreateArkUINode(true); // TODO(hot): 1 to handle parent->OnChildInsertedImpl 2 judge node exist 3 destroy node 4 update props
+    CreateArkUINode(true, index); // TODO(hot): 1 to handle parent->OnChildInsertedImpl 2 judge node exist 3 destroy node 4 update props
     return false;
+  }
+  
+  auto parent = parent_.lock();
+  if (parent) {
+    parent->OnChildReusedImpl(shared_from_this(), index);
   }
   
   UpdateLazyProps();
@@ -169,15 +174,15 @@ bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView) {
     auto subView = children_[(uint32_t)i];
     if ((int32_t)recycleView->children_.size() > i) {
       auto subRecycleView = recycleView->children_[(uint32_t)i];
-      bool subResult = subView->ReuseArkUINode(subRecycleView);
+      bool subResult = subView->ReuseArkUINode(subRecycleView, i);
       if (!subResult) {
         for (int32_t j = (int32_t)recycleView->children_.size() - 1; j >= i ; j--) {
           recycleView->RemoveSubView(j);
         }
-        subView->CreateArkUINode(true);
+        subView->CreateArkUINode(true, i);
       }
     } else {
-      subView->CreateArkUINode(true);
+      subView->CreateArkUINode(true, i);
     }
   }
   return true;

@@ -60,6 +60,7 @@ void RichTextView::DestroyArkUINodeImpl() {
 bool RichTextView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = textNode_;
+  textNode_ = nullptr;
   return true;
 }
 

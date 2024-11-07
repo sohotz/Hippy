@@ -56,6 +56,7 @@ void DivView::DestroyArkUINodeImpl() {
 bool DivView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = stackNode_;
+  stackNode_ = nullptr;
   return true;
 }
 
