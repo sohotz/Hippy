@@ -61,6 +61,17 @@ bool RichTextView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleVie
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = textNode_;
   textNode_ = nullptr;
+  text_.reset();
+  color_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  letterSpacing_.reset();
+  lineHeight_.reset();
+  numberOfLines_.reset();
+  textAlign_.reset();
+  ellipsizeModeValue_.reset();
   return true;
 }
 

@@ -77,6 +77,21 @@ bool TextInputView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleVi
   recycleView->cachedNodes_[1] = inputBaseNodePtr_;
   stackNode_ = nullptr;
   inputBaseNodePtr_ = nullptr;
+  caretColor_.reset();
+  color_.reset();
+  value_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  maxLength_.reset();
+  placeholder_.reset();
+  placeholderTextColor_.reset();
+  maxLines_.reset();
+  keyboardType_.reset();
+  returnKeyType_.reset();
+  textAlign_.reset();
+  textAlignVertical_.reset();
   return true;
 }
 
