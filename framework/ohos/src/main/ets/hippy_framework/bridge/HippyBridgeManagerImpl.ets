@@ -48,13 +48,13 @@ export enum BridgeState {
 }
 
 export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallback {
-  // Bridge 状态
+  // Bridge Status
   public static MSG_CODE_INIT_BRIDGE = 10;
   public static MSG_CODE_RUN_BUNDLE = 11;
   public static MSG_CODE_CALL_FUNCTION = 12;
   public static MSG_CODE_DESTROY_BRIDGE = 13;
   public static MSG_CODE_ON_BRIDGE_DESTROYED = 14;
-  // Instance 状态
+  // Instance Status
   public static FUNCTION_ACTION_LOAD_INSTANCE = 1;
   public static FUNCTION_ACTION_RESUME_INSTANCE = 2;
   public static FUNCTION_ACTION_PAUSE_INSTANCE = 3;
@@ -62,10 +62,10 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
   public static FUNCTION_ACTION_CALLBACK = 5;
   public static FUNCTION_ACTION_CALL_JS_MODULE = 6;
   public static FUNCTION_ACTION_ON_WEBSOCKET_MESSAGE = 7;
-  // Bridge状态定义
+  // Bridge Type
   public static BRIDGE_TYPE_SINGLE_THREAD = 2;
   public static BRIDGE_TYPE_NORMAL = 1;
-  // 销毁状态
+  // Destroy Type
   public static DESTROY_CLOSE = 0;
   public static DESTROY_RELOAD = 1;
   public mContext: HippyEngineContext;
@@ -242,10 +242,15 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     }
   }
 
-  async initBridge(initBridgeCallback: NativeCallback): Promise<void> {
-    this.mHippyBridge.initJSBridge(await this.getGlobalConfigsString(), (result: number, reason: string) => {
-      this.initJSBridgeCallback(result, reason, initBridgeCallback);
-    }, this.mGroupId);
+  async initBridge(initBridgeCallback: NativeCallback, isReload: boolean): Promise<void> {
+    this.mHippyBridge.initJSBridge(
+      await this.getGlobalConfigsString(),
+      (result: number, reason: string) => {
+        this.initJSBridgeCallback(result, reason, initBridgeCallback);
+      },
+      this.mGroupId,
+      isReload
+    );
   }
 
   initJSBridgeCallback(result: number, reason: string, initBridgeCallback: NativeCallback): void {
@@ -255,7 +260,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     }
 
     if (this.mContext != null) {
-      this.mContext.onRuntimeInitialized();
+      this.mContext.reloadRootView();
     }
     // TODO
     if (this.enableTurbo()) {

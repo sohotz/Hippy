@@ -30,6 +30,7 @@ import { HippyLibrary } from '../hippy_library/HippyLibrary';
 import { DevtoolsManager } from './devsupport/DevtoolsManager';
 import { NativeRender } from '../renderer_native/NativeRender';
 import { HippyRootView } from '../renderer_native/HippyRootView';
+import { NativeRenderProvider } from '../renderer_native/NativeRenderProvider';
 
 export interface HippyEngineContext {
 
@@ -59,6 +60,8 @@ export interface HippyEngineContext {
 
   getRootView(rootId: number): HippyRootView | null
 
+  getNativeRenderProvider(): NativeRenderProvider | null
+
   // int getEngineId();
 
   getDomManagerId(): number;
@@ -67,7 +70,7 @@ export interface HippyEngineContext {
 
   getDevtoolsId(): number;
 
-  onRuntimeInitialized(): void;
+  reloadRootView(): void;
 
   onBridgeDestroyed(isReload: boolean): void;
 

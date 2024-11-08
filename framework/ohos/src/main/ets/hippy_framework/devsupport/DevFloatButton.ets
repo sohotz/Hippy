@@ -111,7 +111,7 @@ export class DevFloatButton {
         //设置初始位置
         this.btnPosition.x = this.winWidth * 0
         this.btnPosition.y = this.winHeight * 0.1
-        // this.create(onClickHandle);
+        this.create(onClickHandle);
       }
     });
   }
@@ -136,8 +136,8 @@ export class DevFloatButton {
       const action = this.uiContext?.getPromptAction();
       if (this.uiContext != null) {
         let contentNode = new ComponentContent(this.uiContext, wrapBuilder(buildReload),
-          new Params("Reload", null, this.radius, (reloaClickEvent: ClickEvent) => {
-            onClickHandle(reloaClickEvent);
+          new Params("Reload", null, this.radius, (reloadClickEvent: ClickEvent) => {
+            onClickHandle(reloadClickEvent);
             action?.closeCustomDialog(contentNode);
           }, (event: TouchEvent) => {
           }));

@@ -52,6 +52,7 @@ export class JsDriver {
     mEnableV8Serialization: boolean,
     groupId: number,
     devtoolsId: number,
+    isReload: boolean,
   ) {
     this.instanceId = this.onCreate(
       globalConfig,
@@ -63,7 +64,8 @@ export class JsDriver {
       domManagerId,
       null, // TODO v8InitParams
       vfsId,
-      devtoolsId
+      devtoolsId,
+      isReload
     )
   }
 
@@ -77,7 +79,8 @@ export class JsDriver {
     domManagerId: number,
     v8InitParams: V8InitParams | null,
     vfsId: number,
-    devtoolsId: number
+    devtoolsId: number,
+    isReload: boolean
   ): number {
     let v8ParamArray: Array<number> | null = null
     if (v8InitParams) {
@@ -96,7 +99,8 @@ export class JsDriver {
       domManagerId,
       v8ParamArray,
       vfsId,
-      devtoolsId
+      devtoolsId,
+      isReload
     )
   }
 

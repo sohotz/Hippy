@@ -60,7 +60,7 @@ import { HRCreateMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation
 } from './uimanager/HRMutation'
-import { HippyEndBatchCallback } from './uimanager/HRViewManager'
+import { HippyEndBatchCallback, HRViewManager } from './uimanager/HRViewManager'
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
 import { HRMeasureResult } from './utils/HRMeasure'
 import { HRPosition, HRRect, HRSize } from './utils/HRTypes'
@@ -139,6 +139,10 @@ export class NativeRenderImpl implements NativeRender {
     return rootView
   }
 
+  reloadRootView(rootView: HippyRootView) {
+    HippyRootViewManager.addRootView(rootView.getRootId(), rootView)
+  }
+
   destroyRoot(rootId: number): void {
     HippyRootViewManager.removeRootView(rootId)
     if (this.frameworkProxy) {
@@ -146,6 +150,7 @@ export class NativeRenderImpl implements NativeRender {
     }
 
     this.renderManager.destroyViewManager(rootId)
+    this.libHippy?.NativeRenderProvider_UnbindNativeRoot(this.instanceId, rootId, 0)
     this.libHippy.NativeRenderProvider_DestroyRoot(this.instanceId, rootId)
   }
 

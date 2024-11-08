@@ -35,8 +35,9 @@ export class HippyRootView {
   renderView: HippyRenderView | null = null
   pagerName: string
   pagerData: HippyRecord
+  rootSlot: NodeContent | null = null
   private ctx: NativeRenderContext
-  private renderViewSize: HRSize = new HRSize(0, 0)
+  renderViewSize: HRSize = new HRSize(0, 0)
   private lazyRenderViewTasks: Array<() => void> = []
 
   constructor(instanceId: number,
@@ -67,8 +68,12 @@ export class HippyRootView {
     return this.ctx.getRootId()
   }
 
-  onViewSizeChanged(size: HRSize) {
-    if (this.renderViewSize.width == size.width && this.renderViewSize.height == size.height) {
+  setRootSlot(rootSlot: NodeContent) {
+    this.rootSlot = rootSlot;
+  }
+
+  onViewSizeChanged(size: HRSize, force = false) {
+    if (!force && this.renderViewSize.width == size.width && this.renderViewSize.height == size.height) {
       return
     }
     this.renderViewSize = size
@@ -188,6 +193,7 @@ export struct HippyRoot {
       if (this.initViewSize.width > 0) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
+      this.rootView.setRootSlot(this.rootSlot);
 
       let libHippy = this.hippyEngine?.getHippyEngineContext()?.getLibHippy()
       libHippy?.NativeRenderProvider_BindNativeRoot(this.rootSlot, this.renderInstanceId, this.rootView.getRootId(), 0)

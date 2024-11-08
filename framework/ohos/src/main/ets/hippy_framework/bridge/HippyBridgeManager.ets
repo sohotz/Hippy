@@ -23,7 +23,7 @@ import { NativeCallback } from '../connector/NativeCallback';
 import { HippyBundleLoader } from './bundleloader/HippyBundleLoader';
 
 export interface HippyBridgeManager {
-  initBridge(initBridgeCallback: NativeCallback): void;
+  initBridge(initBridgeCallback: NativeCallback, isReload: boolean): void;
 
   runBundle(id: number, loader: HippyBundleLoader): void;
 

@@ -62,7 +62,8 @@ export interface HippyLibrary {
     domManagerId: number,
     v8ParamArray: Array<number> | null,
     vfsId: number,
-    devtoolsId: number
+    devtoolsId: number,
+    isReload: boolean
   ): number;
   JsDriver_DestroyJsDriver(instanceId: number, useLowMemoryMode: boolean, isReload: boolean, callback: NativeCallback): void;
   JsDriver_LoadInstance(instanceId: number, buffer: ArrayBuffer): void;

@@ -77,11 +77,11 @@ export class HippyBridgeImpl implements HippyBridge {
     }
   }
 
-  initJSBridge(globalConfig: string, callback: NativeCallback, groupId: number): void {
-    this.initJSEngine(globalConfig, callback, groupId);
+  initJSBridge(globalConfig: string, callback: NativeCallback, groupId: number, isReload: boolean): void {
+    this.initJSEngine(globalConfig, callback, groupId, isReload);
   }
 
-  initJSEngine(globalConfig: string, callback: NativeCallback, groupId: number) {
+  initJSEngine(globalConfig: string, callback: NativeCallback, groupId: number, isReload: boolean) {
     if (!this.mEngineContext) {
       return;
     }
@@ -93,7 +93,8 @@ export class HippyBridgeImpl implements HippyBridge {
       globalConfig,
       this.mEnableV8Serialization,
       groupId,
-      this.mEngineContext.getDevtoolsId()
+      this.mEngineContext.getDevtoolsId(),
+      isReload,
     )
   }
 
