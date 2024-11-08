@@ -111,6 +111,7 @@ public:
   virtual ArkUINode &SetTransitionTranslate(float distanceX,float distanceY,float distanceZ,ArkUI_AnimationCurve curveType,int32_t duration);
 //  virtual ArkUINode &SetPadding(float top, float right, float bottom, float left);
   virtual void ResetNodeAttribute(ArkUI_NodeAttributeType type);
+  virtual void ResetAllAttributes();
   virtual HRSize GetSize() const;
   virtual uint32_t GetTotalChildCount() const;
   virtual HRPosition GetPostion() const;

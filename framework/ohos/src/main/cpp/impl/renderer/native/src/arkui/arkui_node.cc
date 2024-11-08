@@ -541,6 +541,13 @@ void ArkUINode::ResetNodeAttribute(ArkUI_NodeAttributeType type){
   MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, type));
 }
 
+void ArkUINode::ResetAllAttributes() {
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_BORDER_WIDTH));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_BORDER_COLOR));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_BORDER_RADIUS));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_BORDER_STYLE));
+}
+
 void ArkUINode::SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate) {
   arkUINodeDelegate_ = arkUINodeDelegate;
 }

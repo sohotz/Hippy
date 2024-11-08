@@ -81,6 +81,8 @@ public:
   TextNode &SetTextIndent(float textIndent);
   TextNode &SetTextEnable(bool enableFlag);
   TextNode &SetPadding(float top, float right, float bottom, float left);
+  
+  void ResetAllAttributes() override;
 };
 
 } // namespace native
