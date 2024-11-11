@@ -93,7 +93,7 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
   }
   
   CreateArkUINodeImpl();
-  isLazyCreate_ = false; // TODO(hot):
+  isLazyCreate_ = false;
   
   if (parent) {
     auto child_index = index < 0 ? parent->IndexOfChild(shared_from_this()) : index;
@@ -162,7 +162,7 @@ bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t
   
   bool result = ReuseArkUINodeImpl(recycleView);
   if (!result) {
-    CreateArkUINode(true, index); // TODO(hot): 1 to handle parent->OnChildInsertedImpl 2 judge node exist 3 destroy node 4 update props
+    CreateArkUINode(true, index);
     return false;
   }
   
