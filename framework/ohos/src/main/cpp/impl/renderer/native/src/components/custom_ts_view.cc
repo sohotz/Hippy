@@ -25,6 +25,7 @@
 #include "oh_napi/ark_ts.h"
 #include "oh_napi/oh_napi_object.h"
 #include "oh_napi/oh_napi_object_builder.h"
+#include "renderer/arkui/native_node_api.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -48,6 +49,10 @@ CustomTsView::~CustomTsView() {
     containerNode_->RemoveChild(tsNode_.get());
     containerNode_->RemoveChild(subContainerNode_.get());
   }
+  if (customNodeHandle_) {
+    NativeNodeApi::GetInstance()->disposeNode(customNodeHandle_);
+    customNodeHandle_ = nullptr;
+  }
 }
 
 StackNode *CustomTsView::GetLocalRootArkUINode() {
@@ -57,6 +62,7 @@ StackNode *CustomTsView::GetLocalRootArkUINode() {
 void CustomTsView::CreateArkUINodeImpl() {
   containerNode_ = std::make_shared<StackNode>();
   tsNode_ = std::make_shared<CustomTsNode>(customNodeHandle_);
+  tsNode_->MarkReleaseHandle(false);
   subContainerNode_ = std::make_shared<StackNode>();
 
   containerNode_->AddChild(tsNode_.get());

@@ -113,6 +113,11 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
 }
 
 void BaseView::DestroyArkUINode() {
+  auto node = GetLocalRootArkUINode();
+  if (!node) {
+    return;
+  }
+  
   GetLocalRootArkUINode()->RemoveSelfFromParent();
   DestroyArkUINodeImpl();
   isLazyCreate_ = true;

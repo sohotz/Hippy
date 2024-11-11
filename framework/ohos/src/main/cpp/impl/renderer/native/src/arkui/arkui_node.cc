@@ -53,7 +53,9 @@ ArkUINode::~ArkUINode() {
     UnregisterClickEvent();
     UnregisterTouchEvent();
     ArkUINodeRegistry::GetInstance().UnregisterNode(this);
-    NativeNodeApi::GetInstance()->disposeNode(nodeHandle_);
+    if (isReleaseHandle_) {
+      NativeNodeApi::GetInstance()->disposeNode(nodeHandle_);
+    }
   }
 }
 

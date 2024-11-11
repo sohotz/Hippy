@@ -62,6 +62,8 @@ public:
   virtual ~ArkUINode();
 
   ArkUI_NodeHandle GetArkUINodeHandle();
+  
+  void MarkReleaseHandle(bool isRelease) { isReleaseHandle_ = isRelease; }
 
   void MarkDirty();
 
@@ -164,7 +166,8 @@ protected:
   void CheckAndLogError(const std::string& message, int count);
 
   ArkUI_NodeHandle nodeHandle_;
-
+  bool isReleaseHandle_ = true;
+  
   ArkUINodeDelegate *arkUINodeDelegate_ = nullptr;
 
   bool hasClickEvent_ = false;
