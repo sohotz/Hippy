@@ -287,6 +287,12 @@ ImageNode &ImageNode::ResetResizeMethod() {
   return *this;
 }
 
+void ImageNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_IMAGE_ALT));
+  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_IMAGE_SRC));
+}
+
 std::string ImageNode::GetUri() { return uri_; }
 
 } // namespace native

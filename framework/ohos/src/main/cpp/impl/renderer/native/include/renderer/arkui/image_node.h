@@ -90,6 +90,8 @@ public:
 
   ImageNode &ResetFocusable();
   ImageNode &ResetResizeMethod();
+  
+  void ResetAllAttributes() override;
 
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ImageNodeDelegate *imageNodeDelegate);

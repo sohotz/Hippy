@@ -70,9 +70,9 @@ void PullFooterView::CallImpl(const std::string &method, const std::vector<Hippy
 
 void PullFooterView::Show(bool show) {
   if (show != isVisible_) {
-    isVisible_ = show;
     auto node = GetLocalRootArkUINode();
     if (node) {
+      isVisible_ = show;
       node->SetVisibility(show);
     }
   }
