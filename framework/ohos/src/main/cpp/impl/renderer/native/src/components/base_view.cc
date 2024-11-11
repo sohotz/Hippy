@@ -115,6 +115,7 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
 void BaseView::DestroyArkUINode() {
   GetLocalRootArkUINode()->RemoveSelfFromParent();
   DestroyArkUINodeImpl();
+  isLazyCreate_ = true;
   for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
     auto subView = children_[(uint32_t)i];
     subView->DestroyArkUINode();
@@ -134,6 +135,8 @@ std::shared_ptr<RecycleView> BaseView::RecycleArkUINode() {
     DestroyArkUINode();
     return nullptr;
   }
+  
+  isLazyCreate_ = true;
   
   for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
     auto subView = children_[(uint32_t)i];
@@ -163,12 +166,20 @@ bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t
     return false;
   }
   
+  isLazyCreate_ = false;
+  
   auto parent = parent_.lock();
   if (parent) {
     parent->OnChildReusedImpl(shared_from_this(), index);
   }
   
   UpdateLazyProps();
+  
+  if (recycleView->children_.size() > children_.size()) {
+    for (int32_t k = (int32_t)recycleView->children_.size() - 1; k >= (int32_t)children_.size() ; k--) {
+      recycleView->RemoveSubView(k);
+    }
+  }
   
   for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
     auto subView = children_[(uint32_t)i];
@@ -883,6 +894,10 @@ void BaseView::AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t inde
   subView->SetParent(shared_from_this());
   children_.insert(it, subView);
   OnChildInserted(subView, index);
+  
+  // if (subView->GetViewType() == "ListViewItem") {
+  //   FOOTSTONE_LOG(INFO) << "hippy, list child inserted: " << index << ", count: " << children_.size() << ", parent: " << this << ", view: " << subView;
+  // }
 }
 
 void BaseView::RemoveSubView(std::shared_ptr<BaseView> &subView) {
@@ -892,6 +907,10 @@ void BaseView::RemoveSubView(std::shared_ptr<BaseView> &subView) {
     int32_t index = static_cast<int32_t>(it - children_.begin());
     children_.erase(it);
     OnChildRemoved(view, index);
+    
+    // if (view->GetViewType() == "ListViewItem") {
+    //   FOOTSTONE_LOG(INFO) << "hippy, list child removed: " << index << ", count: " << children_.size() << ", parent: " << this << ", view: " << view;
+    // }
   }
 }
 

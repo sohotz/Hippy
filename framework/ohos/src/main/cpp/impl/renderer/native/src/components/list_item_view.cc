@@ -86,6 +86,7 @@ bool ListItemView::SetViewProp(const std::string &propKey, const HippyValue &pro
     } else {
       type_ = "NoType" + std::to_string(tag_);
     }
+    // FOOTSTONE_LOG(INFO) << "hippy, list child, set type: " << type_ << ", view: " << this;
     return true;
   } else if (propKey == "sticky") {
     auto value = HRValueUtils::GetBool(propValue, false);

@@ -117,24 +117,23 @@ private:
     
     // 设置需要展示的元素
     OH_ArkUI_NodeAdapterEvent_SetItem(event, handle);
-    attachedHandleIndexMap_[handle] = index;
+    attachedHandleViewMap_[handle] = view;
   }
 
   // Item从可见区域移除
   void OnItemDetached(ArkUI_NodeAdapterEvent *event) {
     auto itemHandle = OH_ArkUI_NodeAdapterEvent_GetRemovedNode(event);
-    auto it = attachedHandleIndexMap_.find(itemHandle);
-    if (it == attachedHandleIndexMap_.end()) {
+    auto it = attachedHandleViewMap_.find(itemHandle);
+    if (it == attachedHandleViewMap_.end()) {
       FOOTSTONE_UNREACHABLE();
       return;
     }
     
-    auto index = it->second;
-    attachedHandleIndexMap_.erase(it);
+    auto view = it->second;
+    attachedHandleViewMap_.erase(it);
     
-    // FOOTSTONE_LOG(INFO) << "hippy, list OnItemDetached, index: " << index;
+    // FOOTSTONE_LOG(INFO) << "hippy, list OnItemDetached, view: " << view.get();
     
-    auto view = itemViews_[index];
     auto recycleView = view->RecycleArkUINode();
     if (recycleView) {
       auto itemView = std::static_pointer_cast<ListItemView>(view);
@@ -156,7 +155,7 @@ private:
 
   std::unordered_map<std::string, std::stack<std::shared_ptr<RecycleView>>> cachedTypeRecycleViews_;
   
-  std::map<ArkUI_NodeHandle, uint32_t> attachedHandleIndexMap_;
+  std::map<ArkUI_NodeHandle, std::shared_ptr<BaseView>> attachedHandleViewMap_;
 };
 
 } // namespace native
