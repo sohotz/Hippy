@@ -23,7 +23,7 @@ import util from '@ohos.util';
 import { TextUtils } from '../../support/utils/TextUtils';
 
 export class DevServerHelper {
-  private static BUNDLE_URL_FORMAT = "%s://%s/%s?platform=android&dev=%s&hot=%s&minify=%s";
+  private static BUNDLE_URL_FORMAT = "%s//%s/%s?platform=android&dev=%s&hot=%s&minify=%s";
   private static WEBSOCKET_LIVERELOAD_URL_FORMAT = "ws://%s/debugger-live-reload";
   private static DEBUG_URL_PREFIX = "ws://%s/debugger-proxy";
   private static DEBUG_URL_APPEND = "role=android_client&clientId=%s&hash=%s&contextName=%s";
