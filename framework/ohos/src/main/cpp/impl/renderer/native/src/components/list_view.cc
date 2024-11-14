@@ -76,7 +76,7 @@ void ListView::CreateArkUINodeImpl() {
   listNode_->SetNodeDelegate(this);
   listNode_->SetSizePercent(HRSize(1.f, 1.f));
   listNode_->SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
-  listNode_->SetListCachedCount(4);
+  listNode_->SetListCachedCount(0);//4);
   listNode_->SetScrollNestedScroll(ARKUI_SCROLL_NESTED_MODE_SELF_FIRST, ARKUI_SCROLL_NESTED_MODE_SELF_FIRST);
   listNode_->SetLazyAdapter(adapter_->GetHandle());
   
@@ -117,8 +117,8 @@ bool ListView::SetPropImpl(const std::string &propKey, const HippyValue &propVal
     initialOffset_ = HRValueUtils::GetFloat(propValue);
     return true;
   } else if (propKey == "itemViewCacheSize") {
-    auto value = HRValueUtils::GetInt32(propValue);
-    listNode_->SetListCachedCount(value);
+    //auto value = HRValueUtils::GetInt32(propValue);
+    listNode_->SetListCachedCount(0);//value);
     return true;
   } else if (propKey == "scrollEventThrottle") {
     scrollEventThrottle_ = HRValueUtils::GetInt32(propValue, 30);

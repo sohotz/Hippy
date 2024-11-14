@@ -161,12 +161,14 @@ std::shared_ptr<RecycleView> BaseView::RecycleArkUINode() {
 
 bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t index) {
   if (recycleView->cachedViewType_ != GetViewType()) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, list xx reuse, to create, for cached type: " << recycleView->cachedViewType_ << ", type: " << GetViewType() << ", this: " << this;
     CreateArkUINode(true, index);
     return false;
   }
   
   bool result = ReuseArkUINodeImpl(recycleView);
   if (!result) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, list xx reuse, to create, for reuse impl fail, this: " << this << ", type: " << GetViewType();
     CreateArkUINode(true, index);
     return false;
   }
@@ -195,10 +197,10 @@ bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t
         for (int32_t j = (int32_t)recycleView->children_.size() - 1; j >= i ; j--) {
           recycleView->RemoveSubView(j);
         }
-        subView->CreateArkUINode(true, i);
       }
     } else {
       subView->CreateArkUINode(true, i);
+      FOOTSTONE_LOG(INFO) << "xxx hippy, list xx reuse, to create, for sub: " << i << ", this: " << this << ", type: " << GetViewType() << ", subType: " << subView->GetViewType();
     }
   }
   return true;

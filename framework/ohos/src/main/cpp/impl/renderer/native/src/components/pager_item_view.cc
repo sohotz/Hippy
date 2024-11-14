@@ -44,6 +44,7 @@ StackNode *PagerItemView::GetLocalRootArkUINode() { return stackNode_.get(); }
 
 void PagerItemView::CreateArkUINodeImpl() {
   stackNode_ = std::make_shared<StackNode>();
+  FOOTSTONE_LOG(INFO) << "xxx hippy, pager item, CreateArkUINodeImpl";
 }
 
 void PagerItemView::DestroyArkUINodeImpl() {

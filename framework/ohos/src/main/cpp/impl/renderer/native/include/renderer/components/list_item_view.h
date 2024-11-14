@@ -49,7 +49,7 @@ public:
   
   float GetWidth();
   float GetHeight();
-  std::string &GetType() { return type_; }
+  std::string GetType() { return type_.size() > 0 ? type_ : ("NoType" + std::to_string(tag_)); }
   bool IsSticky() { return sticky_; }
 
   void CheckExposureView(float currentRatio);

@@ -83,8 +83,6 @@ bool ListItemView::SetViewProp(const std::string &propKey, const HippyValue &pro
     } else if (propValue.IsNumber()) {
       int32_t value = HRValueUtils::GetInt32(propValue);
       type_ = std::to_string(value);
-    } else {
-      type_ = "NoType" + std::to_string(tag_);
     }
     // FOOTSTONE_LOG(INFO) << "hippy, list child, set type: " << type_ << ", view: " << this;
     return true;

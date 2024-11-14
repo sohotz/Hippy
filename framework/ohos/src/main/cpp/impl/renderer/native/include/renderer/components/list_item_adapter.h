@@ -108,11 +108,17 @@ private:
       view->ReuseArkUINode(recycleView, (int32_t)index);
       handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
       cachedIt->second.pop();
+      
+      attachedHandleIndexMap_[handle] = index;
+      FOOTSTONE_LOG(INFO) << "xxx hippy, list item attach, reuse, index: " << index << ", adapter: " << this << ", handle: " << handle << ", type: " << itemView->GetType();
     } else {
       // FOOTSTONE_LOG(INFO) << "hippy, list OnNewItemAttached, index: " << index << ", to new";
       // 创建新的元素
       view->CreateArkUINode(true, (int32_t)index);
       handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
+      
+      attachedHandleIndexMap_[handle] = index;
+      FOOTSTONE_LOG(INFO) << "xxx hippy, list item attach, new, index: " << index << ", adapter: " << this << ", handle: " << handle << ", type: " << itemView->GetType();
     }
     
     // 设置需要展示的元素
@@ -128,6 +134,8 @@ private:
       FOOTSTONE_UNREACHABLE();
       return;
     }
+    
+    FOOTSTONE_LOG(INFO) << "xxx hippy, list item detach, index: " << attachedHandleIndexMap_[itemHandle] << ", adapter: " << this << ", handle: " << itemHandle;
     
     auto view = it->second;
     attachedHandleViewMap_.erase(it);
@@ -156,6 +164,9 @@ private:
   std::unordered_map<std::string, std::stack<std::shared_ptr<RecycleView>>> cachedTypeRecycleViews_;
   
   std::map<ArkUI_NodeHandle, std::shared_ptr<BaseView>> attachedHandleViewMap_;
+  
+  // log
+  std::map<ArkUI_NodeHandle, uint32_t> attachedHandleIndexMap_;
 };
 
 } // namespace native
