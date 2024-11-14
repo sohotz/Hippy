@@ -107,11 +107,12 @@ private:
     ArkUI_NodeHandle handle = view->GetLocalRootArkUINode()->GetArkUINodeHandle();
     // 设置需要展示的元素。
     OH_ArkUI_NodeAdapterEvent_SetItem(event, handle);
+    FOOTSTONE_LOG(INFO) << "xxx hippy, list item attach, index: " << index << ", adapter: " << this;
   }
 
   // Item从可见区域移除。
   void OnItemDetached(ArkUI_NodeAdapterEvent *event) {
-
+    FOOTSTONE_LOG(INFO) << "xxx hippy, list item detach, adapter: " << this;
   }
 
   ArkUI_NodeAdapterHandle handle_ = nullptr;
