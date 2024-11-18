@@ -212,6 +212,7 @@ void BaseView::UpdateLazyProps() {
   GetLocalRootArkUINode()->SetId(id_str);
   
   if (lazyProps_.size() > 0) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, list, node update lazy props, tag:" << tag_ << ", props:" << lazyProps_.size();
     for (auto it = lazyProps_.begin(); it != lazyProps_.end(); it++) {
       // value maybe empty string / false / 0
       auto &key = it->first;

@@ -81,9 +81,11 @@ std::string ImageView::GetSrc() {
 }
 
 bool ImageView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  FOOTSTONE_LOG(INFO) << "xxx hippy, list, image view SetPropImpl, tag:" << tag_ << ", key:" << propKey << ", value:" << propValue;
   if (propKey == "src") {
     auto value = HRValueUtils::GetString(propValue);
     if (value != src_) {
+      FOOTSTONE_LOG(INFO) << "xxx hippy, list, image view set src, tag:" << tag_ << ", value:" << propValue << ", old:" << src_;
       src_ = value;
       FetchImage(value);
     }
