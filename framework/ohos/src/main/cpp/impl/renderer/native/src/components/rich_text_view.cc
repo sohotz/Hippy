@@ -55,6 +55,17 @@ void RichTextView::CreateArkUINodeImpl() {
 
 void RichTextView::DestroyArkUINodeImpl() {
   textNode_ = nullptr;
+  text_.reset();
+  color_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  letterSpacing_.reset();
+  lineHeight_.reset();
+  numberOfLines_.reset();
+  textAlign_.reset();
+  ellipsizeModeValue_.reset();
 }
 
 bool RichTextView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
