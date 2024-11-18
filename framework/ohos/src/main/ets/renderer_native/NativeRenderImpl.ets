@@ -85,9 +85,6 @@ export class TextMeasurerConfig {
 
 declare function px2vp(px: number): number
 
-// TODO(hot):
-let builderNodeMap = new Map<number, BuilderNode<[HippyRenderBaseView]>>()
-
 export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
   private readonly INVALID_NODE_ID = -1
@@ -108,6 +105,9 @@ export class NativeRenderImpl implements NativeRender {
 
   private renderManager: HRManager
 
+  private customViewBuilderNodeMap: Map<number, BuilderNode<[HippyRenderBaseView]>>
+  private bizViewBuilderNodeMap: Map<number, BuilderNode<[HippyRenderBaseView]>>
+
   constructor(libHippy: HippyLibrary, enableArkCApi: boolean,
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       customMeasureRenderViews: Array<string> | null) {
@@ -116,6 +116,8 @@ export class NativeRenderImpl implements NativeRender {
     this.customRenderViewCreatorMap = customRenderViewCreatorMap
     this.customMeasureRenderViews = customMeasureRenderViews
     this.renderManager = new HRManager()
+    this.customViewBuilderNodeMap = new Map<number, BuilderNode<[HippyRenderBaseView]>>()
+    this.bizViewBuilderNodeMap = new Map<number, BuilderNode<[HippyRenderBaseView]>>()
   }
 
   setInstanceId(instanceId: number) {
@@ -655,14 +657,19 @@ key1               value1
     let builderNode = new BuilderNode<[HippyRenderBaseView]>(context!);
     builderNode.build(wrapBuilder(buildHippyRenderViewForCApi), view);
 
-    // TODO(hot): save BuilderNode
-    builderNodeMap.set(params.tag, builderNode);
+    this.customViewBuilderNodeMap.set(params.tag, builderNode);
 
     return builderNode.getFrameNode()!;
   }
 
   // for c-api
   removeRenderViewForCApi(params: RemoveRenderViewParamsForCApi): void {
+    let builderNode = this.customViewBuilderNodeMap.get(params.tag)
+    if (builderNode) {
+      builderNode.dispose()
+      this.customViewBuilderNodeMap.delete(params.tag)
+    }
+
     let viewManager = this.renderManager.getViewManager(params.rootTag)
     if (!viewManager) {
       return
@@ -766,20 +773,26 @@ key1               value1
     let builderNode = new BuilderNode<[Object]>(context!);
     builderNode.build(viewBuilder, view);
 
-    // TODO(hot): save BuilderNode
+    let bizViewId = ++NativeRenderImpl.sBizViewIdCounter;
+    this.bizViewBuilderNodeMap.set(bizViewId, builderNode);
 
     let frameNode = builderNode.getFrameNode();
     if (!frameNode) {
       return -1
     }
 
-    let bizViewId = ++NativeRenderImpl.sBizViewIdCounter
     this.libHippy?.NativeRenderProvider_AddBizViewInRoot(this.instanceId, rootId, bizViewId, frameNode, position.x, position.y)
     return bizViewId
   }
 
   removeBizViewInRoot(rootId: number, bizViewId: number): void {
     this.libHippy?.NativeRenderProvider_RemoveBizViewInRoot(this.instanceId, rootId, bizViewId)
+
+    let builderNode = this.bizViewBuilderNodeMap.get(bizViewId)
+    if (builderNode) {
+      builderNode.dispose()
+      this.bizViewBuilderNodeMap.delete(bizViewId)
+    }
   }
 
 }

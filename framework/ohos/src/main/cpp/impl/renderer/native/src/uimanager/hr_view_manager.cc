@@ -524,9 +524,6 @@ void HRViewManager::RemoveBizViewInRoot(uint32_t biz_view_id) {
     renderView->RemoveFromParentView();
     biz_view_registry_.erase(biz_view_id);
   }
-  
-  // TODO(hot): remove custom ts view node
-  
 }
 
 bool HRViewManager::IsCustomTsRenderView(std::string &view_name) {
@@ -556,7 +553,6 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   
   napi_valuetype type = arkTs.GetType(tsNode);
   if (type == napi_null) {
-    // TODO(hot): check tsNode not null
     FOOTSTONE_LOG(ERROR) << "create ts view error, tsNode null";
     return nullptr;
   }
@@ -564,7 +560,6 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   ArkUI_NodeHandle nodeHandle = nullptr;
   auto status = OH_ArkUI_GetNodeHandleFromNapiValue(ts_env_, tsNode, &nodeHandle);
   if (status != ARKUI_ERROR_CODE_NO_ERROR) {
-    // TODO(hot):
     FOOTSTONE_LOG(ERROR) << "create ts view error, nodeHandle fail, status: " << status << ", nodeHandle: " << nodeHandle;
     return nullptr;
   }

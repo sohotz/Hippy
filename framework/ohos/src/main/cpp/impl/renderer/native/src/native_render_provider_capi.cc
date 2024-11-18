@@ -472,8 +472,7 @@ static napi_value AddBizViewInRoot(napi_env env, napi_callback_info info) {
     FOOTSTONE_LOG(ERROR) << "add custom ts view error, nodeHandle fail, status: " << status << ", node_handle: " << node_handle;
     return arkTs.GetUndefined();
   }
-
-  // TODO(hot):
+  
   napi_close_handle_scope(env, scope);
 
   float x = static_cast<float>(arkTs.GetDouble(args[4]));
