@@ -589,6 +589,9 @@ void ListView::CheckInitOffset() {
 void ListView::CheckValidListSize() {
   if (width_ == 0 && height_ == 0) {
     isListZeroSize = true;
+    for (uint32_t i = 0; i < children_.size(); i++) {
+      children_[i]->DestroyArkUINode();
+    }
     listNode_->ResetLazyAdapter();
     adapter_.reset();
   } else {
