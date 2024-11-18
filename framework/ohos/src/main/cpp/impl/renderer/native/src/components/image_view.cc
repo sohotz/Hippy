@@ -54,6 +54,7 @@ void ImageView::CreateArkUINodeImpl() {
 void ImageView::DestroyArkUINodeImpl() {
   imageNode_->SetNodeDelegate(nullptr);
   imageNode_ = nullptr;
+  src_.clear();
 }
 
 bool ImageView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
