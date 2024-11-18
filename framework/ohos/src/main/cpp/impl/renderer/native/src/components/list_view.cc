@@ -33,7 +33,7 @@ inline namespace render {
 inline namespace native {
 
 ListView::ListView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  adapter_ = std::make_shared<ListItemAdapter>(children_);
+  
 }
 
 ListView::~ListView() {
@@ -78,6 +78,8 @@ void ListView::CreateArkUINodeImpl() {
   listNode_->SetScrollBarDisplayMode(ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
   listNode_->SetListCachedCount(4);
   listNode_->SetScrollNestedScroll(ARKUI_SCROLL_NESTED_MODE_SELF_FIRST, ARKUI_SCROLL_NESTED_MODE_SELF_FIRST);
+  
+  adapter_ = std::make_shared<ListItemAdapter>(children_);
   listNode_->SetLazyAdapter(adapter_->GetHandle());
   
   CheckInitOffset();
@@ -90,6 +92,7 @@ void ListView::DestroyArkUINodeImpl() {
   
   stackNode_ = nullptr;
   listNode_ = nullptr;
+  adapter_.reset();
 }
 
 bool ListView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
@@ -183,12 +186,16 @@ void ListView::CallImpl(const std::string &method, const std::vector<HippyValue>
 
 void ListView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) {
   BaseView::OnChildInserted(childView, index);
-  adapter_->InsertItem(index);
+  if (adapter_) {
+    adapter_->InsertItem(index);
+  }
 }
 
 void ListView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemoved(childView, index);
-  adapter_->RemoveItem(index);
+  if (adapter_) {
+    adapter_->RemoveItem(index);
+  }
 }
 
 void ListView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
