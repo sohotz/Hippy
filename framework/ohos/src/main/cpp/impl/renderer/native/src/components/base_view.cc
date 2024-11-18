@@ -195,7 +195,6 @@ bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t
         for (int32_t j = (int32_t)recycleView->children_.size() - 1; j >= i ; j--) {
           recycleView->RemoveSubView(j);
         }
-        subView->CreateArkUINode(true, i);
       }
     } else {
       subView->CreateArkUINode(true, i);
