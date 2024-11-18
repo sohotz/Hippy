@@ -95,6 +95,7 @@ private:
   void CheckPullOnScroll();
   void CheckStickyOnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio);
   void CheckInitOffset();
+  void CheckValidListSize();
 
   constexpr static const char *CONTENT_OFFSET = "contentOffset";
   constexpr static const char *PULL_HEADER_VIEW_TYPE = "PullHeaderView";
@@ -143,6 +144,8 @@ private:
   float lastItemFullVisibleYOffset_ = 0;
 
   uint64_t end_batch_callback_id_ = 0;
+  
+  bool isListZeroSize = false;
 };
 
 } // namespace native

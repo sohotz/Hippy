@@ -234,6 +234,8 @@ void ListView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &p
   }
   width_ = frame.width;
   height_ = frame.height;
+  
+  CheckValidListSize();
 }
 
 void ListView::ScrollToIndex(int32_t index, bool animated) {
@@ -580,6 +582,20 @@ void ListView::CheckInitOffset() {
       y += initialOffset_;
       listNode_->ScrollTo(0, y, true);
       initialOffset_ = 0;
+    }
+  }
+}
+
+void ListView::CheckValidListSize() {
+  if (width_ == 0 && height_ == 0) {
+    isListZeroSize = true;
+    listNode_->ResetLazyAdapter();
+    adapter_.reset();
+  } else {
+    if (isListZeroSize) {
+      isListZeroSize = false;
+      adapter_ = std::make_shared<ListItemAdapter>(children_);
+      listNode_->SetLazyAdapter(adapter_->GetHandle());
     }
   }
 }
