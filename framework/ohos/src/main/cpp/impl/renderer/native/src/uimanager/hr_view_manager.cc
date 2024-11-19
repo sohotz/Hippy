@@ -135,7 +135,7 @@ void HRViewManager::prepareReportFirstContentViewAdd(std::shared_ptr<HRMutation>
 }
 
 void HRViewManager::AddMutations(std::shared_ptr<HRMutation> &m) {
-  mutations_.push_back(m);
+//   mutations_.push_back(m);
 }
 
 void HRViewManager::ApplyMutations() {

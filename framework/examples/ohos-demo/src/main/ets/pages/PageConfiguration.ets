@@ -144,14 +144,14 @@ struct PageConfiguration {
           "Hi js developer, I come from ohos native code!"
         )
         loadParams.wrappedCustomRenderViewBuilder = wrapBuilder(buildCustomRenderView)
-        let rootView = hippyEngine?.loadModule(
-          loadParams,
-          (statusCode: ModuleLoadStatus, msg: string) => {
-              LogUtils.i('hippy demo', 'loadModule status: ' + statusCode + ' msg:' + msg);
-          })
-        if (rootView) {
-          info.rootViewWrapper?.setRootView(rootView)
-        }
+        // let rootView = hippyEngine?.loadModule(
+        //   loadParams,
+        //   (statusCode: ModuleLoadStatus, msg: string) => {
+        //       LogUtils.i('hippy demo', 'loadModule status: ' + statusCode + ' msg:' + msg);
+        //   })
+        // if (rootView) {
+        //   info.rootViewWrapper?.setRootView(rootView)
+        // }
       }
     })
 

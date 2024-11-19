@@ -310,6 +310,7 @@ bool JsDriverUtils::RunScript(const std::shared_ptr<Scope>& scope,
                               const string_view& code_cache_dir,
                               const string_view& uri,
                               bool is_local_file) {
+  if (1) return false;
   FOOTSTONE_LOG(INFO) << "RunScript begin, file_name = " << file_name
                       << ", is_use_code_cache = " << is_use_code_cache
                       << ", code_cache_dir = " << code_cache_dir

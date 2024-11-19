@@ -291,7 +291,7 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     if (result == 0) {
       this.mBridgeState = BridgeState.INITIALIZED;
     } else {
-      throw new Error("load coreJsBundle failed, check your core jsBundle:" + reason);
+      // throw new Error("load coreJsBundle failed, check your core jsBundle:" + reason);
     }
     const timeMonitor = this.mContext.getMonitor();
     // end init engine perf
