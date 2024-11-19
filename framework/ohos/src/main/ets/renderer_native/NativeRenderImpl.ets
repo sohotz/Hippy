@@ -105,9 +105,6 @@ export class NativeRenderImpl implements NativeRender {
 
   private renderManager: HRManager
 
-  private customViewBuilderNodeMap: Map<number, BuilderNode<[HippyRenderBaseView]>>
-  private bizViewBuilderNodeMap: Map<number, BuilderNode<[HippyRenderBaseView]>>
-
   constructor(libHippy: HippyLibrary, enableArkCApi: boolean,
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       customMeasureRenderViews: Array<string> | null) {
@@ -116,8 +113,6 @@ export class NativeRenderImpl implements NativeRender {
     this.customRenderViewCreatorMap = customRenderViewCreatorMap
     this.customMeasureRenderViews = customMeasureRenderViews
     this.renderManager = new HRManager()
-    this.customViewBuilderNodeMap = new Map<number, BuilderNode<[HippyRenderBaseView]>>()
-    this.bizViewBuilderNodeMap = new Map<number, BuilderNode<[HippyRenderBaseView]>>()
   }
 
   setInstanceId(instanceId: number) {
@@ -662,18 +657,16 @@ key1               value1
     let builderNode = new BuilderNode<[HippyRenderBaseView]>(context!);
     builderNode.build(wrapBuilder(buildHippyRenderViewForCApi), view);
 
-    this.customViewBuilderNodeMap.set(params.tag, builderNode);
+    let builderNodeManger = this.renderManager.getBuilerNodeManager(params.rootTag)
+    builderNodeManger?.addCustomViewBuilderNode(params.tag, builderNode)
 
     return builderNode.getFrameNode()!;
   }
 
   // for c-api
   removeRenderViewForCApi(params: RemoveRenderViewParamsForCApi): void {
-    let builderNode = this.customViewBuilderNodeMap.get(params.tag)
-    if (builderNode) {
-      builderNode.dispose()
-      this.customViewBuilderNodeMap.delete(params.tag)
-    }
+    let builderNodeManger = this.renderManager.getBuilerNodeManager(params.rootTag)
+    builderNodeManger?.removeCustomViewBuilderNode(params.tag)
 
     let viewManager = this.renderManager.getViewManager(params.rootTag)
     if (!viewManager) {
@@ -779,7 +772,8 @@ key1               value1
     builderNode.build(viewBuilder, view);
 
     let bizViewId = ++NativeRenderImpl.sBizViewIdCounter;
-    this.bizViewBuilderNodeMap.set(bizViewId, builderNode);
+    let builderNodeManger = this.renderManager.getBuilerNodeManager(rootId);
+    builderNodeManger?.addBizViewBuilderNode(bizViewId, builderNode);
 
     let frameNode = builderNode.getFrameNode();
     if (!frameNode) {
@@ -793,11 +787,8 @@ key1               value1
   removeBizViewInRoot(rootId: number, bizViewId: number): void {
     this.libHippy?.NativeRenderProvider_RemoveBizViewInRoot(this.instanceId, rootId, bizViewId)
 
-    let builderNode = this.bizViewBuilderNodeMap.get(bizViewId)
-    if (builderNode) {
-      builderNode.dispose()
-      this.bizViewBuilderNodeMap.delete(bizViewId)
-    }
+    let builderNodeManger = this.renderManager.getBuilerNodeManager(rootId);
+    builderNodeManger?.removeBizViewBuilderNode(bizViewId);
   }
 
 }
