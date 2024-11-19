@@ -62,7 +62,6 @@ public:
   HRRect GetTextContentRect() override;
     
   HRPoint GetTextAreaOffset() const;
-  void DefaultSetPadding();
     
 };
 

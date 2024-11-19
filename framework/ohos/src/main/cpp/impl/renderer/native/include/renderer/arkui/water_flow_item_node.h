@@ -49,7 +49,6 @@ public:
   void SetNodeDelegate(FlowItemNodeDelegate* delegate);  
   void SetConstraintSize(float minWidth,float maxWidth,float minHeight,float maxHeight);
   void SetItemIndex(int32_t index) { itemIndex_ = index; }
-  void SetPadding(float top, float right, float bottom, float left);  
 };
 
 } // namespace native

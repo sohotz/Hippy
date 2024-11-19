@@ -45,7 +45,6 @@ protected:
   // void SetCommonFontAttributes(TextAttributes const &textAttributes);
 
 public:
-  void SetPadding(float left, float top, float right, float bottom);
   //void SetFocusable(bool const &focusable);
   void SetAutoFocus(bool autoFocus);
   void SetResponseRegion(HRPosition const &position, HRSize const &size);

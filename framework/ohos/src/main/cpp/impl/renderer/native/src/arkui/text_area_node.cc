@@ -127,12 +127,6 @@ void TextAreaNode::SetInputType(int32_t const &keyboardType) {
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_AREA_TYPE, &item));
 }
 
-void TextAreaNode::DefaultSetPadding() {
-  ArkUI_NumberValue value = {.f32 = 0.f};
-  ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_PADDING, &item));
-}
-
 void TextAreaNode::SetTextEditing(bool const enable) {
   ArkUI_NumberValue value = {.i32 = enable ? 1 : 0};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};

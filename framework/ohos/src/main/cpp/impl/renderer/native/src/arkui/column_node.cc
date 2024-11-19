@@ -31,11 +31,6 @@ ColumnNode::ColumnNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(Ar
 
 ColumnNode::~ColumnNode() {}
 
-void ColumnNode::SetPadding(float top, float right, float bottom, float left){
-  ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_PADDING, &item));
-}
 
 } // namespace native
 } // namespace render
