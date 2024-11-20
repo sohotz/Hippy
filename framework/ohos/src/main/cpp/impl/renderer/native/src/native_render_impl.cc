@@ -77,18 +77,12 @@ void NativeRenderImpl::DoCallbackForCallCustomTsView(uint32_t root_id, uint32_t 
 
 void NativeRenderImpl::CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
-  auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);
-  if (!view_manager || !virtual_view_manager) {
+  if (!view_manager) {
     return;
   }
 
   for (uint32_t i = 0; i < mutations.size(); i++) {
     auto &m = mutations[i];
-
-    auto virtual_node = virtual_view_manager->CreateVirtualNode(root_id, m->tag_, m->parent_tag_, m->index_, m->props_);
-    virtual_node->view_name_ = m->view_name_;
-    virtual_view_manager->AddVirtualNode(m->tag_, virtual_node);
-
     auto tm = std::static_pointer_cast<HRMutation>(m);
     view_manager->AddMutations(tm);
   }
@@ -109,19 +103,12 @@ void NativeRenderImpl::PreCreateNode(uint32_t root_id, const std::vector<std::sh
 
 void NativeRenderImpl::UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
-  auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);
-  if (!view_manager || !virtual_view_manager) {
+  if (!view_manager) {
     return;
   }
 
   for (uint32_t i = 0; i < mutations.size(); i++) {
     auto &m = mutations[i];
-
-    auto virtual_node = virtual_view_manager->GetVirtualNode(m->tag_);
-    if (virtual_node && virtual_node->props_.size() > 0) {
-      // TODO(hot):
-    }
-
     auto tm = std::static_pointer_cast<HRMutation>(m);
     view_manager->AddMutations(tm);
   }
