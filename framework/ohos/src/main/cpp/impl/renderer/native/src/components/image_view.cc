@@ -54,7 +54,7 @@ void ImageView::CreateArkUINodeImpl() {
 void ImageView::DestroyArkUINodeImpl() {
   imageNode_->SetNodeDelegate(nullptr);
   imageNode_ = nullptr;
-  src_.clear();
+  ClearProps();
 }
 
 bool ImageView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
@@ -63,7 +63,7 @@ bool ImageView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) 
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = imageNode_;
   imageNode_ = nullptr;
-  src_.clear();
+  ClearProps();
   return true;
 }
 
@@ -201,6 +201,10 @@ void ImageView::OnError(int32_t errorCode) {
   paramsObj.insert_or_assign("errorCode", errorCode);
   std::shared_ptr<HippyValue> params = std::make_shared<HippyValue>(paramsObj);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_IMAGE_LOAD_END, params);
+}
+
+void ImageView::ClearProps() {
+  src_.clear();
 }
 
 } // namespace native

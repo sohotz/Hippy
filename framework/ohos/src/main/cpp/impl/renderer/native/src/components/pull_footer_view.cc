@@ -43,6 +43,19 @@ void PullFooterView::DestroyArkUINodeImpl() {
   ListItemView::DestroyArkUINodeImpl();
 }
 
+bool PullFooterView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  return ListItemView::RecycleArkUINodeImpl(recycleView);
+}
+
+bool PullFooterView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  bool ret = ListItemView::ReuseArkUINodeImpl(recycleView);
+  if (!ret) {
+    return false;
+  }
+  GetLocalRootArkUINode()->SetVisibility(isVisible_);
+  return true;
+}
+
 bool PullFooterView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "sticky") {
     auto value = HRValueUtils::GetBool(propValue, false);

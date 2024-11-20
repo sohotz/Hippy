@@ -44,6 +44,8 @@ public:
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
 
 private:
+  void ClearProps();
+  
   std::shared_ptr<SpanNode> spanNode_;
 
   std::optional<std::string> text_;

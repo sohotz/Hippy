@@ -69,29 +69,18 @@ void TextInputView::CreateArkUINodeImpl() {
 void TextInputView::DestroyArkUINodeImpl() {
   stackNode_ = nullptr;
   inputBaseNodePtr_ = nullptr;
+  ClearProps();
 }
 
 bool TextInputView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  stackNode_->ResetAllAttributes();
+  inputBaseNodePtr_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(2);
   recycleView->cachedNodes_[0] = stackNode_;
   recycleView->cachedNodes_[1] = inputBaseNodePtr_;
   stackNode_ = nullptr;
   inputBaseNodePtr_ = nullptr;
-  caretColor_.reset();
-  color_.reset();
-  value_.reset();
-  fontFamily_.reset();
-  fontSize_.reset();
-  fontStyle_.reset();
-  fontWeight_.reset();
-  maxLength_.reset();
-  placeholder_.reset();
-  placeholderTextColor_.reset();
-  maxLines_.reset();
-  keyboardType_.reset();
-  returnKeyType_.reset();
-  textAlign_.reset();
-  textAlignVertical_.reset();
+  ClearProps();
   return true;
 }
 
@@ -584,6 +573,24 @@ void TextInputView::OnEventEndEditing(ArkUI_EnterKeyType enterKeyType) {
   }
   const std::shared_ptr<HippyValue> objAction = std::make_shared<HippyValue>(params);
   HREventUtils::SendComponentEvent(ctx_, tag_, "onEditorAction", objAction);
+}
+
+void TextInputView::ClearProps() {
+  caretColor_.reset();
+  color_.reset();
+  value_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  maxLength_.reset();
+  placeholder_.reset();
+  placeholderTextColor_.reset();
+  maxLines_.reset();
+  keyboardType_.reset();
+  returnKeyType_.reset();
+  textAlign_.reset();
+  textAlignVertical_.reset();
 }
 
 } // namespace native

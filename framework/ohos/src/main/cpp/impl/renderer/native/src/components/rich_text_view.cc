@@ -55,35 +55,15 @@ void RichTextView::CreateArkUINodeImpl() {
 
 void RichTextView::DestroyArkUINodeImpl() {
   textNode_ = nullptr;
-  text_.reset();
-  color_.reset();
-  fontFamily_.reset();
-  fontSize_.reset();
-  fontStyle_.reset();
-  fontWeight_.reset();
-  letterSpacing_.reset();
-  lineHeight_.reset();
-  numberOfLines_.reset();
-  textAlign_.reset();
-  ellipsizeModeValue_.reset();
+  ClearProps();
 }
 
 bool RichTextView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  textNode_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = textNode_;
-  textNode_->ResetAllAttributes();
   textNode_ = nullptr;
-  text_.reset();
-  color_.reset();
-  fontFamily_.reset();
-  fontSize_.reset();
-  fontStyle_.reset();
-  fontWeight_.reset();
-  letterSpacing_.reset();
-  lineHeight_.reset();
-  numberOfLines_.reset();
-  textAlign_.reset();
-  ellipsizeModeValue_.reset();
+  ClearProps();
   return true;
 }
 
@@ -282,6 +262,20 @@ void RichTextView::SendTextEllipsizedEvent() {
   }
   HREventUtils::SendComponentEvent(ctx_, tag_, "ellipsized", nullptr);
   toSendEllipsizedEvent_ = false;
+}
+
+void RichTextView::ClearProps() {
+  text_.reset();
+  color_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  letterSpacing_.reset();
+  lineHeight_.reset();
+  numberOfLines_.reset();
+  textAlign_.reset();
+  ellipsizeModeValue_.reset();
 }
 
 } // namespace native

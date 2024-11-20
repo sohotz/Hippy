@@ -52,12 +52,15 @@ void RichTextImageSpanView::CreateArkUINodeImpl() {
 
 void RichTextImageSpanView::DestroyArkUINodeImpl() {
   imageSpanNode_ = nullptr;
+  ClearProps();
 }
 
 bool RichTextImageSpanView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  imageSpanNode_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = imageSpanNode_;
   imageSpanNode_ = nullptr;
+  ClearProps();
   return true;
 }
 
@@ -66,6 +69,7 @@ bool RichTextImageSpanView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &rec
     return false;
   }
   imageSpanNode_ = std::static_pointer_cast<ImageSpanNode>(recycleView->cachedNodes_[0]);
+  imageSpanNode_->SetImageObjectFit(ARKUI_OBJECT_FIT_FILL);
   return true;
 }
 
@@ -157,6 +161,10 @@ void RichTextImageSpanView::fetchImage(const std::string &imageUrl) {
 
     // TODO(hot):
 	}
+}
+
+void RichTextImageSpanView::ClearProps() {
+  src_.clear();
 }
 
 } // namespace native

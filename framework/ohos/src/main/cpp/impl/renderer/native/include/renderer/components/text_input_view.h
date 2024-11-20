@@ -99,6 +99,8 @@ private:
   void SetPropFlag(TextInputPropFlag flag) { propFlags_ |= flag; }
   void UnsetPropFlag(TextInputPropFlag flag) { propFlags_ &= ~flag; }
   bool IsPropFlag(TextInputPropFlag flag) { return (propFlags_ & flag) ? true : false; }
+  
+  void ClearProps();
 
   uint32_t propFlags_ = 0;
 

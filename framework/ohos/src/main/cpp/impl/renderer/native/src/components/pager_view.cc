@@ -60,6 +60,7 @@ void PagerView::DestroyArkUINodeImpl() {
   swiperNode_->ResetLazyAdapter();
   swiperNode_ = nullptr;
   adapter_.reset();
+  initialPageUsed_ = false;
 }
 
 bool PagerView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {

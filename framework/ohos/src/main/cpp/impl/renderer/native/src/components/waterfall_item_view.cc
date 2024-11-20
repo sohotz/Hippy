@@ -51,6 +51,7 @@ void WaterfallItemView::DestroyArkUINodeImpl() {
 }
 
 bool WaterfallItemView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  itemNode_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = itemNode_;
   itemNode_ = nullptr;

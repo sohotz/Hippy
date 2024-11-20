@@ -45,6 +45,8 @@ public:
 private:
   void FetchAltImage(const std::string &imageUrl);
   void fetchImage(const std::string &imageUrl);
+  
+  void ClearProps();
 
   std::shared_ptr<ImageSpanNode> imageSpanNode_;
 

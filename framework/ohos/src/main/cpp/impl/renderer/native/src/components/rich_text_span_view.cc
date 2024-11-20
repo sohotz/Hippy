@@ -44,20 +44,15 @@ void RichTextSpanView::CreateArkUINodeImpl() {
 
 void RichTextSpanView::DestroyArkUINodeImpl() {
   spanNode_ = nullptr;
+  ClearProps();
 }
 
 bool RichTextSpanView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  spanNode_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = spanNode_;
   spanNode_ = nullptr;
-  text_.reset();
-  color_.reset();
-  fontFamily_.reset();
-  fontSize_.reset();
-  fontStyle_.reset();
-  fontWeight_.reset();
-  letterSpacing_.reset();
-  lineHeight_.reset();
+  ClearProps();
   return true;
 }
 
@@ -186,6 +181,17 @@ void RichTextSpanView::OnSetPropsEndImpl() {
 void RichTextSpanView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   // Nothing to set for text span.
   // NODE_POSITION / NODE_WIDTH will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
+}
+
+void RichTextSpanView::ClearProps() {
+  text_.reset();
+  color_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  letterSpacing_.reset();
+  lineHeight_.reset();
 }
 
 } // namespace native

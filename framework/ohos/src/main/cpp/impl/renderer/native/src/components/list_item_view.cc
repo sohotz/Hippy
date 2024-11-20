@@ -59,6 +59,8 @@ void ListItemView::DestroyArkUINodeImpl() {
 }
 
 bool ListItemView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  itemNode_->ResetAllAttributes();
+  stackNode_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(2);
   recycleView->cachedNodes_[0] = itemNode_;
   recycleView->cachedNodes_[1] = stackNode_;

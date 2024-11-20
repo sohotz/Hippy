@@ -49,6 +49,8 @@ public:
 protected:
   virtual void FetchAltImage(const std::string &imageUrl);
   virtual void FetchImage(const std::string &imageUrl);
+  
+  void ClearProps();
 
 private:
   std::shared_ptr<ImageNode> imageNode_;

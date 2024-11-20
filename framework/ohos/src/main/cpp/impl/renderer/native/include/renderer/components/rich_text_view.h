@@ -50,6 +50,8 @@ public:
   void SendTextEllipsizedEvent();
 
 private:
+  void ClearProps();
+  
   std::shared_ptr<TextNode> textNode_;
 
   std::optional<std::string> text_;
