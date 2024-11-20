@@ -71,6 +71,8 @@ public:
   void InsertChild(ArkUINode *child, int32_t index);
   void RemoveChild(ArkUINode *child);
   void RemoveSelfFromParent();
+  
+  void SetDefaultAttributes();
 
   virtual ArkUINode &SetId(const std::string &id);
   virtual ArkUINode &SetPosition(const HRPosition &position);

@@ -223,6 +223,9 @@ TextNode &TextNode::SetTextIndent(float textIndent) {
 
 void TextNode::ResetAllAttributes() {
   ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_CONTENT, NODE_TEXT_CONTENT);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_COLOR, NODE_FONT_COLOR);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_SIZE, NODE_FONT_SIZE);

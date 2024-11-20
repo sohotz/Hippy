@@ -93,12 +93,14 @@ void SwiperNode::SetShowIndicator(bool show) {
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_SHOW_INDICATOR, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_SHOW_INDICATOR);
 }
 
 void SwiperNode::SetSwiperIndex(int32_t index) {
   ArkUI_NumberValue value = {.i32 = int32_t(index)};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_INDEX, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_INDEX);
 }
 
 void SwiperNode::SetSwiperSwipeToIndex(int32_t index, int32_t animation) {
@@ -106,12 +108,14 @@ void SwiperNode::SetSwiperSwipeToIndex(int32_t index, int32_t animation) {
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_SWIPE_TO_INDEX, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_SWIPE_TO_INDEX);
 }
 
 void SwiperNode::SetSwiperVertical(int32_t direction) {
   ArkUI_NumberValue value = {.i32 = int32_t(direction)};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_VERTICAL, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_VERTICAL);
 }
 
 void SwiperNode::SetSwiperPrevMargin(float fValue) {
@@ -119,6 +123,7 @@ void SwiperNode::SetSwiperPrevMargin(float fValue) {
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_PREV_MARGIN, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_PREV_MARGIN);
 }
 
 void SwiperNode::SetSwiperNextMargin(float fValue) {
@@ -126,23 +131,27 @@ void SwiperNode::SetSwiperNextMargin(float fValue) {
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_NEXT_MARGIN, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_NEXT_MARGIN);
 }
 
 void SwiperNode::SetSwiperLoop(int32_t enable) {
   ArkUI_NumberValue value = {.i32 = enable};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_LOOP, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_LOOP);
 }
 
 void SwiperNode::SetSwiperDisableSwipe(int32_t disable) {
   ArkUI_NumberValue value = {.i32 = disable};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_DISABLE_SWIPE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_DISABLE_SWIPE);
 }
 
 void SwiperNode::SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle) {
   ArkUI_AttributeItem item{nullptr, 0, nullptr, adapterHandle};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_NODE_ADAPTER, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SWIPER_NODE_ADAPTER);
   hasAdapter_ = true;
 }
 
@@ -151,6 +160,23 @@ void SwiperNode::ResetLazyAdapter() {
     NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_SWIPER_NODE_ADAPTER);
     hasAdapter_ = false;
   }
+}
+
+void SwiperNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_SHOW_INDICATOR, NODE_SWIPER_SHOW_INDICATOR);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_INDEX, NODE_SWIPER_INDEX);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_SWIPE_TO_INDEX, NODE_SWIPER_SWIPE_TO_INDEX);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_VERTICAL, NODE_SWIPER_VERTICAL);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_PREV_MARGIN, NODE_SWIPER_PREV_MARGIN);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_NEXT_MARGIN, NODE_SWIPER_NEXT_MARGIN);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_LOOP, NODE_SWIPER_LOOP);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_DISABLE_SWIPE, NODE_SWIPER_DISABLE_SWIPE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SWIPER_NODE_ADAPTER, NODE_SWIPER_NODE_ADAPTER);
+  subAttributesFlagValue_ = 0;
 }
 
 } // namespace native

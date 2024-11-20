@@ -82,6 +82,7 @@ void ListNode::ScrollTo(float offsetX, float offsetY, bool animated) {
                                {.i32 = 0}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_OFFSET, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_OFFSET);
 }
 
 void ListNode::ScrollToIndex(int32_t index, bool animated, bool isScrollAlignStart) {
@@ -90,18 +91,21 @@ void ListNode::ScrollToIndex(int32_t index, bool animated, bool isScrollAlignSta
                                {.i32 = isScrollAlignStart ? ARKUI_SCROLL_ALIGNMENT_START : ARKUI_SCROLL_ALIGNMENT_END}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_SCROLL_TO_INDEX, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::LIST_SCROLL_TO_INDEX);
 }
 
 void ListNode::SetListDirection(bool isVertical) {
   ArkUI_NumberValue value[] = {{.i32 = isVertical ? ARKUI_AXIS_VERTICAL : ARKUI_AXIS_HORIZONTAL}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_DIRECTION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::LIST_DIRECTION);
 }
 
 void ListNode::SetListInitialIndex(int32_t index) {
   ArkUI_NumberValue value[] = {{.i32 = index}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_INITIAL_INDEX, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::LIST_INITIAL_INDEX);
 }
 
 void ListNode::SetScrollEdgeEffect(bool hasEffect) {
@@ -109,35 +113,41 @@ void ListNode::SetScrollEdgeEffect(bool hasEffect) {
                                {.i32 = hasEffect ? 1 : 0}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_EDGE_EFFECT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_EDGE_EFFECT);
 }
 
 void ListNode::SetScrollNestedScroll(ArkUI_ScrollNestedMode scrollForward, ArkUI_ScrollNestedMode scrollBackward) {
   ArkUI_NumberValue value[] = {{.i32 = scrollBackward}, {.i32 = scrollForward}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_NESTED_SCROLL, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_NESTED_SCROLL);
 }
 
 void ListNode::SetEnableScrollInteraction(bool enabled) {
   ArkUI_NumberValue value[] = {{.i32 = enabled}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_ENABLE_SCROLL_INTERACTION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_ENABLE_SCROLL_INTERACTION);
 }
 
 void ListNode::SetListCachedCount(int32_t count) {
   ArkUI_NumberValue value[] = {{.i32 = count}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_CACHED_COUNT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::LIST_CACHED_COUNT);
 }
 
 void ListNode::SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode) {
   ArkUI_NumberValue value[] = {{.i32 = mode}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_BAR_DISPLAY_MODE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_BAR_DISPLAY_MODE);
 }
 
 void ListNode::SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle) {
   ArkUI_AttributeItem item{nullptr, 0, nullptr, adapterHandle};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_LIST_NODE_ADAPTER, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::LIST_NODE_ADAPTER);
   hasAdapter_ = true;
 }
 
@@ -146,6 +156,24 @@ void ListNode::ResetLazyAdapter() {
     NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_LIST_NODE_ADAPTER);
     hasAdapter_ = false;
   }
+}
+
+void ListNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_OFFSET, NODE_SCROLL_OFFSET);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::LIST_SCROLL_TO_INDEX, NODE_LIST_SCROLL_TO_INDEX);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::LIST_DIRECTION, NODE_LIST_DIRECTION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::LIST_INITIAL_INDEX, NODE_LIST_INITIAL_INDEX);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_EDGE_EFFECT, NODE_SCROLL_EDGE_EFFECT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_NESTED_SCROLL, NODE_SCROLL_NESTED_SCROLL);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_ENABLE_SCROLL_INTERACTION, NODE_SCROLL_ENABLE_SCROLL_INTERACTION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::LIST_CACHED_COUNT, NODE_LIST_CACHED_COUNT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_BAR_DISPLAY_MODE, NODE_SCROLL_BAR_DISPLAY_MODE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::LIST_NODE_ADAPTER, NODE_LIST_NODE_ADAPTER);
+  subAttributesFlagValue_ = 0;
 }
 
 void ListNode::OnNodeEvent(ArkUI_NodeEvent *event) {

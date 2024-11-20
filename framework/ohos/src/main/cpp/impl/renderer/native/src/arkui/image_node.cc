@@ -282,6 +282,9 @@ ImageNode &ImageNode::SetAlt(std::string const &src) {
 
 void ImageNode::ResetAllAttributes() {
   ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_ALT, NODE_IMAGE_ALT);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_SRC, NODE_IMAGE_SRC);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_OBJECT_FIT, NODE_IMAGE_OBJECT_FIT);

@@ -30,10 +30,14 @@ inline namespace native {
 
 class RowNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    ROW_ALIGN_ITEMS = 0,
+  };
 public:
   RowNode();
   ~RowNode();
   void SetAlignItem(ArkUI_VerticalAlignment align);
+  void ResetAllAttributes() override;
 };
 
 } // namespace native

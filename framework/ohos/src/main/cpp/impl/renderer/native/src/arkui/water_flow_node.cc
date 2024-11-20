@@ -37,7 +37,7 @@ WaterFlowNode::WaterFlowNode()
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_WATER_FLOW)) {
   for (auto eventType : WATER_FLOW_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
-  }    
+  }
 }
 
 WaterFlowNode::~WaterFlowNode() {
@@ -87,6 +87,7 @@ void WaterFlowNode::SetScrollEdgeEffect(ArkUI_EdgeEffect effect) {
   ArkUI_NumberValue value[] = {{.i32 = effect},};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_EDGE_EFFECT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_EDGE_EFFECT);
 }
 
 void WaterFlowNode::ScrollToIndex(int32_t index, bool animated,ArkUI_ScrollAlignment align) {
@@ -95,64 +96,94 @@ void WaterFlowNode::ScrollToIndex(int32_t index, bool animated,ArkUI_ScrollAlign
                                {.i32 = align }};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_SCROLL_TO_INDEX, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_SCROLL_TO_INDEX);
 }
 
 void WaterFlowNode::SetColumnsTemplate(std::string columnsTemplate) {
   ArkUI_AttributeItem item = {.string  = columnsTemplate.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_COLUMN_TEMPLATE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_COLUMN_TEMPLATE);
 }
 
 void WaterFlowNode::SetRowTemplate(std::string rowsTemplate){
   ArkUI_AttributeItem item = {.string  = rowsTemplate.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_ROW_TEMPLATE, &item));
-    
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_ROW_TEMPLATE);
 }
 
 void WaterFlowNode::SetColumnGap(float_t gap){
   ArkUI_NumberValue value[] = {{.f32 = gap},};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_COLUMN_GAP, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_COLUMN_GAP);
 }
 
 void WaterFlowNode::SetRowGap(float_t gap){
   ArkUI_NumberValue value[] = {{.f32 = gap},};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_ROW_GAP, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_ROW_GAP);
 }
 
 void WaterFlowNode::SetCachedCount(int32_t count){
   ArkUI_NumberValue value[] = {{.i32 = count},};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_CACHED_COUNT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_CACHED_COUNT);
 }
 
 void WaterFlowNode::SetLayoutDirection(ArkUI_FlexDirection direction){
   ArkUI_NumberValue value[] = {{.i32 = direction},};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_LAYOUT_DIRECTION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_LAYOUT_DIRECTION);
 }
 
 void WaterFlowNode::SetScrollEnableInteraction(bool bEnable){
   ArkUI_NumberValue value[] = {{.i32 = bEnable},};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_ENABLE_SCROLL_INTERACTION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_ENABLE_SCROLL_INTERACTION);
 }
 
 void WaterFlowNode::SetNestedScroll(ArkUI_ScrollNestedMode forward, ArkUI_ScrollNestedMode backward){
   ArkUI_NumberValue value[] = {{.i32 = forward},{.i32 = backward}}; 
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_NESTED_SCROLL, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_NESTED_SCROLL);
 }
 
 void WaterFlowNode::SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode){
   ArkUI_NumberValue value[] = {{.i32 = mode},}; 
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_BAR_DISPLAY_MODE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_BAR_DISPLAY_MODE);
 }
 
 void WaterFlowNode::SetFooter(ArkUI_NodeHandle footer){
   ArkUI_AttributeItem item = {nullptr, 0, nullptr, footer};  
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_FOOTER, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_FOOTER);
+}
+
+void WaterFlowNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_EDGE_EFFECT, NODE_SCROLL_EDGE_EFFECT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_SCROLL_TO_INDEX, NODE_WATER_FLOW_SCROLL_TO_INDEX);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_COLUMN_TEMPLATE, NODE_WATER_FLOW_COLUMN_TEMPLATE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_ROW_TEMPLATE, NODE_WATER_FLOW_ROW_TEMPLATE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_COLUMN_GAP, NODE_WATER_FLOW_COLUMN_GAP);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_ROW_GAP, NODE_WATER_FLOW_ROW_GAP);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_CACHED_COUNT, NODE_WATER_FLOW_CACHED_COUNT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_LAYOUT_DIRECTION, NODE_WATER_FLOW_LAYOUT_DIRECTION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_ENABLE_SCROLL_INTERACTION, NODE_SCROLL_ENABLE_SCROLL_INTERACTION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_NESTED_SCROLL, NODE_SCROLL_NESTED_SCROLL);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_BAR_DISPLAY_MODE, NODE_SCROLL_BAR_DISPLAY_MODE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_FOOTER, NODE_WATER_FLOW_FOOTER);
+  subAttributesFlagValue_ = 0;
 }
 
 } // namespace native

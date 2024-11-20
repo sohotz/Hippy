@@ -36,6 +36,7 @@ SpanNode::~SpanNode() {}
 SpanNode &SpanNode::SetSpanContent(const std::string &text) {
   ArkUI_AttributeItem item = {.string = text.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SPAN_CONTENT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SPAN_CONTENT);
   return *this;
 }
 
@@ -47,6 +48,7 @@ SpanNode &SpanNode::SetFontColor(uint32_t color) {
   ArkUI_NumberValue value[] = {{.u32 = colorValue}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_COLOR, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_COLOR);
   return *this;
 }
 
@@ -54,6 +56,7 @@ SpanNode &SpanNode::SetFontSize(float fontSize) {
   ArkUI_NumberValue value[] = {{.f32 = fontSize}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_SIZE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_SIZE);
   return *this;
 }
 
@@ -61,6 +64,7 @@ SpanNode &SpanNode::SetFontStyle(int32_t fontStyle) {
   ArkUI_NumberValue value[] = {{.i32 = fontStyle}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_STYLE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_STYLE);
   return *this;
 }
 
@@ -68,6 +72,7 @@ SpanNode &SpanNode::SetFontWeight(int32_t fontWeight) {
   ArkUI_NumberValue value[] = {{.i32 = fontWeight}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_WEIGHT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_WEIGHT);
   return *this;
 }
 
@@ -75,6 +80,7 @@ SpanNode &SpanNode::SetTextLineHeight(float textLineHeight) {
   ArkUI_NumberValue value[] = {{.f32 = textLineHeight}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LINE_HEIGHT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_LINE_HEIGHT);
   return *this;
 }
 
@@ -82,6 +88,7 @@ SpanNode &SpanNode::SetTextDecoration(ArkUI_TextDecorationType decorationType, u
   ArkUI_NumberValue value[] = {{.i32 = decorationType}, {.u32 = decorationColor}, {.i32 = decorationStyle}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_DECORATION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_DECORATION);
   return *this;
 }
 
@@ -89,6 +96,7 @@ SpanNode &SpanNode::SetTextCase(int32_t textCase) {
   ArkUI_NumberValue value[] = {{.i32 = textCase}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_CASE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_CASE);
   return *this;
 }
 
@@ -96,12 +104,14 @@ SpanNode &SpanNode::SetTextLetterSpacing(float textLetterSpacing) {
   ArkUI_NumberValue value[] = {{.f32 = textLetterSpacing}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LETTER_SPACING, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_LETTER_SPACING);
   return *this;
 }
 
 SpanNode &SpanNode::SetFontFamily(const std::string &fontFamily) {
   ArkUI_AttributeItem item = {.string = fontFamily.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_FAMILY, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_FAMILY);
   return *this;
 }
 
@@ -114,6 +124,7 @@ SpanNode &SpanNode::SetTextShadow(float textShadowRadius, ArkUI_ShadowType textS
                                {.f32 = textShadowOffsetY}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_TEXT_SHADOW, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_TEXT_SHADOW);
   return *this;
 }
 
@@ -121,7 +132,28 @@ SpanNode &SpanNode::SetSpanTextBackgroundStyle(uint32_t color) {
   ArkUI_NumberValue value[] = {{.u32 = color}, {.f32 = 0}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SPAN_TEXT_BACKGROUND_STYLE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SPAN_TEXT_BACKGROUND_STYLE);
   return *this;
+}
+
+void SpanNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SPAN_CONTENT, NODE_SPAN_CONTENT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_COLOR, NODE_FONT_COLOR);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_SIZE, NODE_FONT_SIZE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_STYLE, NODE_FONT_STYLE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_WEIGHT, NODE_FONT_WEIGHT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_LINE_HEIGHT, NODE_TEXT_LINE_HEIGHT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_DECORATION, NODE_TEXT_DECORATION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_CASE, NODE_TEXT_CASE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_LETTER_SPACING, NODE_TEXT_LETTER_SPACING);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_FAMILY, NODE_FONT_FAMILY);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_TEXT_SHADOW, NODE_TEXT_TEXT_SHADOW);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SPAN_TEXT_BACKGROUND_STYLE, NODE_SPAN_TEXT_BACKGROUND_STYLE);
+  subAttributesFlagValue_ = 0;
 }
 
 } // namespace native

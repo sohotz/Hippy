@@ -45,6 +45,17 @@ class SwiperNodeDelegate {
 
 class SwiperNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    SWIPER_SHOW_INDICATOR = 0,
+    SWIPER_INDEX,
+    SWIPER_SWIPE_TO_INDEX,
+    SWIPER_VERTICAL,
+    SWIPER_PREV_MARGIN,
+    SWIPER_NEXT_MARGIN,
+    SWIPER_LOOP,
+    SWIPER_DISABLE_SWIPE,
+    SWIPER_NODE_ADAPTER,
+  };
   SwiperNodeDelegate *swiperNodeDelegate_ = nullptr;
 
 public:
@@ -65,6 +76,7 @@ public:
   
   void SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle);
   void ResetLazyAdapter();
+  void ResetAllAttributes() override;
   
 private:
   bool hasAdapter_ = false;

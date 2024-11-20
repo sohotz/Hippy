@@ -29,16 +29,31 @@ inline namespace native {
 
 StackNode::StackNode() 
     : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_STACK)) {
-  SetStackAlignContent(ARKUI_ALIGNMENT_TOP_START);
+  SetDefaultAttributes();
 }
 
 StackNode::~StackNode() {}
+
+void StackNode::SetDefaultAttributes() {
+  SetStackAlignContent(ARKUI_ALIGNMENT_TOP_START);
+  subAttributesFlagValue_ = 0;
+}
 
 StackNode &StackNode::SetStackAlignContent(ArkUI_Alignment align) {
   ArkUI_NumberValue value[] = {{.i32 = align}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_STACK_ALIGN_CONTENT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::STACK_ALIGN_CONTENT);
   return *this;
+}
+
+void StackNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::STACK_ALIGN_CONTENT, NODE_STACK_ALIGN_CONTENT);
+  SetDefaultAttributes();
 }
 
 } // namespace native

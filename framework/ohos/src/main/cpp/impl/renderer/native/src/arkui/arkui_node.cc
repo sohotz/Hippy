@@ -38,7 +38,7 @@ ArkUINode::ArkUINode(ArkUI_NodeHandle nodeHandle) : nodeHandle_(nodeHandle) {
   FOOTSTONE_DLOG(INFO) << "Hippy ohos mem check, ArkUINode handle, new: " << nodeHandle_ << ", count: " << sCount;
 #endif
 
-  SetHitTestMode(ARKUI_HIT_TEST_MODE_TRANSPARENT);
+  SetDefaultAttributes();
   ArkUINodeRegistry::GetInstance().RegisterNode(this);
 }
 
@@ -103,6 +103,11 @@ void ArkUINode::RemoveSelfFromParent() {
   if (parentHandle) {
     MaybeThrow(NativeNodeApi::GetInstance()->removeChild(parentHandle, nodeHandle_));
   }
+}
+
+void ArkUINode::SetDefaultAttributes() {
+  SetHitTestMode(ARKUI_HIT_TEST_MODE_TRANSPARENT);
+  baseAttributesFlagValue_ = 0;
 }
 
 ArkUINode &ArkUINode::SetId(const std::string &id) {
@@ -552,7 +557,7 @@ ArkUINode &ArkUINode::SetAlignment(ArkUI_Alignment align) {
 ArkUINode &ArkUINode::SetExpandSafeArea() {
 //TODO  NODE_EXPAND_SAFE_AREA not define in devEco 5.0.0.400 will add in later
 //  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_EXPAND_SAFE_AREA,nullptr ));
-  SetBaseAttributeFlag(AttributeFlag::EXPAND_SAFE_AREA);
+//  SetBaseAttributeFlag(AttributeFlag::EXPAND_SAFE_AREA);
   return *this;
 }
 
@@ -585,6 +590,9 @@ void ArkUINode::ResetNodeAttribute(ArkUI_NodeAttributeType type) {
 }
 
 void ArkUINode::ResetAllAttributes() {
+  if (!baseAttributesFlagValue_) {
+    return;
+  }
   ARK_UI_NODE_RESET_BASE_ATTRIBUTE(AttributeFlag::ID, NODE_ID);
   ARK_UI_NODE_RESET_BASE_ATTRIBUTE(AttributeFlag::POSITION, NODE_POSITION);
   ARK_UI_NODE_RESET_BASE_ATTRIBUTE(AttributeFlag::WIDTH, NODE_WIDTH);
@@ -623,7 +631,7 @@ void ArkUINode::ResetAllAttributes() {
   ARK_UI_NODE_RESET_BASE_ATTRIBUTE(AttributeFlag::MOVE_TRANSITION, NODE_MOVE_TRANSITION);
   ARK_UI_NODE_RESET_BASE_ATTRIBUTE(AttributeFlag::OPACITY_TRANSITION, NODE_OPACITY_TRANSITION);
   ARK_UI_NODE_RESET_BASE_ATTRIBUTE(AttributeFlag::TRANSLATE_TRANSITION, NODE_TRANSLATE_TRANSITION);
-  baseAttributesFlagValue_ = 0;
+  SetDefaultAttributes();
 }
 
 void ArkUINode::SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate) {
