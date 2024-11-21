@@ -33,6 +33,7 @@ protected:
   enum class AttributeFlag {
     IMAGE_SPAN_SRC = 0,
     IMAGE_SPAN_ALT,
+    IMAGE_SPAN_VERTICAL_ALIGNMENT,
     IMAGE_OBJECT_FIT,
   };
   
@@ -44,6 +45,7 @@ public:
   
   ImageSpanNode &SetSources(std::string const &src);
   ImageSpanNode &SetAlt(std::string const &src);
+  ImageSpanNode &SetVerticalAlignment(ArkUI_ImageSpanAlignment align);
   ImageSpanNode &SetImageObjectFit(ArkUI_ObjectFit fit);
   
   void ResetAllAttributes() override;

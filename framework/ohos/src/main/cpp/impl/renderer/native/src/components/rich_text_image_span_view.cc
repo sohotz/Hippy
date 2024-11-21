@@ -77,15 +77,19 @@ bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyV
     GetLocalRootArkUINode()->SetHeight(value);
     return true;
   } else if (propKey == "verticalAlign") {
-    auto t = HRValueUtils::GetString(propValue);
-    if (t == "top") {
-      // TODO(hot):
-    } else if (t == "middle") {
-
-    } else if (t == "bottom") {
-
-    } else if (t == "baseline") {
-
+    auto value = HRValueUtils::GetString(propValue);
+    if (value.size() > 0) {
+      ArkUI_ImageSpanAlignment align = ARKUI_IMAGE_SPAN_ALIGNMENT_BASELINE;
+      if (value == "top") {
+        align = ARKUI_IMAGE_SPAN_ALIGNMENT_TOP;
+      } else if (value == "middle") {
+        align = ARKUI_IMAGE_SPAN_ALIGNMENT_CENTER;
+      } else if (value == "bottom") {
+        align = ARKUI_IMAGE_SPAN_ALIGNMENT_BOTTOM;
+      } else if (value == "baseline") {
+        align = ARKUI_IMAGE_SPAN_ALIGNMENT_BASELINE;
+      }
+      GetLocalRootArkUINode()->SetVerticalAlignment(align);
     }
     return true;
   } else if (propKey == "src") {
