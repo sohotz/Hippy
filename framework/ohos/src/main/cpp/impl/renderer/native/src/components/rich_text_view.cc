@@ -137,9 +137,9 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
       lineHeight_ = value;
     }
     return true;
-  } else if (propKey == HRNodeProps::LINE_SPACING_EXTRA) { // Android有，iOS无
+  } else if (propKey == HRNodeProps::LINE_SPACING_EXTRA) { // Android有，iOS/ohos无
     return true;
-  } else if (propKey == HRNodeProps::LINE_SPACING_MULTIPLIER) { // TODO(hot):
+  } else if (propKey == HRNodeProps::LINE_SPACING_MULTIPLIER) { // Android有，iOS/ohos无
     return true;
   } else if (propKey == HRNodeProps::NUMBER_OF_LINES) {
     int32_t value = HRValueUtils::GetInt32(propValue, 1);

@@ -744,13 +744,13 @@ void BaseView::SetInterceptTouch(bool flag) {
 
 void BaseView::SetInterceptPullUp(bool flag) {
   if (HandleGestureBySelf()) {
-  return;
+    return;
   }
   flagInterceptPullUp_ = flag;
 }
 
 void BaseView::HandleInterceptPullUp() {
-  // TODO(hot);
+  // TODO(hot):
 }
 
 void BaseView::SetAttachedToWindowHandle(bool flag) {
