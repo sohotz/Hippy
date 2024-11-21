@@ -31,11 +31,6 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
-static const std::string BASE64_IMAGE_PREFIX = "data:image";
-static const std::string RAW_IMAGE_PREFIX = "hpfile://";
-static const std::string ASSET_PREFIX = "asset:/";
-static const std::string INTERNET_IMAGE_PREFIX = "http";
-
 ImageView::ImageView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
 }
 
@@ -144,40 +139,17 @@ void ImageView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &
 
 void ImageView::FetchAltImage(const std::string &imageUrl) {
   if (imageUrl.size() > 0) {
-    if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
-      GetLocalRootArkUINode()->SetAlt(imageUrl);
-      return;
-    } else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
-      std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
-      GetLocalRootArkUINode()->SetAlt(convertUrl);
-      return;
-    } else if (HRUrlUtils::isWebUrl(imageUrl)) {
-      GetLocalRootArkUINode()->SetAlt(imageUrl);
-      return;
-    } else if (imageUrl.find(ASSET_PREFIX) == 0) {
-      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
-      GetLocalRootArkUINode()->SetAlt(resourceStr);
-    }
+    auto bundlePath = ctx_->GetNativeRender().lock()->GetBundlePath();
+    auto url = HRUrlUtils::ConvertImageUrl(bundlePath, ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
+    GetLocalRootArkUINode()->SetAlt(url);
   }
 }
 
 void ImageView::FetchImage(const std::string &imageUrl) {
   if (imageUrl.size() > 0) {
-    if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
-      GetLocalRootArkUINode()->SetSources(imageUrl);
-      return;
-		} else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
-			std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
-      GetLocalRootArkUINode()->SetSources(convertUrl);
-      return;
-		} else if (HRUrlUtils::isWebUrl(imageUrl)) {
-			GetLocalRootArkUINode()->SetSources(imageUrl);
-      return;
-		} else if (imageUrl.find(ASSET_PREFIX) == 0) {
-      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
-      GetLocalRootArkUINode()->SetSources(resourceStr);
-		}
-		// TODO(hot):
+    auto bundlePath = ctx_->GetNativeRender().lock()->GetBundlePath();
+    auto url = HRUrlUtils::ConvertImageUrl(bundlePath, ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
+    GetLocalRootArkUINode()->SetSources(url);
 	}
 }
 

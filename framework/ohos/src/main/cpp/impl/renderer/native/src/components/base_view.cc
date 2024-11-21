@@ -380,7 +380,9 @@ bool BaseView::SetBackgroundImageProp(const std::string &propKey, const HippyVal
   if (propKey == HRNodeProps::BACKGROUND_IMAGE) {
     std::string value;
     if (propValue.ToString(value)) {
-      GetLocalRootArkUINode()->SetBackgroundImage(ConvertToLocalPathIfNeeded(value));
+      auto bundlePath = ctx_->GetNativeRender().lock()->GetBundlePath();
+      auto url = HRUrlUtils::ConvertImageUrl(bundlePath, ctx_->IsRawFile(), ctx_->GetResModuleName(), value);
+      GetLocalRootArkUINode()->SetBackgroundImage(url);
     }
     return true;
   } else if (propKey == HRNodeProps::BACKGROUND_POSITION_X) {
@@ -1029,30 +1031,6 @@ void BaseView::OnDisappear() {
 
 void BaseView::OnAreaChange(ArkUI_NumberValue* data) {
 
-}
-
-// TODO(hot):
-std::string BaseView::ConvertToLocalPathIfNeeded(const std::string &uri) {
-  // hpfile://./assets/defaultSource.jpg
-  if (uri.find("hpfile://") == 0) {
-    std::string prefix = "hpfile://./";
-    auto pos = uri.find(prefix);
-    if (pos == 0) {
-      auto relativePath = uri.substr(prefix.length());
-      auto bundlePath = ctx_->GetNativeRender().lock()->GetBundlePath();
-      auto lastPos = bundlePath.rfind("/");
-      if (lastPos != std::string::npos) {
-        bundlePath = bundlePath.substr(0, lastPos + 1);
-      }
-      auto fullPath = bundlePath + relativePath;
-      auto localPath = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), fullPath);
-      return localPath;
-    }
-  } else if (uri.find("asset:/") == 0) {
-    auto localPath = HRUrlUtils::convertAssetImageUrl(ctx_->IsRawFile(), ctx_->GetResModuleName(), uri);
-    return localPath;
-  }
-  return uri;
 }
 
 int64_t BaseView::GetTimeMilliSeconds() {

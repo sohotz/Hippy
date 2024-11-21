@@ -130,7 +130,6 @@ protected:
   void UpdateLazyProps();
 
   void HandleInterceptPullUp();
-  std::string ConvertToLocalPathIfNeeded(const std::string &uri);
   int64_t GetTimeMilliSeconds();
   int32_t IndexOfChild(const std::shared_ptr<BaseView> child);
 
