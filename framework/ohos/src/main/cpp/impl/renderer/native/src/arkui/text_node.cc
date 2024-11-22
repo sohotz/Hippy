@@ -28,7 +28,22 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+static void onFontStyleChange(ArkUI_SystemFontStyleEvent *event, void *userData) {
+  float scale = OH_ArkUI_SystemFontStyleEvent_GetFontSizeScale(event);
+  printf("%f\n", scale);
+}
+
 TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_NodeType::ARKUI_NODE_TEXT)) {
+//   static bool first = true;
+//   if (first) {
+    auto ret = OH_ArkUI_RegisterSystemFontStyleChangeEvent(nodeHandle_, NULL, onFontStyleChange);
+    if (ret != ARKUI_ERROR_CODE_NO_ERROR) {
+      printf("xxx: %d\n", ret);
+    }
+//     first = false;
+//   }
+  
+  SetTextHeightAdaptivePolicy(ARKUI_TEXT_HEIGHT_ADAPTIVE_POLICY_MAX_LINES_FIRST);
 }
 
 TextNode::~TextNode() {}
@@ -60,6 +75,8 @@ TextNode &TextNode::ResetFontColor() {
 TextNode &TextNode::SetFontSize(float fontSize) {
   ArkUI_NumberValue value[] = {{.f32 = fontSize}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_MIN_FONT_SIZE, &item));
+//   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_MAX_FONT_SIZE, &item));
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_SIZE, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_SIZE);
   return *this;

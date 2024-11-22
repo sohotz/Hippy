@@ -22,6 +22,7 @@ import hilog from '@ohos.hilog';
 import Want from '@ohos.app.ability.Want';
 import window from '@ohos.window';
 import UIAbility from '@ohos.app.ability.UIAbility';
+// import Configuration from '@ohos.app.ability.Configuration';
 import libHippy from 'libhippy.so'
 import font from '@ohos.font';
 import { EngineInitParams } from 'hippy';
@@ -80,5 +81,9 @@ export default class EntryAbility extends UIAbility {
   onBackground() {
     // Ability has back to background
     hilog.info(0x0000, 'DemoTag', '%{public}s', 'Ability onBackground');
+  }
+
+  onConfigurationUpdate(newConfig: import("/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.app.ability.Configuration").Configuration) {
+    hilog.info(0x0000, 'DemoTag', 'systom font size scale: ' + newConfig.fontSizeScale)
   }
 }
