@@ -437,10 +437,13 @@ void TextInputView::SetText(const HippyValueArrayType &params){
   } else {
     std::string str = HRValueUtils::GetString(params[0]);
     value_ = str;
-    int32_t len = (int32_t)str.length();
-    int32_t pos = params.size() < 2 ? len: HRValueUtils::GetInt32(params[1], len);
     GetTextNode().SetTextContent(value_.value());
-    GetTextNode().SetTextSelection(pos, pos);
+    
+    // 注释 SetTextSelection 原因：
+    // 设置了也没效果，还偶现 OHOS::Ace::NG::UINode::MountToParent 里空指针 crash。
+    // int32_t len = (int32_t)str.length();
+    // int32_t pos = params.size() < 2 ? len: HRValueUtils::GetInt32(params[1], len);
+    // GetTextNode().SetTextSelection(pos, pos);
   }
 }
 
