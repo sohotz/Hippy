@@ -947,7 +947,7 @@ void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint3
   dom_manager->PostTask(Scene(std::move(ops)));
 }
 
-float NativeRenderManager::DpToPx(float dp) const { return dp * density_; }
+float NativeRenderManager::DpToPx(float dp) const { return dp * density_ / 2; }
 
 float NativeRenderManager::PxToDp(float px) const { return px / density_; }
 

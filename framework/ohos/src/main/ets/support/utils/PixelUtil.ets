@@ -19,12 +19,43 @@
  */
 declare function vp2px(vp: number): number
 
+// export class DisplayMetrics {
+//   public densityScale: number
+//   public ohosFontSizeScale: number
+//   public density: number
+//
+//   constructor() {
+//     this.densityScale = 1.0
+//     this.ohosFontSizeScale = 1.0
+//     this.density = vp2px(1.0)
+//   }
+// }
+
 export class PixelUtil {
+
+  // public static setDisplayMetrics(metrics: DisplayMetrics): void {
+  //
+  // }
+
+  public static setDensityScale(densityScale: number): void {
+    PixelUtil.densityScale = densityScale
+    PixelUtil.density = vp2px(1.0) / PixelUtil.ohosFontSizeScale / PixelUtil.densityScale
+  }
+
+  public static setOhosFontSizeScale(ohosFontSizeScale: number): void {
+    PixelUtil.ohosFontSizeScale = ohosFontSizeScale
+    PixelUtil.density = vp2px(1.0) / PixelUtil.ohosFontSizeScale / PixelUtil.densityScale
+  }
+
   public static px2dp(value: number): number {
     return value / PixelUtil.getDensity();
   }
 
   public static getDensity(): number {
-    return vp2px(1.0)
+    return PixelUtil.density
   }
+
+  private static densityScale: number = 1.0
+  private static ohosFontSizeScale: number = 1.0
+  private static density: number = vp2px(1.0) /// 2
 }

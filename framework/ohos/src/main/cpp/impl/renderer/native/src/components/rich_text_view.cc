@@ -102,7 +102,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
   } else if (propKey == HRNodeProps::FONT_SIZE) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!fontSize_.has_value() || value != fontSize_) {
-      GetLocalRootArkUINode()->SetFontSize(value);
+      GetLocalRootArkUINode()->SetFontSize(value/2);
       fontSize_ = value;
     }
     return true;
@@ -220,7 +220,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
 void RichTextView::OnSetPropsEndImpl() {
   if (!fontSize_.has_value()) {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;
-    GetLocalRootArkUINode()->SetFontSize(defaultValue);
+    GetLocalRootArkUINode()->SetFontSize(defaultValue/2);
     fontSize_ = defaultValue;
   }
   if (!ellipsizeModeValue_.has_value()) {

@@ -613,14 +613,14 @@ void TaitankLayoutNode::SetWidth(float width) {
   if (FloatIsEqual(engine_node_->style_.dim_[DIMENSION_WIDTH], width)) {
     return;
   }
-  engine_node_->style_.dim_[DIMENSION_WIDTH] = width;
+  engine_node_->style_.dim_[DIMENSION_WIDTH] = width / 2;
   engine_node_->MarkAsDirty();
 }
 
 void TaitankLayoutNode::SetHeight(float height) {
   assert(engine_node_ != nullptr);
   if (FloatIsEqual(engine_node_->style_.dim_[DIMENSION_HEIGHT], height)) return;
-  engine_node_->style_.dim_[DIMENSION_HEIGHT] = height;
+  engine_node_->style_.dim_[DIMENSION_HEIGHT] = height / 2;
   engine_node_->MarkAsDirty();
 }
 
