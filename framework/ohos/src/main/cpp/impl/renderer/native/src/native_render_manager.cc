@@ -747,15 +747,15 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
     const auto &result = nodes[i]->GetRenderLayoutResult();
     auto m = std::make_shared<HRUpdateLayoutMutation>();
     m->tag_ = nodes[i]->GetId();
-    m->left_ = result.left;
-    m->top_ = result.top;
-    m->width_ = result.width;
-    m->height_ = result.height;
+    m->left_ = DpToPx(result.left) / 3.9375f;
+    m->top_ = DpToPx(result.top) / 3.9375f;
+    m->width_ = DpToPx(result.width) / 3.9375f;
+    m->height_ = DpToPx(result.height) / 3.9375f;
     if (IsMeasureNode(nodes[i]->GetViewName())) {
-      m->padding_left_ = result.paddingLeft;
-      m->padding_top_ = result.paddingTop;
-      m->padding_right_ = result.paddingRight;
-      m->padding_bottom_ = result.paddingBottom;
+      m->padding_left_ = DpToPx(result.paddingLeft) / 3.9375f;
+      m->padding_top_ = DpToPx(result.paddingTop) / 3.9375f;
+      m->padding_right_ = DpToPx(result.paddingRight) / 3.9375f;
+      m->padding_bottom_ = DpToPx(result.paddingBottom) / 3.9375f;
     }
     mutations[i] = m;
   }

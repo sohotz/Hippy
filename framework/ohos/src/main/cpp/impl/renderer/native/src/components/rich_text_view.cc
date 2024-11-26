@@ -102,7 +102,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
   } else if (propKey == HRNodeProps::FONT_SIZE) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!fontSize_.has_value() || value != fontSize_) {
-      GetLocalRootArkUINode()->SetFontSize(value);
+      GetLocalRootArkUINode()->SetFontSize(value/1.42534f);
       fontSize_ = value;
     }
     return true;
@@ -132,7 +132,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
   } else if (propKey == HRNodeProps::LINE_HEIGHT) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!lineHeight_.has_value() || value != lineHeight_) {
-      GetLocalRootArkUINode()->SetTextLineHeight(value);
+      GetLocalRootArkUINode()->SetTextLineHeight(value / 1.42534f);
       GetLocalRootArkUINode()->SetTextHalfLeading(true);
       lineHeight_ = value;
     }
@@ -220,7 +220,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
 void RichTextView::OnSetPropsEndImpl() {
   if (!fontSize_.has_value()) {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;
-    GetLocalRootArkUINode()->SetFontSize(defaultValue);
+    GetLocalRootArkUINode()->SetFontSize(defaultValue / 1.42534f);
     fontSize_ = defaultValue;
   }
   if (!ellipsizeModeValue_.has_value()) {
@@ -242,7 +242,7 @@ void RichTextView::OnSetPropsEndImpl() {
 
 void RichTextView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   BaseView::UpdateRenderViewFrameImpl(frame, padding);
-  textNode_->SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+  textNode_->SetPadding(padding.paddingTop/1.42534f, padding.paddingRight/1.42534f, padding.paddingBottom/1.42534f, padding.paddingLeft/1.42534f);
 }
 
 void RichTextView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {

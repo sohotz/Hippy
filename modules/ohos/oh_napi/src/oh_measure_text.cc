@@ -164,7 +164,7 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     if (HasProp(propMap, "fontSize") && propMap["fontSize"].size() > 0) {
         fontSize = std::stod(propMap["fontSize"]);
     }
-    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize / 1.f);
     if (HasProp(propMap, "fontWeight")) {
         int fontWeight = FontWeightToDrawing(propMap["fontWeight"]);
         OH_Drawing_SetTextStyleFontWeight(txtStyle, fontWeight);

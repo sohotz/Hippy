@@ -81,4 +81,9 @@ export default class EntryAbility extends UIAbility {
     // Ability has back to background
     hilog.info(0x0000, 'DemoTag', '%{public}s', 'Ability onBackground');
   }
+
+  onConfigurationUpdate(newConfig: import("/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/ets/api/@ohos.app.ability.Configuration").Configuration) {
+    hilog.info(0x0000, 'DemoTag', 'systom font size scale: ' + newConfig.fontSizeScale)
+  }
+
 }

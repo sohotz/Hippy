@@ -72,6 +72,7 @@ import {
   WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
 import { HippyRootViewManager } from './HippyRootViewManager'
 import { WrappedHippyBizViewBuilder } from './HippyBizViewBuilder'
+import { PixelUtil } from "../support/utils/PixelUtil"
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -211,11 +212,15 @@ export class NativeRenderImpl implements NativeRender {
     if (this.frameworkProxy != null) {
       this.frameworkProxy.onSizeChanged(rootId, width, height, oldWidth, oldHeight)
     }
-    this.libHippy?.NativeRenderProvider_UpdateRootSize(this.instanceId, rootId, width, height)
+    let w = PixelUtil.px2dp(vp2px(width))
+    let h = PixelUtil.px2dp(vp2px(height))
+    this.libHippy?.NativeRenderProvider_UpdateRootSize(this.instanceId, rootId, w, h)
   }
 
   onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void {
-    this.libHippy?.NativeRenderProvider_UpdateNodeSize(this.instanceId, rootId, nodeId, width, height, isSync)
+    let w = PixelUtil.px2dp(vp2px(width))
+    let h = PixelUtil.px2dp(vp2px(height))
+    this.libHippy?.NativeRenderProvider_UpdateNodeSize(this.instanceId, rootId, nodeId, w, h, isSync)
   }
 
   updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean) {

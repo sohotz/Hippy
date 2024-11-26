@@ -25,6 +25,7 @@ export class PixelUtil {
   }
 
   public static getDensity(): number {
-    return vp2px(1.0)
+    let t = vp2px(1.0)
+    return t / 1.42534
   }
 }
