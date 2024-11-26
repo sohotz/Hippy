@@ -28,13 +28,20 @@ inline namespace native {
 
 class HRPixelUtils {
 public:
-  inline static void InitDensity(double density) { density_ = static_cast<float>(density); }
+  inline static void InitDensity(double density, double density_scale) {
+    density_ = static_cast<float>(density);
+    densityScale_ = static_cast<float>(density_scale);
+  }
   
   inline static float DpToPx(float dp) { return dp * density_; }
   inline static float PxToDp(float px) { return px / density_; }
   
+  inline static float DpToVp(float dp) { return dp / densityScale_; }
+  inline static float VpToDp(float vp) { return vp * densityScale_; }
+  
 private:
   static float density_;
+  static float densityScale_;
 };
 
 } // namespace native

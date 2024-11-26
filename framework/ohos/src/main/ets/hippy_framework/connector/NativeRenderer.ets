@@ -42,7 +42,9 @@ export class NativeRenderer {
                             mappingRenderViews: Array<string> | null, bundlePath: string,
                             isRawfile: boolean, resModuleName: string): number {
     return this.libHippy?.NativeRenderer_CreateNativeRenderManager(enableArkCApi, renderProvider,
-      customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath, PixelUtil.getDensity(), isRawfile, resModuleName)
+      customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath,
+      PixelUtil.getDensity(), PixelUtil.getDensityScale(),
+      isRawfile, resModuleName)
   }
 
   destroyNativeRenderManager() {

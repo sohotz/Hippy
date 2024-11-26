@@ -208,9 +208,9 @@ void NativeRenderManager::SetBundlePath(const std::string &bundle_path) {
   }
 }
 
-void NativeRenderManager::InitDensity(double density) {
+void NativeRenderManager::InitDensity(double density, double density_scale) {
   density_ = static_cast<float>(density);
-  HRPixelUtils::InitDensity(density);
+  HRPixelUtils::InitDensity(density, density_scale);
 }
 
 void NativeRenderManager::AddCustomFontPath(const std::string &fontFamilyName, const std::string &fontPath) {
@@ -747,15 +747,15 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
     const auto &result = nodes[i]->GetRenderLayoutResult();
     auto m = std::make_shared<HRUpdateLayoutMutation>();
     m->tag_ = nodes[i]->GetId();
-    m->left_ = result.left;
-    m->top_ = result.top;
-    m->width_ = result.width;
-    m->height_ = result.height;
+    m->left_ = HRPixelUtils::DpToVp(result.left);
+    m->top_ = HRPixelUtils::DpToVp(result.top);
+    m->width_ = HRPixelUtils::DpToVp(result.width);
+    m->height_ = HRPixelUtils::DpToVp(result.height);
     if (IsMeasureNode(nodes[i]->GetViewName())) {
-      m->padding_left_ = result.paddingLeft;
-      m->padding_top_ = result.paddingTop;
-      m->padding_right_ = result.paddingRight;
-      m->padding_bottom_ = result.paddingBottom;
+      m->padding_left_ = HRPixelUtils::DpToVp(result.paddingLeft);
+      m->padding_top_ = HRPixelUtils::DpToVp(result.paddingTop);
+      m->padding_right_ = HRPixelUtils::DpToVp(result.paddingRight);
+      m->padding_bottom_ = HRPixelUtils::DpToVp(result.paddingBottom);
     }
     mutations[i] = m;
   }

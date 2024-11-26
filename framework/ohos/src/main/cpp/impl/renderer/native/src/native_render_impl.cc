@@ -23,6 +23,7 @@
 #include "renderer/native_render_impl.h"
 #include "renderer/native_render_provider_capi.h"
 #include "oh_napi/oh_napi_task_runner.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -257,11 +258,11 @@ std::string NativeRenderImpl::GetBundlePath() {
 }
 
 void NativeRenderImpl::OnSizeChanged(uint32_t root_id, float width, float height) {
-  NativeRenderProvider_UpdateRootSize(instance_id_, root_id, width, height);
+  NativeRenderProvider_UpdateRootSize(instance_id_, root_id, HRPixelUtils::VpToDp(width), HRPixelUtils::VpToDp(height));
 }
 
 void NativeRenderImpl::OnSizeChanged2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync) {
-  NativeRenderProvider_UpdateNodeSize(instance_id_, root_id, node_id, width, height);
+  NativeRenderProvider_UpdateNodeSize(instance_id_, root_id, node_id, HRPixelUtils::VpToDp(width), HRPixelUtils::VpToDp(height));
 }
 
 HRPosition NativeRenderImpl::GetRootViewtPositionInWindow(uint32_t root_id) {

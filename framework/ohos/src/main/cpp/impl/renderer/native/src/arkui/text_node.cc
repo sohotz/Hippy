@@ -22,6 +22,7 @@
 
 #include "renderer/arkui/text_node.h"
 #include "renderer/arkui/native_node_api.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 
@@ -58,7 +59,7 @@ TextNode &TextNode::ResetFontColor() {
 }
 
 TextNode &TextNode::SetFontSize(float fontSize) {
-  ArkUI_NumberValue value[] = {{.f32 = fontSize}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(fontSize)}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_SIZE, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_SIZE);
@@ -82,7 +83,7 @@ TextNode &TextNode::SetFontWeight(ArkUI_FontWeight fontWeight) {
 }
 
 TextNode &TextNode::SetTextLineHeight(float textLineHeight) {
-  ArkUI_NumberValue value[] = {{.f32 = textLineHeight}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLineHeight)}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LINE_HEIGHT, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_LINE_HEIGHT);
@@ -115,7 +116,7 @@ TextNode &TextNode::SetTextCase(int32_t textCase) {
 }
 
 TextNode &TextNode::SetTextLetterSpacing(float textLetterSpacing) {
-  ArkUI_NumberValue value[] = {{.f32 = textLetterSpacing}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLetterSpacing)}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LETTER_SPACING, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_LETTER_SPACING);
@@ -184,11 +185,11 @@ TextNode &TextNode::SetTextBaselineOffset(float textBaselineOffset) {
 
 TextNode &TextNode::SetTextShadow(float textShadowRadius, ArkUI_ShadowType textShadowType, uint32_t textShadowColor,
                                   float textShadowOffsetX, float textShadowOffsetY) {
-  ArkUI_NumberValue value[] = {{.f32 = textShadowRadius},
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textShadowRadius)},
                                {.i32 = textShadowType},
                                {.u32 = textShadowColor},
-                               {.f32 = textShadowOffsetX},
-                               {.f32 = textShadowOffsetY}};
+                               {.f32 = HRPixelUtils::DpToVp(textShadowOffsetX)},
+                               {.f32 = HRPixelUtils::DpToVp(textShadowOffsetY)}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_TEXT_SHADOW, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_TEXT_SHADOW);
@@ -198,7 +199,7 @@ TextNode &TextNode::SetTextShadow(float textShadowRadius, ArkUI_ShadowType textS
 TextNode &TextNode::SetTextFont(float fontSize, int32_t fontWeight /*= ARKUI_FONT_WEIGHT_NORMAL*/,
                                 int32_t fontStyle /*= ARKUI_FONT_STYLE_NORMAL*/,
                                 const std::string &fontFamily /*= std::string()*/) {
-  ArkUI_NumberValue value[] = {{.f32 = fontSize}, {.i32 = fontWeight}, {.i32 = fontStyle}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(fontSize)}, {.i32 = fontWeight}, {.i32 = fontStyle}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_FONT, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_FONT);

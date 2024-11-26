@@ -468,7 +468,7 @@ ArkUINode &ArkUINode::SetBorderWidth(float top, float right, float bottom, float
   right = std::max(right, 0.0f);
   bottom = std::max(bottom, 0.0f);
   left = std::max(left, 0.0f);
-  ArkUI_NumberValue borderWidthValue[] = {{top}, {right}, {bottom}, {left}};
+  ArkUI_NumberValue borderWidthValue[] = {{HRPixelUtils::DpToVp(top)}, {HRPixelUtils::DpToVp(right)}, {HRPixelUtils::DpToVp(bottom)}, {HRPixelUtils::DpToVp(left)}};
   ArkUI_AttributeItem borderWidthItem = {borderWidthValue, sizeof(borderWidthValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BORDER_WIDTH, &borderWidthItem));
   SetBaseAttributeFlag(AttributeFlag::BORDER_WIDTH);
@@ -491,8 +491,8 @@ ArkUINode &ArkUINode::SetBorderColor(uint32_t top, uint32_t right, uint32_t bott
 
 ArkUINode &ArkUINode::SetBorderRadius(float topLeft, float topRight, float bottomLeft, float bottomRight) {
   ArkUI_NumberValue borderRadiusValue[] = {
-    {topLeft}, {topRight},
-    {bottomLeft}, {bottomRight}
+    {HRPixelUtils::DpToVp(topLeft)}, {HRPixelUtils::DpToVp(topRight)},
+    {HRPixelUtils::DpToVp(bottomLeft)}, {HRPixelUtils::DpToVp(bottomRight)}
   };
 
   ArkUI_AttributeItem borderRadiusItem = {borderRadiusValue, sizeof(borderRadiusValue) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
@@ -525,10 +525,10 @@ ArkUINode &ArkUINode::SetShadow(const HRShadow &shadow) {
   }
   uint32_t alpha = static_cast<uint32_t>((float)((shadowColorValue >> 24) & (0xff)) * shadowOpacity);
   shadowColorValue = (alpha << 24) + (shadowColorValue & 0xffffff);
-  ArkUI_NumberValue shadowValue[] = {{.f32 = shadow.shadowRadius},
+  ArkUI_NumberValue shadowValue[] = {{.f32 = HRPixelUtils::DpToVp(shadow.shadowRadius)},
                                      {.i32 = 0},
-                                     {.f32 = static_cast<float>(shadow.shadowOffset.width)},
-                                     {.f32 = static_cast<float>(shadow.shadowOffset.height)},
+                                     {.f32 = static_cast<float>(HRPixelUtils::DpToVp(shadow.shadowOffset.width))},
+                                     {.f32 = static_cast<float>(HRPixelUtils::DpToVp(shadow.shadowOffset.height))},
                                      {.i32 = 0},
                                      {.u32 = shadowColorValue},
                                      {.u32 = 0}};
