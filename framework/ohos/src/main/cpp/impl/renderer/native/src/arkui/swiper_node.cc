@@ -27,6 +27,7 @@
 #include "footstone/logging.h"
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/arkui/arkui_node_registry.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -119,7 +120,7 @@ void SwiperNode::SetSwiperVertical(int32_t direction) {
 }
 
 void SwiperNode::SetSwiperPrevMargin(float fValue) {
-  ArkUI_NumberValue value = {.f32 = fValue};
+  ArkUI_NumberValue value = {.f32 = HRPixelUtils::DpToVp(fValue)};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_PREV_MARGIN, &item));
@@ -127,7 +128,7 @@ void SwiperNode::SetSwiperPrevMargin(float fValue) {
 }
 
 void SwiperNode::SetSwiperNextMargin(float fValue) {
-  ArkUI_NumberValue value = {.f32 = fValue};
+  ArkUI_NumberValue value = {.f32 = HRPixelUtils::DpToVp(fValue)};
   ArkUI_AttributeItem item = {&value, 1, nullptr, nullptr};
   MaybeThrow(
       NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SWIPER_NEXT_MARGIN, &item));

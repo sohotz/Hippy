@@ -22,6 +22,7 @@
 
 #include "renderer/components/scroll_view.h"
 #include "renderer/utils/hr_event_utils.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -166,18 +167,18 @@ void ScrollView::EmitScrollEvent(std::string &eventName) {
 
   HippyValueObjectType contentOffsetObj;
   HRPoint contentOffset = GetLocalRootArkUINode()->GetScrollContentOffset();
-  contentOffsetObj.insert_or_assign("x", contentOffset.x);
-  contentOffsetObj.insert_or_assign("y", contentOffset.y);
+  contentOffsetObj.insert_or_assign("x", HRPixelUtils::VpToDp(contentOffset.x));
+  contentOffsetObj.insert_or_assign("y", HRPixelUtils::VpToDp(contentOffset.y));
 
   HippyValueObjectType contentSizeObj;
   HRSize layoutSize = scrollNode_->GetSize();
   HRSize size = children_.size() > 0 ? children_[0]->GetLocalRootArkUINode()->GetSize() : layoutSize;
-  contentSizeObj.insert_or_assign("width", size.width);
-  contentSizeObj.insert_or_assign("height", size.height);
+  contentSizeObj.insert_or_assign("width", HRPixelUtils::VpToDp(size.width));
+  contentSizeObj.insert_or_assign("height", HRPixelUtils::VpToDp(size.height));
 
   HippyValueObjectType layoutMeasurementObj;
-  layoutMeasurementObj.insert_or_assign("width", layoutSize.width);
-  layoutMeasurementObj.insert_or_assign("height", layoutSize.height);
+  layoutMeasurementObj.insert_or_assign("width", HRPixelUtils::VpToDp(layoutSize.width));
+  layoutMeasurementObj.insert_or_assign("height", HRPixelUtils::VpToDp(layoutSize.height));
 
   HippyValueObjectType paramsObj;
   paramsObj.insert_or_assign("contentInset", contentInsetObj);

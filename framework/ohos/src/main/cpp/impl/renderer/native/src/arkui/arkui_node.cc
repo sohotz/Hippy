@@ -539,7 +539,7 @@ ArkUINode &ArkUINode::SetShadow(const HRShadow &shadow) {
 }
 
 ArkUINode &ArkUINode::SetMargin(float left, float top, float right, float bottom) {
-  ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(top)}, {.f32 = HRPixelUtils::DpToVp(right)}, {.f32 = HRPixelUtils::DpToVp(bottom)}, {.f32 = HRPixelUtils::DpToVp(left)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_MARGIN, &item));
   SetBaseAttributeFlag(AttributeFlag::MARGIN);

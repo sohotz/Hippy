@@ -22,6 +22,7 @@
 
 #include "renderer/components/text_input_view.h"
 #include "renderer/utils/hr_event_utils.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "footstone/logging.h"
@@ -484,8 +485,8 @@ void TextInputView::OnChange(std::string text) {
         previousContentWidth_ = rect.width;
         previousContentHeight_ = rect.height;
         HippyValueObjectType contentSize;
-        contentSize["width"] = rect.width;
-        contentSize["height"] = rect.height;
+        contentSize["width"] = HRPixelUtils::VpToDp(rect.width);
+        contentSize["height"] = HRPixelUtils::VpToDp(rect.height);
         HippyValueObjectType eventData;
         eventData["contentSize"] = contentSize;
         const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(eventData);

@@ -22,6 +22,7 @@
 
 #include "renderer/arkui/scroll_node.h"
 #include "renderer/arkui/native_node_api.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -178,8 +179,8 @@ void ScrollNode::ScrollTo(float x, float y, bool animated, int32_t duration) {
     timeValue = duration;
   }
   ArkUI_AttributeItem item;
-  ArkUI_NumberValue value[] = {{.f32 = x},
-                               {.f32 = y},
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(x)},
+                               {.f32 = HRPixelUtils::DpToVp(y)},
                                {.i32 = timeValue},
                                {.i32 = ArkUI_AnimationCurve::ARKUI_CURVE_SMOOTH},
                                {.i32 = 0}};

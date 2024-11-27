@@ -22,6 +22,7 @@
 
 #include "renderer/uimanager/hr_gesture_dispatcher.h"
 #include "footstone/hippy_value.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -33,8 +34,8 @@ using HippyValueObjectType = footstone::HippyValue::HippyValueObjectType;
 void HRGestureDispatcher::HandleTouchEvent(std::shared_ptr<NativeRenderContext> &ctx, uint32_t node_id, float window_x,
     float window_y, const std::string &event_name) {
   HippyValueObjectType param;
-  param[HRGestureDispatcher::KEY_PAGE_X] = HippyValue(window_x);
-  param[HRGestureDispatcher::KEY_PAGE_Y] = HippyValue(window_y);
+  param[HRGestureDispatcher::KEY_PAGE_X] = HippyValue(HRPixelUtils::VpToDp(window_x));
+  param[HRGestureDispatcher::KEY_PAGE_Y] = HippyValue(HRPixelUtils::VpToDp(window_y));
   auto params = std::make_shared<HippyValue>(std::move(param));
   HREventUtils::SendGestureEvent(ctx, node_id, event_name, params);
 }

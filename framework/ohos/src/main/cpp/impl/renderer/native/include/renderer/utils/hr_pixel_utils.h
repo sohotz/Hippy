@@ -33,6 +33,8 @@ public:
     densityScale_ = static_cast<float>(density_scale);
   }
   
+  inline static float GetDensityScale() { return densityScale_;  }
+  
   inline static float DpToPx(float dp) { return dp * density_; }
   inline static float PxToDp(float px) { return px / density_; }
   

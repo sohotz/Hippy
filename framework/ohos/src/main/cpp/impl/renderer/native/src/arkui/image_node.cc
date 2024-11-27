@@ -22,6 +22,7 @@
 
 #include "renderer/arkui/image_node.h"
 #include "renderer/arkui/native_node_api.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include <native_drawing/drawing_types.h>
 
 namespace hippy {
@@ -98,7 +99,7 @@ ImageNode &ImageNode::SetResizeMode(HRImageResizeMode const &mode) {
 }
 
 ImageNode &ImageNode::SetResizeable(float left, float top, float right, float bottom) {
-  ArkUI_NumberValue value[] = {{.f32 = left}, {.f32 = top}, {.f32 = right}, {.f32 = bottom}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(left)}, {.f32 = HRPixelUtils::DpToVp(top)}, {.f32 = HRPixelUtils::DpToVp(right)}, {.f32 = HRPixelUtils::DpToVp(bottom)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_RESIZABLE, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_RESIZABLE);

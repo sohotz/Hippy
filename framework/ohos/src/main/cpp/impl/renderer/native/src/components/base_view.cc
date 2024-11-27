@@ -262,7 +262,7 @@ bool BaseView::SetPropImpl(const std::string &propKey, const HippyValue &propVal
     if (propValue.IsArray() && propValue.ToArray(valueArray)) {
       HRTransform transform;
       HRConvertUtils::TransformToArk(valueArray, transform);
-      GetLocalRootArkUINode()->SetTransform(transform, 1.0f);
+      GetLocalRootArkUINode()->SetTransform(transform, 1.0f / HRPixelUtils::GetDensityScale());
     }
     return true;
   } else if (propKey == HRNodeProps::OVERFLOW) {
@@ -833,11 +833,11 @@ void BaseView::CallImpl(const std::string &method, const std::vector<HippyValue>
     HRSize viewSize = GetLocalRootArkUINode()->GetSize();
 
     HippyValueObjectType result;
-    result["x"] = HippyValue(viewPosition.x);
-    result["y"] = HippyValue(viewPosition.y - statusBarHeight);
-    result["width"] = HippyValue(viewSize.width);
-    result["height"] = HippyValue(viewSize.height);
-    result["statusBarHeight"] = HippyValue(statusBarHeight);
+    result["x"] = HippyValue(HRPixelUtils::VpToDp(viewPosition.x));
+    result["y"] = HippyValue(HRPixelUtils::VpToDp(viewPosition.y - statusBarHeight));
+    result["width"] = HippyValue(HRPixelUtils::VpToDp(viewSize.width));
+    result["height"] = HippyValue(HRPixelUtils::VpToDp(viewSize.height));
+    result["statusBarHeight"] = HippyValue(HRPixelUtils::VpToDp(statusBarHeight));
     callback(HippyValue(result));
   } else if (method == "getBoundingClientRect") {
     if (!callback) {
@@ -871,10 +871,10 @@ void BaseView::CallImpl(const std::string &method, const std::vector<HippyValue>
     }
 
     HippyValueObjectType result;
-    result["x"] = HippyValue(x);
-    result["y"] = HippyValue(y);
-    result["width"] = HippyValue(viewSize.width);
-    result["height"] = HippyValue(viewSize.height);
+    result["x"] = HippyValue(HRPixelUtils::VpToDp(x));
+    result["y"] = HippyValue(HRPixelUtils::VpToDp(y));
+    result["width"] = HippyValue(HRPixelUtils::VpToDp(viewSize.width));
+    result["height"] = HippyValue(HRPixelUtils::VpToDp(viewSize.height));
     callback(HippyValue(result));
   } else if (method == "getScreenShot") {
     HippyValueObjectType snapshotResult = CallNativeRenderProviderMethod(ts_env_, ts_render_provider_ref_, ctx_->GetRootId(), "getComponentSnapshot");

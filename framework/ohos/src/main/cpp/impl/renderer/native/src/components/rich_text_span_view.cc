@@ -22,6 +22,7 @@
 
 #include "renderer/components/rich_text_span_view.h"
 #include "renderer/dom_node/hr_node_props.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
@@ -173,7 +174,7 @@ void RichTextSpanView::OnSetPropsEndImpl() {
   }
   if (toSetTextShadow) {
     toSetTextShadow = false;
-    GetLocalRootArkUINode()->SetTextShadow(textShadowRadius_, ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, textShadowOffsetX_, textShadowOffsetY_);
+    GetLocalRootArkUINode()->SetTextShadow(HRPixelUtils::DpToVp(textShadowRadius_), ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, HRPixelUtils::DpToVp(textShadowOffsetX_), HRPixelUtils::DpToVp(textShadowOffsetY_));
   }
   BaseView::OnSetPropsEndImpl();
 }

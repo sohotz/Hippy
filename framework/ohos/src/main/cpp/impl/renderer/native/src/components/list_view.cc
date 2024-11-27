@@ -24,6 +24,7 @@
 #include "renderer/components/list_item_view.h"
 #include "renderer/components/refresh_wrapper_view.h"
 #include "renderer/utils/hr_event_utils.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
 // #define LIST_VIEW_DEBUG_LOG
@@ -382,8 +383,8 @@ void ListView::EmitScrollEvent(const std::string &eventName) {
   auto offset = listNode_->GetScrollOffset();
   
   HippyValueObjectType contentOffset;
-  contentOffset["x"] = HippyValue(offset.x);
-  contentOffset["y"] = HippyValue(offset.y);
+  contentOffset["x"] = HippyValue(HRPixelUtils::VpToDp(offset.x));
+  contentOffset["y"] = HippyValue(HRPixelUtils::VpToDp(offset.y));
   
   float contentWidth = width_;
   float contentHeight = height_;
@@ -394,12 +395,12 @@ void ListView::EmitScrollEvent(const std::string &eventName) {
   }
 
   HippyValueObjectType contentSize;
-  contentSize["width"] = HippyValue(contentWidth);
-  contentSize["height"] = HippyValue(contentHeight);
+  contentSize["width"] = HippyValue(HRPixelUtils::VpToDp(contentWidth));
+  contentSize["height"] = HippyValue(HRPixelUtils::VpToDp(contentHeight));
 
   HippyValueObjectType layoutMeasurement;
-  contentSize["width"] = HippyValue(width_);
-  contentSize["height"] = HippyValue(height_);
+  contentSize["width"] = HippyValue(HRPixelUtils::VpToDp(width_));
+  contentSize["height"] = HippyValue(HRPixelUtils::VpToDp(height_));
 
   HippyValueObjectType params;
   params["contentInset"] = contentInset;
@@ -532,12 +533,12 @@ void ListView::CheckPullOnScroll() {
 
   if (headerView_ && pullAction_ == ScrollAction::PullHeader) {
     HippyValueObjectType params;
-    params[CONTENT_OFFSET] = -yOff + headerView_->GetHeight();
+    params[CONTENT_OFFSET] = HRPixelUtils::VpToDp(-yOff + headerView_->GetHeight());
     HREventUtils::SendComponentEvent(headerView_->GetCtx(), headerView_->GetTag(),
                                      HREventUtils::EVENT_PULL_HEADER_PULLING, std::make_shared<HippyValue>(params));
   } else if (footerView_ && pullAction_ == ScrollAction::PullFooter) {
     HippyValueObjectType params;
-    params[CONTENT_OFFSET] = yOff - lastItemFullVisibleYOffset_;
+    params[CONTENT_OFFSET] = HRPixelUtils::VpToDp(yOff - lastItemFullVisibleYOffset_);
     HREventUtils::SendComponentEvent(footerView_->GetCtx(), footerView_->GetTag(),
                                      HREventUtils::EVENT_PULL_FOOTER_PULLING, std::make_shared<HippyValue>(params));
   }

@@ -22,6 +22,7 @@ import deviceinfo from '@ohos.deviceInfo';
 import { TextUtils } from './TextUtils';
 import { display } from '@kit.ArkUI';
 import { LogUtils } from './LogUtils';
+import { PixelUtil } from './PixelUtil';
 
 const DIMENSSION_TAG = "DimensionsUtil"
 
@@ -41,9 +42,9 @@ export class DimensionsUtil {
     let windowDisplayMetricsMap = new Map<string, HippyValue>()
     windowDisplayMetricsMap.set("width", ww >= 0 ? ww : displayClass.width);
     windowDisplayMetricsMap.set("height", wh >= 0 ? wh : displayClass.height);
-    windowDisplayMetricsMap.set("scale", displayClass.densityPixels);
-    windowDisplayMetricsMap.set("fontScale", displayClass.scaledDensity);
-    windowDisplayMetricsMap.set("densityDpi", displayClass.densityDPI);
+    windowDisplayMetricsMap.set("scale", displayClass.densityPixels / PixelUtil.getDensityScale());
+    windowDisplayMetricsMap.set("fontScale", displayClass.scaledDensity / PixelUtil.getDensityScale());
+    windowDisplayMetricsMap.set("densityDpi", displayClass.densityDPI / PixelUtil.getDensityScale());
     windowDisplayMetricsMap.set("statusBarHeight", DimensionsUtil.STATUS_BAR_HEIGHT);
     windowDisplayMetricsMap.set("navigationBarHeight", DimensionsUtil.NAVIGATE_BAR_HEIGHT);
     dimensionMap.set("windowPhysicalPixels", windowDisplayMetricsMap);
@@ -51,9 +52,9 @@ export class DimensionsUtil {
     let screenDisplayMetricsMap = new Map<string, HippyValue>()
     screenDisplayMetricsMap.set("width", displayClass.width);
     screenDisplayMetricsMap.set("height", displayClass.height);
-    screenDisplayMetricsMap.set("scale", displayClass.densityPixels);
-    screenDisplayMetricsMap.set("fontScale", displayClass.scaledDensity);
-    screenDisplayMetricsMap.set("densityDpi", displayClass.densityDPI);
+    screenDisplayMetricsMap.set("scale", displayClass.densityPixels / PixelUtil.getDensityScale());
+    screenDisplayMetricsMap.set("fontScale", displayClass.scaledDensity / PixelUtil.getDensityScale());
+    screenDisplayMetricsMap.set("densityDpi", displayClass.densityDPI / PixelUtil.getDensityScale());
     screenDisplayMetricsMap.set("statusBarHeight", DimensionsUtil.STATUS_BAR_HEIGHT);
     screenDisplayMetricsMap.set("navigationBarHeight", DimensionsUtil.NAVIGATE_BAR_HEIGHT);
     dimensionMap.set("screenPhysicalPixels", screenDisplayMetricsMap);

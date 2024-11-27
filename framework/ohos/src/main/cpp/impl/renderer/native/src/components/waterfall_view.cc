@@ -22,6 +22,7 @@
 
 #include "renderer/components/waterfall_view.h"
 #include "renderer/components/rich_text_view.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 #include "renderer/native_render_provider.h"
 #include "renderer/components/waterfall_item_view.h"
@@ -143,7 +144,11 @@ void WaterfallView::Init() {
 }
 
 void WaterfallView::HandleOnChildrenUpdated() {
-  colInnerNode_->SetPadding(this->padding_.paddingTop,this->padding_.paddingRight,this->padding_.paddingBottom,this->padding_.paddingLeft);
+  colInnerNode_->SetPadding(
+    HRPixelUtils::DpToVp(this->padding_.paddingTop),
+    HRPixelUtils::DpToVp(this->padding_.paddingRight),
+    HRPixelUtils::DpToVp(this->padding_.paddingBottom),
+    HRPixelUtils::DpToVp(this->padding_.paddingLeft));
   flowNode_->SetWidthPercent(1.0);
   flowNode_->SetScrollEdgeEffect(this->edgeEffect_);
   flowNode_->SetColumnGap(this->columnSpacing_);
@@ -253,7 +258,7 @@ void WaterfallView::OnScroll(float scrollOffsetX, float scrollOffsetY) {
   HippyValueObjectType params;
   if(headerView && headerVisible){
     if(isDragging_){
-      params["contentOffset"] = -offset.y+headerView->GetHeight();
+      params["contentOffset"] = HRPixelUtils::VpToDp(-offset.y+headerView->GetHeight());
       HREventUtils::SendComponentEvent(headerView->GetCtx(), headerView->GetTag(),
                                        HREventUtils::EVENT_PULL_HEADER_PULLING, std::make_shared<HippyValue>(params));
     } else{

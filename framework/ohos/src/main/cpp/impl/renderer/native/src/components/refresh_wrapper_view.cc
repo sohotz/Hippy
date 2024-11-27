@@ -23,6 +23,7 @@
 #include "renderer/components/refresh_wrapper_view.h"
 #include "renderer/components/list_view.h"
 #include "renderer/utils/hr_event_utils.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
 namespace hippy {
@@ -156,7 +157,7 @@ void RefreshWrapperView::SendOnScrollEvent(float y) {
     }
     HippyValueObjectType contentOffset;
     contentOffset["x"] = HippyValue(0);
-    contentOffset["y"] = HippyValue(y);
+    contentOffset["y"] = HippyValue(HRPixelUtils::VpToDp(y));
     HippyValueObjectType event;
     event["contentOffset"] = contentOffset;
     HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_REFRESH_WRAPPER_SCROLL, std::make_shared<HippyValue>(event));
