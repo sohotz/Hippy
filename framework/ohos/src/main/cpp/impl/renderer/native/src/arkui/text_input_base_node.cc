@@ -22,6 +22,7 @@
 
 #include "renderer/arkui/text_input_base_node.h"
 #include "renderer/arkui/native_node_api.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -79,7 +80,7 @@ void TextInputBaseNode::SetFontStyle(ArkUI_FontStyle const &style){
 }
 
 void TextInputBaseNode::SetFontSize(float_t const &size){
-  ArkUI_NumberValue value[] = {{.f32 = size}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(size)}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_SIZE, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_SIZE);
