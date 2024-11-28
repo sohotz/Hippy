@@ -74,7 +74,7 @@ static napi_value CreateDomManager(napi_env env, napi_callback_info info) {
   uint32_t dom_manager_num = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
   uint32_t first_dom_manager_id = 0;
   for (uint32_t i = 0; i < dom_manager_num; i++) {
-    auto dom_manager = std::make_shared<DomManager>();
+    std::shared_ptr<DomManager> dom_manager = std::make_shared<DomManagerImpl>();
     auto dom_manager_id = hippy::global_data_holder_key.fetch_add(1);
     hippy::global_data_holder.Insert(dom_manager_id, dom_manager);
     std::string worker_name = kDomWorkerName + std::to_string(dom_manager_id);

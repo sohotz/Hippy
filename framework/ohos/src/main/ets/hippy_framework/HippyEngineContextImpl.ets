@@ -126,16 +126,18 @@ export class HippyEngineContextImpl implements HippyEngineContext {
       bundlePath = coreBundleLoader.getPath()
     }
 
-    // Render注册
-    let enableArkCApi = globalConfigs.enableArkCApi()
-    let isRawfile = globalConfigs.isLoadFromRawfile()
-    let resModuleName = globalConfigs.getResModuleName()
-    this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, enableArkCApi, customRenderViewCreatorMap, customMeasureRenderViews)
-    this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider,
-      customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath, isRawfile, resModuleName)
-    this.nativeRenderer.registerCustomFontPaths(customFontPathMap)
-    // DomManager挂载
-    this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)
+    if (!params.domInterceptor) {
+      // Render注册
+      let enableArkCApi = globalConfigs.enableArkCApi()
+      let isRawfile = globalConfigs.isLoadFromRawfile()
+      let resModuleName = globalConfigs.getResModuleName()
+      this.nativeRenderProvider = new NativeRenderProvider(this.libHippy, enableArkCApi, customRenderViewCreatorMap, customMeasureRenderViews)
+      this.nativeRenderer = new NativeRenderer(this.libHippy, enableArkCApi, this.nativeRenderProvider,
+        customRenderViews, customMeasureRenderViews, mappingRenderViews, bundlePath, isRawfile, resModuleName)
+      this.nativeRenderer.registerCustomFontPaths(customFontPathMap)
+      // DomManager挂载
+      this.mDomManager.attachToRenderer(this.nativeRenderer.instanceId)
+    }
     // ModuleManager注册
     this.mModuleManager = new HippyModuleManagerImpl(this, params.enableV8Serialization);
     this.mModuleManager.addModules(customNativeModules);
@@ -234,6 +236,11 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   }
 
   createRootView(loadParams: ModuleLoadParams) {
+    if (this.mEngineInitParams.domInterceptor) {
+      this.attachDomToRootView(this.mEngineInitParams.domInterceptor.instanceId);
+      this.attachJsToRootView(this.mEngineInitParams.domInterceptor.instanceId);
+      return null;
+    }
     const rootView = this.nativeRenderProvider!.getNativeRenderImpl().createRootView(loadParams.componentName, {}, loadParams.wrappedCustomRenderViewBuilder)
     if (rootView != null) {
       this.attachRootView(rootView);
@@ -319,7 +326,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
   }
 
   getNativeRender(): NativeRender | null {
-    return this.nativeRenderProvider ? this.nativeRenderProvider.getNativeRenderImpl() : null
+    return this.nativeRenderProvider?.getNativeRenderImpl() ?? null
   }
 
   getDevtoolsId(): number {

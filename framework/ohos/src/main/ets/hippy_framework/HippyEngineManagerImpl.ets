@@ -182,6 +182,8 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     if (onReLoad && this.mDebugMode && this.mEngineContext != null) {
         this.mEngineContext.destroy(true);
         domMgr = this.mEngineContext.getDomManager();
+    } else if (this.params.domInterceptor) {
+        domMgr = this.params.domInterceptor;
     }
     this.mEngineContext = new HippyEngineContextImpl(
       this.params,
@@ -282,7 +284,9 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
     }
     this.rootView = this.mEngineContext!.createRootView(loadParams);
     this.moduleLoadParams = loadParams;
-    this.mEngineContext?.setRootView(this.rootView);
+    if (this.rootView) {
+      this.mEngineContext?.setRootView(this.rootView);
+    }
     this.mEngineContext?.setLoadModuleCallback(loadModuleCallback);
     this.mEngineContext?.setComponentName(loadParams.componentName);
     this.loadJsModule(loadModuleCallback);
@@ -383,7 +387,8 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
       }
     }
     if (this.moduleLoadParams) {
-      this.mEngineContext.getBridgeManager()?.loadInstance(this.moduleLoadParams.componentName || '', this.rootView?.getRootId() || 0, this.moduleLoadParams.jsParams);
+      const rootId = this.params.domInterceptor?.instanceId ?? this.rootView?.getRootId() ?? 0;
+      this.mEngineContext.getBridgeManager()?.loadInstance(this.moduleLoadParams.componentName || '', rootId, this.moduleLoadParams.jsParams);
     }
 
     if (this.params.debugMode && loadJsModuleCallback) {

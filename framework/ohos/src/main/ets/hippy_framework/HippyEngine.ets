@@ -50,6 +50,7 @@ import { FileRequestAdapter } from './adapter/file/FileRequestAdapter';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyRootView } from '../renderer_native';
 import { WrappedHippyCustomRenderViewBuilder } from '../renderer_native/HippyRenderViewBuilder';
+import { DomManager } from './connector/DomManager';
 
 export interface HippyEngine {
   initEngine(initCallbak: HippyEngineInitCallback): void
@@ -169,6 +170,8 @@ export class EngineInitParams {
   public integrateJSEngine: boolean = true;
   // 可选参数 domManager并行数量，即dom多线程的数量，默认只有1个dom线程
   public domManagerConcurrentNum: number = 1;
+  // 注入domManager
+  public domInterceptor?: DomManager;
 
   constructor(
     libHippy: HippyLibrary,
