@@ -28,12 +28,14 @@ inline namespace native {
 
 class HRPixelUtils {
 public:
-  inline static void InitDensity(double density, double density_scale) {
+  inline static void InitDensity(double density, double density_scale, double font_size_scale) {
     density_ = static_cast<float>(density);
     densityScale_ = static_cast<float>(density_scale);
+    fontSizeScale_ = static_cast<float>(font_size_scale);
   }
   
   inline static float GetDensityScale() { return densityScale_;  }
+  inline static float GetFontSizeScale() { return fontSizeScale_; }
   
   inline static float DpToPx(float dp) { return dp * density_; }
   inline static float PxToDp(float px) { return px / density_; }
@@ -44,6 +46,7 @@ public:
 private:
   static float density_;
   static float densityScale_;
+  static float fontSizeScale_;
 };
 
 } // namespace native

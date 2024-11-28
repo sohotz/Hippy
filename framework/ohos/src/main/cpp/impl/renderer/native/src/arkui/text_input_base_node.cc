@@ -80,12 +80,12 @@ void TextInputBaseNode::SetFontStyle(ArkUI_FontStyle const &style){
 }
 
 void TextInputBaseNode::SetFontSize(float_t const &size){
-  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(size)}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(size) * HRPixelUtils::GetFontSizeScale()}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_SIZE, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_SIZE);
   
-  ArkUI_NumberValue value2[] = {{.f32 = HRPixelUtils::DpToVp(size)}};
+  ArkUI_NumberValue value2[] = {{.f32 = HRPixelUtils::DpToVp(size) * HRPixelUtils::GetFontSizeScale()}};
   ArkUI_AttributeItem item2 = {.value = value2, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_PLACEHOLDER_FONT, &item2));
 }

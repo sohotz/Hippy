@@ -59,7 +59,7 @@ TextNode &TextNode::ResetFontColor() {
 }
 
 TextNode &TextNode::SetFontSize(float fontSize) {
-  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(fontSize)}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(fontSize) * HRPixelUtils::GetFontSizeScale()}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_SIZE, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_SIZE);
@@ -83,7 +83,7 @@ TextNode &TextNode::SetFontWeight(ArkUI_FontWeight fontWeight) {
 }
 
 TextNode &TextNode::SetTextLineHeight(float textLineHeight) {
-  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLineHeight)}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLineHeight) * HRPixelUtils::GetFontSizeScale()}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LINE_HEIGHT, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_LINE_HEIGHT);
@@ -116,7 +116,7 @@ TextNode &TextNode::SetTextCase(int32_t textCase) {
 }
 
 TextNode &TextNode::SetTextLetterSpacing(float textLetterSpacing) {
-  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLetterSpacing)}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLetterSpacing) * HRPixelUtils::GetFontSizeScale()}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LETTER_SPACING, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_LETTER_SPACING);
@@ -199,7 +199,7 @@ TextNode &TextNode::SetTextShadow(float textShadowRadius, ArkUI_ShadowType textS
 TextNode &TextNode::SetTextFont(float fontSize, int32_t fontWeight /*= ARKUI_FONT_WEIGHT_NORMAL*/,
                                 int32_t fontStyle /*= ARKUI_FONT_STYLE_NORMAL*/,
                                 const std::string &fontFamily /*= std::string()*/) {
-  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(fontSize)}, {.i32 = fontWeight}, {.i32 = fontStyle}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(fontSize) * HRPixelUtils::GetFontSizeScale()}, {.i32 = fontWeight}, {.i32 = fontStyle}};
   ArkUI_AttributeItem item = {.value = value, .size = sizeof(value) / sizeof(ArkUI_NumberValue)};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_FONT, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_FONT);

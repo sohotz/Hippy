@@ -54,7 +54,7 @@ SpanNode &SpanNode::SetFontColor(uint32_t color) {
 }
 
 SpanNode &SpanNode::SetFontSize(float fontSize) {
-  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(fontSize)}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(fontSize) * HRPixelUtils::GetFontSizeScale()}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_FONT_SIZE, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::FONT_SIZE);
@@ -78,7 +78,7 @@ SpanNode &SpanNode::SetFontWeight(int32_t fontWeight) {
 }
 
 SpanNode &SpanNode::SetTextLineHeight(float textLineHeight) {
-  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLineHeight)}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLineHeight) * HRPixelUtils::GetFontSizeScale()}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LINE_HEIGHT, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_LINE_HEIGHT);
@@ -102,7 +102,7 @@ SpanNode &SpanNode::SetTextCase(int32_t textCase) {
 }
 
 SpanNode &SpanNode::SetTextLetterSpacing(float textLetterSpacing) {
-  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLetterSpacing)}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(textLetterSpacing) * HRPixelUtils::GetFontSizeScale()}};
   ArkUI_AttributeItem item = {.value = value, .size = 1};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_LETTER_SPACING, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_LETTER_SPACING);
