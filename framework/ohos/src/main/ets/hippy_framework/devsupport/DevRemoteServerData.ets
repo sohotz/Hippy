@@ -94,7 +94,7 @@ export class DevRemoteServerData {
       for (let pair of arrayValue) { // Show keyName/valueName pairs
         console.log(pair[0] + ', ' + pair[1]);
         if (DevRemoteServerData.KEY_DEBUG_URL == pair[0]) {
-          return pair[1].toString()
+          return JSON.stringify(pair[1])
         }
       }
     }
