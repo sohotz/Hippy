@@ -7,7 +7,7 @@ set(HIPPY_IMPL_CPP_DIR "${HIPPY_CPP_DIR}/impl")
 
 add_subdirectory("${HIPPY_IMPL_CPP_DIR}" ./hippy_impl)
 
-add_library(hippy SHARED
+add_library(${PROJECT_NAME} SHARED
 )
 
-target_link_libraries(hippy PUBLIC hippy_impl)
+target_link_libraries(${PROJECT_NAME} PUBLIC hippy_impl)
