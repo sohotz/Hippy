@@ -52,6 +52,9 @@ public:
 private:
   void ClearProps();
   
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+  
   std::shared_ptr<TextNode> textNode_;
 
   std::optional<std::string> text_;
@@ -79,6 +82,8 @@ private:
 
   bool isListenEllipsized_ = false;
   bool toSendEllipsizedEvent_ = false;
+  
+#pragma clang diagnostic pop
 };
 
 } // namespace native

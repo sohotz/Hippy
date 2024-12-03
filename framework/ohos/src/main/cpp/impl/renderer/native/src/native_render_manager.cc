@@ -34,7 +34,6 @@
 #include "footstone/macros.h"
 #include "dom/root_node.h"
 #include "oh_napi/ark_ts.h"
-#include "oh_napi/oh_measure_text.h"
 
 #define USE_C_MEASURE 1
 
@@ -348,6 +347,18 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     return;
   }
 
+#ifdef OHOS_DRAW_TEXT
+  for (const auto &n : nodes) {
+    auto node = root->GetNode(n->GetId());
+    if (node == nullptr)
+      continue;
+    if (n->GetViewName() == "Text") {
+      auto textNode = GetAncestorTextNode(node);
+      draw_text_nodes_[node->GetId()] = textNode;
+    }
+  }
+#endif
+
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRCreateMutation>> mutations;
@@ -371,6 +382,12 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
         if (!self) {
           return LayoutSize{0, 0};
         }
+#ifdef OHOS_DRAW_TEXT
+        auto node = weak_node.lock();
+        if (node) {
+          self->draw_text_nodes_.erase(node->GetId());
+        }
+#endif
         int64_t result;
         self->DoMeasureText(root_node, weak_node, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
                             self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
@@ -759,6 +776,7 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
     }
     mutations[i] = m;
   }
+  
   c_render_provider_->UpdateLayout(root_id, mutations);
 }
 
@@ -823,9 +841,49 @@ void NativeRenderManager::EndBatch_TS(std::weak_ptr<RootNode> root_node) {
 void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
   auto root = root_node.lock();
   if (root) {
+#ifdef OHOS_DRAW_TEXT
+    for (auto it : draw_text_nodes_) {
+      auto node = it.second.lock();
+      if (node) {
+        float width = 0;
+        float height = 0;
+        GetTextNodeSizeProp(node, width, height);
+        int64_t result = 0;
+        DoMeasureText(root_node, node, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
+                      DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
+      }
+    }
+    draw_text_nodes_.clear();
+#endif
+
     uint32_t root_id = root->GetId();
     c_render_provider_->EndBatch(root_id);
   }
+}
+
+bool NativeRenderManager::GetTextNodeSizeProp(const std::shared_ptr<DomNode> &node, float &width, float &height) {
+  width = std::numeric_limits<float>::max();
+  height = std::numeric_limits<float>::max();
+  
+  auto style = node->GetStyleMap();
+  auto it = style->find("width");
+  if (it != style->end()) {
+    auto value = it->second;
+    double d = 0;
+    if (value->ToDouble(d)) {
+      width = (float)d;
+    }
+  }
+  
+  it = style->find("height");
+  if (it != style->end()) {
+    auto value = it->second;
+    double d = 0;
+    if (value->ToDouble(d)) {
+      height = (float)d;
+    }
+  }
+  return true;
 }
 
 void NativeRenderManager::BeforeLayout(std::weak_ptr<RootNode> root_node){}
@@ -1039,7 +1097,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   CollectAllProps(textPropMap, node);
 
   float density = GetDensity();
-  OhMeasureText measureInst(custom_font_path_map_);
+  auto measureInst = std::make_shared<TextMeasurer>(custom_font_path_map_);
   OhMeasureResult measureResult;
 
   std::set<std::string> fontFamilyNames;
@@ -1064,10 +1122,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
     }
   }
   
-  measureInst.StartMeasure(textPropMap, fontFamilyNames);
+  measureInst->StartMeasure(textPropMap, fontFamilyNames);
 
   if (node->GetChildCount() == 0) {
-    measureInst.AddText(textPropMap);
+    measureInst->AddText(textPropMap, density);
   } else {
     for(uint32_t i = 0; i < node->GetChildCount(); i++) {
       auto child = node->GetChildAt(i);
@@ -1075,10 +1133,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       if (grand_child_count == 0) {
         CollectAllProps(spanPropMap, child);
         if (child->GetViewName() == "Text") {
-          measureInst.AddText(spanPropMap);
+          measureInst->AddText(spanPropMap, density);
         } else if (child->GetViewName() == "Image") {
           if (spanPropMap.find("width") != spanPropMap.end() && spanPropMap.find("height") != spanPropMap.end()) {
-            measureInst.AddImage(spanPropMap);
+            measureInst->AddImage(spanPropMap, density);
             imageSpanNode.push_back(child);
           } else {
             FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
@@ -1091,10 +1149,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
           std::map<std::string, std::string> grandSpanPropMap = spanPropMap;
           CollectAllProps(grandSpanPropMap, grand_child, false);
           if (grand_child->GetViewName() == "Text") {
-            measureInst.AddText(grandSpanPropMap);
+            measureInst->AddText(grandSpanPropMap, density);
           } else if (grand_child->GetViewName() == "Image") {
             if (grandSpanPropMap.find("width") != grandSpanPropMap.end() && grandSpanPropMap.find("height") != grandSpanPropMap.end()) {
-              measureInst.AddImage(grandSpanPropMap);
+              measureInst->AddImage(grandSpanPropMap, density);
               imageSpanNode.push_back(grand_child);
             } else {
               FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
@@ -1104,13 +1162,18 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       }
     }
   }
-  measureResult = measureInst.EndMeasure(static_cast<int>(width), static_cast<int>(width_mode),
+  measureResult = measureInst->EndMeasure(static_cast<int>(width), static_cast<int>(width_mode),
                                          static_cast<int>(height), static_cast<int>(height_mode), density);
+
+#ifdef OHOS_DRAW_TEXT
+  auto view_manager = c_render_provider_->GetNativeRenderImpl()->GetHRManager()->GetViewManager(root->GetId());
+  view_manager->GetRenderContext()->GetTextMeasureManager()->SetTextMeasurer(node->GetId(), measureInst);
+#endif
 
   if(measureResult.spanPos.size() > 0 && measureResult.spanPos.size() == imageSpanNode.size()) {
     for(uint32_t i = 0; i < imageSpanNode.size(); i++) {
-      double x = measureResult.spanPos[i].x;
-      double y = measureResult.spanPos[i].y;
+      double x = PxToDp((float)measureResult.spanPos[i].x);
+      double y = PxToDp((float)measureResult.spanPos[i].y);
       // 把 c 测量到的imageSpan的位置，通知给ArkTS组件
       if (enable_ark_c_api_) {
         c_render_provider_->SpanPosition(root->GetId(), imageSpanNode[i]->GetId(), float(x), float(y));
@@ -1248,9 +1311,40 @@ void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, 
         MARK_DIRTY_PROPERTY(diff_style, kText, node->GetLayoutNode());
         MARK_DIRTY_PROPERTY(diff_style, kEnableScale, node->GetLayoutNode());
         MARK_DIRTY_PROPERTY(diff_style, kNumberOfLines, node->GetLayoutNode());
+        
+#ifdef OHOS_DRAW_TEXT
+        if (diff_style->find(kFontStyle) != diff_style->end()
+          || diff_style->find(kLetterSpacing) != diff_style->end()
+          || diff_style->find(kColor) != diff_style->end()
+          || diff_style->find(kFontSize) != diff_style->end()
+          || diff_style->find(kFontFamily) != diff_style->end()
+          || diff_style->find(kFontWeight) != diff_style->end()
+          || diff_style->find(kTextDecorationLine) != diff_style->end()
+          || diff_style->find(kTextShadowOffset) != diff_style->end()
+          || diff_style->find(kTextShadowRadius) != diff_style->end()
+          || diff_style->find(kTextShadowColor) != diff_style->end()
+          || diff_style->find(kLineHeight) != diff_style->end()
+          || diff_style->find(kTextAlign) != diff_style->end() // TODO:
+          || diff_style->find(kText) != diff_style->end()
+          || diff_style->find(kEnableScale) != diff_style->end()
+          || diff_style->find(kNumberOfLines) != diff_style->end()) {
+          auto textNode = GetAncestorTextNode(node);
+          draw_text_nodes_[node->GetId()] = textNode;
+        }
+#endif
       }
     }
   }
+}
+
+std::shared_ptr<DomNode> NativeRenderManager::GetAncestorTextNode(const std::shared_ptr<DomNode> &node) {
+  auto textNode = node;
+  auto parentNode = textNode->GetParent();
+  while (parentNode && parentNode->GetViewName() == "Text") {
+    textNode = parentNode;
+    parentNode = textNode->GetParent();
+  }
+  return textNode;
 }
 
 bool NativeRenderManager::IsCustomMeasureNode(const std::string &name) {

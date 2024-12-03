@@ -50,7 +50,6 @@ set(SOURCE_SET
   src/ark_ts.cc
   src/oh_napi_utils.cc
   src/oh_napi_object.cc
-  src/oh_measure_text.cc
   src/oh_napi_object_builder.cc
   src/oh_napi_task_runner.cc)
 set(PUBLIC_SOURCE_SET

@@ -34,6 +34,13 @@ TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_
 
 TextNode::~TextNode() {}
 
+TextNode &TextNode::SetTextContentWithStyledString(const ArkUI_StyledString *styledString) {
+  ArkUI_AttributeItem item = {.object = (void*)styledString};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_CONTENT_WITH_STYLED_STRING, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_CONTENT_WITH_STYLED_STRING);
+  return *this;
+}
+
 TextNode &TextNode::SetTextContent(const std::string &text) {
   ArkUI_AttributeItem item = {.string = text.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_CONTENT, &item));
@@ -227,6 +234,7 @@ void TextNode::ResetAllAttributes() {
   if (!subAttributesFlagValue_) {
     return;
   }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_CONTENT_WITH_STYLED_STRING, NODE_TEXT_CONTENT_WITH_STYLED_STRING);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_CONTENT, NODE_TEXT_CONTENT);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_COLOR, NODE_FONT_COLOR);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_SIZE, NODE_FONT_SIZE);

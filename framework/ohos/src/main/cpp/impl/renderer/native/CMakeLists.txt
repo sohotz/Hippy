@@ -33,6 +33,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_library(${PROJECT_NAME} STATIC)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILE_OPTIONS})
+target_compile_definitions(${PROJECT_NAME} PRIVATE "OHOS_DRAW_TEXT")
 #target_compile_definitions(${PROJECT_NAME} INTERFACE "OHOS_NATIVE_RENDER")
 # endregion
 
@@ -121,6 +122,8 @@ set(SOURCE_SET
   src/components/waterfall_item_view.cc
   src/components/waterfall_view.cc
   src/recycle/recycle_view.cc
+  src/text_measure/text_measurer.cc
+  src/text_measure/text_measure_manager.cc
   )
 set(PUBLIC_SOURCE_SET
   src/native_render_provider_capi.cc

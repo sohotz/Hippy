@@ -77,6 +77,8 @@ bool RichTextView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView)
 }
 
 bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+#ifdef OHOS_DRAW_TEXT
+#else
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
     if (!text_.has_value() || value != text_) {
@@ -214,11 +216,25 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     }
     return true;
   }
-  
+#endif
+
   return BaseView::SetPropImpl(propKey, propValue);
 }
 
 void RichTextView::OnSetPropsEndImpl() {
+#ifdef OHOS_DRAW_TEXT
+  auto textMeasurer = ctx_->GetTextMeasureManager()->GetTextMeasurer(tag_);
+  if (textMeasurer) {
+    auto styledString = textMeasurer->GetStyledString();
+    if (styledString) {
+      GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
+    } else {
+      FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, nil, tag: " << tag_ << ", text: " << text_.value();
+    }
+  } else {
+    FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, no measurer, tag: " << tag_ << ", text: " << text_.value();
+  }
+#else
   if (!fontSize_.has_value()) {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;
     GetLocalRootArkUINode()->SetFontSize(defaultValue);
@@ -238,6 +254,8 @@ void RichTextView::OnSetPropsEndImpl() {
     toSetTextShadow = false;
     GetLocalRootArkUINode()->SetTextShadow(HRPixelUtils::DpToVp(textShadowRadius_), ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, HRPixelUtils::DpToVp(textShadowOffsetX_), HRPixelUtils::DpToVp(textShadowOffsetY_));
   }
+#endif
+
   BaseView::OnSetPropsEndImpl();
 }
 
