@@ -146,6 +146,7 @@ export class HippyEngineContextImpl implements HippyEngineContext {
       // BridgeManager注册
       let bridgeManagerImpl = new HippyBridgeManagerImpl(
         this,
+        this.libHippy,
         coreBundleLoader,
         params.enableV8Serialization,
         params.debugMode,
