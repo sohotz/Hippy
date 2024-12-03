@@ -320,13 +320,22 @@ std::tuple<bool, std::string, std::shared_ptr<RefInfo>> CreateRefInfo(
 std::tuple<bool, std::string, std::shared_ptr<DomInfo>> CreateDomInfo(
     const std::shared_ptr<Ctx> &context,
     const std::shared_ptr<CtxValue> &node,
-    const std::shared_ptr<Scope> &scope) {
+    const std::shared_ptr<Scope> &scope,
+    const DomManager::DomManagerType type) {
   std::shared_ptr<DomInfo> dom_info = nullptr;
   std::shared_ptr<DomNode> dom_node = nullptr;
   std::shared_ptr<RefInfo> ref_info = nullptr;
   std::shared_ptr<DiffInfo> diff_info = nullptr;
   uint32_t len = context->GetArrayLength(node);
   if (len > 0) {
+    if (type == DomManager::DomManagerType::kJson) {
+      std::shared_ptr<string_view> stringify = std::make_shared<string_view>();
+      bool status = context->GetValueJson(context->CopyArrayElement(node, 0), stringify.get());
+      if (status) {
+        dom_info = std::make_shared<DomInfo>(stringify);
+      }
+      return std::make_tuple(status, "", dom_info);
+    }
     auto dom_node_tuple =
         CreateNode(context, context->CopyArrayElement(node, 0), scope);
     if (!std::get<0>(dom_node_tuple)) {
@@ -362,9 +371,11 @@ std::tuple<bool, std::string, std::vector<std::shared_ptr<DomInfo>>> HandleJsVal
     const std::shared_ptr<Scope> &scope) {
   uint32_t len = context->GetArrayLength(nodes);
   std::vector<std::shared_ptr<DomInfo>> dom_nodes;
+  auto dom_manager = scope->GetDomManager().lock();
+  auto type = dom_manager ? dom_manager->GetType() : DomManager::DomManagerType::kHippyValue;
   for (uint32_t i = 0; i < len; ++i) {
     std::shared_ptr<CtxValue> domInfo = context->CopyArrayElement(nodes, i);
-    auto tuple = CreateDomInfo(context, domInfo, scope);
+    auto tuple = CreateDomInfo(context, domInfo, scope, type);
     if (!std::get<0>(tuple)) {
       return std::make_tuple(false, std::move(std::get<1>(tuple)), std::move(dom_nodes));
     }

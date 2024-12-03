@@ -29,6 +29,7 @@
 #include "dom/scene.h"
 #include "footstone/logging.h"
 #include "footstone/serializer.h"
+#include "footstone/string_view_utils.h"
 
 namespace hippy {
 inline namespace dom {
@@ -59,6 +60,7 @@ const std::map<int32_t, std::string> kRelativeTypeMap = {
 };
 
 using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
+using StringViewUtils = footstone::stringview::StringViewUtils;
 
 DomNode::DomNode(uint32_t id, uint32_t pid, int32_t index, std::string tag_name, std::string view_name,
                  std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<HippyValue>>> style_map,
@@ -648,6 +650,11 @@ std::ostream& operator<<(std::ostream& os, const DomNode& dom_node) {
 }
 
 std::ostream& operator<<(std::ostream& os, const DomInfo& dom_info) {
+  auto stringify = dom_info.stringify;
+  if (stringify) {
+    os << StringViewUtils::ToStdString(StringViewUtils::ConvertEncoding(*stringify, string_view::Encoding::Utf8).utf8_value());
+    return os;
+  }
   auto dom_node = dom_info.dom_node;
   auto ref_info = dom_info.ref_info;
   auto diff_info = dom_info.diff_info;

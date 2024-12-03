@@ -66,6 +66,7 @@ using CallFunctionCallback = std::function<void(std::shared_ptr<DomArgument>)>;
 //    dom_manager->PostTask(Scene(std::move(ops)));
 class DomManager {
  public:
+  enum class DomManagerType { kHippyValue, kJson };
   using byte_string = std::string;
   using HippyValue = footstone::value::HippyValue;
   using TaskRunner = footstone::runner::TaskRunner;
@@ -73,7 +74,7 @@ class DomManager {
   using BaseTimer = footstone::timer::BaseTimer;
   using Worker = footstone::Worker;
 
-  DomManager() = default;
+  DomManager(DomManagerType type): type_(type) {}
   virtual ~DomManager() = default;
 
   DomManager(DomManager&) = delete;
@@ -135,8 +136,10 @@ class DomManager {
   }
   inline auto GetDomStartTimePoint() { return dom_start_time_point_; }
   inline auto GetDomEndTimePoint() { return dom_end_time_point_; }
+  inline DomManagerType GetType() { return type_; }
 
  private:
+  DomManagerType type_;
   std::shared_ptr<TaskRunner> task_runner_;
   std::shared_ptr<Worker> worker_;
 
@@ -146,7 +149,7 @@ class DomManager {
 
 class DomManagerImpl : public DomManager {
  public:
-  DomManagerImpl() = default;
+  DomManagerImpl() : DomManager(DomManagerType::kHippyValue) {}
   ~DomManagerImpl() override = default;
 
   void SetRenderManager(const std::weak_ptr<RenderManager>& render_manager) override;
@@ -195,7 +198,6 @@ class DomManagerImpl : public DomManager {
  private:
   friend class DomNode;
 
-  uint32_t id_;
   std::shared_ptr<LayerOptimizedRenderManager> optimized_render_manager_;
   std::weak_ptr<RenderManager> render_manager_;
   std::unordered_map<uint32_t, std::shared_ptr<BaseTimer>> timer_map_;

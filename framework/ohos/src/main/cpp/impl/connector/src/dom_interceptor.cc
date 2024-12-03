@@ -31,6 +31,7 @@
 #include "footstone/serializer.h"
 #include "footstone/deserializer.h"
 #include "footstone/one_shot_timer.h"
+#include "footstone/string_view_utils.h"
 #include "footstone/task_runner.h"
 #include "footstone/time_delta.h"
 #include "footstone/worker.h"
@@ -49,6 +50,7 @@ using OneShotTimer = footstone::timer::OneShotTimer;
 using Serializer = footstone::value::Serializer;
 using Deserializer = footstone::value::Deserializer;
 using WorkerImpl = footstone::runner::WorkerImpl;
+using StringViewUtils = footstone::stringview::StringViewUtils;
 
 using HippyValueArrayType = footstone::value::HippyValue::HippyValueArrayType;
 
@@ -57,7 +59,7 @@ constexpr char kDomRunnerName[] = "dom_task_runner";
 
 class DomInterceptor : public DomManager {
   public:
-  DomInterceptor(HippyDomInterceptor handler) : DomManager(), handler_(handler) {}
+  DomInterceptor(HippyDomInterceptor handler) : DomManager(DomManagerType::kJson), handler_(handler) {}
   ~DomInterceptor() override = default;
 
   void SetRenderManager(const std::weak_ptr<RenderManager> &render_manager) override {
@@ -77,71 +79,47 @@ class DomInterceptor : public DomManager {
                       std::vector<std::shared_ptr<DomInfo>> &&nodes,
                       bool needSortByIndex) override {
     auto root_node = weak_root_node.lock();
-    auto count = nodes.size();
-    if (!root_node || count == 0) {
+    if (!root_node || nodes.size() == 0) {
       return;
     }
-    void *nodes_ptr[count];
-    for (size_t i = 0; i < count; ++i) {
-      nodes_ptr[i] = nodes[i].get();
-    }
-    handler_.CreateDomNodes(root_node.get(), nodes_ptr, count, needSortByIndex);
+    handler_.CreateDomNodes(handler_.context, root_node->GetId(), GetNodesJson(nodes).str().c_str(), needSortByIndex);
   }
 
   void UpdateDomNodes(const std::weak_ptr<RootNode> &weak_root_node,
                       std::vector<std::shared_ptr<DomInfo>> &&nodes) override {
     auto root_node = weak_root_node.lock();
-    auto count = nodes.size();
-    if (!root_node || count == 0) {
+    if (!root_node || nodes.size() == 0) {
       return;
     }
-    void *nodes_ptr[count];
-    for (size_t i = 0; i < count; ++i) {
-      nodes_ptr[i] = nodes[i].get();
-    }
-    handler_.UpdateDomNodes(root_node.get(), nodes_ptr, count);
+    handler_.UpdateDomNodes(handler_.context, root_node->GetId(), GetNodesJson(nodes).str().c_str());
   }
 
   void MoveDomNodes(const std::weak_ptr<RootNode> &weak_root_node,
                     std::vector<std::shared_ptr<DomInfo>> &&nodes) override {
     auto root_node = weak_root_node.lock();
-    auto count = nodes.size();
-    if (!root_node || count == 0) {
+    if (!root_node || nodes.size() == 0) {
       return;
     }
-    void *nodes_ptr[count];
-    for (size_t i = 0; i < count; ++i) {
-      nodes_ptr[i] = nodes[i].get();
-    }
-    handler_.MoveDomNodes(root_node.get(), nodes_ptr, count);
+    handler_.MoveDomNodes(handler_.context, root_node->GetId(), GetNodesJson(nodes).str().c_str());
   }
 
   void DeleteDomNodes(const std::weak_ptr<RootNode> &weak_root_node,
                       std::vector<std::shared_ptr<DomInfo>> &&nodes) override {
     auto root_node = weak_root_node.lock();
-    auto count = nodes.size();
-    if (!root_node || count == 0) {
+    if (!root_node || nodes.size() == 0) {
       return;
     }
-    void *nodes_ptr[count];
-    for (size_t i = 0; i < count; ++i) {
-      nodes_ptr[i] = nodes[i].get();
-    }
-    handler_.DeleteDomNodes(root_node.get(), nodes_ptr, count);
+    handler_.DeleteDomNodes(handler_.context, root_node->GetId(), GetNodesJson(nodes).str().c_str());
   }
 
   void UpdateAnimation(const std::weak_ptr<RootNode> &weak_root_node,
                        std::vector<std::shared_ptr<DomNode>> &&nodes) override {
     auto root_node = weak_root_node.lock();
-    auto count = nodes.size();
-    if (!root_node || count == 0) {
+    if (!root_node || nodes.size() == 0) {
       return;
     }
-    void *nodes_ptr[count];
-    for (size_t i = 0; i < count; ++i) {
-      nodes_ptr[i] = nodes[i].get();
-    }
-    handler_.UpdateAnimation(root_node.get(), nodes_ptr, count);
+    // todo
+    // handler_.UpdateAnimation(root_node->GetId(), GetNodesJson(nodes).str().c_str());
   }
 
   void EndBatch(const std::weak_ptr<RootNode> &weak_root_node) override {
@@ -149,7 +127,7 @@ class DomInterceptor : public DomManager {
     if (!root_node) {
       return;
     }
-    handler_.EndBatch(root_node.get());
+    handler_.EndBatch(handler_.context, root_node->GetId());
   }
 
   void AddEventListener(const std::weak_ptr<RootNode> &weak_root_node, uint32_t dom_id,
@@ -159,8 +137,8 @@ class DomInterceptor : public DomManager {
     if (!root_node) {
       return;
     }
-    handler_.AddEventListener(root_node.get(), dom_id, event_name.c_str(), listener_id, use_capture,
-                              &cb);
+    handler_.AddEventListener(handler_.context, root_node->GetId(), dom_id, event_name.c_str(),
+                              listener_id, use_capture, &cb);
   }
 
   void RemoveEventListener(const std::weak_ptr<RootNode> &weak_root_node, uint32_t dom_id,
@@ -169,7 +147,7 @@ class DomInterceptor : public DomManager {
     if (!root_node) {
       return;
     }
-    handler_.RemoveEventListener(root_node.get(), dom_id, event_name.c_str(), listener_id);
+    handler_.RemoveEventListener(handler_.context, root_node->GetId(), dom_id, event_name.c_str(), listener_id);
   }
 
   void CallFunction(const std::weak_ptr<RootNode> &weak_root_node, uint32_t dom_id,
@@ -179,7 +157,7 @@ class DomInterceptor : public DomManager {
     if (!root_node) {
       return;
     }
-    handler_.CallFunction(root_node.get(), dom_id, name.c_str(), &param, &cb);
+    handler_.CallFunction(handler_.context, root_node->GetId(), dom_id, name.c_str(), &param, &cb);
   }
 
   void SetRootSize(const std::weak_ptr<RootNode> &weak_root_node, float width,
@@ -188,7 +166,7 @@ class DomInterceptor : public DomManager {
     if (!root_node) {
       return;
     }
-    handler_.SetRootSize(root_node.get(), width, height);
+    handler_.SetRootSize(handler_.context, root_node->GetId(), width, height);
   }
 
   void DoLayout(const std::weak_ptr<RootNode> &weak_root_node) override {
@@ -196,7 +174,7 @@ class DomInterceptor : public DomManager {
     if (!root_node) {
       return;
     }
-    handler_.DoLayout(root_node.get());
+    handler_.DoLayout(handler_.context, root_node->GetId());
   }
 
   void PostTask(const Scene &&scene) override { throw std::runtime_error("Not implemented"); }
@@ -213,8 +191,21 @@ class DomInterceptor : public DomManager {
     throw std::runtime_error("Not implemented");
   }
 
-  private:
+ private:
   friend class DomNode;
+  std::ostringstream GetNodesJson(std::vector<std::shared_ptr<DomInfo>> &nodes) {
+    size_t count = nodes.size();
+    std::ostringstream oss;
+    oss << '[';
+    for (size_t i = 0; i < count; ++i) {
+      if (i != 0) {
+        oss << ',';
+      }
+      oss << StringViewUtils::ToStdString(StringViewUtils::ConvertEncoding(*nodes[i]->stringify, string_view::Encoding::Utf8).utf8_value());
+    }
+    oss << ']';
+    return oss;
+  }
 
   uint32_t id_;
   std::unordered_map<uint32_t, std::shared_ptr<BaseTimer>> timer_map_;
@@ -237,10 +228,7 @@ uint32_t HippyCreateDomInterceptor(HippyDomInterceptor handler) {
   worker->Bind({runner});
   dom_manager->SetTaskRunner(runner);
   dom_manager->SetWorker(worker);
-    
-  // create root
   
-
   hippy::global_dom_manager_num_holder.Insert(dom_manager_id, 1u);
   return dom_manager_id;
 }

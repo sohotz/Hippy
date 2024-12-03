@@ -26,24 +26,23 @@
 EXTERN_C_START
 
 typedef struct {
-  void (*CreateDomNodes)(void *root_node, void *nodes[], size_t node_count,
-                         bool need_sort_by_index);
-  void (*UpdateDomNodes)(void *root_node, void *nodes[], size_t node_count);
-  void (*MoveDomNodes)(void *root_node, void *nodes[], size_t node_count);
-  void (*DeleteDomNodes)(void *root_node, void *nodes[], size_t node_count);
-  void (*UpdateAnimation)(void *root_node, void *nodes[], size_t node_count);
-  void (*EndBatch)(void *root_node);
-  void (*AddEventListener)(void *root_node, uint32_t dom_id, const char *event_name,
+  char context[128];
+  void (*CreateDomNodes)(const char* context, uint32_t root_id, const char* nodes, bool need_sort_by_index);
+  void (*UpdateDomNodes)(const char* context, uint32_t root_id, const char* nodes);
+  void (*MoveDomNodes)(const char* context, uint32_t root_id, const char* nodes);
+  void (*DeleteDomNodes)(const char* context, uint32_t root_id, const char* nodes);
+  void (*UpdateAnimation)(const char* context, uint32_t root_id, const char* nodes);
+  void (*EndBatch)(const char* context, uint32_t root_id);
+  void (*AddEventListener)(const char* context, uint32_t root_id, uint32_t dom_id, const char *event_name,
                            uint64_t listener_id, bool use_capture, const void *cb);
-  void (*RemoveEventListener)(void *root_node, uint32_t dom_id, const char *event_name,
+  void (*RemoveEventListener)(const char* context, uint32_t root_id, uint32_t dom_id, const char *event_name,
                               uint64_t listener_id);
-  void (*CallFunction)(void *root_node, uint32_t dom_id, const char *name, const void *param,
+  void (*CallFunction)(const char* context, uint32_t root_id, uint32_t dom_id, const char *name, const void *param,
                        const void *cb);
-  void (*SetRootSize)(void *root_node, float width, float height);
-  void (*DoLayout)(void *root_node);
+  void (*SetRootSize)(const char* context, uint32_t root_id, float width, float height);
+  void (*DoLayout)(const char* context, uint32_t root_id);
 } HippyDomInterceptor;
 
 uint32_t HippyCreateDomInterceptor(HippyDomInterceptor handler);
 void HippyDestroyDomInterceptor(uint32_t dom_interceptor_id);
-
 EXTERN_C_END

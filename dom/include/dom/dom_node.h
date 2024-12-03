@@ -44,6 +44,7 @@ class RootNode;
 class DomEvent;
 
 using EventCallback = std::function<void(const std::shared_ptr<DomEvent>&)>;
+using string_view = footstone::string_view;
 
 constexpr uint32_t kCapture = 0;
 constexpr uint32_t kBubble = 1;
@@ -76,7 +77,9 @@ struct DomInfo {
   std::shared_ptr<DomNode> dom_node;
   std::shared_ptr<RefInfo> ref_info;
   std::shared_ptr<DiffInfo> diff_info;
-  DomInfo(std::shared_ptr<DomNode> node, std::shared_ptr<RefInfo> ref, std::shared_ptr<DiffInfo> diff) : dom_node(node), ref_info(ref), diff_info(diff) {}
+  std::shared_ptr<string_view> stringify; // for kJson type DomManager
+  DomInfo(std::shared_ptr<DomNode> node, std::shared_ptr<RefInfo> ref, std::shared_ptr<DiffInfo> diff) : dom_node(node), ref_info(ref), diff_info(diff), stringify(nullptr) {}
+  DomInfo(std::shared_ptr<string_view> json) : dom_node(nullptr), ref_info(nullptr), diff_info(nullptr), stringify(json) {}
 
  private:
   friend std::ostream& operator<<(std::ostream& os, const DomInfo& dom_info);
