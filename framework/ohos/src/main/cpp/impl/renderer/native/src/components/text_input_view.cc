@@ -22,9 +22,11 @@
 
 #include "renderer/components/text_input_view.h"
 #include "renderer/utils/hr_event_utils.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "footstone/logging.h"
+#include <memory>
 
 
 namespace hippy {
@@ -35,60 +37,127 @@ TextInputView::TextInputView(std::shared_ptr<NativeRenderContext> &ctx) : BaseVi
 
 TextInputView::~TextInputView() {}
 
-StackNode &TextInputView::GetLocalRootArkUINode() { return stackNode_; }
+StackNode *TextInputView::GetLocalRootArkUINode() { return stackNode_.get(); }
 
 TextInputBaseNode &TextInputView::GetTextNode() {
-    if (this->multiline == false)
-        return textInputNode_;
-    else 
-      return textAreaNode_;
+  return *inputBaseNodePtr_.get();
 }
 
-void TextInputView::InitNode(){
-    if (this->multiline == false) {
-        stackNode_.AddChild(textInputNode_);
-        textInputNode_.SetTextInputNodeDelegate(this);
-    } else {
-        stackNode_.AddChild(textAreaNode_);
-        textAreaNode_.SetTextAreaNodeDelegate(this);
-    }
-    GetTextNode().SetBorderRadius(0, 0, 0, 0);
-    GetTextNode().SetBackgroundColor(0x00000000);
+void TextInputView::InitNode() {
+  if (inputBaseNodePtr_) {
+    return;
+  }
+
+  if (multiline_ == false) {
+    auto textInputNodePtr = std::make_shared<TextInputNode>();
+    textInputNodePtr->SetTextInputNodeDelegate(this);
+    inputBaseNodePtr_ = textInputNodePtr;
+  } else {
+    auto textAreaNodePtr = std::make_shared<TextAreaNode>();
+    textAreaNodePtr->SetTextAreaNodeDelegate(this);
+    inputBaseNodePtr_ = textAreaNodePtr;
+  }
+  stackNode_->AddChild(&GetTextNode());
+
+  GetTextNode().SetBorderRadius(0, 0, 0, 0);
+  GetTextNode().SetBackgroundColor(0x00000000);
 }
 
-bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" propkey = "<<propKey;
+void TextInputView::CreateArkUINodeImpl() {
+  stackNode_ = std::make_shared<StackNode>();
+}
+
+void TextInputView::DestroyArkUINodeImpl() {
+  stackNode_ = nullptr;
+  inputBaseNodePtr_ = nullptr;
+  ClearProps();
+}
+
+bool TextInputView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  stackNode_->ResetAllAttributes();
+  inputBaseNodePtr_->ResetAllAttributes();
+  recycleView->cachedNodes_.resize(2);
+  recycleView->cachedNodes_[0] = stackNode_;
+  recycleView->cachedNodes_[1] = inputBaseNodePtr_;
+  stackNode_ = nullptr;
+  inputBaseNodePtr_ = nullptr;
+  ClearProps();
+  return true;
+}
+
+bool TextInputView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 2) {
+    return false;
+  }
+  stackNode_ = std::static_pointer_cast<StackNode>(recycleView->cachedNodes_[0]);
+  inputBaseNodePtr_ = std::static_pointer_cast<TextInputBaseNode>(recycleView->cachedNodes_[1]);
+  return true;
+}
+
+bool TextInputView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  // FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" propkey = "<<propKey;
   if (propKey == "caret-color") {
-    this->caretColor = HRValueUtils::GetUint32(propValue);
+    auto value = HRValueUtils::GetUint32(propValue);
+    if (!caretColor_.has_value() || value != caretColor_) {
+      caretColor_ = value;
+      SetPropFlag(TextInputPropCaretColor);
+    }
     return true;
   } else if (propKey == "color") {
-    this->color = HRValueUtils::GetUint32(propValue);
+    auto value = HRValueUtils::GetUint32(propValue);
+    if (!color_.has_value() || value != color_) {
+      color_ = value;
+      SetPropFlag(TextInputPropColor);
+    }
     return true;
-  } else if (propKey == "defaultValue") {
-    this->value = HRValueUtils::GetString(propValue);
+  } else if (propKey == "defaultValue" || propKey == "value") {
+    auto value = HRValueUtils::GetString(propValue);
+    if (!value_.has_value() || value != value_) {
+      value_ = value;
+      SetPropFlag(TextInputPropValue);
+    }
     return true;
   } else if (propKey == "fontFamily") {
-    this->fontFamily = HRValueUtils::GetString(propValue);
+    auto value = HRValueUtils::GetString(propValue);
+    if (!fontFamily_.has_value() || value != fontFamily_) {
+      fontFamily_ = value;
+      SetPropFlag(TextInputPropFontFamily);
+    }
     return true;
   } else if (propKey == "fontSize") {
-    this->fontSize = HRValueUtils::GetFloat(propValue);
+    auto value = HRValueUtils::GetFloat(propValue);
+    if (!fontSize_.has_value() || value != fontSize_) {
+      fontSize_ = value;
+      SetPropFlag(TextInputPropFontSize);
+    }
     return true;
   } else if (propKey == "fontStyle") {
     std::string style = HRValueUtils::GetString(propValue);
-    if(style == "italic")
-      this->fontStyle = ArkUI_FontStyle::ARKUI_FONT_STYLE_ITALIC;
+    auto fontStyle = ArkUI_FontStyle::ARKUI_FONT_STYLE_NORMAL;
+    if(style == "italic") {
+      fontStyle = ArkUI_FontStyle::ARKUI_FONT_STYLE_ITALIC;
+    }
+    if (!fontStyle_.has_value() || fontStyle != fontStyle_) {
+      fontStyle_ = fontStyle;
+      SetPropFlag(TextInputPropFontStyle);
+    }
     return true;
   } else if (propKey == "fontWeight") {
     SetFontWeight(propValue);
     return true;
   } else if (propKey == "maxLength") {
-    this->maxLength = HRValueUtils::GetUint32(propValue);
+    auto value = HRValueUtils::GetUint32(propValue);
+    if (!maxLength_.has_value() || value != maxLength_) {
+      maxLength_ = value;
+      SetPropFlag(TextInputPropMaxLength);
+    }
     return true;
   } else if (propKey == "multiline") {
-    this->multiline = HRValueUtils::GetBool(propValue, false);
-    FOOTSTONE_DLOG(INFO)<<"multiline = "<< this->multiline;
-    if(this->multiline)
-      this->textAlignVertical = ArkUI_Alignment::ARKUI_ALIGNMENT_TOP;
+    multiline_ = HRValueUtils::GetBool(propValue, false);
+    if(multiline_) {
+      textAlignVertical_ = ArkUI_Alignment::ARKUI_ALIGNMENT_TOP;
+      SetPropFlag(TextInputPropTextAlignVertical);
+    }
     return true;
   } else if (propKey == "textAlign") {
     SetTextAlign(propValue);
@@ -97,13 +166,25 @@ bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propVa
     SetTextAlignVertical(propValue);
     return true;
   } else if (propKey == "placeholder") {
-    this->placeholder = HRValueUtils::GetString(propValue);
+    auto value = HRValueUtils::GetString(propValue);
+    if (!placeholder_.has_value() || value != placeholder_) {
+      placeholder_ = value;
+      SetPropFlag(TextInputPropPlaceholder);
+    }
     return true;
   } else if (propKey == "placeholderTextColor") {
-    this->placeholderTextColor = HRValueUtils::GetUint32(propValue);
+    auto value = HRValueUtils::GetUint32(propValue);
+    if (!placeholderTextColor_.has_value() || value != placeholderTextColor_) {
+      placeholderTextColor_ = value;
+      SetPropFlag(TextInputPropPlaceholderTextColor);
+    }
     return true;
   } else if (propKey == "numberOfLines") {
-    this->maxLines = HRValueUtils::GetInt32(propValue);
+    auto value = HRValueUtils::GetInt32(propValue);
+    if (!maxLines_.has_value() || value != maxLines_) {
+      maxLines_ = value;
+      SetPropFlag(TextInputPropNumberOfLines);
+    }
     return true;
   } else if (propKey == "keyboardType") {
     SetKeyBoardType(propValue);
@@ -111,119 +192,219 @@ bool TextInputView::SetProp(const std::string &propKey, const HippyValue &propVa
   } else if (propKey == "returnKeyType") {
     SetEntryKeyType(propValue);
     return true;
-  } else if (propKey == "value") {
-    this->value = HRValueUtils::GetString(propValue);
-    return true;
   } else if (propKey == "changetext") {
-    this->isListenChangeText = HRValueUtils::GetBool(propValue, false);    
+    isListenChangeText_ = HRValueUtils::GetBool(propValue, false);
     return true;
   } else if (propKey == "selectionchange") {
-    this->isListenSelectionChange = HRValueUtils::GetBool(propValue, false);
+    isListenSelectionChange_ = HRValueUtils::GetBool(propValue, false);
     return true;
   } else if (propKey == "endediting") {
-    this->isListenEndEditing = HRValueUtils::GetBool(propValue, false);
+    isListenEndEditing_ = HRValueUtils::GetBool(propValue, false);
     return true;
   } else if (propKey == "focus") {
-    this->isListenFocus = HRValueUtils::GetBool(propValue, false);
+    isListenFocus_ = HRValueUtils::GetBool(propValue, false);
     return true;
   } else if (propKey == "blur") {
-    this->isListenBlur = HRValueUtils::GetBool(propValue, false);
+    isListenBlur_ = HRValueUtils::GetBool(propValue, false);
     return true;
   } else if (propKey == "keyboardwillshow") {
-    this->isListenKeyboardWillShow = HRValueUtils::GetBool(propValue, false);
+    isListenKeyboardWillShow_ = HRValueUtils::GetBool(propValue, false);
     return true;
   } else if (propKey == "keyboardwillhide") {
-    this->isListenKeyboardWillHide = HRValueUtils::GetBool(propValue, false);
+    isListenKeyboardWillHide_ = HRValueUtils::GetBool(propValue, false);
     return true;
   } else if (propKey == "contentSizeChange") {
-    this->isListenContentSizeChange = HRValueUtils::GetBool(propValue, false);
+    isListenContentSizeChange_ = HRValueUtils::GetBool(propValue, false);
     return true;
   }
-  return BaseView::SetProp(propKey, propValue);
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void TextInputView::OnSetPropsEnd(){
-  FOOTSTONE_DLOG(INFO)<< __FUNCTION__;
+void TextInputView::OnSetPropsEndImpl(){
   InitNode();
-  GetTextNode().SetCaretColor(this->caretColor);
-  GetTextNode().SetFontWeight((ArkUI_FontWeight)this->fontWeight);
-  GetTextNode().SetFontColor(this->color);
-  GetTextNode().SetFontFamily(this->fontFamily);
-  GetTextNode().SetFontSize(this->fontSize);
-  GetTextNode().SetFontStyle((ArkUI_FontStyle)this->fontStyle);
-  GetTextNode().SetMaxLength((int32_t)this->maxLength);
-  GetTextNode().SetTextAlign((ArkUI_TextAlignment)this->textAlign);
-  GetTextNode().SetTextAlignVertical((ArkUI_Alignment)this->textAlignVertical);
-  GetTextNode().SetPlaceholder(this->placeholder);
-  GetTextNode().SetPlaceholderColor(this->placeholderTextColor);
-  GetTextNode().SetInputType((ArkUI_TextInputType)this->keyboardType);
-  GetTextNode().SetEnterKeyType((ArkUI_EnterKeyType)this->returnKeyType);
-  GetTextNode().SetTextContent(this->value);
-  if(this->multiline){
-    GetTextNode().SetMaxLines(this->maxLines);
+
+  // default prop values
+  if (!value_.has_value()) {
+    value_ = "";
   }
-  return BaseView::OnSetPropsEnd();
+  if (!fontFamily_.has_value()) {
+    fontFamily_ = "HarmonyOS Sans";
+    SetPropFlag(TextInputPropFontFamily);
+  }
+  if (!fontSize_.has_value()) {
+    fontSize_ = 18;
+    SetPropFlag(TextInputPropFontSize);
+  }
+  if (!fontStyle_.has_value()) {
+    fontStyle_ = ArkUI_FontStyle::ARKUI_FONT_STYLE_NORMAL;
+    SetPropFlag(TextInputPropFontStyle);
+  }
+  if (!fontWeight_.has_value()) {
+    fontWeight_ = ArkUI_FontWeight::ARKUI_FONT_WEIGHT_NORMAL;
+    SetPropFlag(TextInputPropFontWeight);
+  }
+  if (!textAlign_.has_value()) {
+    textAlign_ = ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_START;
+    SetPropFlag(TextInputPropTextAlign);
+  }
+  if (!textAlignVertical_.has_value()) {
+    textAlignVertical_ = ArkUI_Alignment::ARKUI_ALIGNMENT_CENTER;
+    SetPropFlag(TextInputPropTextAlignVertical);
+  }
+  if (!keyboardType_.has_value()) {
+    keyboardType_ = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_NORMAL;
+    SetPropFlag(TextInputPropKeyboardType);
+  }
+  if (!returnKeyType_.has_value()) {
+    returnKeyType_ = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_DONE;
+    SetPropFlag(TextInputPropReturnKeyType);
+  }
+
+  // set props
+  if (IsPropFlag(TextInputPropCaretColor)) {
+    GetTextNode().SetCaretColor(caretColor_.value());
+    UnsetPropFlag(TextInputPropCaretColor);
+  }
+  if (IsPropFlag(TextInputPropColor)) {
+    GetTextNode().SetFontColor(color_.value());
+    UnsetPropFlag(TextInputPropColor);
+  }
+  if (IsPropFlag(TextInputPropValue)) {
+    GetTextNode().SetTextContent(value_.value());
+    UnsetPropFlag(TextInputPropValue);
+  }
+  if (IsPropFlag(TextInputPropFontFamily)) {
+    GetTextNode().SetFontFamily(fontFamily_.value());
+    UnsetPropFlag(TextInputPropFontFamily);
+  }
+  if (IsPropFlag(TextInputPropFontSize)) {
+    GetTextNode().SetFontSize(fontSize_.value());
+    UnsetPropFlag(TextInputPropFontSize);
+  }
+  if (IsPropFlag(TextInputPropFontStyle)) {
+    GetTextNode().SetFontStyle((ArkUI_FontStyle)fontStyle_.value());
+    UnsetPropFlag(TextInputPropFontStyle);
+  }
+  if (IsPropFlag(TextInputPropFontWeight)) {
+    GetTextNode().SetFontWeight((ArkUI_FontWeight)fontWeight_.value());
+    UnsetPropFlag(TextInputPropFontWeight);
+  }
+  if (IsPropFlag(TextInputPropMaxLength)) {
+    GetTextNode().SetMaxLength((int32_t)maxLength_.value());
+    UnsetPropFlag(TextInputPropMaxLength);
+  }
+  if (IsPropFlag(TextInputPropTextAlign)) {
+    GetTextNode().SetTextAlign((ArkUI_TextAlignment)textAlign_.value());
+    UnsetPropFlag(TextInputPropTextAlign);
+  }
+  if (IsPropFlag(TextInputPropTextAlignVertical)) {
+    GetTextNode().SetTextAlignVertical((ArkUI_Alignment)textAlignVertical_.value());
+    UnsetPropFlag(TextInputPropTextAlignVertical);
+  }
+  if (IsPropFlag(TextInputPropPlaceholder)) {
+    GetTextNode().SetPlaceholder(placeholder_.value());
+    UnsetPropFlag(TextInputPropPlaceholder);
+  }
+  if (IsPropFlag(TextInputPropPlaceholderTextColor)) {
+    GetTextNode().SetPlaceholderColor(placeholderTextColor_.value());
+    UnsetPropFlag(TextInputPropPlaceholderTextColor);
+  }
+  if (IsPropFlag(TextInputPropNumberOfLines)) {
+    if(multiline_) {
+      GetTextNode().SetMaxLines(maxLines_.value());
+    }
+    UnsetPropFlag(TextInputPropNumberOfLines);
+  }
+  if (IsPropFlag(TextInputPropKeyboardType)) {
+    GetTextNode().SetInputType((ArkUI_TextInputType)keyboardType_.value());
+    UnsetPropFlag(TextInputPropKeyboardType);
+  }
+  if (IsPropFlag(TextInputPropReturnKeyType)) {
+    GetTextNode().SetEnterKeyType((ArkUI_EnterKeyType)returnKeyType_.value());
+    UnsetPropFlag(TextInputPropReturnKeyType);
+  }
+
+  return BaseView::OnSetPropsEndImpl();
 }
 
 void TextInputView::SetFontWeight(const HippyValue &propValue) {
-  std::string font = HRValueUtils::GetString(propValue);
-  this->fontWeight = HRTextConvertUtils::FontWeightToArk(font);
-}
-
-void TextInputView::SetTextAlign(const HippyValue &propValue) {
-  this->textAlign = ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_START;
-  std::string align = HRValueUtils::GetString(propValue);
-  if(align == "center") {
-    this->textAlign = ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_CENTER;
-  } else if (align == "right") {
-    this->textAlign = ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_END;
+  std::string weight = HRValueUtils::GetString(propValue);
+  auto fontWeight = HRTextConvertUtils::FontWeightToArk(weight);
+  if (!fontWeight_.has_value() || fontWeight != fontWeight_) {
+    fontWeight_ = fontWeight;
+    SetPropFlag(TextInputPropFontWeight);
   }
 }
 
-void TextInputView::SetTextAlignVertical(const HippyValue &propValue){
-  this->textAlignVertical = ArkUI_Alignment::ARKUI_ALIGNMENT_CENTER;
+void TextInputView::SetTextAlign(const HippyValue &propValue) {
+  auto textAlign = ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_START;
+  std::string align = HRValueUtils::GetString(propValue);
+  if(align == "center") {
+    textAlign = ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_CENTER;
+  } else if (align == "right") {
+    textAlign = ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_END;
+  }
+  if (!textAlign_.has_value() || textAlign != textAlign_) {
+    textAlign_ = textAlign;
+    SetPropFlag(TextInputPropTextAlign);
+  }
+}
+
+void TextInputView::SetTextAlignVertical(const HippyValue &propValue) {
+  auto textAlignVertical = ArkUI_Alignment::ARKUI_ALIGNMENT_CENTER;
   std::string align = HRValueUtils::GetString(propValue);
   if (align == "top") {
-    this->textAlign = ArkUI_Alignment::ARKUI_ALIGNMENT_TOP;
+    textAlignVertical = ArkUI_Alignment::ARKUI_ALIGNMENT_TOP;
   } else if (align == "bottom") {
-    this->textAlign = ArkUI_Alignment::ARKUI_ALIGNMENT_BOTTOM;
+    textAlignVertical = ArkUI_Alignment::ARKUI_ALIGNMENT_BOTTOM;
+  }
+  if (!textAlignVertical_.has_value() || textAlignVertical != textAlignVertical_) {
+    textAlignVertical_ = textAlignVertical;
+    SetPropFlag(TextInputPropTextAlignVertical);
   }
 }
 
 void TextInputView::SetKeyBoardType(const HippyValue &propValue){
-  this->keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_NORMAL;
+  auto keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_NORMAL;
   std::string type = HRValueUtils::GetString(propValue);
   if(type == "numeric") {
-    this->keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_NUMBER;
+    keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_NUMBER;
   } else if (type == "password") {
-    this->keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_PASSWORD;
+    keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_PASSWORD;
   } else if (type == "email") {
-    this->keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_EMAIL;
+    keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_EMAIL;
   } else if (type == "phone-pad") {
-    this->keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_PHONE_NUMBER;
+    keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_PHONE_NUMBER;
+  }
+  if (!keyboardType_.has_value() || keyboardType != keyboardType_) {
+    keyboardType_ = keyboardType;
+    SetPropFlag(TextInputPropKeyboardType);
   }
 }
 
 void TextInputView::SetEntryKeyType(const HippyValue &propValue){
-  this->returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_DONE;
+  auto returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_DONE;
   std::string type = HRValueUtils::GetString(propValue);
   if (type == "go") {
-    this->returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_GO;
+    returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_GO;
   } else if (type == "next") {
-    this->returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_NEXT;
+    returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_NEXT;
   } else if (type == "search") {
-    this->returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_SEARCH;
+    returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_SEARCH;
   } else if (type == "send") {
-    this->returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_SEND;
+    returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_SEND;
   } else if (type == "previous") {
-    this->returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_PREVIOUS;
+    returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_PREVIOUS;
+  }
+  if (!returnKeyType_.has_value() || returnKeyType != returnKeyType_) {
+    returnKeyType_ = returnKeyType;
+    SetPropFlag(TextInputPropReturnKeyType);
   }
 }
 
-void TextInputView::Call(const std::string &method, const std::vector<HippyValue> params,
+void TextInputView::CallImpl(const std::string &method, const std::vector<HippyValue> params,
                    std::function<void(const HippyValue &result)> callback){
-  FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method; 
-
+  // FOOTSTONE_DLOG(INFO)<<__FUNCTION__<<" method = "<<method;
   if (method == "focusTextInput") {
     FocusTextInput(params);
   } else if (method == "blurTextInput") {
@@ -237,12 +418,12 @@ void TextInputView::Call(const std::string &method, const std::vector<HippyValue
     SetText(params);
   } else if (method == "getValue" && callback) {
     HippyValueObjectType result;
-    result["text"] = HippyValue(this->value);
+    result["text"] = HippyValue(value_.value());
     const HippyValue obj = HippyValue(result);
     callback(obj);
   } else if (method == "isFocused" && callback) {
     HippyValueObjectType result;
-    result["value"] = HippyValue(this->focus);
+    result["value"] = HippyValue(focus_);
     const HippyValue obj = HippyValue(result);
     callback(obj);
   } else {
@@ -250,19 +431,25 @@ void TextInputView::Call(const std::string &method, const std::vector<HippyValue
   }
 }
 
-void TextInputView::SetText(const HippyValueArrayType &param){
-  if(param.size() == 0){
-    this->value = "";
-  }else{
-    std::string str = HRValueUtils::GetString(param[0]);
-    this->value = HRValueUtils::GetString(param[0]);
-    int32_t pos = (int32_t)str.length();
-    GetTextNode().SetTextSelection(pos, pos);
+void TextInputView::SetText(const HippyValueArrayType &params){
+  if(params.size() == 0) {
+    value_ = "";
+    GetTextNode().SetTextContent(value_.value());
+  } else {
+    std::string str = HRValueUtils::GetString(params[0]);
+    value_ = str;
+    GetTextNode().SetTextContent(value_.value());
+    
+    // 注释 SetTextSelection 原因：
+    // 设置了也没效果，还偶现 OHOS::Ace::NG::UINode::MountToParent 里空指针 crash。
+    // int32_t len = (int32_t)str.length();
+    // int32_t pos = params.size() < 2 ? len: HRValueUtils::GetInt32(params[1], len);
+    // GetTextNode().SetTextSelection(pos, pos);
   }
 }
 
 void TextInputView::FocusTextInput(const HippyValueArrayType &param){
-  GetTextNode().SetFocusStatus(true);  
+  GetTextNode().SetFocusStatus(true);
 }
 
 void TextInputView::BlurTextInput(const HippyValueArrayType &param){
@@ -273,31 +460,33 @@ void TextInputView::HideInputMethod(const HippyValueArrayType &param){
   GetTextNode().SetTextEditing(false);
 }
 
-void TextInputView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding){
-  BaseView::UpdateRenderViewFrame(frame, padding);
+void TextInputView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding){
+  BaseView::UpdateRenderViewFrameImpl(frame, padding);
   GetTextNode().SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
-  HRSize size(frame.width,frame.height);
+  HRSize size(frame.width, frame.height);
   GetTextNode().SetSize(size);
 }
 
-void TextInputView::OnChange(std::string text){
-  if(this->value == text)
+void TextInputView::OnChange(std::string text) {
+  if(value_ == text) {
     return;
-  this->value = text;
-  if(this->isListenChangeText){
+  }
+
+  value_ = text;
+  if(isListenChangeText_) {
     HippyValueObjectType params;
     params["text"] = HippyValue(text);
     const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
     HREventUtils::SendComponentEvent(ctx_, tag_, "changetext", obj);
-  }  
-  if(this->isListenContentSizeChange){
+  }
+  if(isListenContentSizeChange_) {
      HRRect rect = GetTextNode().GetTextContentRect();
-     if(this->previousContentWidth != rect.width || this->previousContentHeight != rect.height){
-        this->previousContentWidth = rect.width; 
-        this->previousContentHeight = rect.height;
+     if(previousContentWidth_ != rect.width || previousContentHeight_ != rect.height){
+        previousContentWidth_ = rect.width;
+        previousContentHeight_ = rect.height;
         HippyValueObjectType contentSize;
-        contentSize["width"] = rect.width;
-        contentSize["height"] = rect.height;
+        contentSize["width"] = HRPixelUtils::VpToDp(rect.width);
+        contentSize["height"] = HRPixelUtils::VpToDp(rect.height);
         HippyValueObjectType eventData;
         eventData["contentSize"] = contentSize;
         const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(eventData);
@@ -307,36 +496,42 @@ void TextInputView::OnChange(std::string text){
 }
 
 void TextInputView::OnBlur() {
-  this->focus = false;  
-  if (!this->isListenBlur)
+  focus_ = false;
+  if (!isListenBlur_) {
     return;
+  }
+
   HippyValueObjectType params;
-  params["text"] = HippyValue(this->value);
+  params["text"] = HippyValue(value_.value());
   const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
   HREventUtils::SendComponentEvent(ctx_, tag_, "blur", obj);
 }
 
-void TextInputView::OnFocus() { 
-    this->focus = true;
-    if(!this->isListenFocus) 
-        return;
-    HippyValueObjectType params;
-    params["text"] = HippyValue(this->value);
-    const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
-    HREventUtils::SendComponentEvent(ctx_, tag_, "focus", obj);
+void TextInputView::OnFocus() {
+  focus_ = true;
+  if(!isListenFocus_) {
+    return;
+  }
+
+  HippyValueObjectType params;
+  params["text"] = HippyValue(value_.value());
+  const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
+  HREventUtils::SendComponentEvent(ctx_, tag_, "focus", obj);
 }
 
 void TextInputView::OnSubmit() {
-    OnEventEndEditing((ArkUI_EnterKeyType)this->returnKeyType);
+  OnEventEndEditing((ArkUI_EnterKeyType)returnKeyType_.value());
 }
 
 void TextInputView::OnPaste() {
 
 }
 
-void TextInputView::OnTextSelectionChange(int32_t location, int32_t length) { 
-  if(!this->isListenSelectionChange)
-      return;
+void TextInputView::OnTextSelectionChange(int32_t location, int32_t length) {
+  if(!isListenSelectionChange_) {
+    return;
+  }
+
   HippyValueObjectType selection;
   selection["start"] = HippyValue(location);
   selection["end"] = HippyValue(location + length);
@@ -346,16 +541,18 @@ void TextInputView::OnTextSelectionChange(int32_t location, int32_t length) {
   HREventUtils::SendComponentEvent(ctx_, tag_, "selectionchange", obj);
 }
 
-void TextInputView::OnEventEndEditing(ArkUI_EnterKeyType enterKeyType){
-  if(!this->isListenEndEditing)
-      return;
+void TextInputView::OnEventEndEditing(ArkUI_EnterKeyType enterKeyType) {
+  if(!isListenEndEditing_) {
+    return;
+  }
+
   HippyValueObjectType params;
-  params["text"] = this->value;
+  params["text"] = value_.value();
   const std::shared_ptr<HippyValue> obj = std::make_shared<HippyValue>(params);
   HREventUtils::SendComponentEvent(ctx_, tag_, "endediting", obj);
-  
+
   params["actionCode"] = enterKeyType;
-  switch (enterKeyType) { 
+  switch (enterKeyType) {
     case ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_GO:
       params["actionName"] = "go";
       break;
@@ -380,6 +577,24 @@ void TextInputView::OnEventEndEditing(ArkUI_EnterKeyType enterKeyType){
   }
   const std::shared_ptr<HippyValue> objAction = std::make_shared<HippyValue>(params);
   HREventUtils::SendComponentEvent(ctx_, tag_, "onEditorAction", objAction);
+}
+
+void TextInputView::ClearProps() {
+  caretColor_.reset();
+  color_.reset();
+  value_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  maxLength_.reset();
+  placeholder_.reset();
+  placeholderTextColor_.reset();
+  maxLines_.reset();
+  keyboardType_.reset();
+  returnKeyType_.reset();
+  textAlign_.reset();
+  textAlignVertical_.reset();
 }
 
 } // namespace native

@@ -34,18 +34,27 @@ public:
   ImageView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ImageView();
 
-  ImageNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
-  
+  ImageNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
+  bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
+
   void OnComplete(float width, float height) override;
   void OnError(int32_t errorCode) override;
+  std::string GetSrc();
+
+protected:
+  virtual void FetchAltImage(const std::string &imageUrl);
+  virtual void FetchImage(const std::string &imageUrl);
   
+  void ClearProps();
+
 private:
-  ImageNode imageNode_;
+  std::shared_ptr<ImageNode> imageNode_;
   std::string src_;
-  
-  void fetchImage(const std::string &imageUrl);
 };
 
 } // namespace native

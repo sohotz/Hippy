@@ -43,9 +43,10 @@ class ArkUINodeDelegate {
 public:
   virtual ~ArkUINodeDelegate() = default;
   virtual void OnClick() {}
+  virtual void OnTouch(int32_t actionType, const HRPosition &screenPosition) {}
   virtual void OnAppear() {}
   virtual void OnDisappear() {}
-  virtual void OnAreaChange(ArkUI_NumberValue* data) {}  
+  virtual void OnAreaChange(ArkUI_NumberValue* data) {}
 };
 
 class ArkUINode {
@@ -57,18 +58,21 @@ protected:
   ArkUINode(ArkUINode &&other) noexcept;
 
 public:
-  using Alignment = ArkUI_Alignment;
-  
   ArkUINode(ArkUI_NodeHandle nodeHandle);
   virtual ~ArkUINode();
 
   ArkUI_NodeHandle GetArkUINodeHandle();
+  
+  void MarkReleaseHandle(bool isRelease) { isReleaseHandle_ = isRelease; }
 
   void MarkDirty();
+
+  void AddChild(ArkUINode *child);
+  void InsertChild(ArkUINode *child, int32_t index);
+  void RemoveChild(ArkUINode *child);
+  void RemoveSelfFromParent();
   
-  void AddChild(ArkUINode &child);
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
+  void SetDefaultAttributes();
 
   virtual ArkUINode &SetId(const std::string &id);
   virtual ArkUINode &SetPosition(const HRPosition &position);
@@ -92,7 +96,6 @@ public:
   virtual ArkUINode &SetFocusable(bool focusable);
   virtual ArkUINode &SetFocusStatus(int32_t focus);
   virtual ArkUINode &SetLinearGradient(const HRLinearGradient &linearGradient);
-  virtual ArkUINode &SetId(const int32_t &tag);
   virtual ArkUINode &SetHitTestMode(const ArkUI_HitTestMode mode);
   virtual ArkUINode &SetEnabled(bool enabled);
   virtual ArkUINode &SetBackgroundImage(const std::string &uri);
@@ -104,27 +107,32 @@ public:
   virtual ArkUINode &SetBorderStyle(ArkUI_BorderStyle top, ArkUI_BorderStyle right, ArkUI_BorderStyle bottom, ArkUI_BorderStyle left);
   virtual ArkUINode &SetShadow(const HRShadow &shadow);
   virtual ArkUINode &SetMargin(float left, float top, float right, float bottom);
+  virtual ArkUINode &SetAlignment(ArkUI_Alignment align);
   virtual ArkUINode &SetExpandSafeArea();//TODO will update when NODE_EXPAND_SAFE_AREA add in sdk
-  virtual ArkUINode &SetTransitionMove(const ArkUI_TransitionEdge edgeType,int32_t duration,ArkUI_AnimationCurve curveType = ARKUI_CURVE_EASE);  
+  virtual ArkUINode &SetTransitionMove(const ArkUI_TransitionEdge edgeType,int32_t duration,ArkUI_AnimationCurve curveType = ARKUI_CURVE_EASE);
   virtual ArkUINode &SetTransitionOpacity(const ArkUI_AnimationCurve curveType,int32_t duration);
   virtual ArkUINode &SetTransitionTranslate(float distanceX,float distanceY,float distanceZ,ArkUI_AnimationCurve curveType,int32_t duration);
-//  virtual ArkUINode &SetPadding(float top, float right, float bottom, float left);
+  virtual ArkUINode &SetPadding(float top, float right, float bottom, float left);
+  virtual ArkUINode &SetBlur(float blur);
   virtual void ResetNodeAttribute(ArkUI_NodeAttributeType type);
+  virtual void ResetAllAttributes();
   virtual HRSize GetSize() const;
   virtual uint32_t GetTotalChildCount() const;
   virtual HRPosition GetPostion() const;
   virtual HRPosition GetAbsolutePosition() const;
   virtual HRPosition GetLayoutPositionInScreen() const;
   virtual HRPosition GetLayoutPositionInWindow() const;
-  
+
   void SetArkUINodeDelegate(ArkUINodeDelegate *arkUINodeDelegate);
   virtual void OnNodeEvent(ArkUI_NodeEvent *event);
-    
+
   virtual ArkUI_NodeHandle GetFirstChild() const;
   virtual ArkUI_NodeHandle GetLastChild() const;
   virtual ArkUI_NodeHandle GetChildAt(int32_t postion) const;
   void RegisterClickEvent();
   void UnregisterClickEvent();
+  void RegisterTouchEvent();
+  void UnregisterTouchEvent();
   void RegisterAppearEvent();
   void UnregisterAppearEvent();
   void RegisterDisappearEvent();
@@ -132,32 +140,106 @@ public:
   void RegisterAreaChangeEvent();
   void UnregisterAreaChangeEvent();
 protected:
+
+#define ARKUI_NODE_CHECK_AND_LOG_ERROR \
+  static int count = 0; \
+  ++count; \
+  CheckAndLogError(message, count);
+
   void MaybeThrow(int32_t status) {
     if (status != 0) {
       auto message = std::string("ArkUINode operation failed with status: ") + std::to_string(status);
       if (status == ARKUI_ERROR_CODE_PARAM_INVALID) {
-        FOOTSTONE_LOG(ERROR) << message;
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
       } else if (status == ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED) {
-        // Comment for too many log.
-        // FOOTSTONE_LOG(ERROR) << message;
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
       } else if (status == ARKUI_ERROR_CODE_ARKTS_NODE_NOT_SUPPORTED) {
-        FOOTSTONE_LOG(ERROR) << message;
-      } else if (status == ARKUI_ERROR_CODE_ADAPTER_NOT_BOUND || status == ARKUI_ERROR_CODE_ADAPTER_EXIST) {
-        FOOTSTONE_LOG(ERROR) << message;
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
+      } else if (status == ARKUI_ERROR_CODE_ADAPTER_NOT_BOUND) {
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
+      } else if (status == ARKUI_ERROR_CODE_ADAPTER_EXIST) {
+        ARKUI_NODE_CHECK_AND_LOG_ERROR;
       }
-      // throw std::runtime_error(std::move(message));
     }
   }
 
+#undef ARKUI_NODE_CHECK_AND_LOG_ERROR
+
+  void CheckAndLogError(const std::string& message, int count);
+
+  enum class AttributeFlag {
+    ID = 0,
+    POSITION,
+    WIDTH,
+    HEIGHT,
+    PADDING,
+    BLUR,
+    WIDTH_PERCENT,
+    HEIGHT_PERCENT,
+    VISIBILITY,
+    BACKGROUND_COLOR,
+    OPACITY,
+    TRANSFORM_CENTER,
+    TRANSFORM,
+    ROTATE,
+    SCALE,
+    TRANSLATE,
+    CLIP,
+    Z_INDEX,
+    ACCESSIBILITY_TEXT,
+    FOCUSABLE,
+    FOCUS_STATUS,
+    LINEAR_GRADIENT,
+    HIT_TEST_BEHAVIOR,
+    ENABLED,
+    BACKGROUND_IMAGE,
+    BACKGROUND_IMAGE_POSITION,
+    BACKGROUND_IMAGE_SIZE_WITH_STYLE,
+    BORDER_WIDTH,
+    BORDER_COLOR,
+    BORDER_RADIUS,
+    BORDER_STYLE,
+    CUSTOM_SHADOW,
+    MARGIN,
+    ALIGNMENT,
+    EXPAND_SAFE_AREA,
+    MOVE_TRANSITION,
+    OPACITY_TRANSITION,
+    TRANSLATE_TRANSITION,
+  };
+  
+  void SetBaseAttributeFlag(AttributeFlag flag);
+  void UnsetBaseAttributeFlag(AttributeFlag flag);
+  bool IsBaseAttributeFlag(AttributeFlag flag);
+  
+  void SetSubAttributeFlag(uint32_t flag);
+  void UnsetSubAttributeFlag(uint32_t flag);
+  bool IsSubAttributeFlag(uint32_t flag);
+
   ArkUI_NodeHandle nodeHandle_;
+  bool isReleaseHandle_ = true;
   
   ArkUINodeDelegate *arkUINodeDelegate_ = nullptr;
-  
+
   bool hasClickEvent_ = false;
+  bool hasTouchEvent_ = false;
   bool hasAppearEvent_ = false;
   bool hasDisappearEvent_ = false;
-  bool hasAreaChangeEvent_ = false;  
+  bool hasAreaChangeEvent_ = false;
+  
+  uint64_t baseAttributesFlagValue_ = 0;
+  uint64_t subAttributesFlagValue_ = 0;
 };
+
+#define ARK_UI_NODE_RESET_BASE_ATTRIBUTE(flag, type) \
+  if (IsBaseAttributeFlag(flag)) { \
+    MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, type)); \
+  }
+
+#define ARK_UI_NODE_RESET_SUB_ATTRIBUTE(flag, type) \
+  if (IsSubAttributeFlag((uint32_t)flag)) { \
+    MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, type)); \
+  }
 
 } // namespace native
 } // namespace render

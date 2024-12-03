@@ -21,17 +21,50 @@
  */
 
 #include "renderer/components/root_view.h"
+#include "renderer/utils/hr_display_sync_utils.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
 RootView::RootView(std::shared_ptr<NativeRenderContext> &ctx) : DivView(ctx) {
-  
 }
 
 RootView::~RootView() {
-  
+  if (GetLocalRootArkUINode()) {
+    GetLocalRootArkUINode()->UnregisterDisappearEvent();
+  }
+  HRDisplaySyncUtils::UnregisterDoFrameListener(ctx_->GetInstanceId(), tag_);
+}
+
+void RootView::CreateArkUINodeImpl() {
+  DivView::CreateArkUINodeImpl();
+  GetLocalRootArkUINode()->RegisterDisappearEvent();
+}
+
+void RootView::DestroyArkUINodeImpl() {
+  DivView::DestroyArkUINodeImpl();
+}
+
+bool RootView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  if (propKey.length() > 0 && propValue.IsBoolean()) {
+    HandleRootEvent(propKey, propValue.ToBooleanChecked());
+  }
+  return BaseView::SetPropImpl(propKey, propValue);
+}
+
+void RootView::HandleRootEvent(const std::string &event, bool enable) {
+  if (event == "frameupdate") {
+    if (enable) {
+      HRDisplaySyncUtils::RegisterDoFrameListener(ctx_->GetInstanceId(), tag_);
+    } else {
+      HRDisplaySyncUtils::UnregisterDoFrameListener(ctx_->GetInstanceId(), tag_);
+    }
+  }
+}
+
+void RootView::OnDisappear() {
+  HRDisplaySyncUtils::UnregisterDoFrameListener(ctx_->GetInstanceId(), tag_);
 }
 
 } // namespace native

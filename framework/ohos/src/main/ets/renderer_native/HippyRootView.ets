@@ -35,9 +35,9 @@ export class HippyRootView {
   renderView: HippyRenderView | null = null
   pagerName: string
   pagerData: HippyRecord
+  rootSlot: NodeContent | null = null
   private ctx: NativeRenderContext
-  private avoidArea: window.AvoidArea | null = null
-  private renderViewSize: HRSize = new HRSize(0, 0)
+  renderViewSize: HRSize = new HRSize(0, 0)
   private lazyRenderViewTasks: Array<() => void> = []
 
   constructor(instanceId: number,
@@ -60,7 +60,7 @@ export class HippyRootView {
   }
 
   private initRenderView() {
-    this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize, this.avoidArea)
+    this.renderView = new HippyRenderView(this.ctx, this.pagerName, this.pagerData, this.renderViewSize)
     this.performAllRenderViewTasks()
   }
 
@@ -68,12 +68,12 @@ export class HippyRootView {
     return this.ctx.getRootId()
   }
 
-  setAvoidArea(avoidArea: window.AvoidArea) {
-    this.avoidArea = avoidArea
+  setRootSlot(rootSlot: NodeContent) {
+    this.rootSlot = rootSlot;
   }
 
-  onViewSizeChanged(size: HRSize) {
-    if (this.renderViewSize.width == size.width && this.renderViewSize.height == size.height) {
+  onViewSizeChanged(size: HRSize, force = false) {
+    if (!force && this.renderViewSize.width == size.width && this.renderViewSize.height == size.height) {
       return
     }
     this.renderViewSize = size
@@ -168,6 +168,10 @@ export struct HippyRoot {
   private enableArkCApi: boolean = false
 
   aboutToAppear(): void {
+    if (!AppStorage.has('UIContextForHippy')) {
+      AppStorage.setOrCreate<UIContext>('UIContextForHippy', this.getUIContext())
+    }
+
     if (!this.hippyEngine || !this.hippyEngine.getNativeRenderProvider()) {
       this.onRenderException?.(new HippyException("Error, hippyEngine is null."))
       return
@@ -189,12 +193,7 @@ export struct HippyRoot {
       if (this.initViewSize.width > 0) {
         this.rootView.onViewSizeChanged(this.initViewSize)
       }
-      window.getLastWindow(getContext(this), (error, data) => {
-        if (this.rootView && data) {
-          let avoidArea = data.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM)
-          this.rootView.setAvoidArea(avoidArea)
-        }
-      })
+      this.rootView.setRootSlot(this.rootSlot);
 
       let libHippy = this.hippyEngine?.getHippyEngineContext()?.getLibHippy()
       libHippy?.NativeRenderProvider_BindNativeRoot(this.rootSlot, this.renderInstanceId, this.rootView.getRootId(), 0)

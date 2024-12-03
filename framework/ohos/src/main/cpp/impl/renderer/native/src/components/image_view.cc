@@ -25,33 +25,62 @@
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_url_utils.h"
 #include "renderer/utils/hr_value_utils.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-static const std::string BASE64_IMAGE_PREFIX = "data:image";
-static const std::string RAW_IMAGE_PREFIX = "hpfile://";
-static const std::string ASSET_PREFIX = "asset:/";
-static const std::string INTERNET_IMAGE_PREFIX = "http";
-
 ImageView::ImageView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView(ctx) {
-  imageNode_.SetNodeDelegate(this);
-  GetLocalRootArkUINode().SetDraggable(false);
 }
 
 ImageView::~ImageView() {}
 
-ImageNode &ImageView::GetLocalRootArkUINode() {
-  return imageNode_;
+ImageNode *ImageView::GetLocalRootArkUINode() {
+  return imageNode_.get();
 }
 
-bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void ImageView::CreateArkUINodeImpl() {
+  imageNode_ = std::make_shared<ImageNode>();
+  imageNode_->SetNodeDelegate(this);
+  imageNode_->SetDraggable(false);
+}
+
+void ImageView::DestroyArkUINodeImpl() {
+  imageNode_->SetNodeDelegate(nullptr);
+  imageNode_ = nullptr;
+  ClearProps();
+}
+
+bool ImageView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  imageNode_->SetNodeDelegate(nullptr);
+  imageNode_->ResetAllAttributes();
+  recycleView->cachedNodes_.resize(1);
+  recycleView->cachedNodes_[0] = imageNode_;
+  imageNode_ = nullptr;
+  ClearProps();
+  return true;
+}
+
+bool ImageView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 1) {
+    return false;
+  }
+  imageNode_ = std::static_pointer_cast<ImageNode>(recycleView->cachedNodes_[0]);
+  imageNode_->SetNodeDelegate(this);
+  return true;
+}
+
+std::string ImageView::GetSrc() {
+  return src_;
+}
+
+bool ImageView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "src") {
     auto value = HRValueUtils::GetString(propValue);
     if (value != src_) {
       src_ = value;
-      fetchImage(value);
+      FetchImage(value);
     }
     return true;
   } else if (propKey == "resizeMode") {
@@ -66,23 +95,22 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
 		} else if (value == "stretch") {
 			mode = HRImageResizeMode::FitXY;
 		}
-    GetLocalRootArkUINode().SetResizeMode(mode);
+    GetLocalRootArkUINode()->SetResizeMode(mode);
     return true;
   } else if (propKey == "defaultSource") {
     auto value = HRValueUtils::GetString(propValue);
     if (!value.empty()) {
-      auto sourceUrl = HRUrlUtils::convertAssetImageUrl(value);
-      GetLocalRootArkUINode().SetAlt(sourceUrl);
+      FetchAltImage(value);
       return true;
     }
     return false;
   } else if (propKey == "tintColor") {
     uint32_t value = HRValueUtils::GetUint32(propValue);
-    GetLocalRootArkUINode().SetTintColor(value);
+    GetLocalRootArkUINode()->SetTintColor(value);
     return true;
   } else if (propKey == "tintColorBlendMode") {
     auto value = HRValueUtils::GetInt32(propValue);
-    GetLocalRootArkUINode().SetTintColorBlendMode(value);
+    GetLocalRootArkUINode()->SetTintColorBlendMode(value);
     return true;
   } else if (propKey == "capInsets") {
     HippyValueObjectType m;
@@ -91,41 +119,37 @@ bool ImageView::SetProp(const std::string &propKey, const HippyValue &propValue)
       auto top = HRValueUtils::GetFloat(m["top"]);
       auto right = HRValueUtils::GetFloat(m["right"]);
       auto bottom = HRValueUtils::GetFloat(m["bottom"]);
-      GetLocalRootArkUINode().SetResizeable(left, top, right, bottom);
+      GetLocalRootArkUINode()->SetResizeable(left, top, right, bottom);
     } else {
       return false;
     }
 	} else if (propKey == "blur") {
-		auto value = HRValueUtils::GetFloat(propValue);
-    GetLocalRootArkUINode().SetBlur(value);
+		auto value = HRPixelUtils::DpToPx(HRValueUtils::GetFloat(propValue));
+    GetLocalRootArkUINode()->SetBlur(value);
 	} else if (propKey == "draggable") {
 		auto value = HRValueUtils::GetBool(propValue, false);
-    GetLocalRootArkUINode().SetDraggable(value);
+    GetLocalRootArkUINode()->SetDraggable(value);
 	}
-	return BaseView::SetProp(propKey, propValue);
+	return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void ImageView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrame(frame, padding);
+void ImageView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
+  BaseView::UpdateRenderViewFrameImpl(frame, padding);
 }
 
-void ImageView::fetchImage(const std::string &imageUrl) {
+void ImageView::FetchAltImage(const std::string &imageUrl) {
   if (imageUrl.size() > 0) {
-    if (imageUrl.find(BASE64_IMAGE_PREFIX) == 0) {
-      GetLocalRootArkUINode().SetSources(imageUrl);
-      return;
-		} else if (imageUrl.find(RAW_IMAGE_PREFIX) == 0) {
-			std::string convertUrl = ConvertToLocalPathIfNeeded(imageUrl);
-      GetLocalRootArkUINode().SetSources(convertUrl);
-      return;
-		} else if (HRUrlUtils::isWebUrl(imageUrl)) {
-			GetLocalRootArkUINode().SetSources(imageUrl);
-      return;
-		} else if (imageUrl.find(ASSET_PREFIX) == 0) {
-      std::string resourceStr = HRUrlUtils::convertAssetImageUrl(imageUrl);
-      GetLocalRootArkUINode().SetSources(resourceStr);
-		}
-		// TODO(hot):
+    auto bundlePath = ctx_->GetNativeRender().lock()->GetBundlePath();
+    auto url = HRUrlUtils::ConvertImageUrl(bundlePath, ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
+    GetLocalRootArkUINode()->SetAlt(url);
+  }
+}
+
+void ImageView::FetchImage(const std::string &imageUrl) {
+  if (imageUrl.size() > 0) {
+    auto bundlePath = ctx_->GetNativeRender().lock()->GetBundlePath();
+    auto url = HRUrlUtils::ConvertImageUrl(bundlePath, ctx_->IsRawFile(), ctx_->GetResModuleName(), imageUrl);
+    GetLocalRootArkUINode()->SetSources(url);
 	}
 }
 
@@ -149,6 +173,10 @@ void ImageView::OnError(int32_t errorCode) {
   paramsObj.insert_or_assign("errorCode", errorCode);
   std::shared_ptr<HippyValue> params = std::make_shared<HippyValue>(paramsObj);
   HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_IMAGE_LOAD_END, params);
+}
+
+void ImageView::ClearProps() {
+  src_.clear();
 }
 
 } // namespace native

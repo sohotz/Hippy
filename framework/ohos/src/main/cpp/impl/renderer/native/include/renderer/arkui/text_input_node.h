@@ -41,6 +41,21 @@ public:
 
 class TextInputNode : public TextInputBaseNode {
 protected:
+  enum class AttributeFlag {
+    TEXT_INPUT_TEXT = (uint32_t)TextInputBaseNode::AttributeFlag::NEXT_FLAG,
+    TEXT_INPUT_TEXT_SELECTION,
+    TEXT_INPUT_CARET_COLOR,
+    TEXT_INPUT_MAX_LENGTH,
+    TEXT_INPUT_PLACEHOLDER,
+    TEXT_INPUT_PLACEHOLDER_COLOR,
+    TEXT_INPUT_CARET_STYLE,
+    TEXT_INPUT_TYPE,
+    TEXT_INPUT_SELECTED_BACKGROUND_COLOR,
+    TEXT_INPUT_SHOW_PASSWORD_ICON,
+    TEXT_INPUT_ENTER_KEY_TYPE,
+    TEXT_INPUT_CANCEL_BUTTON,
+    TEXT_INPUT_EDITING,
+  };
   TextInputNodeDelegate *textInputNodeDelegate_;
 
 public:
@@ -66,9 +81,10 @@ public:
   void SetCaretHidden(bool hidden);
   void SetSelectedBackgroundColor(uint32_t const &color);
   void SetPasswordIconVisibility(bool isVisible);
-  void SetCancelButtonMode(uint32_t mode);
+  void SetCancelButtonMode(ArkUI_CancelButtonStyle mode);
   void ResetSelectedBackgroundColor();
-    
+  
+  void ResetAllAttributes() override;
 };
 
 } // namespace native

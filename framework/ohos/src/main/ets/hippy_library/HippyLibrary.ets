@@ -28,6 +28,7 @@ import { VfsManager } from '../vfs/VfsManager';
 import { FrameNode } from '@kit.ArkUI';
 import { TurboModuleManager } from '../hippy_framework/modules/turbo/TurboModuleManager';
 import { NodeContent } from '@ohos.arkui.node';
+import { HRPosition, HRRect } from '../renderer_native/utils/HRTypes';
 
 export interface HippyRenderViewInfo {
   tag: number
@@ -44,7 +45,7 @@ export interface HippyLibrary {
   Devtools_OnAttachToRoot(devtoolsId: number, rootId: number): void;
 
   DomManager_SetRenderManager(instanceId: number, renderId: number): void;
-  DomManager_CreateDomManager(): number;
+  DomManager_CreateDomManager(domManagerNum: number): number;
   DomManager_DestroyDomManager(domManagerId: number): void;
   DomManager_CreateRoot(rootId: number, density: number): void;
   DomManager_DestroyRoot(rootId: number): void;
@@ -62,7 +63,8 @@ export interface HippyLibrary {
     domManagerId: number,
     v8ParamArray: Array<number> | null,
     vfsId: number,
-    devtoolsId: number
+    devtoolsId: number,
+    isReload: boolean
   ): number;
   JsDriver_DestroyJsDriver(instanceId: number, useLowMemoryMode: boolean, isReload: boolean, callback: NativeCallback): void;
   JsDriver_LoadInstance(instanceId: number, buffer: ArrayBuffer): void;
@@ -70,14 +72,15 @@ export interface HippyLibrary {
   JsDriver_RunScriptFromUri(
     instanceId: number,
     uri: string,
+    isRawfile: boolean,
     assetManager: resmgr.ResourceManager,
+    resModuleName: string,
     canUseCodeCache: boolean,
     codeCacheDir: string,
     vfsId: number,
     callback: NativeCallback
   ): boolean;
   JsDriver_SetRootNode(instanceId: number, rootId: number): void;
-  JsDriver_SetDomManager(instanceId: number, domManagerId: number): void;
   JsDriver_OnNativeInitEnd(instanceId: number, startTime: number, endTime: number): void;
   JsDriver_OnFirstFrameEnd(instanceId: number, time: number): void;
   JsDriver_OnResourceLoadEnd(
@@ -91,10 +94,10 @@ export interface HippyLibrary {
 
   NativeRenderer_CreateNativeRenderManager(enableArkCApi: boolean, renderProvider: NativeRenderProvider,
     customRenderViews: Array<string> | null, customMeasureRenderViews: Array<string> | null, mappingRenderViews: Array<string> | null,
-    bundlePath: string, density: number): number;
+    bundlePath: string, density: number, densityScale: number, fontSizeScale: number, isRawfile: boolean, resModuleName: string): number;
   NativeRenderer_DestroyNativeRenderManager(instanceId: number): void;
+  NativeRenderer_SetBundlePath(instanceId: number, bundlePath: string): void;
   NativeRenderer_InitRendererParams(statusBarHeight: number): void;
-  NativeRenderer_SetDomManager(instanceId: number, domManagerId: number): void;
   NativeRenderer_RegisterFontPaths(instanceId: number, fontFamilyAndPaths: Array<string>): void;
 
   NativeRenderProvider_UpdateRootSize(instanceId: number, rootId: number, width: number, height: number): void;
@@ -111,6 +114,9 @@ export interface HippyLibrary {
   NativeRenderProvider_GetViewChildren(instanceId: number, rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null;
   NativeRenderProvider_CallViewMethod(instanceId: number, rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void;
   NativeRenderProvider_SetViewEventListener(instanceId: number, rootId: number, nodeId: number, callback: EventListenerCallback | null): void
+  NativeRenderProvider_GetViewFrameInRoot(instanceId: number, rootId: number, nodeId: number): HRRect | null
+  NativeRenderProvider_AddBizViewInRoot(instanceId: number, rootId: number, biz_view_id: number, frameNode: FrameNode, x: number, y: number): void
+  NativeRenderProvider_RemoveBizViewInRoot(instanceId: number, rootId: number, biz_view_id: number): void
 
   VfsManager_CreateVfs(vfsDelegate: VfsManager): number;
   VfsManager_DestroyVfs(instanceId: number): void;
@@ -120,4 +126,5 @@ export interface HippyLibrary {
   VfsManager_OnJniDelegateInvokeSync(id: number, holder: ResourceDataHolder): void;
 
   TurboModuleManager_Install(turbo: TurboModuleManager, v8RuntimeId: number): void;
+  Setting_SetFlags(enableUpdateAnimLog: boolean): void;
 }

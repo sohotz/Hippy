@@ -34,11 +34,11 @@ class PullHeaderView : public ListItemView {
 public:
   PullHeaderView(std::shared_ptr<NativeRenderContext> &ctx);
   ~PullHeaderView();
-
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void Call(const std::string &method, const std::vector<HippyValue> params,
+  
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
-  void OnSetPropsEnd() override;
+  void OnSetPropsEndImpl() override;
 
 private:
   void OnHeadRefreshFinish(int32_t delay = 0);

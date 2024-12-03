@@ -35,26 +35,28 @@ public:
   ScrollView(std::shared_ptr<NativeRenderContext> &ctx);
   ~ScrollView();
 
-  ScrollNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void Call(const std::string &method, const std::vector<HippyValue> params,
+  ScrollNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
             std::function<void(const HippyValue &result)> callback) override;
 
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
 
   void OnScroll(float xOffset, float yOffset) override;
   void OnScrollStart() override;
   void OnScrollStop() override;
-  void OnTouch(int32_t actionType) override;
+  void OnTouch(int32_t actionType, const HRPosition &screenPosition) override;
 
 private:
   void CheckFireBeginDragEvent();
   void CheckFireEndDragEvent();
   void EmitScrollEvent(std::string &eventName);
 
-  ScrollNode scrollNode_;
-  StackNode stackNode_;
+  std::shared_ptr<ScrollNode> scrollNode_;
+  std::shared_ptr<StackNode> stackNode_;
   bool isDragging_;
   float lastScrollOffset_;
   int64_t lastScrollTime_;

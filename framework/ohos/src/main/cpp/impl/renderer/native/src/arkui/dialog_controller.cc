@@ -111,7 +111,7 @@ void DialogController::EnableCustomAnimation(bool enableCustomAnimation){
 void DialogController::Show(){
   if(!dialogHandle)
     return;
-  MaybeThrow(NativeDialogApi::GetInstance()->show(dialogHandle,true));  
+  MaybeThrow(NativeDialogApi::GetInstance()->show(dialogHandle, false));
 }
 
 void DialogController::Close(){

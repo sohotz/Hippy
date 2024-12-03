@@ -20,11 +20,38 @@
 declare function vp2px(vp: number): number
 
 export class PixelUtil {
+  // 缩放字体和宽高
+  public static setDensityScale(densityScale: number): void {
+    PixelUtil.densityScale = densityScale
+    PixelUtil.density = vp2px(1.0) / PixelUtil.densityScale
+  }
+
+  // 只缩放字体
+  public static setFontSizeScale(scale: number): void {
+    PixelUtil.fontSizeScale = scale
+  }
+
+  public static getDensityScale(): number {
+    return PixelUtil.densityScale
+  }
+
+  public static getFontSizeScale(): number {
+    return PixelUtil.fontSizeScale
+  }
+
   public static px2dp(value: number): number {
     return value / PixelUtil.getDensity();
   }
 
-  public static getDensity(): number {
-    return vp2px(1.0)
+  public static vp2dp(value: number): number {
+    return value * PixelUtil.densityScale
   }
+
+  public static getDensity(): number {
+    return PixelUtil.density
+  }
+
+  private static densityScale: number = 1.0
+  private static density: number = vp2px(1.0) / 1.0
+  private static fontSizeScale: number = 1.0
 }

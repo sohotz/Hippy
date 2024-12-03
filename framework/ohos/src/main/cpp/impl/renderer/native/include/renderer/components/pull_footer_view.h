@@ -33,17 +33,21 @@ class PullFooterView : public ListItemView {
 public:
   PullFooterView(std::shared_ptr<NativeRenderContext> &ctx);
   ~PullFooterView();
-  
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void OnSetPropsEnd() override;
-  void Call(const std::string &method, const std::vector<HippyValue> params,
+
+  void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
+  bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void OnSetPropsEndImpl() override;
+  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
   void Show(bool show);
 
 private:
   bool isVisible_ = true;
-  
+
   bool sticky_ = false;
 };
 

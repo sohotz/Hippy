@@ -47,7 +47,12 @@ public:
     } else if (value.IsDouble()) {
       double doubleValue = 0;
       value.ToDouble(doubleValue);
-      return static_cast<uint32_t>(doubleValue);
+      if (doubleValue < 0) {
+        int32_t intValue = static_cast<int32_t>(doubleValue);
+        return static_cast<uint32_t>(intValue);
+			} else {
+				return static_cast<uint32_t>(doubleValue);
+			}
     }
     return 0;
   }

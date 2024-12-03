@@ -32,6 +32,11 @@ inline namespace ohnapi {
 extern std::atomic<uint32_t> global_data_holder_key;
 extern footstone::utils::PersistentObjectMap<uint32_t, std::any> global_data_holder;
 
+extern footstone::utils::PersistentObjectMap<uint32_t, uint32_t> global_dom_manager_num_holder;
+extern footstone::utils::PersistentObjectMap<uint32_t, uint32_t> global_dom_manager_current_id_holder;
+
+extern uint32_t GlobalGetNextDomManagerId(uint32_t first_dom_manager_id);
+
 }
 }
 }

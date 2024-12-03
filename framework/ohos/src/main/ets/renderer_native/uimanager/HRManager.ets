@@ -20,11 +20,13 @@
 import { HippyRenderView } from '../HippyRenderView'
 import { HRVirtualNodeManager } from '../node/HRVirtualNodeManager'
 import { HRViewManager } from './HRViewManager'
+import { HRBuilderNodeManager } from './HRBuilderNodeManager'
 
 export class HRManager {
   private readonly TAG = "HRManager"
   private viewManagerMap = new Map<number, HRViewManager>()
   private virtualNodeManagerMap = new Map<number, HRVirtualNodeManager>()
+  private buiderNodeManagerMap = new Map<number, HRBuilderNodeManager>()
 
   initViewManager(rootView: HippyRenderView) {
     let rootId = rootView.tag
@@ -32,11 +34,14 @@ export class HRManager {
     this.addViewManager(rootId, viewManager)
     let nodeManager = new HRVirtualNodeManager()
     this.addVirtualNodeManager(rootId, nodeManager)
+    let builderNodeManager = new HRBuilderNodeManager()
+    this.addBuilerNodeManager(rootId, builderNodeManager)
   }
 
   destroyViewManager(rootId: number) {
     this.removeViewManager(rootId)
     this.removeVirtualNodeManager(rootId)
+    this.removeBuilerNodeManager(rootId)
   }
 
   addViewManager(rootId: number, viewManager: HRViewManager) {
@@ -61,5 +66,21 @@ export class HRManager {
 
   getVirtualNodeManager(rootId: number) {
     return this.virtualNodeManagerMap.get(rootId)
+  }
+
+  addBuilerNodeManager(rootId: number, builderNodeManager: HRBuilderNodeManager) {
+    this.buiderNodeManagerMap.set(rootId, builderNodeManager)
+  }
+
+  removeBuilerNodeManager(rootId: number) {
+    let mgr = this.buiderNodeManagerMap.get(rootId)
+    if (mgr) {
+      mgr.removeAllBuilderNodes()
+      this.buiderNodeManagerMap.delete(rootId)
+    }
+  }
+
+  getBuilerNodeManager(rootId: number) {
+    return this.buiderNodeManagerMap.get(rootId)
   }
 }

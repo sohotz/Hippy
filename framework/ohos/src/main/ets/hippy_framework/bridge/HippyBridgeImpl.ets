@@ -23,7 +23,6 @@ import { JsDriver } from '../connector/JsDriver';
 import { NativeCallback } from '../connector/NativeCallback';
 import { HippyEngineContext } from '../HippyEngineContext';
 import { V8InitParams } from '../HippyEngine';
-import { MonitorGroupType, TimeMonitor } from '../../support/utils/TimeMonitor';
 import { HippyBridgeManagerImpl } from './HippyBridgeManagerImpl';
 import { LogUtils } from '../../support/utils/LogUtils';
 
@@ -78,17 +77,14 @@ export class HippyBridgeImpl implements HippyBridge {
     }
   }
 
-  initJSBridge(globalConfig: string, callback: NativeCallback, groupId: number): void {
-    this.initJSEngine(globalConfig, callback, groupId);
+  initJSBridge(globalConfig: string, callback: NativeCallback, groupId: number, isReload: boolean): void {
+    this.initJSEngine(globalConfig, callback, groupId, isReload);
   }
 
-  initJSEngine(globalConfig: string, callback: NativeCallback, groupId: number) {
+  initJSEngine(globalConfig: string, callback: NativeCallback, groupId: number, isReload: boolean) {
     if (!this.mEngineContext) {
       return;
     }
-    this.mEngineContext?.getMonitor()
-      .startPoint(MonitorGroupType.ENGINE_INITIALIZE, TimeMonitor.MONITOR_POINT_INIT_JS_ENGINE);
-    // TODO 多线程问题
     this.mJsDriver.initialize(
       this.mEngineContext.getDomManagerId(),
       this.mEngineContext.getVfsId(),
@@ -97,7 +93,8 @@ export class HippyBridgeImpl implements HippyBridge {
       globalConfig,
       this.mEnableV8Serialization,
       groupId,
-      this.mEngineContext.getDevtoolsId()
+      this.mEngineContext.getDevtoolsId(),
+      isReload,
     )
   }
 
@@ -134,7 +131,9 @@ export class HippyBridgeImpl implements HippyBridge {
     } else {
       canUseCodeCache = false;
     }
-    return this.mJsDriver.runScriptFromUri(uri, assetManager, canUseCodeCache, codeCacheDir,
+    let isRawfile = this.mEngineContext.getGlobalConfigs().isLoadFromRawfile();
+    let resModuleName = this.mEngineContext.getGlobalConfigs().getResModuleName();
+    return this.mJsDriver.runScriptFromUri(uri, isRawfile, assetManager, resModuleName, canUseCodeCache, codeCacheDir,
       this.mEngineContext.getVfsId(), callback);
   }
 

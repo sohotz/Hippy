@@ -33,7 +33,7 @@ inline namespace native {
 
 class HRManager {
 public:
-  HRManager(uint32_t instance_id, std::shared_ptr<NativeRender> &native_render);
+  HRManager(uint32_t instance_id, std::shared_ptr<NativeRender> &native_render, bool is_rawfile, const std::string &res_module_name);
   ~HRManager() = default;
   
   void RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
@@ -58,6 +58,9 @@ private:
   std::set<std::string> custom_ts_render_views_;
   napi_env ts_env_ = nullptr;
   napi_ref ts_render_provider_ref_ = nullptr;
+  
+  bool is_rawfile_ = false;
+  std::string res_module_name_;
 };
 
 } // namespace native

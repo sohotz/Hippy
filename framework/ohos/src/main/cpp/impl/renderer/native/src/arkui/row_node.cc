@@ -35,6 +35,16 @@ void RowNode::SetAlignItem(ArkUI_VerticalAlignment align){
   ArkUI_NumberValue value[] = {{.i32 = align},};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_ROW_ALIGN_ITEMS, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::ROW_ALIGN_ITEMS);
+}
+
+void RowNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::ROW_ALIGN_ITEMS, NODE_ROW_ALIGN_ITEMS);
+  subAttributesFlagValue_ = 0;
 }
 
 } // namespace native

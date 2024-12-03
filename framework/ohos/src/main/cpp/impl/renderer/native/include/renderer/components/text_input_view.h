@@ -28,25 +28,52 @@
 #include "renderer/arkui/text_input_node.h"
 #include "renderer/arkui/text_area_node.h"
 #include <bits/alltypes.h>
+#include <cstdint>
+#include <memory>
+#include <optional>
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 using HippyValue = footstone::HippyValue;
 
+typedef enum TextInputPropFlag {
+  TextInputPropCaretColor   = 1,
+  TextInputPropColor        = 1 << 1,
+  TextInputPropDefaultValue = 1 << 2,
+  TextInputPropFontFamily   = 1 << 3,
+  TextInputPropFontSize     = 1 << 4,
+  TextInputPropFontStyle    = 1 << 5,
+  TextInputPropFontWeight   = 1 << 6,
+  TextInputPropMaxLength    = 1 << 7,
+  TextInputPropMultiline    = 1 << 8,
+  TextInputPropTextAlign    = 1 << 9,
+  TextInputPropTextAlignVertical    = 1 << 10,
+  TextInputPropPlaceholder          = 1 << 11,
+  TextInputPropPlaceholderTextColor = 1 << 12,
+  TextInputPropNumberOfLines        = 1 << 13,
+  TextInputPropKeyboardType         = 1 << 14,
+  TextInputPropReturnKeyType        = 1 << 15,
+  TextInputPropValue                = 1 << 16,
+} TextInputPropFlag;
+
 class TextInputView : public BaseView, public TextInputNodeDelegate,public TextAreaNodeDelegate {
 public:
   TextInputView(std::shared_ptr<NativeRenderContext> &ctx);
   ~TextInputView();
 
-  StackNode &GetLocalRootArkUINode() override;
+  StackNode *GetLocalRootArkUINode() override;
   TextInputBaseNode &GetTextNode();
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void OnSetPropsEnd() override;
-  void Call(const std::string &method, const std::vector<HippyValue> params,
+  void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
+  bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void OnSetPropsEndImpl() override;
+  void CallImpl(const std::string &method, const std::vector<HippyValue> params,
                    std::function<void(const HippyValue &result)> callback) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
-    
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
+
   void OnChange(std::string text) override;
   void OnBlur() override;
   void OnFocus() override;
@@ -54,7 +81,7 @@ public:
   void OnPaste() override;
   void OnTextSelectionChange(int32_t location, int32_t length) override;
 
-public:    
+public:
   void InitNode();
   void SetFontWeight(const HippyValue &propValue);
   void SetTextAlign(const HippyValue &propValue);
@@ -67,43 +94,49 @@ public:
   void BlurTextInput(const HippyValueArrayType &param);
   void HideInputMethod(const HippyValueArrayType &param);
   void OnEventEndEditing(ArkUI_EnterKeyType enterKeyType);
-    
-public:    
-  uint32_t caretColor = 0x00000000;
-  uint32_t color = 0x00000000;
-  std::string fontFamily  = "HarmonyOS Sans";
-  float_t fontSize = 18;
-  uint32_t fontStyle = ArkUI_FontStyle::ARKUI_FONT_STYLE_NORMAL;
-  uint32_t fontWeight = ArkUI_FontWeight::ARKUI_FONT_WEIGHT_NORMAL;
-  uint32_t maxLength = 0x7FFFFFFF;
-  bool multiline = false;
-  uint32_t textAlign = ArkUI_TextAlignment::ARKUI_TEXT_ALIGNMENT_START;
-  uint32_t textAlignVertical = ArkUI_Alignment::ARKUI_ALIGNMENT_CENTER;
-  std::string value  = "";
-  uint32_t keyboardType = ArkUI_TextInputType::ARKUI_TEXTINPUT_TYPE_NORMAL;
-  uint32_t returnKeyType = ArkUI_EnterKeyType::ARKUI_ENTER_KEY_TYPE_DONE;
-  std::string placeholder = "";
-  uint32_t placeholderTextColor = 0x00000000;
-  int32_t maxLines = 10000000;
-    
+
 private:
-  StackNode stackNode_;
-  TextInputNode textInputNode_;
-  TextAreaNode textAreaNode_;
-  HRPadding cssPadding = {0, 0, 0, 0};
+  void SetPropFlag(TextInputPropFlag flag) { propFlags_ |= flag; }
+  void UnsetPropFlag(TextInputPropFlag flag) { propFlags_ &= ~flag; }
+  bool IsPropFlag(TextInputPropFlag flag) { return (propFlags_ & flag) ? true : false; }
+  
+  void ClearProps();
 
-  bool isListenChangeText = false;
-  bool isListenSelectionChange = false;
-  bool isListenEndEditing = false;
-  bool isListenFocus = false;
-  bool isListenBlur = false;
-  bool isListenKeyboardWillShow = false;
-  bool isListenKeyboardWillHide = false;
-  bool isListenContentSizeChange = false;
+  uint32_t propFlags_ = 0;
 
-  bool focus = false;
-  float_t previousContentWidth = 0;
-  float_t previousContentHeight = 0;
+  std::optional<uint32_t> caretColor_;
+  std::optional<uint32_t> color_;
+  std::optional<std::string> value_;
+  std::optional<std::string> fontFamily_;
+  std::optional<float_t> fontSize_;
+  std::optional<uint32_t> fontStyle_;
+  std::optional<uint32_t> fontWeight_;
+  std::optional<uint32_t> maxLength_;
+  std::optional<std::string> placeholder_;
+  std::optional<uint32_t> placeholderTextColor_;
+  std::optional<int32_t> maxLines_;
+  std::optional<uint32_t> keyboardType_;
+  std::optional<uint32_t> returnKeyType_;
+  bool multiline_ = false;
+  std::optional<uint32_t> textAlign_;
+  std::optional<uint32_t> textAlignVertical_;
+
+private:
+  std::shared_ptr<StackNode> stackNode_;
+  std::shared_ptr<TextInputBaseNode> inputBaseNodePtr_ = nullptr;
+
+  bool isListenChangeText_ = false;
+  bool isListenSelectionChange_ = false;
+  bool isListenEndEditing_ = false;
+  bool isListenFocus_ = false;
+  bool isListenBlur_ = false;
+  bool isListenKeyboardWillShow_ = false; // TODO(hot):
+  bool isListenKeyboardWillHide_ = false; // TODO(hot):
+  bool isListenContentSizeChange_ = false;
+
+  bool focus_ = false;
+  float_t previousContentWidth_ = 0;
+  float_t previousContentHeight_ = 0;
 };
 
 } // namespace native

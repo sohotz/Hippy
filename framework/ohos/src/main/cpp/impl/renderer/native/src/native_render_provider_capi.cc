@@ -58,17 +58,17 @@ void NativeRenderProvider_UpdateRootSize(uint32_t render_manager_id, uint32_t ro
     return;
   }
 
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
-  if (dom_manager == nullptr) {
-    FOOTSTONE_DLOG(WARNING) << "UpdateRootSize dom_manager is nullptr";
-    return;
-  }
-
   auto &root_map = RootNode::PersistentMap();
   std::shared_ptr<RootNode> root_node;
   ret = root_map.Find(root_id, root_node);
   if (!ret) {
     FOOTSTONE_DLOG(WARNING) << "UpdateRootSize root_node is nullptr";
+    return;
+  }
+  
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
+  if (dom_manager == nullptr) {
+    FOOTSTONE_DLOG(WARNING) << "UpdateRootSize dom_manager is nullptr";
     return;
   }
 
@@ -90,18 +90,18 @@ void NativeRenderProvider_UpdateNodeSize(uint32_t render_manager_id, uint32_t ro
     FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize render_manager_id invalid";
     return;
   }
-
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
-  if (dom_manager == nullptr) {
-    FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize dom_manager is nullptr";
-    return;
-  }
-
+  
   auto &root_map = RootNode::PersistentMap();
   std::shared_ptr<RootNode> root_node;
   ret = root_map.Find(root_id, root_node);
   if (!ret) {
     FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize root_node is nullptr";
+    return;
+  }
+  
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
+  if (dom_manager == nullptr) {
+    FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize dom_manager is nullptr";
     return;
   }
 
@@ -141,7 +141,7 @@ void NativeRenderProvider_OnReceivedEvent(uint32_t render_manager_id, uint32_t r
     FOOTSTONE_DLOG(WARNING) << "OnReceivedEvent root_node is nullptr";
     return;
   }
-  
+
   render_manager->ReceivedEvent(root_node, node_id, event_name, params, capture, bubble);
 }
 
@@ -154,13 +154,21 @@ void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result,
     FOOTSTONE_DLOG(WARNING) << "DoCallBack render_manager_id invalid";
     return;
   }
+  
+  auto &root_map = RootNode::PersistentMap();
+  std::shared_ptr<RootNode> root_node;
+  ret = root_map.Find(root_id, root_node);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "DoCallBack root_node is nullptr";
+    return;
+  }
 
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
   if (dom_manager == nullptr) {
     FOOTSTONE_DLOG(WARNING) << "DoCallBack dom_manager is nullptr";
     return;
   }
-  
+
   std::vector<std::function<void()>> ops = {[root_id, node_id, cb_id, func_name, dom_manager, params] {
     auto &root_map = RootNode::PersistentMap();
     std::shared_ptr<RootNode> root_node;
@@ -190,18 +198,18 @@ void NativeRenderProvider_DoCallBack(uint32_t render_manager_id, int32_t result,
 napi_value BindNativeRoot(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
-  
+
   // NodeContent
   ArkUI_NodeContentHandle contentHandle = nullptr;
   auto code = OH_ArkUI_GetNodeContentFromNapiValue(env, args[0], &contentHandle);
   if (code != ARKUI_ERROR_CODE_NO_ERROR || !contentHandle) {
     return arkTs.GetUndefined();
   }
-  
+
   uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
   uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
   uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[3]));
-  
+
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -209,9 +217,9 @@ napi_value BindNativeRoot(napi_env env, napi_callback_info info) {
     FOOTSTONE_DLOG(WARNING) << "BindRoot: render_manager_id invalid";
     return arkTs.GetUndefined();
   }
-  
+
   render_manager->BindNativeRoot(contentHandle, root_id, node_id);
-  
+
   return arkTs.GetUndefined();
 }
 
@@ -221,7 +229,7 @@ napi_value UnbindNativeRoot(napi_env env, napi_callback_info info) {
   uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
   uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
   uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
-  
+
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -229,9 +237,9 @@ napi_value UnbindNativeRoot(napi_env env, napi_callback_info info) {
     FOOTSTONE_DLOG(WARNING) << "UnbindRoot: render_manager_id invalid";
     return arkTs.GetUndefined();
   }
-  
+
   render_manager->UnbindNativeRoot(root_id, node_id);
-  
+
   return arkTs.GetUndefined();
 }
 
@@ -240,7 +248,7 @@ static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
   auto args = arkTs.GetCallbackArgs(info);
   uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
   uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
-  
+
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -248,7 +256,7 @@ static napi_value DestroyRoot(napi_env env, napi_callback_info info) {
     FOOTSTONE_DLOG(WARNING) << "DestroyRoot: render_manager_id invalid";
     return arkTs.GetUndefined();
   }
-  
+
   render_manager->DestroyRoot(root_id);
 
   return arkTs.GetUndefined();
@@ -263,7 +271,7 @@ static napi_value DoCallbackForCallCustomTsView(napi_env env, napi_callback_info
   uint32_t callback_id = static_cast<uint32_t>(arkTs.GetInteger(args[3]));
   auto ts_result = args[4];
   auto result = OhNapiUtils::NapiValue2HippyValue(env, ts_result);
-  
+
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -283,7 +291,7 @@ static napi_value GetViewParent(napi_env env, napi_callback_info info) {
   uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
   uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
   uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
-  
+
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -291,7 +299,7 @@ static napi_value GetViewParent(napi_env env, napi_callback_info info) {
     FOOTSTONE_DLOG(WARNING) << "GetViewParent: render_manager_id invalid";
     return arkTs.GetNull();
   }
-  
+
   uint32_t parent_id = 0;
   std::string parent_view_type;
   ret = render_manager->GetViewParent(root_id, node_id, parent_id, parent_view_type);
@@ -301,7 +309,7 @@ static napi_value GetViewParent(napi_env env, napi_callback_info info) {
     params_builder.AddProperty("viewName", parent_view_type);
     return params_builder.Build();
   }
-  
+
   return arkTs.GetNull();
 }
 
@@ -311,7 +319,7 @@ static napi_value GetViewChildren(napi_env env, napi_callback_info info) {
   uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
   uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
   uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
-  
+
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -319,7 +327,7 @@ static napi_value GetViewChildren(napi_env env, napi_callback_info info) {
     FOOTSTONE_DLOG(WARNING) << "GetViewChildren: render_manager_id invalid";
     return arkTs.GetNull();
   }
-  
+
   std::vector<uint32_t> children_ids;
   std::vector<std::string> children_view_types;
   ret = render_manager->GetViewChildren(root_id, node_id, children_ids, children_view_types);
@@ -344,7 +352,7 @@ static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
   uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
   uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
   std::string method = arkTs.GetString(args[3]);
-  
+
   std::vector<HippyValue> params;
   auto ts_params = args[4];
   if (arkTs.IsArray(ts_params)) {
@@ -357,13 +365,13 @@ static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
       }
     }
   }
-  
+
   auto ts_callback = args[5];
   napi_ref callback_ref = 0;
   if (arkTs.GetType(ts_callback) == napi_function) {
     callback_ref = arkTs.CreateReference(ts_callback);
   }
-  
+
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -371,7 +379,7 @@ static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
     FOOTSTONE_DLOG(WARNING) << "CallViewMethod: render_manager_id invalid";
     return arkTs.GetUndefined();
   }
-  
+
   std::function<void(const HippyValue &result)> cb = [env, callback_ref](const HippyValue &result) {
     ArkTS arkTs(env);
     std::vector<napi_value> args = {
@@ -381,25 +389,25 @@ static napi_value CallViewMethod(napi_env env, napi_callback_info info) {
     arkTs.Call(callback, args);
     arkTs.DeleteReference(callback_ref);
   };
-  
+
   render_manager->CallViewMethod(root_id, node_id, method, params, callback_ref ? cb : nullptr);
   return arkTs.GetUndefined();
 }
 
 static napi_value SetViewEventListener(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
-  
+
   auto args = arkTs.GetCallbackArgs(info);
   uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
   uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
   uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
-  
+
   auto ts_callback = args[3];
   napi_ref callback_ref = 0;
   if (arkTs.GetType(ts_callback) == napi_function) {
     callback_ref = arkTs.CreateReference(ts_callback);
   }
-  
+
   auto &map = NativeRenderManager::PersistentMap();
   std::shared_ptr<NativeRenderManager> render_manager;
   bool ret = map.Find(render_manager_id, render_manager);
@@ -407,9 +415,100 @@ static napi_value SetViewEventListener(napi_env env, napi_callback_info info) {
     FOOTSTONE_DLOG(WARNING) << "SetViewEventListener: render_manager_id invalid";
     return arkTs.GetUndefined();
   }
-  
+
   render_manager->SetViewEventListener(root_id, node_id, callback_ref);
+
+  return arkTs.GetUndefined();
+}
+
+static napi_value GetViewFrameInRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t node_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "GetViewFrameInRoot: render_manager_id invalid";
+    return arkTs.GetNull();
+  }
+
+  HRRect rect = render_manager->GetViewFrameInRoot(root_id, node_id);
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("x", rect.x);
+  params_builder.AddProperty("y", rect.y);
+  params_builder.AddProperty("width", rect.width);
+  params_builder.AddProperty("height", rect.height);
+  return params_builder.Build();
+}
+
+static napi_value AddBizViewInRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t biz_view_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+  napi_value ts_node = args[3];
+
+  napi_handle_scope scope = nullptr;
+  napi_open_handle_scope(env, &scope);
+  if (scope == nullptr) {
+    return arkTs.GetUndefined();
+  }
+
+  napi_valuetype type = arkTs.GetType(ts_node);
+  if (type == napi_null) {
+    FOOTSTONE_LOG(ERROR) << "add custom ts view error, ts_node null";
+    return arkTs.GetUndefined();
+  }
+
+  ArkUI_NodeHandle node_handle = nullptr;
+  auto status = OH_ArkUI_GetNodeHandleFromNapiValue(env, ts_node, &node_handle);
+  if (status != ARKUI_ERROR_CODE_NO_ERROR) {
+    FOOTSTONE_LOG(ERROR) << "add custom ts view error, nodeHandle fail, status: " << status << ", node_handle: " << node_handle;
+    return arkTs.GetUndefined();
+  }
   
+  napi_close_handle_scope(env, scope);
+
+  float x = static_cast<float>(arkTs.GetDouble(args[4]));
+  float y = static_cast<float>(arkTs.GetDouble(args[5]));
+
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "AddCustomViewInRoot: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+
+  render_manager->AddBizViewInRoot(root_id, biz_view_id, node_handle, HRPosition{x, y});
+
+  return arkTs.GetUndefined();
+}
+
+static napi_value RemoveBizViewInRoot(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+
+  auto args = arkTs.GetCallbackArgs(info);
+  uint32_t render_manager_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  uint32_t biz_view_id = static_cast<uint32_t>(arkTs.GetInteger(args[2]));
+
+  auto &map = NativeRenderManager::PersistentMap();
+  std::shared_ptr<NativeRenderManager> render_manager;
+  bool ret = map.Find(render_manager_id, render_manager);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "RemoveCustomViewInRoot: render_manager_id invalid";
+    return arkTs.GetUndefined();
+  }
+
+  render_manager->RemoveBizViewInRoot(root_id, biz_view_id);
+
   return arkTs.GetUndefined();
 }
 
@@ -421,6 +520,9 @@ REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewParent", G
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewChildren", GetViewChildren)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_CallViewMethod", CallViewMethod)
 REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_SetViewEventListener", SetViewEventListener)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_GetViewFrameInRoot", GetViewFrameInRoot)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_AddBizViewInRoot", AddBizViewInRoot)
+REGISTER_OH_NAPI("NativeRenderProvider", "NativeRenderProvider_RemoveBizViewInRoot", RemoveBizViewInRoot)
 
 }
 }

@@ -25,14 +25,12 @@ import UIAbility from '@ohos.app.ability.UIAbility';
 import libHippy from 'libhippy.so'
 import font from '@ohos.font';
 import { EngineInitParams } from 'hippy';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
     super.onCreate(want, launchParam);
     hilog.info(0x0000, 'DemoTag', '%{public}s', 'Ability onCreate');
-
-    // 加这句，仅仅为了IDE调试的时候首次创建引擎不卡
-    let params = new EngineInitParams(libHippy, this.context)
 
     AppStorage.setOrCreate("libHippy", libHippy)
     AppStorage.setOrCreate("abilityContext", this.context)
@@ -66,9 +64,6 @@ export default class EntryAbility extends UIAbility {
       // OhMeasureText::RegisterFont("TTTGB", this.context.resourceDir + "/fonts/TTTGB.otf")
       // 注意：TTTGB.otf 在 src/main/ets/fonts 和 src/main/resources/resfile/fonts 中各需一份拷贝，rawfile/fonts可以删除
       // 建议在 HippyEngine.ets的EngineInitParams 中加一个registerFont的方法，把上面ArkTS的字体注册也一起封装进去
-
-      // TODO(hot):
-      AppStorage.setOrCreate<UIContext>('UIContext', windowStage.getMainWindowSync().getUIContext())
     });
   }
 

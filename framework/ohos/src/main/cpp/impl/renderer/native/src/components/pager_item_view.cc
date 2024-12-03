@@ -31,32 +31,42 @@ PagerItemView::PagerItemView(std::shared_ptr<NativeRenderContext> &ctx) : BaseVi
 
 PagerItemView::~PagerItemView() {
   if (!children_.empty()) {
-    for (const auto &child : children_) {
-      stackNode_.RemoveChild(child->GetLocalRootArkUINode());
+    if (stackNode_) {
+      for (const auto &child : children_) {
+        stackNode_->RemoveChild(child->GetLocalRootArkUINode());
+      }
     }
     children_.clear();
   }
 }
 
-StackNode &PagerItemView::GetLocalRootArkUINode() { return stackNode_; }
+StackNode *PagerItemView::GetLocalRootArkUINode() { return stackNode_.get(); }
 
-bool PagerItemView::SetProp(const std::string &propKey, const HippyValue &propValue) {
-  return BaseView::SetProp(propKey, propValue);
+void PagerItemView::CreateArkUINodeImpl() {
+  stackNode_ = std::make_shared<StackNode>();
 }
 
-void PagerItemView::OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildInserted(childView, index);
-  stackNode_.InsertChild(childView->GetLocalRootArkUINode(), index);
+void PagerItemView::DestroyArkUINodeImpl() {
+  stackNode_ = nullptr;
 }
 
-void PagerItemView::OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) {
-  BaseView::OnChildRemoved(childView, index);
-  stackNode_.RemoveChild(childView->GetLocalRootArkUINode());
+bool PagerItemView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  return BaseView::SetPropImpl(propKey, propValue);
 }
 
-void PagerItemView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+void PagerItemView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildInsertedImpl(childView, index);
+  stackNode_->InsertChild(childView->GetLocalRootArkUINode(), index);
+}
+
+void PagerItemView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
+  BaseView::OnChildRemovedImpl(childView, index);
+  stackNode_->RemoveChild(childView->GetLocalRootArkUINode());
+}
+
+void PagerItemView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   // Not set position here, or scroll error.
-  GetLocalRootArkUINode().SetSize(HRSize(frame.width, frame.height));
+  GetLocalRootArkUINode()->SetSize(HRSize(frame.width, frame.height));
 }
 } // namespace native
 } // namespace render

@@ -34,17 +34,15 @@ export class HippyRenderView extends HippyRenderBaseView {
   pagerName: string
   pagerData: HippyRecord
   private renderViewSize: HRSize
-  private avoidArea: window.AvoidArea | null = null
   private lazyCoreTasks: Array<() => void> = []
   uiContext: UIContext | null = null
 
-  constructor(ctx: NativeRenderContext, pageName: string, pageData: HippyRecord, initViewSize: HRSize, avoidArea: window.AvoidArea | null) {
+  constructor(ctx: NativeRenderContext, pageName: string, pageData: HippyRecord, initViewSize: HRSize) {
     super(ctx)
     this.tag = ctx.getRootId()
     this.pagerName = pageName
     this.pagerData = pageData
     this.renderViewSize = initViewSize
-    this.avoidArea = avoidArea
 
     let renderManger = ctx.getNativeRender().getRenderManager()
     renderManger.initViewManager(this)

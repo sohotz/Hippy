@@ -52,6 +52,7 @@ export class JsDriver {
     mEnableV8Serialization: boolean,
     groupId: number,
     devtoolsId: number,
+    isReload: boolean,
   ) {
     this.instanceId = this.onCreate(
       globalConfig,
@@ -63,7 +64,8 @@ export class JsDriver {
       domManagerId,
       null, // TODO v8InitParams
       vfsId,
-      devtoolsId
+      devtoolsId,
+      isReload
     )
   }
 
@@ -77,7 +79,8 @@ export class JsDriver {
     domManagerId: number,
     v8InitParams: V8InitParams | null,
     vfsId: number,
-    devtoolsId: number
+    devtoolsId: number,
+    isReload: boolean
   ): number {
     let v8ParamArray: Array<number> | null = null
     if (v8InitParams) {
@@ -96,7 +99,8 @@ export class JsDriver {
       domManagerId,
       v8ParamArray,
       vfsId,
-      devtoolsId
+      devtoolsId,
+      isReload
     )
   }
 
@@ -137,7 +141,9 @@ export class JsDriver {
 
   runScriptFromUri(
     uri: string,
+    isRawFile: boolean,
     assetManager: resmgr.ResourceManager,
+    resModuleName: string,
     canUseCodeCache: boolean,
     codeCacheDir: string,
     vfsId: number,
@@ -146,7 +152,9 @@ export class JsDriver {
     return this.libHippy?.JsDriver_RunScriptFromUri(
       this.instanceId,
       uri,
+      isRawFile,
       assetManager,
+      resModuleName,
       canUseCodeCache,
       codeCacheDir,
       vfsId,
@@ -158,12 +166,6 @@ export class JsDriver {
     rootId: number
   ) {
     this.libHippy?.JsDriver_SetRootNode(this.instanceId, rootId)
-  }
-
-  attachToDom(
-    domManagerId: number
-  ) {
-    this.libHippy?.JsDriver_SetDomManager(this.instanceId, domManagerId)
   }
 
   onNativeInitEnd(

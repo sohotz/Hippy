@@ -25,7 +25,7 @@ export const URI_SCHEME_FILE = "file:";
 
 export interface HippyBridge {
 
-  initJSBridge(gobalConfig: string, callback: NativeCallback, groupId: number): void;
+  initJSBridge(gobalConfig: string, callback: NativeCallback, groupId: number, isReload: boolean): void;
 
   runScriptFromUri(uri: string, canUseCodeCache: boolean, codeCacheTag: string, callback: NativeCallback): boolean;
 

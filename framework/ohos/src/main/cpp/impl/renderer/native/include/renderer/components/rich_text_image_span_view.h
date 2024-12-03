@@ -34,15 +34,22 @@ public:
   RichTextImageSpanView(std::shared_ptr<NativeRenderContext> &ctx);
   ~RichTextImageSpanView();
 
-  ImageSpanNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
-  
+  ImageSpanNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
+  bool RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
+
 private:
+  void FetchAltImage(const std::string &imageUrl);
   void fetchImage(const std::string &imageUrl);
   
-  ImageSpanNode imageSpanNode_;
-  
+  void ClearProps();
+
+  std::shared_ptr<ImageSpanNode> imageSpanNode_;
+
   std::string src_;
 };
 

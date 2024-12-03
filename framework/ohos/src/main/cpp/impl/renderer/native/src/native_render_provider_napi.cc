@@ -69,7 +69,7 @@ void CallRenderDelegateMethod(napi_env env, napi_ref render_provider_ref,
     delegateObject.Call(method.c_str(), args);
   });
 }
-
+    
 void CallRenderDelegateMethod(napi_env env, napi_ref render_provider_ref,
   const std::string& method, uint32_t root_id) {
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
@@ -211,17 +211,17 @@ static napi_value UpdateRootSize(napi_env env, napi_callback_info info) {
     return arkTs.GetUndefined();
   }
 
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
-  if (dom_manager == nullptr) {
-    FOOTSTONE_DLOG(WARNING) << "UpdateRootSize dom_manager is nullptr";
-    return arkTs.GetUndefined();
-  }
-
   auto& root_map = RootNode::PersistentMap();
   std::shared_ptr<RootNode> root_node;
   ret = root_map.Find(root_id, root_node);
   if (!ret) {
     FOOTSTONE_DLOG(WARNING) << "UpdateRootSize root_node is nullptr";
+    return arkTs.GetUndefined();
+  }
+  
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
+  if (dom_manager == nullptr) {
+    FOOTSTONE_DLOG(WARNING) << "UpdateRootSize dom_manager is nullptr";
     return arkTs.GetUndefined();
   }
 
@@ -254,17 +254,17 @@ static napi_value UpdateNodeSize(napi_env env, napi_callback_info info) {
     return arkTs.GetUndefined();
   }
 
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
-  if (dom_manager == nullptr) {
-    FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize dom_manager is nullptr";
-    return arkTs.GetUndefined();
-  }
-
   auto& root_map = RootNode::PersistentMap();
   std::shared_ptr<RootNode> root_node;
   ret = root_map.Find(root_id, root_node);
   if (!ret) {
     FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize root_node is nullptr";
+    return arkTs.GetUndefined();
+  }
+  
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
+  if (dom_manager == nullptr) {
+    FOOTSTONE_DLOG(WARNING) << "UpdateNodeSize dom_manager is nullptr";
     return arkTs.GetUndefined();
   }
 
@@ -356,8 +356,16 @@ static napi_value DoCallBack(napi_env env, napi_callback_info info) {
     FOOTSTONE_DLOG(WARNING) << "DoCallBack render_manager_id invalid";
     return arkTs.GetUndefined();
   }
+  
+  auto& root_map = RootNode::PersistentMap();
+  std::shared_ptr<RootNode> root_node;
+  ret = root_map.Find(root_id, root_node);
+  if (!ret) {
+    FOOTSTONE_DLOG(WARNING) << "DoCallBack root_node is nullptr";
+    return arkTs.GetUndefined();
+  }
 
-  std::shared_ptr<DomManager> dom_manager = render_manager->GetDomManager();
+  std::shared_ptr<DomManager> dom_manager = root_node->GetDomManager().lock();
   if (dom_manager == nullptr) {
     FOOTSTONE_DLOG(WARNING) << "DoCallBack dom_manager is nullptr";
     return arkTs.GetUndefined();
@@ -418,7 +426,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
   int height = arkTs.GetInteger(args[4]);
   int heightMode = arkTs.GetInteger(args[5]);
   float density = render_manager->GetDensity();
-    
+
   uint32_t p = 0;
   OhMeasureText measureInst;
   OhMeasureResult result;
@@ -432,7 +440,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
       propMap[propName] = propValue;
     }
     if(measureFlag=="measure_add_start"){
-      measureInst.StartMeasure(propMap);
+      measureInst.StartMeasure(propMap, std::set<std::string>());
     } else if(measureFlag=="measure_add_text"){
       measureInst.AddText(propMap);
     } else if(measureFlag=="measure_add_image"){

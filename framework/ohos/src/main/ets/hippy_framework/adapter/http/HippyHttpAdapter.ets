@@ -18,9 +18,7 @@
  * limitations under the License.
  */
 import { HippyHttpRequest } from './HippyHttpRequest'
-import HashMap from '@ohos.util.HashMap';
 import { HippyHttpResponse } from './HippyHttpResponse';
-import { BusinessError } from '@ohos.base';
 import { ProcessorCallback } from '../../../vfs/ProcessorCallback';
 import { ResourceDataHolder } from '../../../vfs/ResourceDataHolder';
 import { HippyException } from '../../../support/common/HippyException';
@@ -28,11 +26,10 @@ import { http } from '@kit.NetworkKit';
 import { HippyModulePromise } from '../../modules/HippyModulePromise';
 
 export interface HippyHttpAdapter {
-  destroyIfNeed(): void
 
   sendRequest(request: HippyHttpRequest, callback: HttpTaskCallback): void
 
-  fetch(holder: ResourceDataHolder, method: http.RequestMethod, nativeParams: Map<string, Object>, callback: ProcessorCallback): void
+  fetch(holder: ResourceDataHolder, nativeParams: Map<string, Object>, callback: ProcessorCallback): void
 
   getCookie(url: string, promise: HippyModulePromise): void
 

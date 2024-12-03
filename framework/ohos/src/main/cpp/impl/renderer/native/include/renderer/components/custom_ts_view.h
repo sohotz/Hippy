@@ -35,20 +35,26 @@ public:
   CustomTsView(std::shared_ptr<NativeRenderContext> &ctx, ArkUI_NodeHandle nodeHandle);
   ~CustomTsView();
 
-  StackNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
-  void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) override;
+  StackNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
+  void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
 
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int index) override;
   void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+
 private:
   void OnCustomTsViewChildInserted(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index);
   void OnCustomTsViewChildRemoved(uint32_t tag, std::shared_ptr<BaseView> const &childView, int32_t index);
-  
-  StackNode containerNode_;
-  CustomTsNode tsNode_;
-  StackNode subContainerNode_;
+
+  std::shared_ptr<StackNode> containerNode_;
+  std::shared_ptr<CustomTsNode> tsNode_;
+  std::shared_ptr<StackNode> subContainerNode_;
+
+  ArkUI_NodeHandle customNodeHandle_ = nullptr;
 };
 
 } // namespace native

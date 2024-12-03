@@ -17,21 +17,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyValue } from '../common/HippyTypes'
+import { HippyAny, HippyArray, HippyValue } from '../common/HippyTypes'
+import { LogUtils } from './LogUtils'
 
 export class ArgumentUtils {
   public static objectToJson(obj: HippyAny): string {
-    if (obj == null) {
+    if (obj == null || obj == undefined) {
       return ""
     }
 
-    let buider: String = new String()
-    ArgumentUtils.objectToJsonImpl(obj, buider)
-    return buider.toString()
+    let str = ArgumentUtils.objectToJsonImpl(obj)
+    return str
   }
 
-  private static stringFormat(value: string, builder: String) {
-    builder += "\""
+  private static stringFormat(value: string): string {
+    let builder: string = "\""
     for (let i = 0, length = value.length; i < length; i++) {
       let c = value.charAt(i)
       switch (c) {
@@ -74,19 +74,21 @@ export class ArgumentUtils {
       }
     }
     builder += "\""
+    return builder
   }
 
-  private static objectToJsonImpl(obj: HippyAny, builder: String) {
-    if (obj == null) {
+  private static objectToJsonImpl(obj: HippyAny): string {
+    let builder: string = ""
+    if (obj == null || obj == undefined) {
       builder += "\"\""
-      return
+      return builder
     }
 
     if (typeof obj == 'string') {
       if (obj.length == 0) {
         builder += "\"\""
       } else {
-        ArgumentUtils.stringFormat(obj, builder)
+        builder += ArgumentUtils.stringFormat(obj)
       }
     } else if (typeof obj == 'number') {
       builder += Number.isNaN(obj) ? "0" : obj.toString()
@@ -99,15 +101,20 @@ export class ArgumentUtils {
       let array = obj as Array<HippyAny>
       let length = array.length
       for (let i = 0; i < length; i++) {
-        ArgumentUtils.objectToJsonImpl(array[i], builder)
+        builder += ArgumentUtils.objectToJsonImpl(array[i])
         if (i != length - 1) {
           builder += ","
         }
       }
       builder += "]"
-    } else if (obj instanceof Map) {
+    } else if ((obj instanceof Map) || (typeof obj == 'object')) {
+      let map: Map<string, HippyAny>
+      if (obj instanceof Map) {
+        map = obj as Map<string, HippyAny>
+      } else {
+        map = new Map(Object.entries(obj))
+      }
       builder += "{"
-      let map = obj as Map<string, HippyAny>
       let length = map.size
       let count = 0
       map.forEach((value: HippyAny, key: string) => {
@@ -115,28 +122,45 @@ export class ArgumentUtils {
         builder += key
         builder += "\""
         builder += ":"
-        ArgumentUtils.objectToJsonImpl(value, builder)
+        builder += ArgumentUtils.objectToJsonImpl(value)
         ++count
         if (count < length) {
           builder += ","
         }
       })
       builder += "}"
+    } else {
+      builder += "\"\""
     }
+    return builder
   }
 
-  public static mapToRecord(map: Map<string, HippyAny>) {
+  public static mapToRecord(map: Map<string, HippyAny>): Object {
     let record: Record<string, Object> = {};
     map.forEach((value, key) => {
       if (key != undefined && key != null) {
         if (value instanceof Map) {
           record[key] = ArgumentUtils.mapToRecord(value);
+        } else if (Array.isArray(value)) {
+          record[key] = ArgumentUtils.arrayToRecordArray(value);
         } else {
           record[key] = value as Object;
         }
       }
     })
     return record;
+  }
+
+  public static arrayToRecordArray(array: HippyArray): Object {
+    return array.map((value) => {
+      if (value instanceof Map) {
+        return ArgumentUtils.mapToRecord(value);
+      } else if (Array.isArray(value)) {
+        return ArgumentUtils.arrayToRecordArray(value);
+      } else {
+        return value as Object;
+      }
+    });
   }
 
 }

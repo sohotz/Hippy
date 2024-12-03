@@ -23,7 +23,6 @@ import { VfsManager } from '../../../../vfs/VfsManager'
 import { ResourceDataHolder, UriType } from '../../../../vfs/ResourceDataHolder'
 import { HippyEngineContext } from '../../../HippyEngineContext'
 import { HippyNativeModuleBase } from '../HippyNativeModuleBase'
-import { HashMap } from '@kit.ArkTS'
 import { TextUtils } from '../../../../support/utils/TextUtils'
 import { HippyHttpRequest } from '../../../adapter/http/HippyHttpRequest'
 import { HippyHttpResponse } from '../../../adapter/http/HippyHttpResponse'
@@ -101,8 +100,15 @@ export class NetworkModule extends HippyNativeModuleBase {
   private fetch(request: HippyMap, promise: HippyModulePromise) {
     let vfsManager: VfsManager = this.ctx.getVfsManager()
     const uri: string = request.get(HippyHttpRequest.HTTP_URL) as string;
+    const redirect: string = request.get(HippyHttpRequest.HTTP_REDIRECT) as string;
     const requestHeaders = request.get(HippyHttpRequest.HTTP_HEADERS) as Map<string, string>;
-    let requestParams = this.normalizeRequestParams(request);
+    const requestParams =  new Map<string, HippyAny>();
+    const requestBody = this.normalizeRequestParams(request);
+    const method = request.get(HippyHttpRequest.HTTP_METHOD) as string ?? 'GET';
+    requestParams.set(HippyHttpRequest.HTTP_METHOD, method.toUpperCase())
+    requestParams.set(HippyHttpRequest.HTTP_BODY, requestBody)
+    requestParams.set(HippyHttpRequest.HTTP_URL, uri)
+    requestParams.set(HippyHttpRequest.HTTP_REDIRECT, redirect)
     const map = new Map<string, HippyValue>();
     if (TextUtils.isEmpty(uri)) {
       map.set('request', 'Get url parameter failed!')
@@ -113,18 +119,24 @@ export class NetworkModule extends HippyNativeModuleBase {
     vfsManager.fetchResourceAsync(uri, UriType.NORMAL, requestHeaders, requestParams, new FetchResCallback(this.ctx, promise));
   }
 
-  private normalizeRequestParams(request: HippyMap): Map<string, string> {
+  private normalizeRequestParams(request: HippyMap): string {
     let requestParams = request.get(HippyHttpRequest.HTTP_BODY) as Map<string, string> | string;
     if (requestParams instanceof Map) {
-      return requestParams;
+      const jsonObject: Record<string, Object> = {};
+      requestParams.forEach((value, key) => {
+        if (key !== undefined && value !== undefined) {
+          jsonObject[key] = value;
+        }
+      })
+      return JSON.stringify(jsonObject);
     }
-    return new Map<string, string>();
+    return requestParams;
   }
 
-  private handleFetchResponse(dataHolder: ResourceDataHolder): Map<string, HippyValue> {
+  private handleFetchResponse(dataHolder: ResourceDataHolder): HippyMap {
     let resHeader = dataHolder.responseHeaders
-    let headerMap: Map<string, HippyValue> = new Map<string, HippyValue>();
-    let responseMap: Map<string, HippyValue> = new Map<string, HippyValue>();
+    let headerMap: HippyMap = new Map<string, string>();
+    let responseMap: HippyMap = new Map<string, HippyAny>();
     let statusCode = -1;
     let responseMessage = "";
     if (resHeader != null) {
@@ -148,19 +160,8 @@ export class NetworkModule extends HippyNativeModuleBase {
     }
     responseMap.set(HippyHttpResponse.HTTP_RESPONSE_STATUS_CODE, statusCode);
     responseMap.set("statusLine", responseMessage);
-    responseMap.set("respHeaders", JSON.stringify(ArgumentUtils.mapToRecord(headerMap)));
-    let body = "";
-    try {
-      let buffer = dataHolder.getBuffer();
-      if (buffer != null) {
-        const bytes = new Uint8Array(buffer);
-        let textDecoder = TextUtils.getUtf8Decoder();
-        body = textDecoder.decodeWithStream(bytes);
-      }
-    } catch (e) {
-      LogUtils.e(NETWORK_MODULE_TAG, e)
-    }
-    responseMap.set("respBody", body);
+    responseMap.set("respHeaders", headerMap);
+    responseMap.set("respBody", dataHolder.requestResult);
     return responseMap
   }
 

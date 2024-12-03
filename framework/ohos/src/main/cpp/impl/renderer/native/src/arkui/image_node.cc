@@ -22,6 +22,7 @@
 
 #include "renderer/arkui/image_node.h"
 #include "renderer/arkui/native_node_api.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include <native_drawing/drawing_types.h>
 
 namespace hippy {
@@ -49,7 +50,6 @@ void ImageNode::SetNodeDelegate(ImageNodeDelegate *imageNodeDelegate) { imageNod
 
 void ImageNode::OnNodeEvent(ArkUI_NodeEvent *event) {
   ArkUINode::OnNodeEvent(event);
-  
   if (imageNodeDelegate_ == nullptr) {
     return;
   }
@@ -70,6 +70,7 @@ ImageNode &ImageNode::SetSources(std::string const &src) {
   uri_ = src;
   item = {.string = uri_.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_SRC, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_SRC);
   return *this;
 }
 
@@ -93,13 +94,15 @@ ImageNode &ImageNode::SetResizeMode(HRImageResizeMode const &mode) {
   ArkUI_NumberValue value[] = {{.i32 = val}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_OBJECT_FIT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_OBJECT_FIT);
   return *this;
 }
 
 ImageNode &ImageNode::SetResizeable(float left, float top, float right, float bottom) {
-  ArkUI_NumberValue value[] = {{.f32 = left}, {.f32 = top}, {.f32 = right}, {.f32 = bottom}};
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(left)}, {.f32 = HRPixelUtils::DpToVp(top)}, {.f32 = HRPixelUtils::DpToVp(right)}, {.f32 = HRPixelUtils::DpToVp(bottom)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_RESIZABLE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_RESIZABLE);
   return *this;
 }
 
@@ -170,6 +173,7 @@ void ImageNode::SetTintColorBlendModePrivate(int32_t blendMode) {
 void ImageNode::SetColorFilter(ArkUI_NumberValue value[kColorFilterMatrixArrayCount]) {
   ArkUI_AttributeItem item = {value, kColorFilterMatrixArrayCount, nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_COLOR_FILTER, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_COLOR_FILTER);
 }
 
 void ImageNode::SetColorFilterMatrix() {
@@ -198,8 +202,8 @@ void ImageNode::SetColorFilterMatrix() {
       return;
 		} else if (cssTintColorBlendMode_ == ImageTintColorBlendMode::SRC_ATOP) {
       ArkUI_NumberValue value[] = { {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
-                                    {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
-                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = matrixColor[0] * matrixColor[3]},
+                                    {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = 0}, {.f32 = matrixColor[1] * matrixColor[3]},
+                                    {.f32 = 0}, {.f32 = 0}, {.f32 = 1 - matrixColor[3]}, {.f32 = 0}, {.f32 = matrixColor[2] * matrixColor[3]},
                                     {.f32 = 0}, {.f32 = 0}, {.f32 = 0}, {.f32 = 1}, {.f32 = 0} };
       SetColorFilter(value);
       return;
@@ -217,22 +221,16 @@ ImageNode &ImageNode::SetTintColor(uint32_t sharedColor) {
   if (colorValue >> 24 == 0) {
     colorValue |= ((uint32_t)0xff << 24);
   }
-  int32_t alpha = colorValue & 0xff;
-  int32_t red = (colorValue >> 8) & 0xff;
-  int32_t green = (colorValue >> 16) & 0xff;
-  int32_t blue = (colorValue >> 24) &0xff;
+
+  int32_t blue = colorValue & 0xff;
+  int32_t green = (colorValue >> 8) & 0xff;
+  int32_t red = (colorValue >> 16) & 0xff;
+  int32_t alpha = (colorValue >> 24) &0xff;
   cssTintColor_.push_back(red);
   cssTintColor_.push_back(green);
   cssTintColor_.push_back(blue);
   cssTintColor_.push_back(alpha);
   SetColorFilterMatrix();
-  return *this;
-}
-
-ImageNode &ImageNode::SetBlur(float blur) {
-  ArkUI_NumberValue value[] = {{.f32 = static_cast<float>(blur)}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_BLUR, &item));
   return *this;
 }
 
@@ -245,6 +243,7 @@ ImageNode &ImageNode::SetObjectRepeat(HRImageResizeMode const &resizeMode) {
   ArkUI_NumberValue value[] = {{.i32 = val}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_OBJECT_REPEAT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_OBJECT_REPEAT);
   return *this;
 }
 
@@ -252,6 +251,7 @@ ImageNode &ImageNode::SetInterpolation(int32_t interpolation) {
   ArkUI_NumberValue value[] = {{.i32 = interpolation}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_INTERPOLATION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_INTERPOLATION);
   return *this;
 }
 
@@ -259,6 +259,7 @@ ImageNode &ImageNode::SetDraggable(bool draggable) {
   ArkUI_NumberValue value[] = {{.i32 = static_cast<int32_t>(draggable)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_DRAGGABLE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_DRAGGABLE);
   return *this;
 }
 
@@ -267,6 +268,7 @@ ImageNode &ImageNode::SetResizeMethod(std::string const &resizeMethod) {
   ArkUI_NumberValue value[] = {{.i32 = autoResize}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_AUTO_RESIZE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_AUTO_RESIZE);
   return *this;
 }
 
@@ -274,17 +276,26 @@ ImageNode &ImageNode::SetAlt(std::string const &src) {
   if (!src.empty()) {
     ArkUI_AttributeItem item = {.string = src.c_str()};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_IMAGE_ALT, &item));
+    SetSubAttributeFlag((uint32_t)AttributeFlag::IMAGE_ALT);
   }
   return *this;
 }
 
-ImageNode &ImageNode::ResetFocusable() {
-  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_FOCUSABLE));
-  return *this;
-}
-ImageNode &ImageNode::ResetResizeMethod() {
-  MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_IMAGE_AUTO_RESIZE));
-  return *this;
+void ImageNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_ALT, NODE_IMAGE_ALT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_SRC, NODE_IMAGE_SRC);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_OBJECT_FIT, NODE_IMAGE_OBJECT_FIT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_RESIZABLE, NODE_IMAGE_RESIZABLE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_COLOR_FILTER, NODE_IMAGE_COLOR_FILTER);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_OBJECT_REPEAT, NODE_IMAGE_OBJECT_REPEAT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_INTERPOLATION, NODE_IMAGE_INTERPOLATION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_DRAGGABLE, NODE_IMAGE_DRAGGABLE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::IMAGE_AUTO_RESIZE, NODE_IMAGE_AUTO_RESIZE);
+  subAttributesFlagValue_ = 0;
 }
 
 std::string ImageNode::GetUri() { return uri_; }

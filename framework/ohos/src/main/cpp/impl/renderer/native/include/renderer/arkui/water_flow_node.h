@@ -40,6 +40,20 @@ public:
 
 class WaterFlowNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    SCROLL_EDGE_EFFECT = 0,
+    WATER_FLOW_SCROLL_TO_INDEX,
+    WATER_FLOW_COLUMN_TEMPLATE,
+    WATER_FLOW_ROW_TEMPLATE,
+    WATER_FLOW_COLUMN_GAP,
+    WATER_FLOW_ROW_GAP,
+    WATER_FLOW_CACHED_COUNT,
+    WATER_FLOW_LAYOUT_DIRECTION,
+    SCROLL_ENABLE_SCROLL_INTERACTION,
+    SCROLL_NESTED_SCROLL,
+    SCROLL_BAR_DISPLAY_MODE,
+    WATER_FLOW_FOOTER,
+  };
   WaterFlowNodeDelegate *waterFlowNodeDelegate_ = nullptr;
   int32_t itemIndex_ = -1;
 public:
@@ -63,6 +77,8 @@ public:
   void SetNestedScroll(ArkUI_ScrollNestedMode forward, ArkUI_ScrollNestedMode backward);
   void SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode);
   void SetFooter(ArkUI_NodeHandle footer);
+  
+  void ResetAllAttributes() override;
 };
 
 } // namespace native

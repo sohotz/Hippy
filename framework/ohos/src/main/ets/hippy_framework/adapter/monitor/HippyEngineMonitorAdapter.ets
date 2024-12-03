@@ -26,7 +26,9 @@ export interface HippyEngineMonitorAdapter {
 
   onLoadModuleCompleted(statusCode: ModuleLoadStatus, componentName: string, monitorGroup: MonitorGroup): void
 
-  onLoadInstanceCompleted(componentName: string, monitorGroup: MonitorGroup): void
+  onFirstPaintCompleted(componentName: string): void
+
+  onFirstContentfulPaintCompleted(componentName: string): void
 
   onInterceptCallNative(componentName: string, params: HippyCallNativeParams): boolean
 

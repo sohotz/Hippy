@@ -32,11 +32,13 @@ import { PreferencesStorageAdapter } from './adapter/storage/PreferencesStorageA
 import { EngineInitParams } from './HippyEngine';
 
 export class HippyGlobalConfigs {
+  private mContext: Context | null;
+  private mIsLoadFromRawfile: boolean;
+  private mResModuleName: string;
   /**
    * SharedPreferences
    */
   private mPreferencesStorageAdapter: PreferencesStorageAdapter | null;
-  private mContext: Context | null;
   /**
    * Crash Handler
    */
@@ -76,9 +78,12 @@ export class HippyGlobalConfigs {
   private mLogAdapter: HippyLogAdapter | null;
   private mEnableTurbo: boolean;
   private mEnableArkCApi: boolean;
+  private mDomManagerConcurrentNum: number;
 
   constructor(params: EngineInitParams) {
     this.mContext = params.context;
+    this.mIsLoadFromRawfile = params.isLoadFromRawfile;
+    this.mResModuleName = params.resModuleName;
     this.mPreferencesStorageAdapter = params.preferencesStorageAdapter;
     this.mExceptionHandler = params.exceptionHandler;
     this.mHttpAdapter = params.httpAdapter;
@@ -92,13 +97,11 @@ export class HippyGlobalConfigs {
     this.mLogAdapter = params.logAdapter;
     this.mEnableTurbo = params.enableTurbo;
     this.mEnableArkCApi = params.enableArkCApi;
+    this.mDomManagerConcurrentNum = params.domManagerConcurrentNum;
   }
 
   public destroyIfNeed() {
     try {
-      if (this.mHttpAdapter != null) {
-        this.mHttpAdapter.destroyIfNeed();
-      }
       if (this.mStorageAdapter != null) {
         this.mStorageAdapter.destroyIfNeed();
       }
@@ -109,6 +112,14 @@ export class HippyGlobalConfigs {
     } catch (e) {
       LogUtils.d("HippyGlobalConfigs", "destroyIfNeed: " + e.getMessage());
     }
+  }
+
+  public isLoadFromRawfile(): boolean {
+    return this.mIsLoadFromRawfile;
+  }
+
+  public getResModuleName(): string {
+    return this.mResModuleName;
   }
 
   public getLogAdapter(): HippyLogAdapter | null {
@@ -167,4 +178,7 @@ export class HippyGlobalConfigs {
     return this.mEnableArkCApi;
   }
 
+  public getDomManagerConcurrentNum(): number {
+    return this.mDomManagerConcurrentNum;
+  }
 }

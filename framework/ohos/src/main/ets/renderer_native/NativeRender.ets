@@ -30,14 +30,19 @@ import { ImageDecoderAdapter } from './components/image/ImageDecoderAdapter';
 import { ImageLoaderAdapter } from './components/image/ImageLoaderAdapter';
 import { FontAdapter } from './components/richtext/FontAdapter';
 import { FrameworkProxy } from './FrameworkProxy'
-import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder';
+import { WrappedHippyBizViewBuilder } from './HippyBizViewBuilder';
+import {
+  WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder';
 import { HRManager } from './uimanager/HRManager';
 import { HippyEndBatchCallback } from './uimanager/HRViewManager';
+import { HRPosition, HRRect } from './utils/HRTypes';
 
 export interface NativeRender {
   createRootView(pageName: string, pageData: HippyRecord, wrappedCustomRenderViewBuilder: WrappedHippyCustomRenderViewBuilder | null): HippyRootView
 
   destroyRoot(rootId: number): void
+
+  isEnableArkCApi(): boolean
 
   getRenderManager(): HRManager
 
@@ -76,5 +81,8 @@ export interface NativeRender {
   getViewChildren(rootId: number, nodeId: number): Array<HippyRenderViewInfo> | null
   callViewMethod(rootId: number, nodeId: number, method: string, params: HippyArray, callback: CallResultCallback | null): void
   setViewEventListener(rootId: number, nodeId: number, callback: EventListenerCallback | null): void
+  getViewFrameInRoot(rootId: number, nodeId: number): HRRect | null
+  addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyBizViewBuilder, view: Object): number
+  removeBizViewInRoot(rootId: number, customViewId: number): void
 
 }

@@ -39,15 +39,23 @@ enum class TextAlignment {
 
 class TextInputBaseNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    RESPONSE_REGION = 0,
+    FONT_COLOR,
+    TEXT_ALIGN,
+    ALIGNMENT,
+    FONT_WEIGHT,
+    FONT_STYLE,
+    FONT_SIZE,
+    FONT_FAMILY,
+    TEXT_MAX_LINES,
+    
+    NEXT_FLAG,
+  };
   TextInputBaseNode(ArkUI_NodeType nodeType);
   virtual ~TextInputBaseNode();
-  
-  // void SetCommonFontAttributes(TextAttributes const &textAttributes);
 
 public:
-  void SetPadding(float left, float top, float right, float bottom);
-  //void SetFocusable(bool const &focusable);
-  void SetAutoFocus(bool autoFocus);
   void SetResponseRegion(HRPosition const &position, HRSize const &size);
   void SetFontColor(uint32_t const &color);
   void SetTextAlign(ArkUI_TextAlignment const &textAlign);
@@ -57,8 +65,9 @@ public:
   void SetFontSize(float_t const &size);
   void SetFontFamily(std::string const &family);
   void SetMaxLines(int32_t const &lines);
-
-  // virtual void SetFont(TextAttributes const &textAttributes) = 0;
+  
+  void ResetAllAttributes() override;
+  
   virtual void SetTextContent(std::string const &textContent) = 0;
   virtual void SetTextSelection(int32_t start, int32_t end) = 0;
   virtual void SetCaretColor(uint32_t const &color) = 0;

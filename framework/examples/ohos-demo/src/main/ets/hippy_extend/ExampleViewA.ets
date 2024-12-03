@@ -24,6 +24,7 @@ import HippyRenderBaseView, {
 import { HippyCustomComponentView } from 'hippy/src/main/ets/renderer_native/components/custom/HippyCustomComponentView'
 import { buildHippyRenderView } from 'hippy/src/main/ets/renderer_native/HippyRenderViewBuilder'
 import { NativeRenderContext } from 'hippy/src/main/ets/renderer_native/NativeRenderContext'
+import { HRPadding, HRRect } from 'hippy/src/main/ets/renderer_native/utils/HRTypes'
 import { HippyAny, HippyRenderCallback } from 'hippy/src/main/ets/support/common/HippyTypes'
 
 @Observed

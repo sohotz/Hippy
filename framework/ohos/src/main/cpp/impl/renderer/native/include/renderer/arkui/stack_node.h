@@ -30,13 +30,19 @@ inline namespace native {
 
 class StackNode : public ArkUINode {
 protected:
-
+  enum class AttributeFlag {
+    STACK_ALIGN_CONTENT = 0,
+  };
+  
 public:
   StackNode();
   ~StackNode() override;
+  
+  void SetDefaultAttributes();
 
   StackNode &SetStackAlignContent(ArkUI_Alignment align);
 
+  void ResetAllAttributes() override;
 };
 
 } // namespace native

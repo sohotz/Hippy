@@ -19,14 +19,36 @@
  */
 // import { HippyJsException } from 'ets/hippy_framework/common/HippyJsException';
 import { HippyGlobalConfigs } from '../../hippy_framework/HippyGlobalConfigs';
-import { OnReloadListener } from './DevExceptionDialog';
 import { DevFloatButton } from './DevFloatButton';
-import { DevServerCallBack } from './DevServerCallBack';
+import { DevServerCallBack, OnReloadListener } from './DevServerCallBack';
 import { DevServerConfig } from './DevServerConfig';
 import { DevServerHelper } from './DevServerHelper';
 import { DevServerInterface } from './DevServerInterface';
-import Stack from '@ohos.util.Stack';
 import { HippyException } from '../../support/common/HippyException';
+import { ComponentContent, UIContext, window } from '@kit.ArkUI';
+import { LogUtils } from '../../support/utils/LogUtils';
+
+
+class Params {
+  text: string = "";
+  onClickHandle: (event: ClickEvent) => void;
+  constructor(text: string, onClickHandle: (event: ClickEvent) => void) {
+    this.text = text;
+    this.onClickHandle = onClickHandle;
+  }
+}
+
+@Builder
+function buildErrorPrompt(params: Params) {
+  Flex() {
+    Text(params.text).fontSize(10).margin({ left: 20, top: 20 })
+  }
+  .width("88%")
+  .height("50%")
+  .align(Alignment.Center)
+  .backgroundColor(Color.White)
+  .onClick(params.onClickHandle)
+}
 
 export class DevServerImpl implements DevServerInterface, OnReloadListener {
   private static TAG = "DevServerImpl";
@@ -35,7 +57,7 @@ export class DevServerImpl implements DevServerInterface, OnReloadListener {
   private mDevButtonMaps: Map<number, DevFloatButton> = new Map();
   private mServerCallBack: DevServerCallBack | null = null
   private mFetchHelper: DevServerHelper
-  private mDevButtonStack: Stack<DevFloatButton> = new Stack();
+  private uiContext: UIContext | null = null
 
   constructor(configs: HippyGlobalConfigs, serverHost: string, bundleName: string,
               remoteServerUrl: string, debugMode: boolean) {
@@ -99,14 +121,13 @@ export class DevServerImpl implements DevServerInterface, OnReloadListener {
     if (this.mDevButtonMaps.get(rootId) != null) {
       return;
     }
-    let devButton: DevFloatButton = new DevFloatButton(context);
-    // devButton.setOnClickListener(this);
-    // if (context instanceof Activity) {
-    //   ViewGroup decorView = (ViewGroup) ((Activity) context).getWindow().getDecorView();
-    //   decorView.addView(devButton);
-    // }
+    const onClickHandle = (event: ClickEvent) => {
+      LogUtils.d(DevServerImpl.TAG, "onClickHandle::event" + JSON.stringify(event));
+      this.onReload();
+    }
+    let devButton: DevFloatButton = new DevFloatButton(context, onClickHandle);
+
     this.mDevButtonMaps.set(rootId, devButton);
-    this.mDevButtonStack.push(devButton);
   }
 
   detachFromHost(context: Context, rootId: number): void {
@@ -115,18 +136,34 @@ export class DevServerImpl implements DevServerInterface, OnReloadListener {
     }
     let button: DevFloatButton | undefined = this.mDevButtonMaps.get(rootId);
     if (button != undefined) {
-      if (this.mDevButtonStack != null) {
-        this.mDevButtonStack.pop();
-      }
-      // ViewParent parent = button.getParent();
-      // if (parent instanceof ViewGroup) {
-      //   ((ViewGroup) parent).removeView(button);
-      // }
+      button.delete();
+      this.mDevButtonMaps.delete(rootId);
     }
   }
 
   handleException(throwable: HippyException): void {
+    if (this.uiContext) {
+      this.popupErrorPrompt(this.uiContext, throwable);
+    } else {
+      window.getLastWindow(getContext(this), (err, windowClass) => {
+        if (!err.code) {
+          this.uiContext = windowClass.getUIContext();
+          this.popupErrorPrompt(this.uiContext, throwable);
+        }
+      });
+    }
+  }
 
+  popupErrorPrompt(uiContext: UIContext, throwable: HippyException) {
+    const action = uiContext.getPromptAction();
+    let contentNode = new ComponentContent(uiContext, wrapBuilder(buildErrorPrompt),
+      new Params(throwable.message, (event: ClickEvent) => {
+        action.closeCustomDialog(contentNode);
+      }));
+    action.openCustomDialog(contentNode, {
+      autoCancel: true,
+      alignment: DialogAlignment.Center,
+    });
   }
 
   getDevButton(rootId: number): Object | null {

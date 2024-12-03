@@ -40,6 +40,14 @@ public:
 
 class RefreshNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    REFRESH_REFRESHING = 0,
+    REFRESH_CONTENT,
+    REFRESH_PULL_DOWN_RATIO,
+    REFRESH_OFFSET,
+    REFRESH_PULL_TO_REFRESH,
+  };
+  
   RefreshNodeDelegate *refreshNodeDelegate_ = nullptr;  
 public:
   RefreshNode();
@@ -51,9 +59,11 @@ public:
   void SetRefreshOffset(float offset);
   void SetRefreshPullToRefresh(bool flag);
   
+  void ResetRefreshContent();
+  void ResetAllAttributes() override;
+  
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(RefreshNodeDelegate *refreshNodeDelegate);
-  void SetRefreshing(bool beRefreshed);
 };
 
 } // namespace native

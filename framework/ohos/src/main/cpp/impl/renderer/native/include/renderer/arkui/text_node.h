@@ -30,26 +30,33 @@ inline namespace native {
 
 class TextNode : public ArkUINode {
 private:
-  enum { FLAG_PADDING = 0, FLAG_MINFONTSIZE, FLAG_MAXFONTSIZE, FLAG_COPYOPTION, FLAG_ENABLE, FLAG_MAX };
-  bool initFlag_[FLAG_MAX] = {0};
+  enum class AttributeFlag {
+    TEXT_CONTENT = 0,
+    FONT_COLOR,
+    FONT_SIZE,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    TEXT_LINE_HEIGHT,
+    TEXT_HALF_LEADING,
+    TEXT_DECORATION,
+    TEXT_CASE,
+    TEXT_LETTER_SPACING,
+    TEXT_MAX_LINES,
+    TEXT_ALIGN,
+    TEXT_ELLIPSIS_MODE,
+    TEXT_OVERFLOW,
+    TEXT_WORD_BREAK,
+    FONT_FAMILY,
+    TEXT_BASELINE_OFFSET,
+    TEXT_TEXT_SHADOW,
+    TEXT_FONT,
+    TEXT_HEIGHT_ADAPTIVE_POLICY,
+    TEXT_INDENT,
+  };
 
-  float minFontSize_ = 0.0;
-  float maxFontSize_ = 0.0;
-  int32_t textCopyOption_ = 0;
-  bool enableFlag_ = false;
-  float top_ = 0.0;
-  float right_ = 0.0;
-  float bottom_ = 0.0;
-  float left_ = 0.0;
-
-protected:
-  
 public:
   TextNode();
   ~TextNode() override;
-
-  void InsertChild(ArkUINode &child, int32_t index);
-  void RemoveChild(ArkUINode &child);
   
   TextNode &SetTextContent(const std::string &text);
   TextNode &SetFontColor(uint32_t fontColor);
@@ -58,6 +65,7 @@ public:
   TextNode &SetFontStyle(int32_t fontStyle);
   TextNode &SetFontWeight(ArkUI_FontWeight fontWeight);
   TextNode &SetTextLineHeight(float textLineHeight);
+  TextNode &SetTextHalfLeading(bool verticalCenter);
   TextNode &SetTextDecoration(ArkUI_TextDecorationType decorationType, uint32_t decorationColor, ArkUI_TextDecorationStyle decorationStyle);
   TextNode &SetTextCase(int32_t textCase);
   TextNode &SetTextLetterSpacing(float textLetterSpacing);
@@ -68,18 +76,15 @@ public:
   TextNode &SetTextOverflow(ArkUI_TextOverflow textOverflow);
   TextNode &SetWordBreak(ArkUI_WordBreak workBreak);
   TextNode &SetFontFamily(const std::string &fontFamily);
-  TextNode &SetTextCopyOption(int32_t testCopyOption);
   TextNode &SetTextBaselineOffset(float textBaselineOffset);
   TextNode &SetTextShadow(float textShadowRadius, ArkUI_ShadowType textShadowType, uint32_t textShadowColor,
                           float textShadowOffsetX, float textShadowOffsetY);
-  TextNode &SetMinFontSize(float minFontSize);
-  TextNode &SetMaxFontSize(float maxFontSize);
   TextNode &SetTextFont(float fontSize, int32_t fontWeight = ARKUI_FONT_WEIGHT_NORMAL,
                         int32_t fontStyle = ARKUI_FONT_STYLE_NORMAL, const std::string &fontFamily = std::string());
   TextNode &SetTextHeightAdaptivePolicy(int32_t policyType);
   TextNode &SetTextIndent(float textIndent);
-  TextNode &SetTextEnable(bool enableFlag);
-  TextNode &SetPadding(float top, float right, float bottom, float left);
+  
+  void ResetAllAttributes() override;
 };
 
 } // namespace native

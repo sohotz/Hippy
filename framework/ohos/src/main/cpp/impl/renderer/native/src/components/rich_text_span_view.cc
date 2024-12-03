@@ -22,6 +22,7 @@
 
 #include "renderer/components/rich_text_span_view.h"
 #include "renderer/dom_node/hr_node_props.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_value_utils.h"
 
@@ -34,36 +35,62 @@ RichTextSpanView::RichTextSpanView(std::shared_ptr<NativeRenderContext> &ctx) : 
 
 RichTextSpanView::~RichTextSpanView() {}
 
-SpanNode &RichTextSpanView::GetLocalRootArkUINode() {
-  return spanNode_;
+SpanNode *RichTextSpanView::GetLocalRootArkUINode() {
+  return spanNode_.get();
 }
 
-bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &propValue) {
+void RichTextSpanView::CreateArkUINodeImpl() {
+  spanNode_ = std::make_shared<SpanNode>();
+}
+
+void RichTextSpanView::DestroyArkUINodeImpl() {
+  spanNode_ = nullptr;
+  ClearProps();
+}
+
+bool RichTextSpanView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  spanNode_->ResetAllAttributes();
+  recycleView->cachedNodes_.resize(1);
+  recycleView->cachedNodes_[0] = spanNode_;
+  spanNode_ = nullptr;
+  ClearProps();
+  return true;
+}
+
+bool RichTextSpanView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+  if (recycleView->cachedNodes_.size() < 1) {
+    return false;
+  }
+  spanNode_ = std::static_pointer_cast<SpanNode>(recycleView->cachedNodes_[0]);
+  return true;
+}
+
+bool RichTextSpanView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
     if (!text_.has_value() || value != text_) {
-      GetLocalRootArkUINode().SetSpanContent(value);
+      GetLocalRootArkUINode()->SetSpanContent(value);
       text_ = value;
     }
     return true;
   } else if (propKey == HRNodeProps::COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     if (!color_.has_value() || value != color_) {
-      GetLocalRootArkUINode().SetFontColor(value);
+      GetLocalRootArkUINode()->SetFontColor(value);
       color_ = value;
     }
     return true;
   } else if (propKey == HRNodeProps::FONT_FAMILY) {
     std::string value = HRValueUtils::GetString(propValue);
     if (!fontFamily_.has_value() || value != fontFamily_) {
-      GetLocalRootArkUINode().SetFontFamily(value);
+      GetLocalRootArkUINode()->SetFontFamily(value);
       fontFamily_ = value;
     }
     return true;
   } else if (propKey == HRNodeProps::FONT_SIZE) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!fontSize_.has_value() || value != fontSize_) {
-      GetLocalRootArkUINode().SetFontSize(value);
+      GetLocalRootArkUINode()->SetFontSize(value);
       fontSize_ = value;
     }
     return true;
@@ -71,7 +98,7 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
     std::string value = HRValueUtils::GetString(propValue);
     int32_t style = HRTextConvertUtils::FontStyleToArk(value);
     if (!fontStyle_.has_value() || style != fontStyle_) {
-      GetLocalRootArkUINode().SetFontStyle(style);
+      GetLocalRootArkUINode()->SetFontStyle(style);
       fontStyle_ = style;
     }
     return true;
@@ -79,21 +106,21 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
     std::string value = HRValueUtils::GetString(propValue);
     ArkUI_FontWeight weight = HRTextConvertUtils::FontWeightToArk(value);
     if (!fontWeight_.has_value() || weight != fontWeight_) {
-      GetLocalRootArkUINode().SetFontWeight(weight);
+      GetLocalRootArkUINode()->SetFontWeight(weight);
       fontWeight_ = weight;
     }
     return true;
   } else if (propKey == HRNodeProps::LETTER_SPACING) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!letterSpacing_.has_value() || value != letterSpacing_) {
-      GetLocalRootArkUINode().SetTextLetterSpacing(value);
+      GetLocalRootArkUINode()->SetTextLetterSpacing(value);
       letterSpacing_ = value;
     }
     return true;
   } else if (propKey == HRNodeProps::LINE_HEIGHT) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!lineHeight_.has_value() || value != lineHeight_) {
-      GetLocalRootArkUINode().SetTextLineHeight(value);
+      GetLocalRootArkUINode()->SetTextLineHeight(value);
       lineHeight_ = value;
     }
     return true;
@@ -129,32 +156,43 @@ bool RichTextSpanView::SetProp(const std::string &propKey, const HippyValue &pro
     return true;
   } else if (propKey == HRNodeProps::BACKGROUND_COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
-    GetLocalRootArkUINode().SetSpanTextBackgroundStyle(value);
+    GetLocalRootArkUINode()->SetSpanTextBackgroundStyle(value);
     return true;
   } else {
     bool handled = SetEventProp(propKey, propValue);
     return handled;
   }
-  
+
   // Not to set some attributes for text span.
   // For example: NODE_BACKGROUND_COLOR will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
 }
 
-void RichTextSpanView::OnSetPropsEnd() {
+void RichTextSpanView::OnSetPropsEndImpl() {
   if (toSetTextDecoration_) {
     toSetTextDecoration_ = false;
-    GetLocalRootArkUINode().SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
+    GetLocalRootArkUINode()->SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
   }
   if (toSetTextShadow) {
     toSetTextShadow = false;
-    GetLocalRootArkUINode().SetTextShadow(textShadowRadius_, ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, textShadowOffsetX_, textShadowOffsetY_);
+    GetLocalRootArkUINode()->SetTextShadow(HRPixelUtils::DpToVp(textShadowRadius_), ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, HRPixelUtils::DpToVp(textShadowOffsetX_), HRPixelUtils::DpToVp(textShadowOffsetY_));
   }
-  BaseView::OnSetPropsEnd();
+  BaseView::OnSetPropsEndImpl();
 }
 
-void RichTextSpanView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
+void RichTextSpanView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   // Nothing to set for text span.
   // NODE_POSITION / NODE_WIDTH will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
+}
+
+void RichTextSpanView::ClearProps() {
+  text_.reset();
+  color_.reset();
+  fontFamily_.reset();
+  fontSize_.reset();
+  fontStyle_.reset();
+  fontWeight_.reset();
+  letterSpacing_.reset();
+  lineHeight_.reset();
 }
 
 } // namespace native

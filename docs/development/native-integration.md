@@ -284,37 +284,21 @@ ENV['layout_engine'] = 'Yoga'
 
 ## Demo 体验
 
-若想快速体验，可以打开我们的 [Ohos Demo](https://github.com/sohotz/Hippy/tree/main/framework/examples/ohos-demo) 来体验
+Ohos Har Demo：Har 包方式依赖 Hippy。 体验方法：DevEco 打开 hippy 项目根目录运行 entry_har。
 
-2个 Demo 说明：
-
-Ohos Demo：源码依赖 Hippy。体验方法：IDE 打开 hippy 项目根目录直接运行 entry。
-
-Ohos Har Demo：Har 包方式依赖 Hippy。 体验方法：Hippy/framework/examples/ohos-har-demo/oh-package.json5 取消 dependencies 里注释的依赖内容，
-Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目根目录运行 entry_har。 
+Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目录直接运行 entry。
 
 ## 接入方式一：Har包快速接入
 
-1. Har 包构建
- - 拉取 hippy 代码
- > https://github.com/sohotz/Hippy.git，分支：main
+1. 创建一个 Ohos 工程
 
- - 构建 hippy.har：IDE 打开 hippy 工程根目录，IDE 菜单 - Build - Make Module 'hippy'
- > Har 包生成目录：Hippy0129/framework/ohos/build/default/outputs/default/hippy.har
- 
- > 如果菜单不显示 “Make Module 'hippy'”，可先选择到 hippy 模块内，比如选择文件：Hippy/framework/ohos/src/main/cpp/CMakeLists.txt
-
-2. 创建一个 Ohos 工程
-
-3. Har 包集成
-
- - 引入hippy.har（比如：libs目录下）
+2. Har 包集成
 
  - 配置 oh-package.json5
 
  ```json
   "dependencies": {
-    "hippy": "file:./libs/hippy.har"
+    "hippy": "1.0.0"
   }
  ```
 
@@ -327,6 +311,8 @@ Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目�
   AppStorage.setOrCreate("libHippy", libHippy)
   AppStorage.setOrCreate("abilityContext", this.context)
   ```
+
+> 注：App 直接集成 Hippy，context 使用 UIAbility context；如果 App 在一个模块里集成 Hippy，js 等资源也集成在模块里，context 使用 getContext().createModuleContext("moduleName")，否则会找不到 js 等资源。
 
  - 创建 HippyEngine、初始化 HippyEngine、加载业务 bundle
  
@@ -356,7 +342,7 @@ Make Module 'hippy' 后把 hippy.har 放到lib目录，IDE 打开 hippy 项目�
 
 1. 创建一个 Ohos 工程
 
-2. Har包集成
+2. Hippy 代码集成
 
 - 拉取 hippy 代码到项目里（比如：根目录下）
 > https://github.com/sohotz/Hippy.git，分支：main

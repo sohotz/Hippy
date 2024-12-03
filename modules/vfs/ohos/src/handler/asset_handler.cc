@@ -32,13 +32,7 @@ using StringViewUtils = footstone::StringViewUtils;
 namespace hippy {
 inline namespace vfs {
 
-bool ReadAsset(const string_view &path, NativeResourceManager *resource_manager, UriHandler::bytes &bytes, bool is_auto_fill) {
-  auto file_path = StringViewUtils::ToStdString(StringViewUtils::ConvertEncoding(path, string_view::Encoding::Utf8).utf8_value());
-  const char *asset_path = file_path.c_str();
-  if (file_path.length() > 0 && file_path[0] == '/') {
-    file_path = file_path.substr(1);
-    asset_path = file_path.c_str();
-  }
+bool ReadAssetFrowRawfile(const char *asset_path, NativeResourceManager *resource_manager, UriHandler::bytes &bytes, bool is_auto_fill) {
   FOOTSTONE_DLOG(INFO) << "asset_path = " << asset_path;
   RawFile *asset = OH_ResourceManager_OpenRawFile(resource_manager, asset_path);
   if (asset) {
@@ -51,7 +45,7 @@ bool ReadAsset(const string_view &path, NativeResourceManager *resource_manager,
     int read_bytes = OH_ResourceManager_ReadRawFile(asset, &bytes[0], static_cast<size_t>(file_size));
     if (read_bytes != file_size) {
       OH_ResourceManager_CloseRawFile(asset);
-      FOOTSTONE_LOG(ERROR) << "read bytes error, path = " << path << ", fileSize = " << file_size
+      FOOTSTONE_LOG(ERROR) << "read bytes error, path = " << asset_path << ", fileSize = " << file_size
                            << ", readBytes = " << read_bytes;
       return false;
     }
@@ -59,13 +53,63 @@ bool ReadAsset(const string_view &path, NativeResourceManager *resource_manager,
       bytes.back() = '\0';
     }
     OH_ResourceManager_CloseRawFile(asset);
-    FOOTSTONE_DLOG(INFO) << "path = " << path << ", len = " << bytes.length()
+    FOOTSTONE_DLOG(INFO) << "path = " << asset_path << ", len = " << bytes.length()
                          << ", file_data = " << reinterpret_cast<const char *>(bytes.c_str());
     return true;
   }
 
-  FOOTSTONE_DLOG(INFO) << "ReadFile fail, file_path = " << file_path;
+  FOOTSTONE_DLOG(INFO) << "ReadFile fail, file_path = " << asset_path;
   return false;
+}
+
+bool ReadAssetFrowResfile(const char *asset_path, const std::string &res_module_name, UriHandler::bytes &bytes, bool is_auto_fill) {
+  std::string res_file_path = std::string("/data/storage/el1/bundle/") + res_module_name + "/resources/resfile/" + asset_path;
+  asset_path = res_file_path.c_str();
+  FOOTSTONE_DLOG(INFO) << "asset_path = " << asset_path;
+  
+  FILE *asset = fopen(asset_path, "rb");
+  if (asset) {
+    fseek(asset, 0, SEEK_END);
+    auto file_size = ftell(asset);
+    size_t size = static_cast<size_t>(file_size);
+    if (is_auto_fill) {
+      size += 1;
+    }
+    bytes.resize(size);
+    fseek(asset, 0, SEEK_SET);
+    auto read_count = fread(&bytes[0], static_cast<size_t>(file_size), 1, asset);
+    if (read_count != 1) {
+      fclose(asset);
+      FOOTSTONE_LOG(ERROR) << "read bytes error, path = " << asset_path << ", fileSize = " << file_size
+                           << ", readCount = " << read_count;
+      return false;
+    }
+    if (is_auto_fill) {
+      bytes.back() = '\0';
+    }
+    fclose(asset);
+    FOOTSTONE_DLOG(INFO) << "path = " << asset_path << ", len = " << bytes.length()
+                         << ", file_data = " << reinterpret_cast<const char *>(bytes.c_str());
+    return true;
+  }
+
+  FOOTSTONE_DLOG(INFO) << "ReadFile fail, file_path = " << asset_path;
+  return false;
+}
+
+bool ReadAsset(const string_view &path, bool is_rawfile, NativeResourceManager *resource_manager, const std::string &res_module_name, UriHandler::bytes &bytes, bool is_auto_fill) {
+  auto file_path = StringViewUtils::ToStdString(StringViewUtils::ConvertEncoding(path, string_view::Encoding::Utf8).utf8_value());
+  const char *asset_path = file_path.c_str();
+  if (file_path.length() > 0 && file_path[0] == '/') {
+    file_path = file_path.substr(1);
+    asset_path = file_path.c_str();
+  }
+
+  if (is_rawfile) {
+    return ReadAssetFrowRawfile(asset_path, resource_manager, bytes, is_auto_fill);
+  } else {
+    return ReadAssetFrowResfile(asset_path, res_module_name, bytes, is_auto_fill);
+  }
 }
 
 AssetHandler::~AssetHandler() {
@@ -75,7 +119,9 @@ AssetHandler::~AssetHandler() {
   }
 }
 
-void AssetHandler::Init(napi_env env, napi_value ts_resource_manager) {
+void AssetHandler::Init(napi_env env, bool is_rawfile, napi_value ts_resource_manager, std::string &res_module_name) {
+  is_rawfile_ = is_rawfile;
+  res_module_name_ = res_module_name;
   // must in main thread, or crash
   resource_manager_ = OH_ResourceManager_InitNativeResourceManager(env, ts_resource_manager);
   FOOTSTONE_DCHECK(resource_manager_);
@@ -96,7 +142,7 @@ void AssetHandler::RequestUntrustedContent(
     return;
   }
 
-  bool ret = ReadAsset(path, resource_manager_, response->GetContent(), false);
+  bool ret = ReadAsset(path, is_rawfile_, resource_manager_, res_module_name_,response->GetContent(), false);
   if (ret) {
     response->SetRetCode(hippy::JobResponse::RetCode::Success);
   } else {
@@ -134,9 +180,9 @@ void AssetHandler::LoadByAsset(const string_view& path,
       runner_ = request->GetWorkerManager()->CreateTaskRunner(kRunnerName);
     }
   }
-  runner_->PostTask([path, manager = resource_manager_, cb, is_auto_fill] {
+  runner_->PostTask([path, is_rawfile = is_rawfile_, manager = resource_manager_, res_module_name = res_module_name_, cb, is_auto_fill] {
     UriHandler::bytes content;
-    bool ret = ReadAsset(path, manager, content, is_auto_fill);
+    bool ret = ReadAsset(path, is_rawfile, manager, res_module_name, content, is_auto_fill);
     if (ret) {
       cb(std::make_shared<JobResponse>(hippy::JobResponse::RetCode::Success, "",
                                        std::unordered_map<std::string, std::string>{}, std::move(content)));

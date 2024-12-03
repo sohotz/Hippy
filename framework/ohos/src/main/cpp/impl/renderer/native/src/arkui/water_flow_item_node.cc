@@ -72,12 +72,16 @@ void WaterFlowItemNode::SetConstraintSize(float minWidth,float maxWidth,float mi
   ArkUI_NumberValue value[] = {{.f32 = minWidth},{.f32 = maxWidth},{.f32 = minHeight},{.f32 = maxHeight}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_WATER_FLOW_ITEM_CONSTRAINT_SIZE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::WATER_FLOW_ITEM_CONSTRAINT_SIZE);
 }
 
-void WaterFlowItemNode::SetPadding(float top, float right, float bottom, float left){
-  ArkUI_NumberValue value[] = {{.f32 = top}, {.f32 = right}, {.f32 = bottom}, {.f32 = left}};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_PADDING, &item));
+void WaterFlowItemNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::WATER_FLOW_ITEM_CONSTRAINT_SIZE, NODE_WATER_FLOW_ITEM_CONSTRAINT_SIZE);
+  subAttributesFlagValue_ = 0;
 }
 
 } // namespace native

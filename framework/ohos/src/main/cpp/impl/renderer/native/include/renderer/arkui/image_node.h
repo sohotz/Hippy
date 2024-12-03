@@ -61,6 +61,18 @@ static constexpr int32_t kColorFilterMatrixArrayCount = 20;
 
 class ImageNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    IMAGE_ALT = 0,
+    IMAGE_SRC,
+    IMAGE_OBJECT_FIT,
+    IMAGE_RESIZABLE,
+    IMAGE_COLOR_FILTER,
+    IMAGE_OBJECT_REPEAT,
+    IMAGE_INTERPOLATION,
+    IMAGE_DRAGGABLE,
+    IMAGE_AUTO_RESIZE,
+  };
+  
   ImageNodeDelegate *imageNodeDelegate_ = nullptr;
   std::string uri_;
   ImageTintColorBlendMode cssTintColorBlendMode_ = ImageTintColorBlendMode::SRC_ATOP;
@@ -79,7 +91,6 @@ public:
   ImageNode &SetResizeMode(HRImageResizeMode const &mode);
   ImageNode &SetTintColor(uint32_t sharedColor);
   ImageNode &SetTintColorBlendMode(int32_t blendMode);
-  ImageNode &SetBlur(float blur);
   ImageNode &SetObjectRepeat(HRImageResizeMode const &resizeMode);
   ImageNode &SetResizeable(float left, float top, float right, float bottom);
 
@@ -87,9 +98,8 @@ public:
   ImageNode &SetDraggable(bool draggable);
   ImageNode &SetResizeMethod(std::string const &resizeMethod);
   ImageNode &SetAlt(std::string const &src);
-
-  ImageNode &ResetFocusable();
-  ImageNode &ResetResizeMethod();
+  
+  void ResetAllAttributes() override;
 
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ImageNodeDelegate *imageNodeDelegate);

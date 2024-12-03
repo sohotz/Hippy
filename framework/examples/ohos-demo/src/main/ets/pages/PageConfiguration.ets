@@ -99,10 +99,12 @@ struct PageConfiguration {
   }
 
   initEngine(info:HippyInfo):HippyEngine {
-    let params = new EngineInitParams(this.libHippy!, this.abilityContext!)
+    let params = new EngineInitParams(this.libHippy!, this.abilityContext!, this.getUIContext())
     params.debugServerHost = info.debugServerHost as string
     params.debugMode = info.isDebugMode as boolean
+    // params.isLoadFromRawfile = false
     // params.enableLog = true
+    // params.enableUpdateAnimLog = false
 
     params.providers = new Array(new ExampleAPIProvider())
     params.enableTurbo = true
@@ -133,7 +135,7 @@ struct PageConfiguration {
           '',
           null,
           null,
-          null,
+          null
         )
         loadParams.componentName = "Demo"
         loadParams.codeCacheTag = "Demo"
@@ -389,6 +391,7 @@ struct PageConfiguration {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.home_background'))
+    .id("page_configuration")
     //.expandSafeArea()
   }
 }

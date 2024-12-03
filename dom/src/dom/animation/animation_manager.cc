@@ -331,9 +331,11 @@ void AnimationManager::UpdateCubicBezierAnimation(double current,
     }
     HippyValue prop_value(current);
     dom_node->EmplaceStyleMapAndGetDiff(prop_it->second, prop_value, diff_value);
-    FOOTSTONE_DLOG(INFO) << "animation related_animation_id = " << related_animation_id
-      << "node id = " << dom_node->GetId() << ", key = " << prop_it->second << ", value = " << prop_value;
-
+    if (footstone::gEnableUpdateAnimLog) {
+      FOOTSTONE_DLOG(INFO) << "animation related_animation_id = " << related_animation_id
+        << "node id = " << dom_node->GetId() << ", key = " << prop_it->second << ", value = " << prop_value;
+    }
+    
     dom_node->SetDiffStyle(std::make_shared<
         std::unordered_map<std::string, std::shared_ptr<HippyValue>>>(std::move(diff_value)));
     update_node_map[dom_node_id] = dom_node;
@@ -393,6 +395,8 @@ void AnimationManager::UpdateAnimations() {
     return;
   }
 
+  footstone::AutoInUpdateAnimScope autoInUpdateAnimScope;
+  
   auto now = footstone::time::MonotonicallyIncreasingTime();
   std::unordered_map<uint32_t, std::shared_ptr<DomNode>> update_node_map;
   // xcode crash if we change for to loop

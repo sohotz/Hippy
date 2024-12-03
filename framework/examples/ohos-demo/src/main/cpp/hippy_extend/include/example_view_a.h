@@ -35,15 +35,17 @@ public:
   ExampleViewA(std::shared_ptr<NativeRenderContext> &ctx);
   virtual ~ExampleViewA();
 
-  StackNode &GetLocalRootArkUINode() override;
-  bool SetProp(const std::string &propKey, const HippyValue &propValue) override;
+  StackNode *GetLocalRootArkUINode() override;
+  void CreateArkUINodeImpl() override;
+  void DestroyArkUINodeImpl() override;
+  bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
 
-  void OnChildInserted(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  void OnChildRemoved(std::shared_ptr<BaseView> const &childView, int32_t index) override;
-  
+  void OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+  void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
+
 private:
-  StackNode stackNode_;
-  TextNode textNode_;
+  std::shared_ptr<StackNode> stackNode_;
+  std::shared_ptr<TextNode> textNode_;
 };
 
 } // namespace native

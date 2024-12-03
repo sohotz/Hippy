@@ -30,6 +30,13 @@ inline namespace native {
 
 class ImageSpanNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    IMAGE_SPAN_SRC = 0,
+    IMAGE_SPAN_ALT,
+    IMAGE_SPAN_VERTICAL_ALIGNMENT,
+    IMAGE_OBJECT_FIT,
+  };
+  
   std::string uri_;
   
 public:
@@ -38,8 +45,10 @@ public:
   
   ImageSpanNode &SetSources(std::string const &src);
   ImageSpanNode &SetAlt(std::string const &src);
+  ImageSpanNode &SetVerticalAlignment(ArkUI_ImageSpanAlignment align);
   ImageSpanNode &SetImageObjectFit(ArkUI_ObjectFit fit);
   
+  void ResetAllAttributes() override;
 };
 
 } // namespace native

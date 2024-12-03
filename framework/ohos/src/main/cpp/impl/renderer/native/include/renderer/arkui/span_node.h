@@ -30,7 +30,20 @@ inline namespace native {
 
 class SpanNode : public ArkUINode {
 protected:
-
+  enum class AttributeFlag {
+    SPAN_CONTENT = 0,
+    FONT_COLOR,
+    FONT_SIZE,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    TEXT_LINE_HEIGHT,
+    TEXT_DECORATION,
+    TEXT_CASE,
+    TEXT_LETTER_SPACING,
+    FONT_FAMILY,
+    TEXT_TEXT_SHADOW,
+    SPAN_TEXT_BACKGROUND_STYLE,
+  };
 public:
   SpanNode();
   ~SpanNode();
@@ -48,6 +61,8 @@ public:
   SpanNode &SetTextLineHeight(float textLineHeight);
   SpanNode &SetTextCase(int32_t textCase);
   SpanNode &SetSpanTextBackgroundStyle(uint32_t color);
+  
+  void ResetAllAttributes() override;
 };
 
 } // namespace native

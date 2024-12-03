@@ -27,7 +27,9 @@
 #include "renderer/utils/hr_pixel_utils.h"
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <utility>
+#include <vector>
 #include "footstone/logging.h"
 #include "footstone/macros.h"
 #include "dom/root_node.h"
@@ -160,6 +162,7 @@ StyleFilter::StyleFilter() {
     "opacity",
     "overflow",
     "direction",
+    "blur",
   };
 }
 
@@ -173,7 +176,7 @@ NativeRenderManager::~NativeRenderManager() {
   arkTs.DeleteReference(ts_render_provider_ref_);
   ts_render_provider_ref_ = 0;
   ts_env_ = 0;
-  
+
   if (enable_ark_c_api_) {
     NativeRenderProviderManager::RemoveRenderProvider(id_);
   }
@@ -181,27 +184,33 @@ NativeRenderManager::~NativeRenderManager() {
 
 void NativeRenderManager::SetRenderDelegate(napi_env ts_env, bool enable_ark_c_api, napi_ref ts_render_provider_ref,
     std::set<std::string> &custom_views, std::set<std::string> &custom_measure_views, std::map<std::string, std::string> &mapping_views,
-    std::string &bundle_path) {
+    std::string &bundle_path, bool is_rawfile, const std::string &res_module_name) {
   persistent_map_.Insert(id_, shared_from_this());
   ts_env_ = ts_env;
   ts_render_provider_ref_ = ts_render_provider_ref;
   CallRenderDelegateSetIdMethod(ts_env_, ts_render_provider_ref_, "setInstanceId", id_);
   custom_measure_views_ = custom_measure_views;
-  
+
   enable_ark_c_api_ = enable_ark_c_api;
   if (enable_ark_c_api) {
-    c_render_provider_ = std::make_shared<NativeRenderProvider>(id_, bundle_path);
+    c_render_provider_ = std::make_shared<NativeRenderProvider>(id_, bundle_path, is_rawfile, res_module_name);
     c_render_provider_->SetTsEnv(ts_env);
     NativeRenderProviderManager::AddRenderProvider(id_, c_render_provider_);
     c_render_provider_->RegisterCustomTsRenderViews(ts_env, ts_render_provider_ref, custom_views, mapping_views);
   }
-  
+
   NativeRenderManager::GetStyleFilter();
 }
 
-void NativeRenderManager::InitDensity(double density) {
+void NativeRenderManager::SetBundlePath(const std::string &bundle_path) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->SetBundlePath(bundle_path);
+  }
+}
+
+void NativeRenderManager::InitDensity(double density, double density_scale, double font_size_scale) {
   density_ = static_cast<float>(density);
-  HRPixelUtils::InitDensity(density);
+  HRPixelUtils::InitDensity(density, density_scale, font_size_scale);
 }
 
 void NativeRenderManager::AddCustomFontPath(const std::string &fontFamilyName, const std::string &fontPath) {
@@ -219,12 +228,35 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   }
 }
 
+void CollectAllHippyValueProps(footstone::value::HippyValue::HippyValueObjectType &props, std::shared_ptr<DomNode> &node, bool reset = true) {
+  if (reset) {
+    props.clear();
+  }
+  // 样式属性
+  auto style = node->GetStyleMap();
+  auto iter = style->begin();
+  auto style_filter = NativeRenderManager::GetStyleFilter();
+  while (iter != style->end()) {
+    if (style_filter->Enable(iter->first)) {
+      props[iter->first] = *(iter->second);
+    }
+    iter++;
+  }
+  // 用户自定义属性
+  auto dom_ext = *node->GetExtStyle();
+  iter = dom_ext.begin();
+  while (iter != dom_ext.end()) {
+    props[iter->first] = *(iter->second);
+    iter++;
+  }
+}
+
 void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
   auto root = root_node.lock();
   if (!root) {
     return;
   }
-  
+
   uint32_t root_id = root->GetId();
 
   serializer_->Release();
@@ -299,30 +331,14 @@ void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node,
     }
 
     footstone::value::HippyValue::HippyValueObjectType props;
-    // 样式属性
-    auto style = nodes[i]->GetStyleMap();
-    auto iter = style->begin();
-    auto style_filter = NativeRenderManager::GetStyleFilter();
-    while (iter != style->end()) {
-      if (style_filter->Enable(iter->first)) {
-        props[iter->first] = *(iter->second);
-      }
-      iter++;
-    }
-    // 用户自定义属性
-    auto dom_ext = *nodes[i]->GetExtStyle();
-    iter = dom_ext.begin();
-    while (iter != dom_ext.end()) {
-      props[iter->first] = *(iter->second);
-      iter++;
-    }
-  
+    CollectAllHippyValueProps(props, nodes[i]);
+
     dom_node[kProps] = props;
     dom_node_array[i] = dom_node;
   }
   serializer_->WriteValue(HippyValue(dom_node_array));
   std::pair<uint8_t *, size_t> buffer_pair = serializer_->Release();
-  
+
   CallNativeMethod("createNode", root->GetId(), buffer_pair);
 }
 
@@ -331,12 +347,14 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
   if (!root) {
     return;
   }
-  
+
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRCreateMutation>> mutations;
   mutations.resize(len);
+  std::vector<std::shared_ptr<HRCreateMutation>> customMeasureMutations;
   for (uint32_t i = 0; i < len; i++) {
+    bool isCustomMeasure = false;
     const auto& render_info = nodes[i]->GetRenderInfo();
     auto m = std::make_shared<HRCreateMutation>();
     m->tag_ = render_info.id;
@@ -363,6 +381,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       };
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     } else if (IsCustomMeasureNode(nodes[i]->GetViewName())) {
+      isCustomMeasure = true;
       int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
       MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,
                                                                   float height, LayoutMeasureMode height_measure_mode,
@@ -381,6 +400,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       };
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     } else if (IsCustomMeasureCNode(nodes[i]->GetViewName())) {
+      isCustomMeasure = true;
       int32_t id =  footstone::check::checked_numeric_cast<uint32_t, int32_t>(nodes[i]->GetId());
       MeasureFunction measure_function = [WEAK_THIS, root_id, id](float width, LayoutMeasureMode width_measure_mode,
                                                                   float height, LayoutMeasureMode height_measure_mode,
@@ -396,32 +416,34 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     }
 
     footstone::value::HippyValue::HippyValueObjectType props;
-    // 样式属性
-    auto style = nodes[i]->GetStyleMap();
-    auto iter = style->begin();
-    auto style_filter = NativeRenderManager::GetStyleFilter();
-    while (iter != style->end()) {
-      if (style_filter->Enable(iter->first)) {
-        props[iter->first] = *(iter->second);
-      }
-      iter++;
-    }
-    // 用户自定义属性
-    auto dom_ext = *nodes[i]->GetExtStyle();
-    iter = dom_ext.begin();
-    while (iter != dom_ext.end()) {
-      props[iter->first] = *(iter->second);
-      iter++;
-    }
-  
+    CollectAllHippyValueProps(props, nodes[i]);
     m->props_ = props;
+    
     auto parentNode = nodes[i]->GetParent();
     if (parentNode && parentNode->GetViewName() == "Text") {
       m->is_parent_text_ = true;
+      
+      auto grandParentNode = parentNode->GetParent();
+      if (grandParentNode && grandParentNode->GetViewName() == "Text") {
+        footstone::value::HippyValue::HippyValueObjectType mergedProps;
+        CollectAllHippyValueProps(mergedProps, parentNode);
+        for (auto it = props.begin(); it != props.end(); it++) {
+          mergedProps[it->first] = it->second;
+        }
+        m->props_ = mergedProps;
+      }
     }
     mutations[i] = m;
+
+    if (isCustomMeasure) {
+      customMeasureMutations.push_back(m);
+    }
   }
-  
+
+  if (customMeasureMutations.size() > 0) {
+    c_render_provider_->PreCreateNode(root_id, customMeasureMutations);
+  }
+
   c_render_provider_->CreateNode(root_id, mutations);
 }
 
@@ -512,7 +534,7 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
   std::vector<std::shared_ptr<HRUpdateMutation>> mutations;
-  mutations.resize(len);
+  std::vector<std::shared_ptr<HRUpdateMutation>> customMeasureMutations;
   for (uint32_t i = 0; i < len; i++) {
     const auto &render_info = nodes[i]->GetRenderInfo();
     auto m = std::make_shared<HRUpdateMutation>();
@@ -544,8 +566,18 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     }
     m->props_ = diff_props;
     m->delete_props_ = del_props;
-    mutations[i] = m;
+
+    if (IsCustomMeasureNode(nodes[i]->GetViewName()) || IsCustomMeasureCNode(nodes[i]->GetViewName())) {
+      customMeasureMutations.push_back(m);
+    } else {
+      mutations.push_back(m);
+    }
   }
+
+  if (customMeasureMutations.size() > 0) {
+    c_render_provider_->PreUpdateNode(root_id, customMeasureMutations);
+  }
+
   c_render_provider_->UpdateNode(root_id, mutations);
 }
 
@@ -586,22 +618,32 @@ void NativeRenderManager::MoveRenderNode_TS(std::weak_ptr<RootNode> root_node, s
   CallRenderDelegateMoveNodeMethod(ts_env_, ts_render_provider_ref_, "moveNode", root->GetId(), pid, buffer_pair);
 }
 
+static bool SortMoveNodes(const std::shared_ptr<DomNode> &lhs, const std::shared_ptr<DomNode> &rhs) {
+  return lhs->GetPid() < rhs->GetPid();
+}
+
 void NativeRenderManager::MoveRenderNode_C(std::weak_ptr<RootNode> root_node, std::vector<std::shared_ptr<DomNode>> &&nodes) {
   auto root = root_node.lock();
   if (!root) {
     return;
   }
 
+  std::sort(nodes.begin(), nodes.end(), SortMoveNodes);
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
-  auto m = std::make_shared<HRMoveMutation>();
-  std::vector<HRMoveNodeInfo> node_infos;
+  std::shared_ptr<HRMoveMutation> m;
   for (uint32_t i = 0; i < len; i++) {
     const auto &render_info = nodes[i]->GetRenderInfo();
-    m->parent_tag_ = render_info.pid;
-    node_infos.push_back(HRMoveNodeInfo(render_info.id, render_info.index));
+    if (m && m->parent_tag_ != render_info.pid) {
+      c_render_provider_->MoveNode(root_id, m);
+      m = nullptr;
+    }
+    if (!m) {
+      m = std::make_shared<HRMoveMutation>();
+      m->parent_tag_ = render_info.pid;
+    }
+    m->node_infos_.push_back(HRMoveNodeInfo(render_info.id, render_info.index));
   }
-  m->node_infos_ = node_infos;
   c_render_provider_->MoveNode(root_id, m);
 }
 
@@ -705,15 +747,15 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
     const auto &result = nodes[i]->GetRenderLayoutResult();
     auto m = std::make_shared<HRUpdateLayoutMutation>();
     m->tag_ = nodes[i]->GetId();
-    m->left_ = result.left;
-    m->top_ = result.top;
-    m->width_ = result.width;
-    m->height_ = result.height;
+    m->left_ = HRPixelUtils::DpToVp(result.left);
+    m->top_ = HRPixelUtils::DpToVp(result.top);
+    m->width_ = HRPixelUtils::DpToVp(result.width);
+    m->height_ = HRPixelUtils::DpToVp(result.height);
     if (IsMeasureNode(nodes[i]->GetViewName())) {
-      m->padding_left_ = result.paddingLeft;
-      m->padding_top_ = result.paddingTop;
-      m->padding_right_ = result.paddingRight;
-      m->padding_bottom_ = result.paddingBottom;
+      m->padding_left_ = HRPixelUtils::DpToVp(result.paddingLeft);
+      m->padding_top_ = HRPixelUtils::DpToVp(result.paddingTop);
+      m->padding_right_ = HRPixelUtils::DpToVp(result.paddingRight);
+      m->padding_bottom_ = HRPixelUtils::DpToVp(result.paddingBottom);
     }
     mutations[i] = m;
   }
@@ -790,14 +832,16 @@ void NativeRenderManager::BeforeLayout(std::weak_ptr<RootNode> root_node){}
 
 void NativeRenderManager::AfterLayout(std::weak_ptr<RootNode> root_node) {
   // 更新布局信息前处理事件监听
-  HandleListenerOps(root_node, event_listener_ops_, "updateEventListener");
+  auto &ops = root_node.lock()->EventListenerOps();
+  HandleListenerOps(root_node, ops, "updateEventListener");
 }
 
 void NativeRenderManager::AddEventListener(std::weak_ptr<RootNode> root_node,
                                            std::weak_ptr<DomNode> dom_node, const std::string& name) {
   auto node = dom_node.lock();
   if (node) {
-    event_listener_ops_[node->GetId()].emplace_back(ListenerOp(true, dom_node, name));
+    auto &ops = root_node.lock()->EventListenerOps();
+    ops[node->GetId()].emplace_back(ListenerOp(true, dom_node, name));
   }
 }
 
@@ -805,7 +849,8 @@ void NativeRenderManager::RemoveEventListener(std::weak_ptr<RootNode> root_node,
                                               std::weak_ptr<DomNode> dom_node, const std::string& name) {
   auto node = dom_node.lock();
   if (node) {
-    event_listener_ops_[node->GetId()].emplace_back(ListenerOp(false, dom_node, name));
+    auto &ops = root_node.lock()->EventListenerOps();
+    ops[node->GetId()].emplace_back(ListenerOp(false, dom_node, name));
   }
 }
 
@@ -863,27 +908,28 @@ void NativeRenderManager::CallFunction_C(std::weak_ptr<RootNode> root_node, std:
 
   HippyValue hippy_value;
   param.ToObject(hippy_value);
-  
+
   HippyValueArrayType params;
   if (hippy_value.IsArray()) {
     hippy_value.ToArray(params);
   }
-  
+
   c_render_provider_->CallUIFunction(root->GetId(), node->GetId(), cb_id, name, params);
 }
 
 void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint32_t dom_id,
                                         const std::string& event_name, const std::shared_ptr<HippyValue>& params,
                                         bool capture, bool bubble) {
-  auto manager = dom_manager_.lock();
-  FOOTSTONE_DCHECK(manager != nullptr);
-  if (manager == nullptr) return;
-
   auto root = root_node.lock();
   FOOTSTONE_DCHECK(root != nullptr);
   if (root == nullptr) return;
-
-  std::vector<std::function<void()>> ops = {[weak_dom_manager = dom_manager_, weak_root_node = root_node, dom_id,
+  
+  auto dom_manager = root->GetDomManager().lock();
+  FOOTSTONE_DCHECK(dom_manager != nullptr);
+  if (dom_manager == nullptr) return;
+  
+  std::weak_ptr<DomManager> weak_dom_manager = dom_manager;
+  std::vector<std::function<void()>> ops = {[weak_dom_manager, weak_root_node = root_node, dom_id,
                                              params = std::move(params), use_capture = capture, use_bubble = bubble,
                                              event_name = std::move(event_name)] {
     auto manager = weak_dom_manager.lock();
@@ -898,7 +944,7 @@ void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint3
     auto event = std::make_shared<DomEvent>(event_name, node, use_capture, use_bubble, params);
     node->HandleEvent(event);
   }};
-  manager->PostTask(Scene(std::move(ops)));
+  dom_manager->PostTask(Scene(std::move(ops)));
 }
 
 float NativeRenderManager::DpToPx(float dp) const { return dp * density_; }
@@ -948,13 +994,15 @@ std::string HippyValueToString(const HippyValue &value) {
     value.ToUint32(ui);
     sv = std::to_string(ui);
   } else {
-    FOOTSTONE_LOG(ERROR) << "Measure Text : unknow value type";
+    FOOTSTONE_LOG(ERROR) << "Measure Text, unknown value type: " << (int32_t)value.GetType();
   }
   return sv;
 }
 
-void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_ptr<DomNode> node) {
-  propMap.clear();
+void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_ptr<DomNode> node, bool reset = true) {
+  if (reset) {
+    propMap.clear();
+  }
   // 样式属性
   auto style = node->GetStyleMap();
   auto iter = style->begin();
@@ -974,23 +1022,17 @@ void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_pt
 void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node, const std::weak_ptr<hippy::dom::DomNode> dom_node,
                    const float width, const int32_t width_mode,
                    const float height, const int32_t height_mode, int64_t &result) {
-  auto dom_manager = dom_manager_.lock();
-  FOOTSTONE_DCHECK(dom_manager != nullptr);
-  if (dom_manager == nullptr) {
-    return;
-  }
-
   auto root = root_node.lock();
   FOOTSTONE_DCHECK(root != nullptr);
   if (root == nullptr) {
     return;
   }
-  
+
   auto node = dom_node.lock();
   if (node == nullptr) {
     return;
   }
-    
+
   std::vector<std::shared_ptr<DomNode>> imageSpanNode;
   std::map<std::string, std::string> textPropMap;
   std::map<std::string, std::string> spanPropMap;
@@ -1000,22 +1042,64 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   OhMeasureText measureInst(custom_font_path_map_);
   OhMeasureResult measureResult;
 
-  measureInst.StartMeasure(textPropMap);
+  std::set<std::string> fontFamilyNames;
+  auto text_prop_it = textPropMap.find("fontFamily");
+  if (text_prop_it != textPropMap.end()) {
+    fontFamilyNames.insert(text_prop_it->second);
+  }
+  for(uint32_t i = 0; i < node->GetChildCount(); i++) {
+    auto child = node->GetChildAt(i);
+    auto style_map = child->GetStyleMap();
+    auto it = style_map->find("fontFamily");
+    if (it != style_map->end()) {
+      fontFamilyNames.insert(HippyValueToString(*(it->second)));
+    }
+    for(uint32_t j = 0; j < child->GetChildCount(); j++) {
+      auto grand_child = child->GetChildAt(j);
+      auto grand_style_map = grand_child->GetStyleMap();
+      auto grand_it = grand_style_map->find("fontFamily");
+      if (grand_it != grand_style_map->end()) {
+        fontFamilyNames.insert(HippyValueToString(*(grand_it->second)));
+      }
+    }
+  }
+  
+  measureInst.StartMeasure(textPropMap, fontFamilyNames);
 
   if (node->GetChildCount() == 0) {
     measureInst.AddText(textPropMap);
   } else {
     for(uint32_t i = 0; i < node->GetChildCount(); i++) {
       auto child = node->GetChildAt(i);
-      CollectAllProps(spanPropMap, child);
-      if (child->GetViewName() == "Text") {
-        measureInst.AddText(spanPropMap);
-      } else if (child->GetViewName() == "Image") {
-        if (spanPropMap.find("width") != spanPropMap.end() && spanPropMap.find("height") != spanPropMap.end()) {
-          measureInst.AddImage(spanPropMap);
-          imageSpanNode.push_back(child);
-        } else {
-          FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
+      auto grand_child_count = child->GetChildCount();
+      if (grand_child_count == 0) {
+        CollectAllProps(spanPropMap, child);
+        if (child->GetViewName() == "Text") {
+          measureInst.AddText(spanPropMap);
+        } else if (child->GetViewName() == "Image") {
+          if (spanPropMap.find("width") != spanPropMap.end() && spanPropMap.find("height") != spanPropMap.end()) {
+            measureInst.AddImage(spanPropMap);
+            imageSpanNode.push_back(child);
+          } else {
+            FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
+          }
+        }
+      } else {
+        CollectAllProps(spanPropMap, child);
+        for(uint32_t j = 0; j < grand_child_count; j++) {
+          auto grand_child = child->GetChildAt(j);
+          std::map<std::string, std::string> grandSpanPropMap = spanPropMap;
+          CollectAllProps(grandSpanPropMap, grand_child, false);
+          if (grand_child->GetViewName() == "Text") {
+            measureInst.AddText(grandSpanPropMap);
+          } else if (grand_child->GetViewName() == "Image") {
+            if (grandSpanPropMap.find("width") != grandSpanPropMap.end() && grandSpanPropMap.find("height") != grandSpanPropMap.end()) {
+              measureInst.AddImage(grandSpanPropMap);
+              imageSpanNode.push_back(grand_child);
+            } else {
+              FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
+            }
+          }
         }
       }
     }
@@ -1033,6 +1117,11 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       } else {
         CallRenderDelegateSpanPositionMethod(ts_env_, ts_render_provider_ref_, "spanPosition", root->GetId(), imageSpanNode[i]->GetId(), float(x), float(y));
       }
+    }
+  }
+  if (measureResult.isEllipsized) {
+    if (enable_ark_c_api_) {
+      c_render_provider_->TextEllipsized(root->GetId(), node->GetId());
     }
   }
   result = static_cast<int64_t>(ceil(measureResult.width)) << 32 | static_cast<int64_t>(ceil(measureResult.height));
@@ -1184,7 +1273,7 @@ void NativeRenderManager::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, 
     c_render_provider_->BindNativeRoot(contentHandle, root_id, node_id);
   }
 }
-  
+
 void NativeRenderManager::UnbindNativeRoot(uint32_t root_id, uint32_t node_id) {
   if (enable_ark_c_api_) {
     c_render_provider_->UnbindNativeRoot(root_id, node_id);
@@ -1226,6 +1315,25 @@ void NativeRenderManager::CallViewMethod(uint32_t root_id, uint32_t node_id, con
 void NativeRenderManager::SetViewEventListener(uint32_t root_id, uint32_t node_id, napi_ref callback_ref) {
   if (enable_ark_c_api_) {
     c_render_provider_->SetViewEventListener(root_id, node_id, callback_ref);
+  }
+}
+
+HRRect NativeRenderManager::GetViewFrameInRoot(uint32_t root_id, uint32_t node_id) {
+  if (enable_ark_c_api_) {
+    return c_render_provider_->GetViewFrameInRoot(root_id, node_id);
+  }
+  return {0, 0, 0, 0};
+}
+
+void NativeRenderManager::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->AddBizViewInRoot(root_id, biz_view_id, node_handle, position);
+  }
+}
+
+void NativeRenderManager::RemoveBizViewInRoot(uint32_t root_id, uint32_t biz_view_id) {
+  if (enable_ark_c_api_) {
+    c_render_provider_->RemoveBizViewInRoot(root_id, biz_view_id);
   }
 }
 

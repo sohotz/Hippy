@@ -35,25 +35,28 @@ inline namespace native {
 
 class NativeRenderProvider : public std::enable_shared_from_this<NativeRenderProvider>{
 public:
-  NativeRenderProvider(uint32_t instance_id, const std::string &bundle_path);
+  NativeRenderProvider(uint32_t instance_id, const std::string &bundle_path, bool is_rawfile, const std::string &res_module_name);
   ~NativeRenderProvider() = default;
-  
+
   uint32_t GetInstanceId() { return instance_id_; }
-  
+
   std::shared_ptr<NativeRenderImpl> &GetNativeRenderImpl() { return render_impl_; }
-  
+
   void SetTsEnv(napi_env ts_env) { ts_env_ = ts_env; }
+  void SetBundlePath(const std::string &bundle_path);
 
   void BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id);
   void UnbindNativeRoot(uint32_t root_id, uint32_t node_id);
   void RegisterCustomTsRenderViews(napi_env ts_env, napi_ref ts_render_provider_ref, std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views);
-  
+
   void DestroyRoot(uint32_t root_id);
-  
+
   void DoCallbackForCallCustomTsView(uint32_t root_id, uint32_t node_id, uint32_t callback_id, const HippyValue &result);
 
   void CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations);
+  void PreCreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations);
   void UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations);
+  void PreUpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations);
   void MoveNode(uint32_t root_id, const std::shared_ptr<HRMoveMutation> &mutation);
   void MoveNode2(uint32_t root_id, const std::shared_ptr<HRMove2Mutation> &mutation);
   void DeleteNode(uint32_t root_id, const std::vector<std::shared_ptr<HRDeleteMutation>> &mutations);
@@ -61,30 +64,32 @@ public:
   void UpdateEventListener(uint32_t root_id,
                            const std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> &mutations);
   void EndBatch(uint32_t root_id);
-  
+
   void CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, const std::string &func_name, const std::vector<HippyValue> &params);
 
   LayoutSize CustomMeasure(uint32_t root_id, uint32_t node_id,
     float width, LayoutMeasureMode width_measure_mode,
     float height, LayoutMeasureMode height_measure_mode);
-  
+
   void SpanPosition(uint32_t root_id, uint32_t node_id, float x, float y);
+  void TextEllipsized(uint32_t root_id, uint32_t node_id);
   
-  void OnSize(uint32_t root_id, float width, float height);
-  void OnSize2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync);
   void DispatchEvent(uint32_t root_id, uint32_t node_id, const std::string &event_name,
       const std::shared_ptr<HippyValue> &params, bool capture, bool bubble, HREventType event_type);
   void DoCallBack(int32_t result, uint32_t cb_id, const std::string &func_name,
       uint32_t root_id, uint32_t node_id, const HippyValue &params);
-  
+
   bool GetViewParent(uint32_t root_id, uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type);
   bool GetViewChildren(uint32_t root_id, uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types);
   void CallViewMethod(uint32_t root_id, uint32_t node_id, const std::string &method, const std::vector<HippyValue> params, std::function<void(const HippyValue &result)> callback);
   void SetViewEventListener(uint32_t root_id, uint32_t node_id, napi_ref callback_ref);
-  
+  HRRect GetViewFrameInRoot(uint32_t root_id, uint32_t node_id);
+  void AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position);
+  void RemoveBizViewInRoot(uint32_t root_id, uint32_t biz_view_id);
+
 private:
   constexpr static const char * EVENT_PREFIX = "on";
-  
+
   napi_env ts_env_ = 0;
   uint32_t instance_id_;
   std::shared_ptr<NativeRenderImpl> render_impl_;

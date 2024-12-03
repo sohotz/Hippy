@@ -17,12 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpHeaderReuqest } from './HttpHeaderRequest';
+import { HttpHeaderRequest } from './HippyHttpHeader';
 import { TextUtils } from '../../../support/utils/TextUtils';
 import I18n from '@ohos.i18n';
 import { util } from '@kit.ArkTS';
 import { http } from '@kit.NetworkKit';
+import Url from '@ohos.url';
 import { LogUtils } from '../../../support/utils/LogUtils';
+import { HippyAny, HippyArray } from '../../../support/common/HippyTypes';
 
 
 const HIPPY_HTTP_REQUEST_TAG = "HippyHttpRequest"
@@ -43,21 +45,31 @@ export class HippyHttpRequest {
   private mUrl: string = ""
   private mHeaders: Map<string, string>
   private mMethod: http.RequestMethod = http.RequestMethod.GET
-  private mInitParams: Map<string, string>
+  private mBody: string
   private mNativeParams: Map<string, Object>
+  private mRequestParams: Map<string, HippyAny>
 
-  constructor(headers: Map<string, string>, method: string,
-              initParams: Map<string, string>, nativeParams: Map<string, Object>) {
-    this.mHeaders = (headers == null) ? new Map<string, string>() : headers;
-    this.mInitParams = initParams;
+  constructor(headers: Map<string, string | Array<string>>,
+              requestParams: Map<string, HippyAny>,
+              nativeParams: Map<string, Object>) {
+    this.mHeaders = new Map<string, string>()
+    if (headers !== null) {
+      // adjust requestHeader for ohos
+      headers.forEach((value: string | Array<string>, key: string) => {
+        this.mHeaders.set(key, value.toString());
+      })
+    }
+    this.mRequestParams = requestParams;
+    this.mBody = requestParams.get(HippyHttpRequest.HTTP_BODY) as string;
     this.mNativeParams = nativeParams;
+    const method = requestParams.get(HippyHttpRequest.HTTP_METHOD) as string;
     this.setMethod(method);
     this.initUserAgent();
   }
 
   public getRequestCookies(): string | undefined {
     if (this.mHeaders != null) {
-      return this.mHeaders.get(HttpHeaderReuqest.COOKIE);
+      return this.mHeaders.get(HttpHeaderRequest.COOKIE);
     }
     return undefined
   }
@@ -74,7 +86,7 @@ export class HippyHttpRequest {
     if (this.mUrl != null) {
       return this.mUrl;
     }
-    return (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_URL) : null;
+    return (this.mRequestParams != null) ? this.mRequestParams.get(HippyHttpRequest.HTTP_URL) as string : null;
   }
 
   public addHeader(name: string, value: string) {
@@ -150,20 +162,33 @@ export class HippyHttpRequest {
   }
 
   public isInstanceFollowRedirects(): boolean {
-    let redirect = (this.mInitParams != null) ? this.mInitParams.get(HippyHttpRequest.HTTP_REDIRECT) : null;
+    let redirect = (this.mRequestParams != null) ? this.mRequestParams.get(HippyHttpRequest.HTTP_REDIRECT) as string : null;
     return!TextUtils.isEmpty(redirect) && TextUtils.equals("follow", redirect);
   }
 
   public getBody(): string | Object | ArrayBuffer {
-    if (this.mInitParams == null) return ""
-    let jsonObject: Record<string, Object> = {};
-    this.mInitParams.forEach((value, key) => {
-      if (key != undefined && value != undefined) {
-        jsonObject[key] = value;
+    if (this.mBody == null) return ""
+    try {
+      let jsonObject: Record<string, Object> = JSON.parse(this.mBody);
+      let contentType = this.mHeaders.get('content-type')
+      if (!contentType) {
+        contentType = this.mHeaders.get('Content-Type') || ''
       }
-    })
-    LogUtils.d(HIPPY_HTTP_REQUEST_TAG, JSON.stringify(jsonObject));
-    return JSON.stringify(jsonObject)
+      LogUtils.d(HIPPY_HTTP_REQUEST_TAG, JSON.stringify(jsonObject));
+      if (contentType.indexOf('/json') > 0) {
+        return jsonObject;
+      } else {
+        let result = new Url.URLParams();
+        Object.keys(jsonObject).forEach((k) => {
+          let v = encodeURIComponent(jsonObject[k] as string | number | boolean);
+          result.append(k, v);
+        });
+        return result.toString();
+      }
+    } catch (e) {
+      LogUtils.e(HIPPY_HTTP_REQUEST_TAG, 'http body parse error: ' + this.mBody);
+      return this.mBody;
+    }
   }
 
   private initUserAgent(): void {
@@ -191,6 +216,6 @@ export class HippyHttpRequest {
       }
     }
 
-    this.addHeader(HttpHeaderReuqest.USER_AGENT, HippyHttpRequest.USER_AGENT);
+    this.addHeader(HttpHeaderRequest.USER_AGENT, HippyHttpRequest.USER_AGENT);
   }
 }

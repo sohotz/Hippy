@@ -38,14 +38,24 @@ class SwiperNodeDelegate {
                                 const float_t &currentOffset, const float_t &targetOffset,
                                 const float_t &swipeVelocity) {}
   virtual void OnAnimationEnd(const int32_t &currentIndex, const float_t &currentOffset) {}
-  virtual void OnGestureSwipe(const int32_t &swiperPageIndex,
-                              const float_t &elementOffsetFromStart) {}
-  virtual void OnNodeTouchEvent(const ArkUI_UIInputEvent *inputEvent) {}
+  virtual void OnContentDidScroll(const int32_t currentIndex, const int32_t pageIndex,
+                                  const float_t pageOffset) {}
 };
 
 
 class SwiperNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    SWIPER_SHOW_INDICATOR = 0,
+    SWIPER_INDEX,
+    SWIPER_SWIPE_TO_INDEX,
+    SWIPER_VERTICAL,
+    SWIPER_PREV_MARGIN,
+    SWIPER_NEXT_MARGIN,
+    SWIPER_LOOP,
+    SWIPER_DISABLE_SWIPE,
+    SWIPER_NODE_ADAPTER,
+  };
   SwiperNodeDelegate *swiperNodeDelegate_ = nullptr;
 
 public:
@@ -63,6 +73,13 @@ public:
   void SetSwiperNextMargin(float fValue);
   void SetSwiperLoop(int32_t enable);
   void SetSwiperDisableSwipe(int32_t disable);
+  
+  void SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle);
+  void ResetLazyAdapter();
+  void ResetAllAttributes() override;
+  
+private:
+  bool hasAdapter_ = false;
 };
 
 } // namespace native

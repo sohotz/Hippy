@@ -26,17 +26,27 @@ import { NativeRenderProviderManager } from './NativeRenderProviderManager';
 import { HREventType } from './utils/HREventUtils';
 import { LogUtils } from '../support/utils/LogUtils';
 import { HippyLibrary } from '../hippy_library/HippyLibrary';
-import { HippyAny, HippyMap } from '../support/common/HippyTypes';
+import { HippyAny, HippyMap, HippyResource, HippyValue } from '../support/common/HippyTypes';
 import { HRRenderViewCreator } from './components/HippyRenderRegisterMap';
 import {
   CallRenderViewMethodParamsForCApi,
   CreateRenderViewParamsForCApi,
   OnChildInsertedParamsForCApi,
   OnChildRemovedParamsForCApi,
+  RemoveRenderViewParamsForCApi,
   SetRenderViewFrameParamsForCApi,
   UpdateEventListenerParamsForCApi,
   UpdatePropsParamsForCApi} from './NativeRenderBuilderForCApi';
-import { FrameNode } from '@kit.ArkUI';
+import { componentSnapshot, componentUtils, display, FrameNode } from '@kit.ArkUI';
+import { image } from '@kit.ImageKit';
+import { util } from '@kit.ArkTS';
+
+interface HippyResult {
+  screenShot?: string;
+  width?: bigint;
+  height?: bigint;
+  screenScale?: number;
+}
 
 export class NativeRenderProvider {
   private readonly TAG = "NativeRenderProvider"
@@ -45,12 +55,18 @@ export class NativeRenderProvider {
   private libHippy: HippyLibrary
   private renderImpl: NativeRenderImpl
   private instanceId: number = 0
+  private hippyResult: HippyResult = {
+    screenShot: '',
+    width: BigInt(0),
+    height: BigInt(0),
+    screenScale: 0
+  };
 
-  constructor(libHippy: HippyLibrary,
+  constructor(libHippy: HippyLibrary, enableArkCApi: boolean,
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       customMeasureRenderViews: Array<string> | null) {
     this.libHippy = libHippy
-    this.renderImpl = new NativeRenderImpl(libHippy, customRenderViewCreatorMap, customMeasureRenderViews)
+    this.renderImpl = new NativeRenderImpl(libHippy, enableArkCApi, customRenderViewCreatorMap, customMeasureRenderViews)
   }
 
   setInstanceId(instanceId: number) {
@@ -221,9 +237,77 @@ export class NativeRenderProvider {
     this.libHippy?.NativeRenderProvider_DoCallBack(this.instanceId, result, functionName, rootId, nodeId, callbackId, buffer)
   }
 
+  setScreenShot(hippyResult: HippyResult) {
+    this.hippyResult = hippyResult;
+  }
+
+  getScreenShot() {
+    return this.hippyResult;
+  }
+
+  // for devtools
+  getComponentSnapshot(componentId: string, callback: Function): object {
+    const scale = 0.6;
+    componentSnapshot.get("HippyId" + componentId).then((pixmap: PixelMap) => {
+      pixmap.scaleSync(scale, scale);
+      const info = pixmap.getImageInfoSync();
+      const imagePackageApi: image.ImagePacker = image.createImagePacker()
+      let packOpts: image.PackingOption = {
+        format: 'image/png',
+        quality: 100,
+      }
+      imagePackageApi.packing(pixmap, packOpts).then((readBuffer) => {
+        let base64Helper = new util.Base64Helper();
+        let uint8Arr = new Uint8Array(readBuffer);
+        let pixelStr = base64Helper.encodeToStringSync(uint8Arr);
+        LogUtils.d(this.TAG, "pixelStr::" + pixelStr);
+        let hippyResult: HippyResult = {};
+        hippyResult.screenShot = pixelStr;
+        hippyResult.width = BigInt(info.size.width);
+        hippyResult.height = BigInt(info.size.height);
+        hippyResult.screenScale = scale;
+        this.setScreenShot(hippyResult);
+        imagePackageApi.release();
+        pixmap.release();
+      });
+    });
+    return this.getScreenShot();
+  }
+
+  getLocationOnScreen(componentId: string): object {
+    interface HippyResult {
+      xOnScreen?: number;
+      yOnScreen?: number;
+      viewWidth?: number;
+      viewHeight?: number;
+    }
+    let info = componentUtils.getRectangleById("HippyId" + componentId);
+    let hippyResult: HippyResult = {};
+    hippyResult.xOnScreen = info.screenOffset.x;
+    hippyResult.yOnScreen = info.screenOffset.y;
+    hippyResult.viewWidth = info.size.width;
+    hippyResult.viewHeight = info.size.height;
+    return hippyResult as object;
+  }
+
+  // for c-api
+  onFirstPaint(): void {
+    return this.renderImpl.onFirstPaint();
+  }
+
+  // for c-api
+  onFirstContentfulPaint(): void {
+    return this.renderImpl.onFirstContentfulPaint();
+  }
+
   // for c-api
   createRenderViewForCApi(params: CreateRenderViewParamsForCApi): FrameNode | null {
     return this.renderImpl.createRenderViewForCApi(params)
+  }
+
+  // for c-api
+  removeRenderViewForCApi(params: RemoveRenderViewParamsForCApi): void {
+    return this.renderImpl.removeRenderViewForCApi(params)
   }
 
   // for c-api

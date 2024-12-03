@@ -35,6 +35,7 @@ import {
   CreateRenderViewParamsForCApi,
   OnChildInsertedParamsForCApi,
   OnChildRemovedParamsForCApi,
+  RemoveRenderViewParamsForCApi,
   SetRenderViewFrameParamsForCApi,
   UpdateEventListenerParamsForCApi,
   UpdatePropsParamsForCApi } from './NativeRenderBuilderForCApi'
@@ -59,16 +60,19 @@ import { HRCreateMutation,
   HRUpdateLayoutMutation,
   HRUpdateMutation
 } from './uimanager/HRMutation'
-import { HippyEndBatchCallback } from './uimanager/HRViewManager'
+import { HippyEndBatchCallback, HRViewManager } from './uimanager/HRViewManager'
 import { HRDisplaySyncUtils } from './utils/HRDisplaySyncUtils'
 import { HRMeasureResult } from './utils/HRMeasure'
-import { HRRect, HRSize } from './utils/HRTypes'
+import { HRPosition, HRRect, HRSize } from './utils/HRTypes'
 import { HRValueUtils } from './utils/HRValueUtils'
 import { BuilderNode, FrameNode } from '@kit.ArkUI'
 import HippyRenderBaseView from './components/base/HippyRenderBaseView'
 import { HippyRootView } from '.'
-import { WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
-import call from '@ohos.telephony.call'
+import {
+  WrappedHippyCustomRenderViewBuilder } from './HippyRenderViewBuilder'
+import { HippyRootViewManager } from './HippyRootViewManager'
+import { WrappedHippyBizViewBuilder } from './HippyBizViewBuilder'
+import { PixelUtil } from "../support/utils/PixelUtil"
 
 export class TextMeasurerConfig {
   textContent: string | null = null
@@ -82,16 +86,15 @@ export class TextMeasurerConfig {
 
 declare function px2vp(px: number): number
 
-// TODO(hot):
-let builderNodeMap = new Map<number, BuilderNode<[HippyRenderBaseView]>>()
-
 export class NativeRenderImpl implements NativeRender {
   private readonly TAG = "NativeRenderImpl"
   private readonly INVALID_NODE_ID = -1
   private readonly ROOT_VIEW_ID_INCREMENT = 10
   private static sRootIdCounter = 0
+  private static sBizViewIdCounter = 0
 
   private libHippy: HippyLibrary
+  private enableArkCApi: boolean
 
   private instanceId: number = 0
 
@@ -103,10 +106,11 @@ export class NativeRenderImpl implements NativeRender {
 
   private renderManager: HRManager
 
-  constructor(libHippy: HippyLibrary,
+  constructor(libHippy: HippyLibrary, enableArkCApi: boolean,
       customRenderViewCreatorMap: Map<string, HRRenderViewCreator> | null,
       customMeasureRenderViews: Array<string> | null) {
     this.libHippy = libHippy
+    this.enableArkCApi = enableArkCApi
     this.customRenderViewCreatorMap = customRenderViewCreatorMap
     this.customMeasureRenderViews = customMeasureRenderViews
     this.renderManager = new HRManager()
@@ -129,16 +133,41 @@ export class NativeRenderImpl implements NativeRender {
     let rootId = NativeRenderImpl.sRootIdCounter
     let rootView = new HippyRootView(this.instanceId, rootId, this.customRenderViewCreatorMap, this,
       wrappedCustomRenderViewBuilder, pageName, pageData)
+    HippyRootViewManager.addRootView(rootId, rootView)
     return rootView
   }
 
+  reloadRootView(rootView: HippyRootView) {
+    HippyRootViewManager.addRootView(rootView.getRootId(), rootView)
+  }
+
   destroyRoot(rootId: number): void {
+    HippyRootViewManager.removeRootView(rootId)
     if (this.frameworkProxy) {
       this.frameworkProxy.destroyRoot(rootId)
     }
 
     this.renderManager.destroyViewManager(rootId)
+    this.libHippy?.NativeRenderProvider_UnbindNativeRoot(this.instanceId, rootId, 0)
     this.libHippy.NativeRenderProvider_DestroyRoot(this.instanceId, rootId)
+  }
+
+  isEnableArkCApi(): boolean {
+    return this.enableArkCApi
+  }
+
+  // for c-api
+  onFirstPaint(): void {
+    if (this.frameworkProxy) {
+      this.frameworkProxy.onFirstPaint()
+    }
+  }
+
+  // for c-api
+  onFirstContentfulPaint(): void {
+    if (this.frameworkProxy) {
+      this.frameworkProxy.onFirstContentfulPaint()
+    }
   }
 
   getRenderManager(): HRManager {
@@ -183,11 +212,15 @@ export class NativeRenderImpl implements NativeRender {
     if (this.frameworkProxy != null) {
       this.frameworkProxy.onSizeChanged(rootId, width, height, oldWidth, oldHeight)
     }
-    this.libHippy?.NativeRenderProvider_UpdateRootSize(this.instanceId, rootId, width, height)
+    let w = PixelUtil.vp2dp(width)
+    let h = PixelUtil.vp2dp(height)
+    this.libHippy?.NativeRenderProvider_UpdateRootSize(this.instanceId, rootId, w, h)
   }
 
   onSizeChanged2(rootId: number, nodeId: number, width: number, height: number, isSync: boolean): void {
-    this.libHippy?.NativeRenderProvider_UpdateNodeSize(this.instanceId, rootId, nodeId, width, height, isSync)
+    let w = PixelUtil.vp2dp(width)
+    let h = PixelUtil.vp2dp(height)
+    this.libHippy?.NativeRenderProvider_UpdateNodeSize(this.instanceId, rootId, nodeId, w, h, isSync)
   }
 
   updateDimension(width: number, height: number, shouldUseScreenDisplay: boolean, systemUiVisibilityChanged: boolean) {
@@ -614,12 +647,12 @@ key1               value1
       return null
     }
 
-    if (!AppStorage.has('UIContext')) {
+    if (!AppStorage.has('UIContextForHippy')) {
       LogUtils.e("", "AppStorage has no UIContext.");
       return null
     }
 
-    let context = AppStorage.get<UIContext>('UIContext');
+    let context = AppStorage.get<UIContext>('UIContextForHippy');
 
     let view = viewManager.createRenderViewForCApi(params.tag, params.viewName)
     if (!view) {
@@ -629,10 +662,22 @@ key1               value1
     let builderNode = new BuilderNode<[HippyRenderBaseView]>(context!);
     builderNode.build(wrapBuilder(buildHippyRenderViewForCApi), view);
 
-    // TODO(hot): save BuilderNode
-    builderNodeMap.set(params.tag, builderNode);
+    let builderNodeManger = this.renderManager.getBuilerNodeManager(params.rootTag)
+    builderNodeManger?.addCustomViewBuilderNode(params.tag, builderNode)
 
     return builderNode.getFrameNode()!;
+  }
+
+  // for c-api
+  removeRenderViewForCApi(params: RemoveRenderViewParamsForCApi): void {
+    let builderNodeManger = this.renderManager.getBuilerNodeManager(params.rootTag)
+    builderNodeManger?.removeCustomViewBuilderNode(params.tag)
+
+    let viewManager = this.renderManager.getViewManager(params.rootTag)
+    if (!viewManager) {
+      return
+    }
+    viewManager.removeRenderViewForCApi(params.tag)
   }
 
   // for c-api
@@ -716,6 +761,40 @@ key1               value1
     this.libHippy?.NativeRenderProvider_SetViewEventListener(this.instanceId, rootId, nodeId, callback)
   }
 
+  getViewFrameInRoot(rootId: number, nodeId: number): HRRect | null {
+    return this.libHippy?.NativeRenderProvider_GetViewFrameInRoot(this.instanceId, rootId, nodeId)
+  }
+
+  addBizViewInRoot(rootId: number, position: HRPosition, viewBuilder: WrappedHippyBizViewBuilder, view: Object): number {
+    if (!AppStorage.has('UIContextForHippy')) {
+      LogUtils.e("", "AppStorage has no UIContext.");
+      return -1
+    }
+
+    let context = AppStorage.get<UIContext>('UIContextForHippy');
+
+    let builderNode = new BuilderNode<[Object]>(context!);
+    builderNode.build(viewBuilder, view);
+
+    let bizViewId = ++NativeRenderImpl.sBizViewIdCounter;
+    let builderNodeManger = this.renderManager.getBuilerNodeManager(rootId);
+    builderNodeManger?.addBizViewBuilderNode(bizViewId, builderNode);
+
+    let frameNode = builderNode.getFrameNode();
+    if (!frameNode) {
+      return -1
+    }
+
+    this.libHippy?.NativeRenderProvider_AddBizViewInRoot(this.instanceId, rootId, bizViewId, frameNode, position.x, position.y)
+    return bizViewId
+  }
+
+  removeBizViewInRoot(rootId: number, bizViewId: number): void {
+    this.libHippy?.NativeRenderProvider_RemoveBizViewInRoot(this.instanceId, rootId, bizViewId)
+
+    let builderNodeManger = this.renderManager.getBuilerNodeManager(rootId);
+    builderNodeManger?.removeBizViewBuilderNode(bizViewId);
+  }
 
 }
 

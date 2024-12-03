@@ -21,6 +21,7 @@
  */
 
 #include "oh_napi/data_holder.h"
+#include "footstone/logging.h"
 
 namespace hippy {
 inline namespace framework {
@@ -28,6 +29,34 @@ inline namespace ohnapi {
 
 std::atomic<uint32_t> global_data_holder_key{1};
 footstone::utils::PersistentObjectMap<uint32_t, std::any> global_data_holder;
+
+footstone::utils::PersistentObjectMap<uint32_t, uint32_t> global_dom_manager_num_holder;
+footstone::utils::PersistentObjectMap<uint32_t, uint32_t> global_dom_manager_current_id_holder;
+
+uint32_t GlobalGetNextDomManagerId(uint32_t first_dom_manager_id) {
+  uint32_t dom_manager_num = 0;
+  auto flag = hippy::global_dom_manager_num_holder.Find(first_dom_manager_id, dom_manager_num);
+  FOOTSTONE_CHECK(flag);
+  if (dom_manager_num <= 1) {
+    return first_dom_manager_id;
+  }
+  
+  uint32_t current_dom_manager_id = 0;
+  uint32_t next_id = 0;
+  flag = hippy::global_dom_manager_current_id_holder.Find(first_dom_manager_id, current_dom_manager_id);
+  if (flag) {
+    next_id = current_dom_manager_id + 1;
+    if (next_id >= (first_dom_manager_id + dom_manager_num)) {
+      next_id = first_dom_manager_id;
+    }
+    hippy::global_dom_manager_current_id_holder.Erase(first_dom_manager_id);
+    hippy::global_dom_manager_current_id_holder.Insert(first_dom_manager_id, next_id);
+  } else {
+    next_id = first_dom_manager_id;
+    hippy::global_dom_manager_current_id_holder.Insert(first_dom_manager_id, next_id);
+  }
+  return next_id;
+}
 
 }
 }

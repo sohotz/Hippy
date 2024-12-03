@@ -72,6 +72,7 @@ export interface HippyEngine {
 export function createHippyEngine(params: EngineInitParams): HippyEngine {
   params.check()
   LogUtils.enableDebugLog(params.enableLog)
+  params.libHippy?.Setting_SetFlags(params.enableUpdateAnimLog);
   return new HippyEngineManagerImpl(params)
 }
 
@@ -100,6 +101,14 @@ export class EngineInitParams {
   libHippy: HippyLibrary
   // 必须 宿主（Hippy的使用者）的UIAbilityContext
   public context: Context;
+  // 必须 宿主（Hippy的使用者）的UIContext，当CApi创建自定义ts组件或WebView组件时需要
+  // 1 默认使用CApi，enableArkCApi开关控制；WebView的支持类似自定义ts组件;
+  // 2 需要外部设置，是因为外部可在创建HippyRoot组件前提前创建view，这时候Hippy内部没创建过ts组件拿不到；
+  public uiContext: UIContext | null;
+  // 可选参数 true:资源文件来自rawfile目录; false:资源文件来自resfile目录
+  public isLoadFromRawfile: boolean = true;
+  // 可选参数 资源文件来自resfile目录时，资源文件所在模块的名字，比如某个hsp模块
+  public resModuleName: string = "entry";
   // 可选参数 核心的jsbundle的assets路径（assets路径和文件路径二选一，优先使用assets路径），debugMode = false时有效
   public coreJSAssetsPath: string = '';
   // 可选参数 核心的jsbundle的文件路径（assets路径和文件路径二选一，优先使用assets路径）,debugMode = false时有效
@@ -120,9 +129,11 @@ export class EngineInitParams {
   public providers: Array<HippyAPIProvider> | null = null;
   // public processors: Array<Processor> | null = null;
   // Optional  is use V8 serialization or json
-  public enableV8Serialization = true;
+  public enableV8Serialization = false;
   // 可选参数 是否打印引擎的完整的log。默认为false
   public enableLog = false;
+  // 可选参数 是否打印更新动画的log。默认为true
+  public enableUpdateAnimLog = true;
   // 可选参数 code cache的名字，如果设置为空，则不启用code cache，默认为 ""
   public codeCacheTag = "";
   //可选参数 接收RuntimeId
@@ -154,13 +165,22 @@ export class EngineInitParams {
   public v8InitParams: V8InitParams | null = null;
   public enableTurbo = false;
   public enableArkCApi: boolean = true;
+  // 可选参数 是否集成JS引擎功能
+  public integrateJSEngine: boolean = true;
+  // 可选参数 domManager并行数量，即dom多线程的数量，默认只有1个dom线程
+  public domManagerConcurrentNum: number = 1;
 
   constructor(
     libHippy: HippyLibrary,
-    context: Context
+    context: Context,
+    uiContext: UIContext | null
   ) {
     this.libHippy = libHippy
     this.context = context
+    this.uiContext = uiContext
+    if (uiContext) {
+      AppStorage.setOrCreate<UIContext>('UIContextForHippy', uiContext)
+    }
   }
 
   check() {

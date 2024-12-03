@@ -69,6 +69,7 @@ set(SOURCE_SET
   src/utils/hr_pixel_utils.cc
   src/utils/hr_text_convert_utils.cc
   src/utils/hr_url_utils.cc
+  src/utils/hr_display_sync_utils.cc
   src/virtual/hr_virtual_view_manager.cc
   src/virtual/hr_virtual_view.cc
   src/arkui/arkui_node.cc
@@ -104,6 +105,7 @@ set(SOURCE_SET
   src/components/list_item_view.cc
   src/components/list_view.cc
   src/components/modal_view.cc
+  src/components/pager_item_adapter.cc
   src/components/pager_item_view.cc
   src/components/pager_view.cc
   src/components/pull_footer_view.cc
@@ -118,6 +120,7 @@ set(SOURCE_SET
   src/components/text_input_view.cc
   src/components/waterfall_item_view.cc
   src/components/waterfall_view.cc
+  src/recycle/recycle_view.cc
   )
 set(PUBLIC_SOURCE_SET
   src/native_render_provider_capi.cc

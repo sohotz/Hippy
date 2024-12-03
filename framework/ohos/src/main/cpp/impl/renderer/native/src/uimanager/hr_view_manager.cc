@@ -30,6 +30,9 @@
 #include "renderer/components/custom_ts_view.h"
 #include "renderer/components/custom_view.h"
 #include "renderer/components/hippy_render_view_creator.h"
+#include "renderer/components/modal_view.h"
+#include "renderer/components/rich_text_view.h"
+#include "renderer/dom_node/hr_node_props.h"
 #include "renderer/native_render_context.h"
 #include "footstone/logging.h"
 
@@ -39,14 +42,15 @@ inline namespace native {
 
 HRViewManager::HRViewManager(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render,
     napi_env ts_env, napi_ref ts_render_provider_ref,
-    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views)
+    std::set<std::string> &custom_views, std::map<std::string, std::string> &mapping_views, bool is_rawfile, const std::string &res_module_name)
   : serializer_(std::make_shared<footstone::value::Serializer>()) {
   root_id_ = root_id;
-  ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id, native_render);
+  ctx_ = std::make_shared<NativeRenderContext>(instance_id, root_id, native_render, is_rawfile, res_module_name);
   root_view_ = std::make_shared<RootView>(ctx_);
   root_view_->SetTag(root_id);
   std::string root_view_type = "RootView";
   root_view_->SetViewType(root_view_type);
+  root_view_->CreateArkUINode(false);
   view_registry_[root_id] = root_view_;
   
   mapping_render_views_ = mapping_views;
@@ -75,7 +79,9 @@ void HRViewManager::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32
   
   nodeContentMap_[current_id] = contentHandle;
   OH_ArkUI_NodeContent_RegisterCallback(contentHandle, nullptr);
-  OH_ArkUI_NodeContent_AddNode(contentHandle, view->GetLocalRootArkUINode().GetArkUINodeHandle());
+  OH_ArkUI_NodeContent_AddNode(contentHandle, view->GetLocalRootArkUINode()->GetArkUINodeHandle());
+  isFirstViewAdd = false;
+  isFirstContentViewAdd = FCPType::NONE;  
 }
 
 void HRViewManager::UnbindNativeRoot(uint32_t node_id) {
@@ -91,8 +97,41 @@ void HRViewManager::UnbindNativeRoot(uint32_t node_id) {
     return;
   }
   auto view = viewIt->second;
-  OH_ArkUI_NodeContent_RemoveNode(savedHandle, view->GetLocalRootArkUINode().GetArkUINodeHandle());
+  OH_ArkUI_NodeContent_RemoveNode(savedHandle, view->GetLocalRootArkUINode()->GetArkUINodeHandle());
   nodeContentMap_.erase(current_id);
+}
+
+void HRViewManager::reportFirstViewAdd() {
+  isFirstViewAdd = true;
+  ArkTS arkTs(ts_env_);
+  std::vector<napi_value> args = {};
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("onFirstPaint", args);
+}
+
+void HRViewManager::reportFirstContentViewAdd() {
+  isFirstContentViewAdd = FCPType::MARKED;
+  ArkTS arkTs(ts_env_);
+  std::vector<napi_value> args = {};
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("onFirstContentfulPaint", args);
+}
+
+void HRViewManager::prepareReportFirstContentViewAdd(std::shared_ptr<HRMutation> &m) {
+  if (m->type_ == HRMutationType::CREATE) {
+    auto tm = std::static_pointer_cast<HRCreateMutation>(m);
+    if (isFirstContentViewAdd == FCPType::NONE) {
+      if (tm->props_.size() > 0) {
+        for (auto it = tm->props_.begin(); it != tm->props_.end(); it++) {
+          auto &key = it->first;
+          if (key.length() > 0 && key == "paintType") {
+            FOOTSTONE_DLOG(ERROR) << "TimeMonitor, fcp start";
+            isFirstContentViewAdd = FCPType::WAIT;
+          }
+        }
+      }
+    }
+  }
 }
 
 void HRViewManager::AddMutations(std::shared_ptr<HRMutation> &m) {
@@ -104,6 +143,9 @@ void HRViewManager::ApplyMutations() {
     ApplyMutation(*it);
   }
   mutations_.clear();
+  if (isFirstContentViewAdd == FCPType::WAIT) {
+    reportFirstContentViewAdd();
+  }
 }
 
 void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
@@ -111,8 +153,14 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
     auto tm = std::static_pointer_cast<HRCreateMutation>(m);
     auto view = CreateRenderView(tm->tag_, tm->view_name_, tm->is_parent_text_);
     if (view) {
-      InsertSubRenderView(tm->parent_tag_, view, tm->index_);
       UpdateProps(view, tm->props_);
+      InsertSubRenderView(tm->parent_tag_, view, tm->index_);
+    }
+    if (!isFirstViewAdd) {
+      reportFirstViewAdd();
+    }
+    if (isFirstContentViewAdd == FCPType::NONE) {
+      prepareReportFirstContentViewAdd(m);
     }
   } else if (m->type_ == HRMutationType::UPDATE) {
     auto tm = std::static_pointer_cast<HRUpdateMutation>(m);
@@ -135,12 +183,30 @@ void HRViewManager::ApplyMutation(std::shared_ptr<HRMutation> &m) {
     );
   } else if (m->type_ == HRMutationType::UPDATE_EVENT_LISTENER) {
     auto tm = std::static_pointer_cast<HRUpdateEventListenerMutation>(m);
-    UpdateProps(tm->tag_, tm->props_);
     UpdateEventListener(tm->tag_, tm->props_);
+    UpdateProps(tm->tag_, tm->props_);
+  } else if (m->type_ == HRMutationType::TEXT_ELLIPSIZED_EVENT) {
+    auto tm = std::static_pointer_cast<HRTextEllipsizedEventMutation>(m);
+    SendTextEllipsizedEvent(tm->tag_);
   }
 }
 
+std::shared_ptr<BaseView> HRViewManager::FindRenderView(uint32_t tag) {
+  auto exist_it = view_registry_.find(tag);
+  auto exist_view = exist_it != view_registry_.end();
+  if (exist_view) {
+    return exist_it->second;
+  }
+  
+  return nullptr;
+}
+
 std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  auto exist_view = FindRenderView(tag);
+  if (exist_view) {
+    return exist_view;
+  }
+  
   // custom ts view
   if (IsCustomTsRenderView(view_name)) {
     return CreateCustomTsRenderView(tag, view_name, is_parent_text);
@@ -168,9 +234,12 @@ std::shared_ptr<BaseView> HRViewManager::CreateRenderView(uint32_t tag, std::str
   return nullptr;
 }
 
+std::shared_ptr<BaseView> HRViewManager::PreCreateRenderView(uint32_t tag, std::string &view_name, bool is_parent_text) {
+  return CreateRenderView(tag, view_name, is_parent_text);
+}
+
 void HRViewManager::RemoveRenderView(uint32_t tag) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     renderView->RemoveFromParentView();
     RemoveFromRegistry(renderView);
@@ -182,14 +251,30 @@ void HRViewManager::RemoveFromRegistry(std::shared_ptr<BaseView> &renderView) {
   for (uint32_t i = 0; i < children.size(); i++) {
     RemoveFromRegistry(children[i]);
   }
+  
   view_registry_.erase(renderView->GetTag());
+  
+  // custom ts view
+  if (IsCustomTsRenderView(renderView->GetViewType())) {
+    RemoveCustomTsRenderView(renderView->GetTag());
+  }
 }
 
 void HRViewManager::InsertSubRenderView(uint32_t parentTag, std::shared_ptr<BaseView> &childView, int32_t index) {
-  auto it = view_registry_.find(parentTag);
-  std::shared_ptr<BaseView> parentView = it != view_registry_.end() ? it->second : nullptr;
+  if (childView->GetViewType() == "Modal") {
+    auto modalView = std::static_pointer_cast<ModalView>(childView);
+    modalView->Show();
+    return;
+  }
+  
+  auto parentView = FindRenderView(parentTag);
   if (parentView && childView) {
-    parentView->AddSubRenderView(childView, index);
+    auto grandParentView = parentView->GetParent().lock();
+    if (grandParentView && grandParentView->GetViewType() == "Text" && parentView->GetViewType() == "Text") {
+      grandParentView->AddSubRenderView(childView, INT_MAX);
+    } else {
+      parentView->AddSubRenderView(childView, index);
+    }
   } else {
     FOOTSTONE_DLOG(INFO) << "InsertSubRenderView parentTag:" << parentTag << ", child:" << childView->GetTag();
   }
@@ -200,8 +285,7 @@ static bool SortMoveNodeInfo(const HRMoveNodeInfo &lhs, const HRMoveNodeInfo &rh
 }
 
 void HRViewManager::MoveRenderView(std::vector<HRMoveNodeInfo> nodeInfos, uint32_t parentTag) {
-  auto it = view_registry_.find(parentTag);
-  std::shared_ptr<BaseView> parentView = it != view_registry_.end() ? it->second : nullptr;
+  auto parentView = FindRenderView(parentTag);
   if (!parentView) {
     FOOTSTONE_LOG(WARNING) << "MoveRenderView fail";
     return;
@@ -210,9 +294,8 @@ void HRViewManager::MoveRenderView(std::vector<HRMoveNodeInfo> nodeInfos, uint32
   std::sort(nodeInfos.begin(), nodeInfos.end(), SortMoveNodeInfo);
   for (uint32_t i = 0; i < nodeInfos.size(); i++) {
     auto &info = nodeInfos[i];
-    auto childIt = view_registry_.find(info.tag_);
-    if (childIt != view_registry_.end()) {
-      auto &child = childIt->second;
+    auto child = FindRenderView(info.tag_);
+    if (child) {
       child->RemoveFromParentView();
       parentView->AddSubRenderView(child, info.index_);
     }
@@ -220,19 +303,16 @@ void HRViewManager::MoveRenderView(std::vector<HRMoveNodeInfo> nodeInfos, uint32
 }
 
 void HRViewManager::Move2RenderView(std::vector<uint32_t> tags, uint32_t newParentTag, uint32_t oldParentTag, int index) {
-  auto it1 = view_registry_.find(oldParentTag);
-  std::shared_ptr<BaseView> oldParent = it1 != view_registry_.end() ? it1->second : nullptr;
-  auto it2 = view_registry_.find(newParentTag);
-  std::shared_ptr<BaseView> newParent = it2 != view_registry_.end() ? it2->second : nullptr;
+  auto oldParent = FindRenderView(oldParentTag);
+  auto newParent = FindRenderView(newParentTag);
   if (!oldParent || !newParent) {
     FOOTSTONE_LOG(WARNING) << "Move2RenderView fail, oldParent=" << oldParentTag << ", newParent=" << newParentTag;
     return;
   }
   
   for (uint32_t i = 0; i < tags.size(); i++) {
-    auto childIt = view_registry_.find(tags[i]);
-    if (childIt != view_registry_.end()) {
-      auto &child = childIt->second;
+    auto child = FindRenderView(tags[i]);
+    if (child) {
       child->RemoveFromParentView();
       newParent->AddSubRenderView(child, (int)i + index);
     }
@@ -270,14 +350,16 @@ void HRViewManager::UpdateProps(std::shared_ptr<BaseView> &view, const HippyValu
 }
 
 void HRViewManager::UpdateProps(uint32_t tag, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   UpdateProps(renderView, props, deleteProps);
 }
 
+void HRViewManager::PreUpdateProps(uint32_t tag, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
+  UpdateProps(tag, props, deleteProps);
+}
+
 void HRViewManager::UpdateEventListener(uint32_t tag, HippyValueObjectType &props) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     // custom ts view
     if (IsCustomTsRenderView(renderView->GetViewType())) {
@@ -291,8 +373,7 @@ void HRViewManager::UpdateEventListener(uint32_t tag, HippyValueObjectType &prop
 }
 
 bool HRViewManager::CheckRegisteredEvent(uint32_t tag, std::string &eventName) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     return renderView->CheckRegisteredEvent(eventName);
   }
@@ -300,8 +381,7 @@ bool HRViewManager::CheckRegisteredEvent(uint32_t tag, std::string &eventName) {
 }
 
 void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const HRPadding &padding) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     // custom ts view
     if (IsCustomTsRenderView(renderView->GetViewType())) {
@@ -317,8 +397,7 @@ void HRViewManager::SetRenderViewFrame(uint32_t tag, const HRRect &frame, const 
 
 void HRViewManager::CallViewMethod(uint32_t tag, const std::string &method, const std::vector<HippyValue> params,
                     std::function<void(const HippyValue &result)> callback) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     // custom ts view
     if (IsCustomTsRenderView(renderView->GetViewType())) {
@@ -334,13 +413,20 @@ void HRViewManager::CallViewMethod(uint32_t tag, const std::string &method, cons
 LayoutSize HRViewManager::CallCustomMeasure(uint32_t tag,
     float width, LayoutMeasureMode width_measure_mode,
     float height, LayoutMeasureMode height_measure_mode) {
-  auto it = view_registry_.find(tag);
-  std::shared_ptr<BaseView> renderView = it != view_registry_.end() ? it->second : nullptr;
+  auto renderView = FindRenderView(tag);
   if (renderView) {
     auto customView = std::static_pointer_cast<CustomView>(renderView);
     return customView->CustomMeasure(width, width_measure_mode, height, height_measure_mode);
   }
   return {0, 0};
+}
+
+void HRViewManager::SendTextEllipsizedEvent(uint32_t tag) {
+  auto renderView = FindRenderView(tag);
+  if (renderView && renderView->GetViewType() == "Text") {
+    auto textView = std::static_pointer_cast<RichTextView>(renderView);
+    textView->SendTextEllipsizedEvent();
+  }
 }
 
 uint64_t HRViewManager::AddEndBatchCallback(const EndBatchCallback &cb) {
@@ -371,11 +457,10 @@ void HRViewManager::DoCallbackForCallCustomTsView(uint32_t node_id, uint32_t cal
 }
 
 bool HRViewManager::GetViewParent(uint32_t node_id, uint32_t &parent_id, std::string &parent_view_type) {
-  auto viewIt = view_registry_.find(node_id);
-  if (viewIt == view_registry_.end()) {
+  auto view = FindRenderView(node_id);
+  if (!view) {
     return false;
   }
-  auto view = viewIt->second;
   auto parentView = view->GetParent().lock();
   if (parentView) {
     parent_id = parentView->GetTag();
@@ -386,11 +471,10 @@ bool HRViewManager::GetViewParent(uint32_t node_id, uint32_t &parent_id, std::st
 }
 
 bool HRViewManager::GetViewChildren(uint32_t node_id, std::vector<uint32_t> &children_ids, std::vector<std::string> &children_view_types) {
-  auto viewIt = view_registry_.find(node_id);
-  if (viewIt == view_registry_.end()) {
+  auto view = FindRenderView(node_id);
+  if (!view) {
     return false;
   }
-  auto view = viewIt->second;
   auto childrenViews = view->GetChildren();
   for (int i = 0; i < (int)childrenViews.size(); i++) {
     auto &child = childrenViews[(size_t)i];
@@ -401,12 +485,45 @@ bool HRViewManager::GetViewChildren(uint32_t node_id, std::vector<uint32_t> &chi
 }
 
 void HRViewManager::SetViewEventListener(uint32_t node_id, napi_ref callback_ref) {
-  auto viewIt = view_registry_.find(node_id);
-  if (viewIt == view_registry_.end()) {
+  auto view = FindRenderView(node_id);
+  if (!view) {
     return;
   }
-  auto view = viewIt->second;
   view->SetTsEventCallback(callback_ref);
+}
+
+HRRect HRViewManager::GetViewFrameInRoot(uint32_t node_id) {
+  auto view = FindRenderView(node_id);
+  if (!view) {
+    return {0, 0, 0, 0};
+  }
+  auto viewPos = view->GetLocalRootArkUINode()->GetLayoutPositionInScreen();
+  auto rootPos = root_view_->GetLocalRootArkUINode()->GetLayoutPositionInWindow();
+  auto size = view->GetLocalRootArkUINode()->GetSize();
+
+  return {viewPos.x - rootPos.x, viewPos.y - rootPos.y, size.width, size.height};
+}
+
+void HRViewManager::AddBizViewInRoot(uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position) {
+  auto view = std::make_shared<CustomTsView>(ctx_, node_handle);
+  view->Init();
+  view->SetTag(biz_view_id);
+  view->SetViewType("BizView");
+  view->SetTsRenderProvider(ts_env_, ts_render_provider_ref_);
+  view->SetPosition(position);
+  biz_view_registry_[biz_view_id] = view;
+  
+  auto tview = std::static_pointer_cast<BaseView>(view);
+  InsertSubRenderView(ctx_->GetRootId(), tview, INT_MAX);
+}
+
+void HRViewManager::RemoveBizViewInRoot(uint32_t biz_view_id) {
+  auto it = biz_view_registry_.find(biz_view_id);
+  std::shared_ptr<BaseView> renderView = it != biz_view_registry_.end() ? it->second : nullptr;
+  if (renderView) {
+    renderView->RemoveFromParentView();
+    biz_view_registry_.erase(biz_view_id);
+  }
 }
 
 bool HRViewManager::IsCustomTsRenderView(std::string &view_name) {
@@ -436,7 +553,6 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   
   napi_valuetype type = arkTs.GetType(tsNode);
   if (type == napi_null) {
-    // TODO(hot): check tsNode not null
     FOOTSTONE_LOG(ERROR) << "create ts view error, tsNode null";
     return nullptr;
   }
@@ -444,7 +560,6 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   ArkUI_NodeHandle nodeHandle = nullptr;
   auto status = OH_ArkUI_GetNodeHandleFromNapiValue(ts_env_, tsNode, &nodeHandle);
   if (status != ARKUI_ERROR_CODE_NO_ERROR) {
-    // TODO(hot):
     FOOTSTONE_LOG(ERROR) << "create ts view error, nodeHandle fail, status: " << status << ", nodeHandle: " << nodeHandle;
     return nullptr;
   }
@@ -458,6 +573,21 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomTsRenderView(uint32_t tag, 
   view->SetTsRenderProvider(ts_env_, ts_render_provider_ref_);
   view_registry_[tag] = view;
   return view;
+}
+
+void HRViewManager::RemoveCustomTsRenderView(uint32_t tag) {
+  ArkTS arkTs(ts_env_);
+
+  auto params_builder = arkTs.CreateObjectBuilder();
+  params_builder.AddProperty("rootTag", ctx_->GetRootId());
+  params_builder.AddProperty("tag", tag);
+  
+  std::vector<napi_value> args = {
+    params_builder.Build()
+  };
+  
+  auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
+  delegateObject.Call("removeRenderViewForCApi", args);
 }
 
 void HRViewManager::UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const HippyValueObjectType &props, const std::vector<std::string> &deleteProps) {
@@ -485,6 +615,20 @@ void HRViewManager::UpdateCustomTsProps(std::shared_ptr<BaseView> &view, const H
   
   auto delegateObject = arkTs.GetObject(ts_render_provider_ref_);
   delegateObject.Call("updatePropsForCApi", args);
+  
+  auto it = view_registry_.find(view->GetTag());
+  std::shared_ptr<BaseView> customTsView = it != view_registry_.end() ? it->second : nullptr;
+  if (customTsView) {
+    if (props.size() > 0) {
+      for (auto prop_it = props.begin(); prop_it != props.end(); prop_it++) {
+        auto &key = prop_it->first;
+        if (key == HRNodeProps::VISIBILITY || key == HRNodeProps::TRANSFORM || key == HRNodeProps::OVERFLOW) {
+          customTsView->SetProp(key, prop_it->second);
+        }
+      }
+    }
+    customTsView->OnSetPropsEnd();
+  }
 }
 
 void HRViewManager::UpdateCustomTsEventListener(uint32_t tag, HippyValueObjectType &props) {
@@ -570,6 +714,17 @@ std::shared_ptr<BaseView> HRViewManager::CreateCustomRenderView(uint32_t tag, st
       view_registry_[tag] = view;
       return view;
     }
+  }
+  return nullptr;
+}
+
+std::shared_ptr<BaseView> HRViewManager::GetViewFromRegistry(uint32_t node_id) {
+  if (node_id > 0) {
+    auto viewIt = view_registry_.find(node_id);
+    if (viewIt == view_registry_.end()) {
+      return nullptr;
+    }
+    return viewIt->second;
   }
   return nullptr;
 }

@@ -34,17 +34,21 @@ public:
   virtual void OnScroll(float xOffset, float yOffset) {}
   virtual void OnScrollStart() {}
   virtual void OnScrollStop() {}
-  virtual float OnScrollFrameBegin(float offset, int32_t scrollState) { return offset; }
-  virtual void OnTouch(int32_t actionType) {}
 };
 
 class ScrollNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    SCROLL_BAR_DISPLAY_MODE = 0,
+    SCROLL_ENABLE_PAGING,
+    SCROLL_FRICTION,
+    SCROLL_ENABLE_SCROLL_INTERACTION,
+    SCROLL_SCROLL_DIRECTION,
+    SCROLL_NESTED_SCROLL,
+    SCROLL_EDGE_EFFECT,
+    SCROLL_OFFSET,
+  };
   ScrollNodeDelegate *scrollNodeDelegate_;
-  bool showScrollIndicator_;
-  bool pagingEnabled_;
-  float friction_;
-  bool scrollEnabled_;
   ArkUI_ScrollDirection axis_;
   float initialContentOffset_;
   float scrollEventThrottle_;
@@ -65,8 +69,6 @@ public:
   ScrollNode &SetScrollEventThrottle(float scrollEventThrottle);
   ScrollNode &SetScrollMinOffset(float scrollMinOffset);
   ScrollNode &SetNestedScroll(ArkUI_ScrollNestedMode forward, ArkUI_ScrollNestedMode backward);
-  ScrollNode &SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode); 
-  ScrollNode &SetScrollEnableInteraction(bool bEnable);
   ScrollNode &SetScrollEdgeEffect(ArkUI_EdgeEffect effect);
   void ScrollTo(float x, float y, bool animated, int32_t duration = 0);
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
@@ -75,6 +77,8 @@ public:
   ArkUI_ScrollDirection GetAxis() const;
   float GetScrollMinOffset() const;
   float GetScrollEventThrottle() const;
+  
+  void ResetAllAttributes() override;
 };
 
 } // namespace native

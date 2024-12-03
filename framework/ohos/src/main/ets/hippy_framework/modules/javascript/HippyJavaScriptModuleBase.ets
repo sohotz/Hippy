@@ -17,8 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  HippyMap,
+import { HippyAny, HippyMap,
   HippyModuleCallback } from '../../../support/common/HippyTypes';
 import { HippyEngineContext } from '../../HippyEngineContext';
 
@@ -30,7 +29,7 @@ export class HippyJavaScriptModuleBase {
     this.mHippyContext = ctx
   }
 
-  callJs(moduleName: string, method: string, params: HippyMap, callback: HippyModuleCallback | null): void {
-    this.mHippyContext.getBridgeManager().callJavaScriptModule(moduleName, method, params);
+  callJs(moduleName: string, method: string, params: HippyAny, callback: HippyModuleCallback | null): void {
+    this.mHippyContext.getBridgeManager()?.callJavaScriptModule(moduleName, method, params);
   }
 }

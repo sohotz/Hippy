@@ -25,8 +25,10 @@
 #include "oh_napi/oh_napi_object_builder.h"
 #include "footstone/logging.h"
 #include <bits/alltypes.h>
+#include <future>
 #include <napi/native_api.h>
 #include <string>
+#include <thread>
 
 ArkTS::ArkTS(napi_env env) {
   env_ = env;

@@ -22,6 +22,7 @@
 
 #include "renderer/arkui/scroll_node.h"
 #include "renderer/arkui/native_node_api.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
@@ -31,7 +32,6 @@ static constexpr ArkUI_NodeEventType SCROLL_NODE_EVENT_TYPES[] = {
   NODE_SCROLL_EVENT_ON_SCROLL,
   NODE_SCROLL_EVENT_ON_SCROLL_START,
   NODE_SCROLL_EVENT_ON_SCROLL_STOP,
-  NODE_TOUCH_EVENT
 };
 
 ScrollNode::ScrollNode()
@@ -41,6 +41,7 @@ ScrollNode::ScrollNode()
   scrollEventThrottle_ = 30;
   scrollMinOffset_ = 5;
   RegisterAppearEvent();
+  RegisterTouchEvent();
   for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
     MaybeThrow(NativeNodeApi::GetInstance()->registerNodeEvent(nodeHandle_, eventType, 0, nullptr));
   }
@@ -48,6 +49,7 @@ ScrollNode::ScrollNode()
 
 ScrollNode::~ScrollNode() {
   UnregisterAppearEvent();
+  UnregisterTouchEvent();
   for (auto eventType : SCROLL_NODE_EVENT_TYPES) {
     NativeNodeApi::GetInstance()->unregisterNodeEvent(nodeHandle_, eventType);
   }
@@ -56,7 +58,6 @@ ScrollNode::~ScrollNode() {
 void ScrollNode::SetNodeDelegate(ScrollNodeDelegate *scrollNodeDelegate) { scrollNodeDelegate_ = scrollNodeDelegate; }
 
 ScrollNode &ScrollNode::SetShowScrollIndicator(bool showScrollIndicator) {
-  showScrollIndicator_ = showScrollIndicator;
   ArkUI_ScrollBarDisplayMode displayMode = ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF;
   if (showScrollIndicator) {
     displayMode = ARKUI_SCROLL_BAR_DISPLAY_MODE_AUTO;
@@ -65,26 +66,24 @@ ScrollNode &ScrollNode::SetShowScrollIndicator(bool showScrollIndicator) {
   ArkUI_NumberValue value[] = {{.i32 = static_cast<int32_t>(displayMode)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_BAR_DISPLAY_MODE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_BAR_DISPLAY_MODE);
   return *this;
 }
 
 ScrollNode &ScrollNode::SetPagingEnabled(bool pagingEnabled) {
-  if (pagingEnabled_ == pagingEnabled) {
-    return *this;
-  }
-  pagingEnabled_ = pagingEnabled;
   ArkUI_NumberValue value[] = {{.i32 = static_cast<int32_t>(pagingEnabled)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_ENABLE_PAGING, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_ENABLE_PAGING);
   return *this;
 }
 
 ScrollNode &ScrollNode::SetFlingEnabled(bool flingEnabled) {
   float friction = flingEnabled ? 20 : static_cast<float>(0.8);
-  friction_ = friction;
   ArkUI_NumberValue value[] = {{.f32 = static_cast<float>(friction)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_FRICTION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_FRICTION);
   return *this;
 }
 
@@ -100,13 +99,10 @@ ScrollNode &ScrollNode::SetContentOffset4Reuse(const HRPoint &contentOffset4Reus
 }
 
 ScrollNode &ScrollNode::SetScrollEnabled(bool scrollEnabled) {
-  if (scrollEnabled_ == scrollEnabled) {
-    return *this;
-  }
-  scrollEnabled_ = scrollEnabled;
   ArkUI_NumberValue value[] = {{.i32 = static_cast<int32_t>(scrollEnabled)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_ENABLE_SCROLL_INTERACTION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_ENABLE_SCROLL_INTERACTION);
   return *this;
 }
 
@@ -119,6 +115,7 @@ ScrollNode &ScrollNode::SetHorizontal(bool horizontal) {
   ArkUI_NumberValue value[] = {{.i32 = static_cast<int32_t>(scrollDirection)}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_SCROLL_DIRECTION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_SCROLL_DIRECTION);
   return *this;
 }
 
@@ -141,29 +138,16 @@ ScrollNode &ScrollNode::SetNestedScroll(ArkUI_ScrollNestedMode forward, ArkUI_Sc
   ArkUI_NumberValue value[] = {{.i32 = forward},{.i32 = backward}}; 
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_NESTED_SCROLL, &item));
-  return *this;    
-}
-
-ScrollNode &ScrollNode::SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode)
-{
-  ArkUI_NumberValue value[] = {{.i32 = mode},}; 
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_BAR_DISPLAY_MODE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_NESTED_SCROLL);
   return *this;
-}
-
-ScrollNode &ScrollNode::SetScrollEnableInteraction(bool bEnable){
-  ArkUI_NumberValue value[] = {{.i32 = bEnable},};
-  ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
-  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_ENABLE_SCROLL_INTERACTION, &item));
-  return *this;  
 }
 
 ScrollNode &ScrollNode::SetScrollEdgeEffect(ArkUI_EdgeEffect effect) {
   ArkUI_NumberValue value[] = {{.i32 = effect},};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_EDGE_EFFECT, &item));
-  return *this;  
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_EDGE_EFFECT);
+  return *this;
 }
 
 void ScrollNode::OnNodeEvent(ArkUI_NodeEvent *event) {
@@ -183,13 +167,6 @@ void ScrollNode::OnNodeEvent(ArkUI_NodeEvent *event) {
     float x = nodeComponentEvent->data[0].f32;
     float y = nodeComponentEvent->data[1].f32;
     scrollNodeDelegate_->OnScroll(x, y);
-  } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
-    ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
-    auto type = OH_ArkUI_UIInputEvent_GetType(inputEvent);
-    if (type == ARKUI_UIINPUTEVENT_TYPE_TOUCH) {
-      auto action = OH_ArkUI_UIInputEvent_GetAction(inputEvent);
-      scrollNodeDelegate_->OnTouch(action);
-    }
   }
 }
 
@@ -202,13 +179,14 @@ void ScrollNode::ScrollTo(float x, float y, bool animated, int32_t duration) {
     timeValue = duration;
   }
   ArkUI_AttributeItem item;
-  ArkUI_NumberValue value[] = {{.f32 = x},
-                               {.f32 = y},
+  ArkUI_NumberValue value[] = {{.f32 = HRPixelUtils::DpToVp(x)},
+                               {.f32 = HRPixelUtils::DpToVp(y)},
                                {.i32 = timeValue},
                                {.i32 = ArkUI_AnimationCurve::ARKUI_CURVE_SMOOTH},
                                {.i32 = 0}};
   item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_SCROLL_OFFSET, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::SCROLL_OFFSET);
 }
 
 HRPoint ScrollNode::GetScrollContentOffset() const {
@@ -232,6 +210,22 @@ ArkUI_ScrollDirection ScrollNode::GetAxis() const { return axis_; }
 float ScrollNode::GetScrollMinOffset() const { return scrollMinOffset_; }
 
 float ScrollNode::GetScrollEventThrottle() const { return scrollEventThrottle_; }
+
+void ScrollNode::ResetAllAttributes() {
+  ArkUINode::ResetAllAttributes();
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_BAR_DISPLAY_MODE, NODE_SCROLL_BAR_DISPLAY_MODE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_ENABLE_PAGING, NODE_SCROLL_ENABLE_PAGING);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_FRICTION, NODE_SCROLL_FRICTION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_ENABLE_SCROLL_INTERACTION, NODE_SCROLL_ENABLE_SCROLL_INTERACTION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_SCROLL_DIRECTION, NODE_SCROLL_SCROLL_DIRECTION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_NESTED_SCROLL, NODE_SCROLL_NESTED_SCROLL);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_EDGE_EFFECT, NODE_SCROLL_EDGE_EFFECT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::SCROLL_OFFSET, NODE_SCROLL_OFFSET);
+  subAttributesFlagValue_ = 0;
+}
 
 } // namespace native
 } // namespace render

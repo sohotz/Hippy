@@ -23,9 +23,9 @@ export class DomManager {
   private libHippy: HippyLibrary
   public instanceId: number = 0
 
-  constructor(libHippy: HippyLibrary) {
+  constructor(libHippy: HippyLibrary, domManagerConcurrentNum: number) {
     this.libHippy = libHippy
-    this.instanceId = this.createDomManager();
+    this.instanceId = this.createDomManager(domManagerConcurrentNum);
   }
 
   destroy() {
@@ -38,8 +38,8 @@ export class DomManager {
     this.libHippy?.DomManager_SetRenderManager(this.instanceId, renderId)
   }
 
-  createDomManager(): number {
-    return this.libHippy?.DomManager_CreateDomManager()
+  createDomManager(domManagerConcurrentNum: number): number {
+    return this.libHippy?.DomManager_CreateDomManager(domManagerConcurrentNum)
   }
 
   destroyDomManager(

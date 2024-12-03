@@ -35,7 +35,9 @@ set(CMAKE_CXX_STANDARD 17)
 # 现在源码集成配置需在app的build-profile.json5里，不方便，所以先放在这里。
 # 后续hippy产物的独立后，放到hippy模块的build-profile.json5里。
 if (OHOS)
-  set(JS_ENGINE "V8")
+#  set(JS_ENGINE "V8")
+  set(V8_COMPONENT "10.6.194")
+  set(JS_ENGINE "JSH")
 endif ()
 
 # region library
@@ -52,9 +54,6 @@ endif()
 
 # region vm
 if ("${JS_ENGINE}" STREQUAL "V8")
-  if (OHOS)
-    add_subdirectory("${PROJECT_SOURCE_DIR}/v8_ohos" ./v8_ohos)
-  endif ()
   if (NOT TARGET v8)
     if (NOT V8_COMPONENT)
       message(FATAL_ERROR "The V8_COMPONENT variable must be set")
@@ -71,6 +70,8 @@ if ("${JS_ENGINE}" STREQUAL "V8")
           set(V8_REMOTE_FILENAME "windows-x64.zip")
         endif()
       endif()
+    elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "OHOS")
+      set(V8_REMOTE_FILENAME "ohos-arm64.tgz")
     elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
       if ("${CMAKE_OSX_ARCHITECTURES}" MATCHES "arm")
         set(V8_REMOTE_FILENAME "ios-arm64.tgz")
@@ -126,6 +127,8 @@ if ("${JS_ENGINE}" STREQUAL "V8")
   endif ()
 elseif ("${JS_ENGINE}" STREQUAL "JSC")
   target_compile_definitions(${PROJECT_NAME} PUBLIC "JS_JSC")
+elseif ("${JS_ENGINE}" STREQUAL "JSH")
+  target_compile_definitions(${PROJECT_NAME} PUBLIC "JS_JSH")
 endif ()
 # endregion
 
@@ -220,6 +223,13 @@ elseif ("${JS_ENGINE}" STREQUAL "JSC")
           src/napi/jsc/jsc_try_catch.cc
           src/vm/jsc/jsc_vm.cc
           src/vm/jsc/native_source_code_ios.cc)
+elseif ("${JS_ENGINE}" STREQUAL "JSH")
+  list(APPEND SOURCE_SET
+            src/napi/jsh/jsh_class_definition.cc
+            src/napi/jsh/jsh_ctx.cc
+            src/napi/jsh/jsh_try_catch.cc
+            src/vm/jsh/jsh_vm.cc
+            src/vm/jsh/native_source_code_ohos.cc)
 endif ()
 set(SOURCE_SET_STANDALONE
         src/modules/console_module.cc

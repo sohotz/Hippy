@@ -86,12 +86,14 @@ void TextInputNode::SetTextInputNodeDelegate(TextInputNodeDelegate *textInputNod
 void TextInputNode::SetTextContent(std::string const &textContent) {
   ArkUI_AttributeItem item = {.string = textContent.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_TEXT, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_TEXT);
 }
 
 void TextInputNode::SetTextSelection(int32_t start, int32_t end) {
   std::array<ArkUI_NumberValue, 2> value = {{{.i32 = start}, {.i32 = end}}};
   ArkUI_AttributeItem item = {value.data(), value.size(), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_TEXT_SELECTION, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_TEXT_SELECTION);
 }
 
 void TextInputNode::SetCaretColor(uint32_t const &color) {
@@ -99,17 +101,20 @@ void TextInputNode::SetCaretColor(uint32_t const &color) {
   ArkUI_NumberValue value = {.u32 = colorValue};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_CARET_COLOR, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_CARET_COLOR);
 }
 
 void TextInputNode::SetMaxLength(int32_t const &maxLength) {
   ArkUI_NumberValue value = {.i32 = maxLength};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_MAX_LENGTH, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_MAX_LENGTH);
 }
 
 void TextInputNode::SetPlaceholder(std::string const &placeholder) {
   ArkUI_AttributeItem item = {.string = placeholder.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_PLACEHOLDER, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_PLACEHOLDER);
 }
 
 void TextInputNode::SetPlaceholderColor(uint32_t const &color) {
@@ -117,6 +122,7 @@ void TextInputNode::SetPlaceholderColor(uint32_t const &color) {
   ArkUI_NumberValue value = {.u32 = colorValue};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_PLACEHOLDER_COLOR, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_PLACEHOLDER_COLOR);
 }
 
 std::string TextInputNode::GetTextContent() {
@@ -137,6 +143,7 @@ void TextInputNode::SetCaretHidden(bool hidden) {
     ArkUI_NumberValue value = {.f32 = 0};
     ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
     MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_CARET_STYLE, &item));
+    SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_CARET_STYLE);
   } else {
     MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_INPUT_CARET_STYLE));
   }
@@ -146,6 +153,7 @@ void TextInputNode::SetInputType(int32_t const &keyboardType) {
   ArkUI_NumberValue value = {.i32 = keyboardType};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_TYPE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_TYPE);
 }
 
 void TextInputNode::SetSelectedBackgroundColor(uint32_t const &color) {
@@ -153,25 +161,28 @@ void TextInputNode::SetSelectedBackgroundColor(uint32_t const &color) {
   ArkUI_AttributeItem colorItem = {&selectedBackgroundColor, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(
     NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_SELECTED_BACKGROUND_COLOR, &colorItem));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_SELECTED_BACKGROUND_COLOR);
 }
 
 void TextInputNode::SetPasswordIconVisibility(bool isVisible) {
   ArkUI_NumberValue value = {.i32 = isVisible ? 1 : 0};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_SHOW_PASSWORD_ICON, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_SHOW_PASSWORD_ICON);
 }
 
 void TextInputNode::SetEnterKeyType(ArkUI_EnterKeyType const &returnKeyType) {
   ArkUI_NumberValue value = {.i32 = returnKeyType};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_ENTER_KEY_TYPE, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_ENTER_KEY_TYPE);
 }
 
-void TextInputNode::SetCancelButtonMode(uint32_t mode) {
-  int32_t cancelButtonStyle = static_cast<int32_t>(ARKUI_CANCELBUTTON_STYLE_INVISIBLE); // TODO(hot):
-  ArkUI_NumberValue value[] = {{.i32 = cancelButtonStyle}};
+void TextInputNode::SetCancelButtonMode(ArkUI_CancelButtonStyle mode) {
+  ArkUI_NumberValue value[] = {{.i32 = mode}};
   ArkUI_AttributeItem item = {value, sizeof(value) / sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_CANCEL_BUTTON, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_CANCEL_BUTTON);
 }
 
 void TextInputNode::ResetSelectedBackgroundColor() {
@@ -182,6 +193,7 @@ void TextInputNode::SetTextEditing(bool const enable){
   ArkUI_NumberValue value = {.i32 = enable ? 1 : 0};
   ArkUI_AttributeItem item = {&value, sizeof(ArkUI_NumberValue), nullptr, nullptr};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_INPUT_EDITING, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_INPUT_EDITING);
 }
 
 HRRect TextInputNode::GetTextContentRect() {
@@ -192,6 +204,29 @@ HRRect TextInputNode::GetTextContentRect() {
   float h = static_cast<float>(item->value[3].f32);
   HRRect rect(x, y, w, h);
   return rect;
+}
+
+void TextInputNode::ResetAllAttributes() {
+  uint64_t savedValue = subAttributesFlagValue_;
+  TextInputBaseNode::ResetAllAttributes();
+  subAttributesFlagValue_ = savedValue;
+  if (!subAttributesFlagValue_) {
+    return;
+  }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_TEXT, NODE_TEXT_INPUT_TEXT);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_TEXT_SELECTION, NODE_TEXT_INPUT_TEXT_SELECTION);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_CARET_COLOR, NODE_TEXT_INPUT_CARET_COLOR);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_MAX_LENGTH, NODE_TEXT_INPUT_MAX_LENGTH);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_PLACEHOLDER, NODE_TEXT_INPUT_PLACEHOLDER);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_PLACEHOLDER_COLOR, NODE_TEXT_INPUT_PLACEHOLDER_COLOR);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_CARET_STYLE, NODE_TEXT_INPUT_CARET_STYLE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_TYPE, NODE_TEXT_INPUT_TYPE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_SELECTED_BACKGROUND_COLOR, NODE_TEXT_INPUT_SELECTED_BACKGROUND_COLOR);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_SHOW_PASSWORD_ICON, NODE_TEXT_INPUT_SHOW_PASSWORD_ICON);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_ENTER_KEY_TYPE, NODE_TEXT_INPUT_ENTER_KEY_TYPE);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_CANCEL_BUTTON, NODE_TEXT_INPUT_CANCEL_BUTTON);
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INPUT_EDITING, NODE_TEXT_INPUT_EDITING);
+  subAttributesFlagValue_ = 0;
 }
 
 } // namespace native

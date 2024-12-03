@@ -21,17 +21,24 @@
  */
 
 #include "renderer/native_render_impl.h"
+#include "renderer/native_render_provider_capi.h"
 #include "oh_napi/oh_napi_task_runner.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace render {
 inline namespace native {
 
-NativeRenderImpl::NativeRenderImpl(uint32_t instance_id, const std::string &bundle_path) : instance_id_(instance_id), bundle_path_(bundle_path) {}
+NativeRenderImpl::NativeRenderImpl(uint32_t instance_id, const std::string &bundle_path, bool is_rawfile, const std::string &res_module_name)
+ : instance_id_(instance_id), bundle_path_(bundle_path), is_rawfile_(is_rawfile), res_module_name_(res_module_name) {}
 
 void NativeRenderImpl::InitRenderManager() {
   auto native_render = std::static_pointer_cast<NativeRender>(shared_from_this());
-  hr_manager_ = std::make_shared<HRManager>(instance_id_, native_render);
+  hr_manager_ = std::make_shared<HRManager>(instance_id_, native_render, is_rawfile_, res_module_name_);
+}
+
+void NativeRenderImpl::SetBundlePath(const std::string &bundle_path) {
+  bundle_path_ = bundle_path;
 }
 
 void NativeRenderImpl::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uint32_t root_id, uint32_t node_id) {
@@ -39,7 +46,7 @@ void NativeRenderImpl::BindNativeRoot(ArkUI_NodeContentHandle contentHandle, uin
   if (!view_manager) {
     return;
   }
-  
+
   view_manager->BindNativeRoot(contentHandle, node_id);
 }
 
@@ -48,7 +55,7 @@ void NativeRenderImpl::UnbindNativeRoot(uint32_t root_id, uint32_t node_id) {
   if (!view_manager) {
     return;
   }
-  
+
   view_manager->UnbindNativeRoot(node_id);
 }
 
@@ -71,40 +78,52 @@ void NativeRenderImpl::DoCallbackForCallCustomTsView(uint32_t root_id, uint32_t 
 
 void NativeRenderImpl::CreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
-  auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);
-  if (!view_manager || !virtual_view_manager) {
+  if (!view_manager) {
     return;
   }
 
   for (uint32_t i = 0; i < mutations.size(); i++) {
     auto &m = mutations[i];
-
-    auto virtual_node = virtual_view_manager->CreateVirtualNode(root_id, m->tag_, m->parent_tag_, m->index_, m->props_);
-    virtual_node->view_name_ = m->view_name_;
-    virtual_view_manager->AddVirtualNode(m->tag_, virtual_node);
-
     auto tm = std::static_pointer_cast<HRMutation>(m);
     view_manager->AddMutations(tm);
   }
 }
 
-void NativeRenderImpl::UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations) {
+void NativeRenderImpl::PreCreateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRCreateMutation>> &mutations) {
   auto view_manager = hr_manager_->GetViewManager(root_id);
-  auto virtual_view_manager = hr_manager_->GetVirtualNodeManager(root_id);
-  if (!view_manager || !virtual_view_manager) {
+  if (!view_manager) {
     return;
   }
 
   for (uint32_t i = 0; i < mutations.size(); i++) {
     auto &m = mutations[i];
+    view_manager->PreCreateRenderView(m->tag_, m->view_name_, m->is_parent_text_);
+    view_manager->PreUpdateProps(m->tag_, m->props_);
+  }
+}
 
-    auto virtual_node = virtual_view_manager->GetVirtualNode(m->tag_);
-    if (virtual_node && virtual_node->props_.size() > 0) {
-      // TODO(hot):
-    }
+void NativeRenderImpl::UpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
 
+  for (uint32_t i = 0; i < mutations.size(); i++) {
+    auto &m = mutations[i];
     auto tm = std::static_pointer_cast<HRMutation>(m);
     view_manager->AddMutations(tm);
+  }
+}
+
+void NativeRenderImpl::PreUpdateNode(uint32_t root_id, const std::vector<std::shared_ptr<HRUpdateMutation>> &mutations) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+
+  for (uint32_t i = 0; i < mutations.size(); i++) {
+    auto &m = mutations[i];
+    view_manager->PreUpdateProps(m->tag_, m->props_, m->delete_props_);
   }
 }
 
@@ -133,7 +152,7 @@ void NativeRenderImpl::DeleteNode(uint32_t root_id, const std::vector<std::share
   if (!view_manager) {
     return;
   }
-  
+
   for (uint32_t i = 0; i < mutations.size(); i++) {
     auto &m = mutations[i];
     auto tm = std::static_pointer_cast<HRMutation>(m);
@@ -213,7 +232,7 @@ void NativeRenderImpl::SpanPosition(uint32_t root_id, uint32_t node_id, float x,
   if (!view_manager) {
     return;
   }
-  
+
   std::shared_ptr<HRUpdateLayoutMutation> m = std::make_shared<HRUpdateLayoutMutation>();
   m->tag_ = node_id;
   m->left_ = x;
@@ -222,8 +241,28 @@ void NativeRenderImpl::SpanPosition(uint32_t root_id, uint32_t node_id, float x,
   view_manager->AddMutations(tm);
 }
 
+void NativeRenderImpl::TextEllipsized(uint32_t root_id, uint32_t node_id) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  
+  std::shared_ptr<HRTextEllipsizedEventMutation> m = std::make_shared<HRTextEllipsizedEventMutation>();
+  m->tag_ = node_id;
+  auto tm = std::static_pointer_cast<HRMutation>(m);
+  view_manager->AddMutations(tm);
+}
+
 std::string NativeRenderImpl::GetBundlePath() {
   return bundle_path_;
+}
+
+void NativeRenderImpl::OnSizeChanged(uint32_t root_id, float width, float height) {
+  NativeRenderProvider_UpdateRootSize(instance_id_, root_id, HRPixelUtils::VpToDp(width), HRPixelUtils::VpToDp(height));
+}
+
+void NativeRenderImpl::OnSizeChanged2(uint32_t root_id, uint32_t node_id, float width, float height, bool isSync) {
+  NativeRenderProvider_UpdateNodeSize(instance_id_, root_id, node_id, HRPixelUtils::VpToDp(width), HRPixelUtils::VpToDp(height));
 }
 
 HRPosition NativeRenderImpl::GetRootViewtPositionInWindow(uint32_t root_id) {
@@ -235,7 +274,7 @@ HRPosition NativeRenderImpl::GetRootViewtPositionInWindow(uint32_t root_id) {
   if (!rootView) {
     return HRPosition{0, 0};
   }
-  return rootView->GetLocalRootArkUINode().GetLayoutPositionInWindow();
+  return rootView->GetLocalRootArkUINode()->GetLayoutPositionInWindow();
 }
 
 uint64_t NativeRenderImpl::AddEndBatchCallback(uint32_t root_id, const EndBatchCallback &cb) {
@@ -284,6 +323,30 @@ void NativeRenderImpl::SetViewEventListener(uint32_t root_id, uint32_t node_id, 
     return;
   }
   view_manager->SetViewEventListener(node_id, callback_ref);
+}
+
+HRRect NativeRenderImpl::GetViewFrameInRoot(uint32_t root_id, uint32_t node_id) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return {0, 0, 0, 0};
+  }
+  return view_manager->GetViewFrameInRoot(node_id);
+}
+
+void NativeRenderImpl::AddBizViewInRoot(uint32_t root_id, uint32_t biz_view_id, ArkUI_NodeHandle node_handle, const HRPosition &position) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  view_manager->AddBizViewInRoot(biz_view_id, node_handle, position);
+}
+
+void NativeRenderImpl::RemoveBizViewInRoot(uint32_t root_id, uint32_t biz_view_id) {
+  auto view_manager = hr_manager_->GetViewManager(root_id);
+  if (!view_manager) {
+    return;
+  }
+  view_manager->RemoveBizViewInRoot(biz_view_id);
 }
 
 } // namespace native

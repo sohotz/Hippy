@@ -71,7 +71,7 @@ export class StorageModule extends HippyNativeModuleBase {
     }
     this.mStorageAdapter?.multiGet(keys).then(result => {
       if (result == null || result.length <= 0) {
-        promise.reject('result Null');
+        promise.resolve(null);
       }
       let data = new Array<[key: string, value: string]>();
       result.forEach((value, index, result) => {
@@ -101,8 +101,10 @@ export class StorageModule extends HippyNativeModuleBase {
       this.mStorageAdapter?.multiSet(data).then((err) => {
         if (err == undefined) {
           LogUtils.i(STORAGE_MODULE_TAG, "multiSet succ");
-        } else {
           promise.resolve('success');
+        } else {
+          LogUtils.i(STORAGE_MODULE_TAG, "multiSet fail:" + err);
+          promise.reject(JSON.stringify(err));
         }
       })
     } catch (e) {

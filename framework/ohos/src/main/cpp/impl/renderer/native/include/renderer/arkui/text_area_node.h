@@ -40,6 +40,17 @@ public:
 
 class TextAreaNode : public TextInputBaseNode {
 protected:
+  enum class AttributeFlag {
+    TEXT_AREA_TEXT = (uint32_t)TextInputBaseNode::AttributeFlag::NEXT_FLAG,
+    TEXT_AREA_TEXT_SELECTION,
+    TEXT_AREA_CARET_COLOR,
+    TEXT_AREA_MAX_LENGTH,
+    TEXT_AREA_PLACEHOLDER,
+    TEXT_AREA_PLACEHOLDER_COLOR,
+    TEXT_AREA_TYPE,
+    TEXT_AREA_EDITING,
+    TEXT_AREA_ENTER_KEY_TYPE,
+  };
   TextAreaNodeDelegate *textAreaNodeDelegate_;
 
 public:
@@ -62,7 +73,8 @@ public:
   HRRect GetTextContentRect() override;
     
   HRPoint GetTextAreaOffset() const;
-  void DefaultSetPadding();
+  
+  void ResetAllAttributes() override;
     
 };
 

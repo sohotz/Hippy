@@ -307,6 +307,7 @@ static YGSize YGMeasureFunction(YGNodeRef node, float width, YGMeasureMode width
                                 YGMeasureMode height_mode) {
   auto yoga_node = reinterpret_cast<YogaLayoutNode*>(YGNodeGetContext(node));
   int64_t key = yoga_node->GetKey();
+  std::lock_guard<std::mutex> lock(mutex);
   auto iter = measure_function_map.find(key);
   if (iter != measure_function_map.end()) {
     auto size = iter->second(width, ToLayoutMeasureMode(width_mode), height, ToLayoutMeasureMode(height_mode), nullptr);
@@ -319,12 +320,17 @@ static YGSize YGMeasureFunction(YGNodeRef node, float width, YGMeasureMode width
 }
 
 void YogaLayoutNode::SetMeasureFunction(MeasureFunction measure_function) {
+  std::lock_guard<std::mutex> lock(mutex);
   measure_function_map[key_] = measure_function;
   YGNodeSetContext(yoga_node_, reinterpret_cast<void*>(this));
   return YGNodeSetMeasureFunc(yoga_node_, YGMeasureFunction);
 }
 
-bool YogaLayoutNode::HasMeasureFunction() { return measure_function_map.find(key_) != measure_function_map.end(); }
+bool YogaLayoutNode::HasMeasureFunction() {
+  std::lock_guard<std::mutex> lock(mutex);
+  return measure_function_map.find(key_) != measure_function_map.end();
+}
+
 float YogaLayoutNode::GetLeft() { return YGNodeLayoutGetLeft(yoga_node_); }
 
 float YogaLayoutNode::GetTop() { return YGNodeLayoutGetTop(yoga_node_); }

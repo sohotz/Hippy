@@ -42,7 +42,9 @@ export interface FrameworkProxy {
 
   getEngineId(): number
 
-  onFirstViewAdded(): void
+  onFirstPaint(): void;
+
+  onFirstContentfulPaint(): void;
 
   handleNativeException(exception: HippyException): void
 

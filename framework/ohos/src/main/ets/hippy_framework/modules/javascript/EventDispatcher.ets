@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyAny, HippyMap, HippyValue } from '../../../support/common/HippyTypes';
+import { HippyAny, HippyArray, HippyMap, HippyValue } from '../../../support/common/HippyTypes';
 import { HippyJavaScriptModuleBase } from './HippyJavaScriptModuleBase';
 
 export class EventDispatcher extends HippyJavaScriptModuleBase {
@@ -29,17 +29,17 @@ export class EventDispatcher extends HippyJavaScriptModuleBase {
   }
 
   public receiveUIComponentEvent(tagId: number, eventName: string, eventParam: HippyAny): void {
-    let param = new Map<string,  HippyAny>();
-    param.set('tagId', tagId);
-    param.set('eventName', eventName);
-    param.set('param', eventParam ?? '');
+    let param: HippyArray = [];
+    param.push(tagId);
+    param.push(eventName);
+    param.push(eventParam ?? new Map<string, HippyAny>());
     this.callJs(EventDispatcher.MODULE_NAME, EventDispatcher.METHOD_RECEIVE_UI_COMPONENT_EVENT, param, null);
   }
 
   public receiveNativeEvent(eventName: string, eventParam: HippyAny): void {
-    let param = new Map<string,  HippyAny>();
-    param.set('eventName', eventName);
-    param.set('param', eventParam ?? '');
+    let param: HippyArray = [];
+    param.push(eventName);
+    param.push(eventParam ?? new Map<string, HippyAny>());
     this.callJs(EventDispatcher.MODULE_NAME, EventDispatcher.METHOD_RECEIVE_NATIVE_EVENT, param, null);
   }
 }

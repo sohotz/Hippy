@@ -161,11 +161,14 @@ struct PageManagement {
                     let item  = this.pageitems[index];
                     // hippyEngine 销毁实例
                     LogUtils.i('hippy demo', 'destroyModule');
-                    item.hippyEngine?.destroyModule(item.rootViewWrapper!.getRootView()!.getRootId(), () => {
-                      LogUtils.i('hippy demo', 'destroyModule success');
-                      item.hippyEngine?.destroyEngine();
-                      LogUtils.i('hippy demo', 'destroyEngine success');
-                    });
+                    let rootView = item.rootViewWrapper!.getRootView()
+                    if (rootView) {
+                      item.hippyEngine?.destroyModule(rootView.getRootId(), () => {
+                        LogUtils.i('hippy demo', 'destroyModule success');
+                        item.hippyEngine?.destroyEngine();
+                        LogUtils.i('hippy demo', 'destroyEngine success');
+                      });
+                    }
                     this.pageitems?.splice(index, 1)
                   })
                 }

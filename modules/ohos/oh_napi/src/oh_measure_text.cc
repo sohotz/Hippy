@@ -59,7 +59,7 @@ void OhMeasureText::CheckUnusedProp(const char *tag, std::map<std::string, std::
 }
 #endif
 
-void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
+void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames) {
 #ifdef MEASURE_TEXT_CHECK_PROP
     StartCollectProp();
 #endif
@@ -105,13 +105,15 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap) {
     }
 
     fontCollection_ = OH_Drawing_CreateFontCollection();
-    if (HasProp(propMap, "fontFamily")) {
-        auto fontFamilyName = propMap["fontFamily"];
+    for (auto it = fontFamilyNames.begin(); it != fontFamilyNames.end(); it++) {
+        auto &fontFamilyName = *it;
         if (fontFamilyList_.find(fontFamilyName) != fontFamilyList_.end()) {
             uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, fontFamilyName.c_str(),
                                                    fontFamilyList_[fontFamilyName].c_str());
-            FOOTSTONE_DLOG(WARNING) << "Measure Text OH_Drawing_RegisterFont(" << fontFamilyName << ","
-                                    << fontFamilyList_[fontFamilyName] << ") " << (ret == 0 ? "succ" : "fail");
+            if (ret != 0) {
+                FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont(" << fontFamilyName << ","
+                  << fontFamilyList_[fontFamilyName] << ") fail";
+            }
         } else {
             FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont not found font:" << fontFamilyName;
         }
@@ -199,8 +201,9 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
         OH_Drawing_SetTextStyleDecorationStyle(txtStyle, ds);
     }
 
-    OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
-    // 猜测行高=fontSize*1.25，lineSpacingMultiplier，1.25是猜的，也可能是1.3或其他
+    // If font height is set, measure results for some special char will be wrong.
+    // For example, ε (utf8 code: e0bdbdceb5). Measured height is less than drawn height.
+    // OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
 
     if (HasProp(propMap, "fontFamily")) {
         const char *fontFamilies[] = {propMap["fontFamily"].c_str()};
@@ -409,12 +412,16 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
 
     // double realWidth = OH_Drawing_TypographyGetLongestLine(typography); // 实际有像素的宽度
     // ret.width = fmax(realWidth, maxWidth);                   // 宽度
-    ret.width = ceil(OH_Drawing_TypographyGetLongestLine(typography));
+    
+    // MATE 60, beta5, "新品" "商店" text cannot be fully displayed. So add 0.5.
+    ret.width = ceil(OH_Drawing_TypographyGetLongestLine(typography) + 0.5);
     ret.height = OH_Drawing_TypographyGetHeight(typography); // 高度
     lineCount = OH_Drawing_TypographyGetLineCount(typography);
 
     double realHeight = CalcSpanPostion(typography, ret);
     ret.height = fmax(ret.height, realHeight);
+  
+    ret.isEllipsized = OH_Drawing_TypographyDidExceedMaxLines(typography);
 
     OH_Drawing_DestroyTypography(typography);
 

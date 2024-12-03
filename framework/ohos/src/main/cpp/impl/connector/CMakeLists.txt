@@ -84,7 +84,8 @@ set(PUBLIC_SOURCE_SET
   src/exception_handler.cc
   src/native_renderer_napi.cc
   src/turbo_module_manager.cc
-  src/arkts_turbo_module.cc)
-  
+  src/arkts_turbo_module.cc
+  src/setting_napi.cc
+  )
 target_sources(${PROJECT_NAME} PUBLIC ${PUBLIC_SOURCE_SET})
 # endregion

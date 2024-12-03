@@ -39,11 +39,23 @@ public:
   virtual void OnScrollStop() {}
   virtual void OnReachStart() {}
   virtual void OnReachEnd() {}
-  virtual void OnTouch(int32_t actionType) {}
 };
 
 class ListNode : public ArkUINode {
 protected:
+  enum class AttributeFlag {
+    SCROLL_OFFSET = 0,
+    LIST_SCROLL_TO_INDEX,
+    LIST_DIRECTION,
+    LIST_INITIAL_INDEX,
+    SCROLL_EDGE_EFFECT,
+    SCROLL_NESTED_SCROLL,
+    SCROLL_ENABLE_SCROLL_INTERACTION,
+    LIST_CACHED_COUNT,
+    SCROLL_BAR_DISPLAY_MODE,
+    LIST_NODE_ADAPTER,
+  };
+  
   ListNodeDelegate *listNodeDelegate_ = nullptr;
 
 public:
@@ -64,6 +76,9 @@ public:
   void SetListCachedCount(int32_t count);
   void SetScrollBarDisplayMode(ArkUI_ScrollBarDisplayMode mode);
   void SetLazyAdapter(ArkUI_NodeAdapterHandle adapterHandle);
+  
+  void ResetLazyAdapter();
+  void ResetAllAttributes() override;
 
   void OnNodeEvent(ArkUI_NodeEvent *event) override;
   void SetNodeDelegate(ListNodeDelegate *listNodeDelegate);

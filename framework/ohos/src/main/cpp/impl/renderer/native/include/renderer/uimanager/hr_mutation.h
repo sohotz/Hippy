@@ -37,6 +37,7 @@ enum class HRMutationType {
   DELETE = 5,
   UPDATE_LAYOUT = 6,
   UPDATE_EVENT_LISTENER = 7,
+  TEXT_ELLIPSIZED_EVENT = 8,
 };
 
 class HRMutation {
@@ -125,6 +126,13 @@ public:
 
   uint32_t tag_ = 0;
   footstone::value::HippyValue::HippyValueObjectType props_;
+};
+
+class HRTextEllipsizedEventMutation : public HRMutation {
+public:
+  HRTextEllipsizedEventMutation() : HRMutation(HRMutationType::TEXT_ELLIPSIZED_EVENT) {}
+
+  uint32_t tag_ = 0;
 };
 
 using HRMutationVectorType = typename std::vector<std::shared_ptr<HRMutation>>;
