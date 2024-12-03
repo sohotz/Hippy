@@ -64,6 +64,8 @@ public:
   void UpdateEventListener(uint32_t root_id,
                            const std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> &mutations);
   void EndBatch(uint32_t root_id);
+  
+  void UpdateTextMeasurer(uint32_t root_id, uint32_t node_id, const std::shared_ptr<TextMeasurer> text_measurer);
 
   void CallUIFunction(uint32_t root_id, uint32_t node_id, uint32_t cb_id, const std::string &func_name, const std::vector<HippyValue> &params);
 

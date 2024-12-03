@@ -115,10 +115,23 @@ bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyV
 }
 
 void RichTextImageSpanView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
-  if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
+  if (IsValidFrame(frame)) {
+    // 1 绘制Text时：ImageSpan是单独的组件放到容器组件里，必须有位置指定。
+    // 2 使用Text组件时：ImageSpan和Span都由父节点Text确定位置，不需要指定位置。
+    // 使用Text组件时的问题：测量用的Drawing API，显示用的组件会导致不一致，
+    // 如果不指定位置，由于行高不一致可能y位置误差，如果指定位置，由于主题字体不一致可能x位置误差。
+#ifdef OHOS_DRAW_TEXT
     GetLocalRootArkUINode()->SetPosition(HRPosition(frame.x, frame.y));
+#endif
     return;
   }
+}
+
+bool RichTextImageSpanView::IsValidFrame(const HRRect &frame) {
+  if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
+    return true;
+  }
+  return false;
 }
 
 void RichTextImageSpanView::FetchAltImage(const std::string &imageUrl) {

@@ -42,7 +42,7 @@ inline namespace native {
 class ArkUINodeDelegate {
 public:
   virtual ~ArkUINodeDelegate() = default;
-  virtual void OnClick() {}
+  virtual void OnClick(const HRPosition &position) {}
   virtual void OnTouch(int32_t actionType, const HRPosition &screenPosition) {}
   virtual void OnAppear() {}
   virtual void OnDisappear() {}
@@ -71,6 +71,8 @@ public:
   void InsertChild(ArkUINode *child, int32_t index);
   void RemoveChild(ArkUINode *child);
   void RemoveSelfFromParent();
+  void ReplaceSelfFromParent(ArkUINode *newNode);
+  bool HasParent();
   
   void SetDefaultAttributes();
 

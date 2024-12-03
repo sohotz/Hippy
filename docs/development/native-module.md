@@ -400,8 +400,8 @@ export class ExampleNativeTurboModule extends HippyNativeModuleBase {
   }
 
   public getTurboConfig(): TurboConfig {
-		return new TurboConfig();
-	}
+    return new TurboConfig();
+  }
 
   public printTurboConfig(turboConfig: TurboConfig): string {
     return turboConfig.info;

@@ -34,6 +34,14 @@ TextNode::TextNode() : ArkUINode(NativeNodeApi::GetInstance()->createNode(ArkUI_
 
 TextNode::~TextNode() {}
 
+TextNode &TextNode::SetTextContentWithStyledString(const ArkUI_StyledString *styledString) {
+  ArkUI_AttributeItem item = {.object = (void*)styledString};
+  MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_CONTENT_WITH_STYLED_STRING, &item));
+  SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_CONTENT_WITH_STYLED_STRING);
+  hasStyledString_ = true;
+  return *this;
+}
+
 TextNode &TextNode::SetTextContent(const std::string &text) {
   ArkUI_AttributeItem item = {.string = text.c_str()};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_CONTENT, &item));
@@ -222,11 +230,19 @@ TextNode &TextNode::SetTextIndent(float textIndent) {
   return *this;
 }
 
+void TextNode::ResetTextContentWithStyledStringAttribute() {
+  if (hasStyledString_) {
+    MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_CONTENT_WITH_STYLED_STRING));
+    hasStyledString_ = false;
+  }
+}
+
 void TextNode::ResetAllAttributes() {
   ArkUINode::ResetAllAttributes();
   if (!subAttributesFlagValue_) {
     return;
   }
+  ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_CONTENT_WITH_STYLED_STRING, NODE_TEXT_CONTENT_WITH_STYLED_STRING);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_CONTENT, NODE_TEXT_CONTENT);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_COLOR, NODE_FONT_COLOR);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::FONT_SIZE, NODE_FONT_SIZE);
@@ -249,6 +265,7 @@ void TextNode::ResetAllAttributes() {
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_HEIGHT_ADAPTIVE_POLICY, NODE_TEXT_HEIGHT_ADAPTIVE_POLICY);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INDENT, NODE_TEXT_INDENT);
   subAttributesFlagValue_ = 0;
+  hasStyledString_ = false;
 }
 
 } // namespace native

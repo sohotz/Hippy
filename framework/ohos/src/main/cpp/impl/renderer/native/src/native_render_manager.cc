@@ -34,7 +34,6 @@
 #include "footstone/macros.h"
 #include "dom/root_node.h"
 #include "oh_napi/ark_ts.h"
-#include "oh_napi/oh_measure_text.h"
 
 #define USE_C_MEASURE 1
 
@@ -79,6 +78,10 @@ inline namespace native {
 
 static bool IsMeasureNode(const std::string &name) {
   return name == "Text" || name == "TextInput";
+}
+
+static bool IsTextInputMeasureNode(const std::string &name) {
+  return name == "TextInput";
 }
 
 std::atomic<uint32_t> NativeRenderManager::unique_native_render_manager_id_{1};
@@ -169,6 +172,10 @@ StyleFilter::StyleFilter() {
 NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"),
       serializer_(std::make_shared<footstone::value::Serializer>()) {
   id_ = unique_native_render_manager_id_.fetch_add(1);
+  font_collection_manager_ = std::make_shared<FontCollectionManager>();
+#ifdef OHOS_DRAW_TEXT
+  draw_text_node_manager_ = std::make_shared<DrawTextNodeManager>();
+#endif
 }
 
 NativeRenderManager::~NativeRenderManager() {
@@ -228,7 +235,7 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   }
 }
 
-void CollectAllHippyValueProps(footstone::value::HippyValue::HippyValueObjectType &props, std::shared_ptr<DomNode> &node, bool reset = true) {
+void CollectAllHippyValueProps(HippyValueObjectType &props, std::shared_ptr<DomNode> &node, bool reset = true) {
   if (reset) {
     props.clear();
   }
@@ -267,7 +274,7 @@ void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node,
   dom_node_array.resize(len);
   for (uint32_t i = 0; i < len; i++) {
     const auto& render_info = nodes[i]->GetRenderInfo();
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(render_info.id);
     dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
     dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
@@ -330,7 +337,7 @@ void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node,
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     }
 
-    footstone::value::HippyValue::HippyValueObjectType props;
+    HippyValueObjectType props;
     CollectAllHippyValueProps(props, nodes[i]);
 
     dom_node[kProps] = props;
@@ -347,6 +354,19 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
   if (!root) {
     return;
   }
+
+#ifdef OHOS_DRAW_TEXT
+  for (const auto &n : nodes) {
+    auto node = root->GetNode(n->GetId());
+    if (node == nullptr)
+      continue;
+    if (n->GetViewName() == "Text") {
+      auto textNode = GetAncestorTextNode(node);
+      auto cache = draw_text_node_manager_->GetCache(root->GetId());
+      cache->draw_text_nodes_[textNode->GetId()] = textNode;
+    }
+  }
+#endif
 
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
@@ -371,6 +391,13 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
         if (!self) {
           return LayoutSize{0, 0};
         }
+#ifdef OHOS_DRAW_TEXT
+        auto node = weak_node.lock();
+        if (node) {
+          auto cache = self->draw_text_node_manager_->GetCache(root_node.lock()->GetId());
+          cache->draw_text_nodes_.erase(node->GetId());
+        }
+#endif
         int64_t result;
         self->DoMeasureText(root_node, weak_node, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
                             self->DpToPx(height), static_cast<int32_t>(height_measure_mode), result);
@@ -415,7 +442,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     }
 
-    footstone::value::HippyValue::HippyValueObjectType props;
+    HippyValueObjectType props;
     CollectAllHippyValueProps(props, nodes[i]);
     m->props_ = props;
     
@@ -425,7 +452,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       
       auto grandParentNode = parentNode->GetParent();
       if (grandParentNode && grandParentNode->GetViewName() == "Text") {
-        footstone::value::HippyValue::HippyValueObjectType mergedProps;
+        HippyValueObjectType mergedProps;
         CollectAllHippyValueProps(mergedProps, parentNode);
         for (auto it = props.begin(); it != props.end(); it++) {
           mergedProps[it->first] = it->second;
@@ -479,13 +506,13 @@ void NativeRenderManager::UpdateRenderNode_TS(std::weak_ptr<RootNode> root_node,
   dom_node_array.resize(len);
   for (uint32_t i = 0; i < len; i++) {
     const auto &render_info = nodes[i]->GetRenderInfo();
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(render_info.id);
     dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
     dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
     dom_node[kName] = footstone::value::HippyValue(nodes[i]->GetViewName());
 
-    footstone::value::HippyValue::HippyValueObjectType diff_props;
+    HippyValueObjectType diff_props;
     footstone::value::HippyValue::HippyValueArrayType del_props;
     auto diff = nodes[i]->GetDiffStyle();
     if (diff) {
@@ -543,7 +570,7 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     m->index_ = render_info.index;
     m->view_name_ = nodes[i]->GetViewName();
 
-    footstone::value::HippyValue::HippyValueObjectType diff_props;
+    HippyValueObjectType diff_props;
     std::vector<std::string> del_props;
     auto diff = nodes[i]->GetDiffStyle();
     if (diff) {
@@ -605,7 +632,7 @@ void NativeRenderManager::MoveRenderNode_TS(std::weak_ptr<RootNode> root_node, s
   uint32_t pid;
   for (uint32_t i = 0; i < len; i++) {
     const auto &render_info = nodes[i]->GetRenderInfo();
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(render_info.id);
     dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
     dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
@@ -712,7 +739,7 @@ void NativeRenderManager::UpdateLayout_TS(std::weak_ptr<RootNode> root_node, con
   footstone::value::HippyValue::HippyValueArrayType dom_node_array;
   dom_node_array.resize(len);
   for (uint32_t i = 0; i < len; i++) {
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(nodes[i]->GetId());
     const auto &result = nodes[i]->GetRenderLayoutResult();
     dom_node[kWidth] = footstone::value::HippyValue(DpToPx(result.width));
@@ -759,6 +786,7 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
     }
     mutations[i] = m;
   }
+  
   c_render_provider_->UpdateLayout(root_id, mutations);
 }
 
@@ -823,12 +851,98 @@ void NativeRenderManager::EndBatch_TS(std::weak_ptr<RootNode> root_node) {
 void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
   auto root = root_node.lock();
   if (root) {
+#ifdef OHOS_DRAW_TEXT
+    auto cache = draw_text_node_manager_->GetCache(root->GetId());
+    for (auto it : cache->draw_text_nodes_) {
+      auto node = it.second.lock();
+      if (node) {
+        float width = 0;
+        float height = 0;
+        if (GetTextNodeSizeProp(node, width, height)) {
+          int64_t result = 0;
+          DoMeasureText(root_node, node, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
+                        DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
+        }
+      }
+    }
+    cache->draw_text_nodes_.clear();
+    // when density changed
+    if (HRPixelUtils::GetDensity() != density_) {
+      auto textNodes = root->GetAllTextNodes();
+      for (auto it = textNodes.begin(); it != textNodes.end(); it++) {
+        auto textNode = it->lock();
+        if (textNode) {
+          float width = 0;
+          float height = 0;
+          if (GetTextNodeSizeProp(textNode, width, height)) {
+            int64_t result = 0;
+            DoMeasureText(root_node, textNode, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
+                          DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
+          }
+        }
+      }
+      density_ = HRPixelUtils::GetDensity();
+    }
+#endif
+
     uint32_t root_id = root->GetId();
     c_render_provider_->EndBatch(root_id);
   }
 }
 
-void NativeRenderManager::BeforeLayout(std::weak_ptr<RootNode> root_node){}
+bool NativeRenderManager::GetTextNodeSizeProp(const std::shared_ptr<DomNode> &node, float &width, float &height) {
+  width = std::numeric_limits<float>::max();
+  height = std::numeric_limits<float>::max();
+  
+  bool hasWidth = false;
+  
+  auto style = node->GetStyleMap();
+  auto it = style->find("width");
+  if (it != style->end()) {
+    auto value = it->second;
+    double d = 0;
+    if (value->ToDouble(d)) {
+      width = (float)d;
+      hasWidth = true;
+    }
+  }
+  
+  if (!hasWidth) {
+    return false;
+  }
+  
+  it = style->find("height");
+  if (it != style->end()) {
+    auto value = it->second;
+    double d = 0;
+    if (value->ToDouble(d)) {
+      height = (float)d;
+    }
+  }
+  return true;
+}
+
+void NativeRenderManager::BeforeLayout(std::weak_ptr<RootNode> root_node) {
+#ifdef OHOS_DRAW_TEXT
+  if (HRPixelUtils::GetDensity() != density_) {
+    auto root = root_node.lock();
+    if (root) {
+      auto layout = root->GetLayoutNode();
+      layout->SetScaleFactor(HRPixelUtils::GetDensity());
+      
+      auto textNodes = root->GetAllTextNodes();
+      for (auto it = textNodes.begin(); it != textNodes.end(); it++) {
+        auto node = it->lock();
+        if (node) {
+          if (node->GetViewName() == "Text") {
+            node->GetLayoutNode()->MarkDirty();
+          }
+        }
+      }
+    }
+  }
+#endif
+}
 
 void NativeRenderManager::AfterLayout(std::weak_ptr<RootNode> root_node) {
   // 更新布局信息前处理事件监听
@@ -947,9 +1061,9 @@ void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint3
   dom_manager->PostTask(Scene(std::move(ops)));
 }
 
-float NativeRenderManager::DpToPx(float dp) const { return dp * density_; }
+float NativeRenderManager::DpToPx(float dp) const { return HRPixelUtils::DpToPx(dp); }
 
-float NativeRenderManager::PxToDp(float px) const { return px / density_; }
+float NativeRenderManager::PxToDp(float px) const { return HRPixelUtils::PxToDp(px); }
 
 void NativeRenderManager::CallNativeMethod(const std::string& method, uint32_t root_id, const std::pair<uint8_t*, size_t>& buffer) {
   hippy::CallRenderDelegateMethod(ts_env_, ts_render_provider_ref_, method, root_id, buffer);
@@ -977,29 +1091,7 @@ LayoutSize NativeRenderManager::CallNativeCustomMeasureMethod_C(uint32_t root_id
   return c_render_provider_->CustomMeasure(root_id, node_id, width, width_measure_mode, height, height_measure_mode);
 }
 
-std::string HippyValueToString(const HippyValue &value) {
-  std::string sv;
-  if (value.IsString()) {
-    value.ToString(sv);
-  } else if(value.IsDouble()) {
-    double d;
-    value.ToDouble(d);
-    sv = std::to_string(d);
-  } else if(value.IsInt32()) {
-    int32_t i;
-    value.ToInt32(i);
-    sv = std::to_string(i);
-  } else if(value.IsUInt32()) {
-    uint32_t ui;
-    value.ToUint32(ui);
-    sv = std::to_string(ui);
-  } else {
-    FOOTSTONE_LOG(ERROR) << "Measure Text, unknown value type: " << (int32_t)value.GetType();
-  }
-  return sv;
-}
-
-void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_ptr<DomNode> node, bool reset = true) {
+void CollectAllProps(HippyValueObjectType &propMap, std::shared_ptr<DomNode> node, bool reset = true) {
   if (reset) {
     propMap.clear();
   }
@@ -1007,14 +1099,18 @@ void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_pt
   auto style = node->GetStyleMap();
   auto iter = style->begin();
   while (iter != style->end()) {
-    propMap[iter->first] = HippyValueToString(*(iter->second));
+    if (iter->second) {
+      propMap[iter->first] = *(iter->second);
+    }
     iter++;
   }
   // 用户自定义属性
   auto dom_ext = *node->GetExtStyle();
   iter = dom_ext.begin();
   while (iter != dom_ext.end()) {
-    propMap[iter->first] = HippyValueToString(*(iter->second));
+    if (iter->second) {
+      propMap[iter->first] = *(iter->second);
+    }
     iter++;
   }
 }
@@ -1032,42 +1128,54 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   if (node == nullptr) {
     return;
   }
+  
+  bool isTextInput = IsTextInputMeasureNode(node->GetViewName());
 
   std::vector<std::shared_ptr<DomNode>> imageSpanNode;
-  std::map<std::string, std::string> textPropMap;
-  std::map<std::string, std::string> spanPropMap;
+  HippyValueObjectType textPropMap;
+  HippyValueObjectType spanPropMap;
   CollectAllProps(textPropMap, node);
 
-  float density = GetDensity();
-  OhMeasureText measureInst(custom_font_path_map_);
+  float density = HRPixelUtils::GetDensity();
+  auto measureInst = std::make_shared<TextMeasurer>(custom_font_path_map_);
   OhMeasureResult measureResult;
 
   std::set<std::string> fontFamilyNames;
   auto text_prop_it = textPropMap.find("fontFamily");
   if (text_prop_it != textPropMap.end()) {
-    fontFamilyNames.insert(text_prop_it->second);
+    std::string fontName;
+    if (text_prop_it->second.ToString(fontName) && fontName.size() > 0) {
+      fontFamilyNames.insert(fontName);
+    }
   }
   for(uint32_t i = 0; i < node->GetChildCount(); i++) {
     auto child = node->GetChildAt(i);
     auto style_map = child->GetStyleMap();
     auto it = style_map->find("fontFamily");
     if (it != style_map->end()) {
-      fontFamilyNames.insert(HippyValueToString(*(it->second)));
+      std::string fontName;
+      if (it->second && it->second->ToString(fontName) && fontName.size() > 0) {
+        fontFamilyNames.insert(fontName);
+      }
     }
     for(uint32_t j = 0; j < child->GetChildCount(); j++) {
       auto grand_child = child->GetChildAt(j);
       auto grand_style_map = grand_child->GetStyleMap();
       auto grand_it = grand_style_map->find("fontFamily");
       if (grand_it != grand_style_map->end()) {
-        fontFamilyNames.insert(HippyValueToString(*(grand_it->second)));
+        std::string fontName;
+        if (grand_it->second && grand_it->second->ToString(fontName) && fontName.size() > 0) {
+          fontFamilyNames.insert(fontName);
+        }
       }
     }
   }
   
-  measureInst.StartMeasure(textPropMap, fontFamilyNames);
+  auto fontCache = font_collection_manager_->GetCache(root->GetId());
+  measureInst->StartMeasure(textPropMap, fontFamilyNames, fontCache);
 
   if (node->GetChildCount() == 0) {
-    measureInst.AddText(textPropMap);
+    measureInst->AddText(textPropMap, density, isTextInput);
   } else {
     for(uint32_t i = 0; i < node->GetChildCount(); i++) {
       auto child = node->GetChildAt(i);
@@ -1075,10 +1183,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       if (grand_child_count == 0) {
         CollectAllProps(spanPropMap, child);
         if (child->GetViewName() == "Text") {
-          measureInst.AddText(spanPropMap);
+          measureInst->AddText(spanPropMap, density);
         } else if (child->GetViewName() == "Image") {
           if (spanPropMap.find("width") != spanPropMap.end() && spanPropMap.find("height") != spanPropMap.end()) {
-            measureInst.AddImage(spanPropMap);
+            measureInst->AddImage(spanPropMap, density);
             imageSpanNode.push_back(child);
           } else {
             FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
@@ -1088,13 +1196,13 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
         CollectAllProps(spanPropMap, child);
         for(uint32_t j = 0; j < grand_child_count; j++) {
           auto grand_child = child->GetChildAt(j);
-          std::map<std::string, std::string> grandSpanPropMap = spanPropMap;
+          HippyValueObjectType grandSpanPropMap = spanPropMap;
           CollectAllProps(grandSpanPropMap, grand_child, false);
           if (grand_child->GetViewName() == "Text") {
-            measureInst.AddText(grandSpanPropMap);
+            measureInst->AddText(grandSpanPropMap, density);
           } else if (grand_child->GetViewName() == "Image") {
             if (grandSpanPropMap.find("width") != grandSpanPropMap.end() && grandSpanPropMap.find("height") != grandSpanPropMap.end()) {
-              measureInst.AddImage(grandSpanPropMap);
+              measureInst->AddImage(grandSpanPropMap, density);
               imageSpanNode.push_back(grand_child);
             } else {
               FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
@@ -1104,13 +1212,19 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       }
     }
   }
-  measureResult = measureInst.EndMeasure(static_cast<int>(width), static_cast<int>(width_mode),
+  measureResult = measureInst->EndMeasure(static_cast<int>(width), static_cast<int>(width_mode),
                                          static_cast<int>(height), static_cast<int>(height_mode), density);
+
+#ifdef OHOS_DRAW_TEXT
+  if (enable_ark_c_api_) {
+    c_render_provider_->UpdateTextMeasurer(root->GetId(), node->GetId(), measureInst);
+  }
+#endif
 
   if(measureResult.spanPos.size() > 0 && measureResult.spanPos.size() == imageSpanNode.size()) {
     for(uint32_t i = 0; i < imageSpanNode.size(); i++) {
-      double x = measureResult.spanPos[i].x;
-      double y = measureResult.spanPos[i].y;
+      double x = PxToDp((float)measureResult.spanPos[i].x);
+      double y = PxToDp((float)measureResult.spanPos[i].y);
       // 把 c 测量到的imageSpan的位置，通知给ArkTS组件
       if (enable_ark_c_api_) {
         c_render_provider_->SpanPosition(root->GetId(), imageSpanNode[i]->GetId(), float(x), float(y));
@@ -1150,8 +1264,8 @@ void NativeRenderManager::HandleListenerOps_TS(std::weak_ptr<RootNode> root_node
 
   footstone::value::HippyValue::HippyValueArrayType event_listener_ops;
   for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
-    footstone::value::HippyValue::HippyValueObjectType op;
-    footstone::value::HippyValue::HippyValueObjectType events;
+    HippyValueObjectType op;
+    HippyValueObjectType events;
 
     const std::vector<ListenerOp> &listener_ops = iter->second;
     const auto len = listener_ops.size();
@@ -1198,7 +1312,7 @@ void NativeRenderManager::HandleListenerOps_C(std::weak_ptr<RootNode> root_node,
   std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> mutations;
   for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
     auto m = std::make_shared<HRUpdateEventListenerMutation>();
-    footstone::value::HippyValue::HippyValueObjectType events;
+    HippyValueObjectType events;
 
     const std::vector<ListenerOp> &listener_ops = iter->second;
     const auto len = listener_ops.size();
@@ -1248,9 +1362,41 @@ void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, 
         MARK_DIRTY_PROPERTY(diff_style, kText, node->GetLayoutNode());
         MARK_DIRTY_PROPERTY(diff_style, kEnableScale, node->GetLayoutNode());
         MARK_DIRTY_PROPERTY(diff_style, kNumberOfLines, node->GetLayoutNode());
+        
+#ifdef OHOS_DRAW_TEXT
+        if (diff_style->find(kFontStyle) != diff_style->end()
+          || diff_style->find(kLetterSpacing) != diff_style->end()
+          || diff_style->find(kColor) != diff_style->end()
+          || diff_style->find(kFontSize) != diff_style->end()
+          || diff_style->find(kFontFamily) != diff_style->end()
+          || diff_style->find(kFontWeight) != diff_style->end()
+          || diff_style->find(kTextDecorationLine) != diff_style->end()
+          || diff_style->find(kTextShadowOffset) != diff_style->end()
+          || diff_style->find(kTextShadowRadius) != diff_style->end()
+          || diff_style->find(kTextShadowColor) != diff_style->end()
+          || diff_style->find(kLineHeight) != diff_style->end()
+          || diff_style->find(kTextAlign) != diff_style->end()
+          || diff_style->find(kText) != diff_style->end()
+          || diff_style->find(kEnableScale) != diff_style->end()
+          || diff_style->find(kNumberOfLines) != diff_style->end()) {
+          auto textNode = GetAncestorTextNode(node);
+          auto cache = draw_text_node_manager_->GetCache(root_node->GetId());
+          cache->draw_text_nodes_[textNode->GetId()] = textNode;
+        }
+#endif
       }
     }
   }
+}
+
+std::shared_ptr<DomNode> NativeRenderManager::GetAncestorTextNode(const std::shared_ptr<DomNode> &node) {
+  auto textNode = node;
+  auto parentNode = textNode->GetParent();
+  while (parentNode && parentNode->GetViewName() == "Text") {
+    textNode = parentNode;
+    parentNode = textNode->GetParent();
+  }
+  return textNode;
 }
 
 bool NativeRenderManager::IsCustomMeasureNode(const std::string &name) {
@@ -1284,6 +1430,7 @@ void NativeRenderManager::DestroyRoot(uint32_t root_id) {
   if (enable_ark_c_api_) {
     c_render_provider_->DestroyRoot(root_id);
   }
+  font_collection_manager_->RemoveCache(root_id);
 }
 
 void NativeRenderManager::DoCallbackForCallCustomTsView(uint32_t root_id, uint32_t node_id, uint32_t callback_id, const HippyValue &result) {

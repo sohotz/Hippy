@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 #include "renderer/native_render.h"
+#include "renderer/text_measure/text_measure_manager.h"
 
 namespace hippy {
 inline namespace render {
@@ -33,13 +34,16 @@ inline namespace native {
 class NativeRenderContext {
 public:
   NativeRenderContext(uint32_t instance_id, uint32_t root_id, std::shared_ptr<NativeRender> &native_render, bool is_rawfile, const std::string &res_module_name)
-    : instance_id_(instance_id), root_id_(root_id), native_render_(native_render), is_rawfile_(is_rawfile), res_module_name_(res_module_name) {}
+    : instance_id_(instance_id), root_id_(root_id), native_render_(native_render), is_rawfile_(is_rawfile), res_module_name_(res_module_name) {
+    text_measure_manager_ = std::make_shared<TextMeasureManager>();
+  }
   
   uint32_t GetInstanceId() { return instance_id_;}
   uint32_t GetRootId() { return root_id_; }
   std::weak_ptr<NativeRender> GetNativeRender() { return native_render_; }
   bool IsRawFile() { return is_rawfile_; }
   std::string &GetResModuleName() { return res_module_name_; }
+  std::shared_ptr<TextMeasureManager> &GetTextMeasureManager() { return text_measure_manager_; }
   
 private:
   uint32_t instance_id_;
@@ -47,6 +51,7 @@ private:
   std::weak_ptr<NativeRender> native_render_;
   bool is_rawfile_;
   std::string res_module_name_;
+  std::shared_ptr<TextMeasureManager> text_measure_manager_;
 };
 
 } // namespace native

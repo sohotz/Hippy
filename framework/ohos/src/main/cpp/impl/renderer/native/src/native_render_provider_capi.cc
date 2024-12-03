@@ -29,7 +29,6 @@
 #include "oh_napi/oh_napi_task_runner.h"
 #include "oh_napi/oh_napi_invocation.h"
 #include "oh_napi/oh_napi_register.h"
-#include "oh_napi/oh_measure_text.h"
 #include "footstone/hippy_value.h"
 #include "dom/render_manager.h"
 #include "dom/root_node.h"

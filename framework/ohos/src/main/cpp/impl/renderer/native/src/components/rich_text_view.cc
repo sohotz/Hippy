@@ -21,11 +21,14 @@
  */
 
 #include "renderer/components/rich_text_view.h"
+#include "renderer/arkui/image_node.h"
+#include "renderer/components/rich_text_span_view.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_value_utils.h"
+#include "renderer/uimanager/hr_gesture_dispatcher.h"
 
 namespace hippy {
 inline namespace render {
@@ -37,17 +40,29 @@ RichTextView::RichTextView(std::shared_ptr<NativeRenderContext> &ctx) : BaseView
 
 RichTextView::~RichTextView() {
   if (!children_.empty()) {
-    if (textNode_) {
+    if (GetLocalRootArkUINode()) {
       for (const auto &child : children_) {
-        textNode_->RemoveChild(child->GetLocalRootArkUINode());
+        GetLocalRootArkUINode()->RemoveChild(child->GetLocalRootArkUINode());
       }
     }
     children_.clear();
   }
+#ifdef OHOS_DRAW_TEXT
+  if (textNode_) {
+    textNode_->ResetTextContentWithStyledStringAttribute();
+  }
+  auto textMeasureMgr = ctx_->GetTextMeasureManager();
+  textMeasureMgr->EraseTextMeasurer(tag_);
+  oldUsedTextMeasurerHolder_ = nullptr;
+#endif
 }
 
-TextNode *RichTextView::GetLocalRootArkUINode() {
+ArkUINode *RichTextView::GetLocalRootArkUINode() {
+#ifdef OHOS_DRAW_TEXT
+  return containerNode_ ? (ArkUINode *)containerNode_.get() : (ArkUINode *)textNode_.get();
+#else
   return textNode_.get();
+#endif
 }
 
 void RichTextView::CreateArkUINodeImpl() {
@@ -55,39 +70,57 @@ void RichTextView::CreateArkUINodeImpl() {
 }
 
 void RichTextView::DestroyArkUINodeImpl() {
+#ifdef OHOS_DRAW_TEXT
+  containerNode_ = nullptr;
+#endif
   textNode_ = nullptr;
   ClearProps();
 }
 
 bool RichTextView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+#ifdef OHOS_DRAW_TEXT
+  textNode_->ResetAllAttributes();
+  textNode_ = nullptr;
+  containerNode_ = nullptr;
+  ClearProps();
+  return false;
+#else
   textNode_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = textNode_;
   textNode_ = nullptr;
   ClearProps();
   return true;
+#endif
 }
 
 bool RichTextView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+#ifdef OHOS_DRAW_TEXT
+  // not reuse for crash in OHOS::Ace::NG::TxtParagraph::Paint
+  return false;
+#else
   if (recycleView->cachedNodes_.size() < 1) {
     return false;
   }
   textNode_ = std::static_pointer_cast<TextNode>(recycleView->cachedNodes_[0]);
   return true;
+#endif
 }
 
 bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+#ifdef OHOS_DRAW_TEXT
+#else
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
     if (!text_.has_value() || value != text_) {
-      GetLocalRootArkUINode()->SetTextContent(value);
+      textNode_->SetTextContent(value);
       text_ = value;
     }
     return true;
   } else if (propKey == HRNodeProps::COLOR) {
     uint32_t value = HRValueUtils::GetUint32(propValue);
     if (!color_.has_value() || value != color_) {
-      GetLocalRootArkUINode()->SetFontColor(value);
+      textNode_->SetFontColor(value);
       color_ = value;
     }
     return true;
@@ -96,14 +129,14 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
   } else if (propKey == HRNodeProps::FONT_FAMILY) {
     std::string value = HRValueUtils::GetString(propValue);
     if (!fontFamily_.has_value() || value != fontFamily_) {
-      GetLocalRootArkUINode()->SetFontFamily(value);
+      textNode_->SetFontFamily(value);
       fontFamily_ = value;
     }
     return true;
   } else if (propKey == HRNodeProps::FONT_SIZE) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!fontSize_.has_value() || value != fontSize_) {
-      GetLocalRootArkUINode()->SetFontSize(value);
+      textNode_->SetFontSize(value);
       fontSize_ = value;
     }
     return true;
@@ -111,7 +144,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     std::string value = HRValueUtils::GetString(propValue);
     int32_t style = HRTextConvertUtils::FontStyleToArk(value);
     if (!fontStyle_.has_value() || style != fontStyle_) {
-      GetLocalRootArkUINode()->SetFontStyle(style);
+      textNode_->SetFontStyle(style);
       fontStyle_ = style;
     }
     return true;
@@ -119,22 +152,22 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     std::string value = HRValueUtils::GetString(propValue);
     ArkUI_FontWeight weight = HRTextConvertUtils::FontWeightToArk(value);
     if (!fontWeight_.has_value() || weight != fontWeight_) {
-      GetLocalRootArkUINode()->SetFontWeight(weight);
+      textNode_->SetFontWeight(weight);
       fontWeight_ = weight;
     }
     return true;
   } else if (propKey == HRNodeProps::LETTER_SPACING) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!letterSpacing_.has_value() || value != letterSpacing_) {
-      GetLocalRootArkUINode()->SetTextLetterSpacing(value);
+      textNode_->SetTextLetterSpacing(value);
       letterSpacing_ = value;
     }
     return true;
   } else if (propKey == HRNodeProps::LINE_HEIGHT) {
     float value = HRValueUtils::GetFloat(propValue);
     if (!lineHeight_.has_value() || value != lineHeight_) {
-      GetLocalRootArkUINode()->SetTextLineHeight(value);
-      GetLocalRootArkUINode()->SetTextHalfLeading(true);
+      textNode_->SetTextLineHeight(value);
+      textNode_->SetTextHalfLeading(true);
       lineHeight_ = value;
     }
     return true;
@@ -148,7 +181,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
       value = 10000000;
     }
     if (!numberOfLines_.has_value() || value != numberOfLines_) {
-      GetLocalRootArkUINode()->SetTextMaxLines(value);
+      textNode_->SetTextMaxLines(value);
       numberOfLines_ = value;
     }
     return true;
@@ -156,7 +189,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     std::string value = HRValueUtils::GetString(propValue);
     ArkUI_TextAlignment align = HRTextConvertUtils::TextAlignToArk(value);
     if (!textAlign_.has_value() || align != textAlign_) {
-      GetLocalRootArkUINode()->SetTextAlign(align);
+      textNode_->SetTextAlign(align);
       textAlign_ = align;
     }
     return true;
@@ -196,17 +229,19 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
       ArkUI_EllipsisMode ellipsisMode = ARKUI_ELLIPSIS_MODE_END;
       ArkUI_TextOverflow textOverflow = ARKUI_TEXT_OVERFLOW_ELLIPSIS;
       HRTextConvertUtils::EllipsisModeToArk(value, ellipsisMode, textOverflow);
-      GetLocalRootArkUINode()->SetTextOverflow(textOverflow);
-      GetLocalRootArkUINode()->SetTextEllipsisMode(ellipsisMode);
+      textNode_->SetTextOverflow(textOverflow);
+      textNode_->SetTextEllipsisMode(ellipsisMode);
       ellipsizeModeValue_ = value;
     }
     return true;
   } else if (propKey == HRNodeProps::BREAK_STRATEGY) {
     std::string value = HRValueUtils::GetString(propValue);
     ArkUI_WordBreak wordBreak = HRTextConvertUtils::WordBreakToArk(value);
-    GetLocalRootArkUINode()->SetWordBreak(wordBreak);
+    textNode_->SetWordBreak(wordBreak);
     return true;
-  } else if (propKey == "ellipsized") {
+  }
+#endif
+  if (propKey == "ellipsized") {
     isListenEllipsized_ = HRValueUtils::GetBool(propValue, false);
     if (isListenEllipsized_ && toSendEllipsizedEvent_) {
       HREventUtils::SendComponentEvent(ctx_, tag_, "ellipsized", nullptr);
@@ -214,46 +249,80 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     }
     return true;
   }
-  
+
   return BaseView::SetPropImpl(propKey, propValue);
 }
 
 void RichTextView::OnSetPropsEndImpl() {
+#ifdef OHOS_DRAW_TEXT
+  UpdateDrawTextContent();
+#else
   if (!fontSize_.has_value()) {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;
-    GetLocalRootArkUINode()->SetFontSize(defaultValue);
+    textNode_->SetFontSize(defaultValue);
     fontSize_ = defaultValue;
   }
   if (!ellipsizeModeValue_.has_value()) {
     std::string defaultValue = "tail";
     ellipsizeModeValue_ = defaultValue;
-    GetLocalRootArkUINode()->SetTextOverflow(ARKUI_TEXT_OVERFLOW_ELLIPSIS);
-    GetLocalRootArkUINode()->SetTextEllipsisMode(ARKUI_ELLIPSIS_MODE_END);
+    textNode_->SetTextOverflow(ARKUI_TEXT_OVERFLOW_ELLIPSIS);
+    textNode_->SetTextEllipsisMode(ARKUI_ELLIPSIS_MODE_END);
   }
   if (toSetTextDecoration_) {
     toSetTextDecoration_ = false;
-    GetLocalRootArkUINode()->SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
+    textNode_->SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
   }
   if (toSetTextShadow) {
     toSetTextShadow = false;
-    GetLocalRootArkUINode()->SetTextShadow(HRPixelUtils::DpToVp(textShadowRadius_), ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, HRPixelUtils::DpToVp(textShadowOffsetX_), HRPixelUtils::DpToVp(textShadowOffsetY_));
+    textNode_->SetTextShadow(HRPixelUtils::DpToVp(textShadowRadius_), ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, HRPixelUtils::DpToVp(textShadowOffsetX_), HRPixelUtils::DpToVp(textShadowOffsetY_));
   }
+#endif
+
   BaseView::OnSetPropsEndImpl();
 }
 
 void RichTextView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
-  BaseView::UpdateRenderViewFrameImpl(frame, padding);
+#ifdef OHOS_DRAW_TEXT
+  if (containerNode_) {
+    containerNode_->SetPosition(HRPosition(frame.x, frame.y));
+    containerNode_->SetSize(HRSize(frame.width, frame.height));
+    textNode_->SetPosition(HRPosition(0, 0));
+    textNode_->SetSize(HRSize(frame.width, frame.height));
+    textNode_->SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+  } else {
+    textNode_->SetPosition(HRPosition(frame.x, frame.y));
+    textNode_->SetSize(HRSize(frame.width, frame.height));
+    textNode_->SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+  }
+  drawTextWidth_ = frame.width - padding.paddingLeft - padding.paddingRight;
+  UpdateDrawTextContent();
+#else
+  textNode_->SetPosition(HRPosition(frame.x, frame.y));
+  textNode_->SetSize(HRSize(frame.width, frame.height));
   textNode_->SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+#endif
 }
 
 void RichTextView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildInsertedImpl(childView, index);
-  textNode_->InsertChild(childView->GetLocalRootArkUINode(), index);
+  
+  int32_t realIndex = index;
+  
+#ifdef OHOS_DRAW_TEXT
+  if (containerNode_ == nullptr) {
+    containerNode_ = std::make_shared<StackNode>();
+    textNode_->ReplaceSelfFromParent(containerNode_.get());
+    containerNode_->AddChild(textNode_.get());
+  }
+  realIndex = index + 1;
+#endif
+  
+  GetLocalRootArkUINode()->InsertChild(childView->GetLocalRootArkUINode(), realIndex);
 }
 
 void RichTextView::OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {
   BaseView::OnChildRemovedImpl(childView, index);
-  textNode_->RemoveChild(childView->GetLocalRootArkUINode());
+  GetLocalRootArkUINode()->RemoveChild(childView->GetLocalRootArkUINode());
 }
 
 void RichTextView::SendTextEllipsizedEvent() {
@@ -278,6 +347,120 @@ void RichTextView::ClearProps() {
   textAlign_.reset();
   ellipsizeModeValue_.reset();
 }
+
+#ifdef OHOS_DRAW_TEXT
+void RichTextView::UpdateDrawTextContent() {
+  if (drawTextWidth_ <= 0) {
+    return;
+  }
+  
+  std::shared_ptr<TextMeasurer> textMeasurer = nullptr;
+  auto textMeasureMgr = ctx_->GetTextMeasureManager();
+  if (textMeasureMgr->HasNewTextMeasurer(tag_)) {
+    textNode_->ResetTextContentWithStyledStringAttribute();
+    oldUsedTextMeasurerHolder_ = textMeasureMgr->GetUsedTextMeasurer(tag_);
+    textMeasurer = textMeasureMgr->UseNewTextMeasurer(tag_);
+    if (textMeasurer) {
+      auto styledString = textMeasurer->GetStyledString();
+      if (styledString) {
+        float pxTextWidth = HRPixelUtils::VpToPx(drawTextWidth_);
+        if (textMeasurer->IsRedraw(pxTextWidth)) {
+          textMeasurer->DoRedraw(pxTextWidth);
+        }
+        textNode_->SetTextContentWithStyledString(styledString);
+      }
+    }
+  } else if (!textNode_->HasStyledString()) {
+    textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
+    if (textMeasurer) {
+      auto styledString = textMeasurer->GetStyledString();
+      if (styledString) {
+        float pxTextWidth = HRPixelUtils::VpToPx(drawTextWidth_);
+        if (textMeasurer->IsRedraw(pxTextWidth)) {
+          textMeasurer->DoRedraw(pxTextWidth);
+        }
+        textNode_->SetTextContentWithStyledString(styledString);
+      }
+    }
+  } else {
+    textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
+    float pxTextWidth = HRPixelUtils::VpToPx(drawTextWidth_);
+    if (textMeasurer && textMeasurer->IsRedraw(pxTextWidth)) {
+      auto styledString = textMeasurer->GetStyledString();
+      if (styledString) {
+        textMeasurer->DoRedraw(pxTextWidth);
+        textNode_->SetTextContentWithStyledString(styledString);
+      }
+    }
+  }
+}
+
+void RichTextView::SetClickable(bool flag) {
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    GetLocalRootArkUINode()->RegisterClickEvent();
+    auto weak_view = weak_from_this();
+    eventClick_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        auto textView = std::static_pointer_cast<RichTextView>(view);
+        HRGestureDispatcher::HandleClickEvent(textView->ctx_, textView->tag_, HRNodeProps::ON_CLICK);
+      }
+    };
+  } else {
+    eventClick_ = nullptr;
+  }
+}
+
+void RichTextView::OnClick(const HRPosition &position) {
+  float x = position.x;
+  float y = position.y;
+  if (clickableSpanViews_.size() > 0) {
+    auto textMeasureMgr = ctx_->GetTextMeasureManager();
+    auto textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
+    if (textMeasurer) {
+      auto spanIndex = textMeasurer->SpanIndexAt(x, y, HRPixelUtils::GetDensity());
+      if (spanIndex >= 0) {
+        auto textSpanView = GetTextSpanView(spanIndex);
+        if (textSpanView) {
+          auto regIt = clickableSpanViews_.find(textSpanView);
+          if (regIt != clickableSpanViews_.end()) {
+            textSpanView->OnClick(HRPosition(0, 0));
+            return;
+          }
+        }
+      }
+    }
+  }
+  BaseView::OnClick(position);
+}
+
+void RichTextView::RegisterSpanClickEvent(const std::shared_ptr<BaseView> spanView) {
+  clickableSpanViews_.insert(spanView);
+  GetLocalRootArkUINode()->RegisterClickEvent();
+}
+
+void RichTextView::UnregisterSpanClickEvent(const std::shared_ptr<BaseView> spanView) {
+  clickableSpanViews_.erase(spanView);
+}
+
+std::shared_ptr<BaseView> RichTextView::GetTextSpanView(int spanIndex) {
+  int textSpanCnt = 0;
+  for (auto it = children_.begin(); it != children_.end(); it++) {
+    auto subView = *it;
+    if (subView->GetViewType() == "Text") {
+      if (textSpanCnt == spanIndex) {
+        return subView;
+      } else {
+        ++textSpanCnt;
+      }
+    }
+  }
+  return nullptr;
+}
+#endif
 
 } // namespace native
 } // namespace render

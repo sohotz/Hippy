@@ -409,4 +409,12 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
   public getNativeRenderProvider(): NativeRenderProvider | null {
     return this.nativeRenderProvider
   }
+
+  onEngineResume(): void {
+    PixelUtil.updateDensity(this.libHippy)
+  }
+
+  onEnginePause(): void {
+
+  }
 }

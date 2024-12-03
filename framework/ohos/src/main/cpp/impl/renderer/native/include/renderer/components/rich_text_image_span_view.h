@@ -41,6 +41,7 @@ public:
   bool ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) override;
   bool SetPropImpl(const std::string &propKey, const HippyValue &propValue) override;
   void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) override;
+  bool IsValidFrame(const HRRect &frame) override;
 
 private:
   void FetchAltImage(const std::string &imageUrl);

@@ -116,6 +116,8 @@ class RootNode : public DomNode {
     return persistent_map_;
   }
 
+  std::vector<std::weak_ptr<DomNode>> GetAllTextNodes();
+
  private:
   static void MarkLayoutNodeDirty(const std::vector<std::shared_ptr<DomNode>>& nodes);
 

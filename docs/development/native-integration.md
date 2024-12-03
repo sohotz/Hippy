@@ -290,11 +290,11 @@ Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目
 
 ## 接入方式一：Har包快速接入
 
-1. 创建一个 Ohos 工程
+### 1. 创建一个 Ohos 工程
 
-2. Har 包集成
+### 2. Har 包集成
 
- - 配置 oh-package.json5
+- 配置 oh-package.json5
 
  ```json
   "dependencies": {
@@ -302,9 +302,9 @@ Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目
   }
  ```
 
-3. 初始化代码
+### 3. 初始化代码
 
- - 获取 libhippy.so 接口对象和 UIAbility context
+- 获取 libhippy.so 接口对象和 UIAbility context
 
   ```TypeScript
   import libHippy from 'libhippy.so'
@@ -314,7 +314,7 @@ Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目
 
 > 注：App 直接集成 Hippy，context 使用 UIAbility context；如果 App 在一个模块里集成 Hippy，js 等资源也集成在模块里，context 使用 getContext().createModuleContext("moduleName")，否则会找不到 js 等资源。
 
- - 创建 HippyEngine、初始化 HippyEngine、加载业务 bundle
+- 创建 HippyEngine、初始化 HippyEngine、加载业务 bundle
  
   ```TypeScript
   this.hippyEngine = createHippyEngine(params)
@@ -322,7 +322,7 @@ Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目
   this.hippyEngine?.loadModule()
   ```
  
- - 组装 HippyRoot 组件
+- 组装 HippyRoot 组件
 
  ```TypeScript
   HippyRoot({
@@ -340,11 +340,12 @@ Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目
 
 > 源码接入主要为了方便在 App 项目里直接调试 Hippy 代码（c++ 和 ets 代码）。
 
-1. 创建一个 Ohos 工程
+### 1. 创建一个 Ohos 工程
 
-2. Hippy 代码集成
+### 2. Hippy 代码集成
 
 - 拉取 hippy 代码到项目里（比如：根目录下）
+
 > https://github.com/sohotz/Hippy.git，分支：main
 
 - 配置 oh-package.json5
@@ -355,7 +356,7 @@ Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目
   }
  ```
 
-3. 初始化代码
+### 3. 初始化代码
 
 - 获取 libhippy.so 接口对象和 UIAbility context
 

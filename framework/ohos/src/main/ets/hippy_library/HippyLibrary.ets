@@ -128,6 +128,7 @@ export interface HippyLibrary {
   TurboModuleManager_Install(turbo: TurboModuleManager, v8RuntimeId: number): void;
 
   Setting_SetFlags(enableUpdateAnimLog: boolean): void;
+  Setting_SetDensity(density: number): void;
   Setting_SetDensityScale(densityScale: number): void;
   Setting_SetFontSizeScale(fontSizeScale: number): void;
 }

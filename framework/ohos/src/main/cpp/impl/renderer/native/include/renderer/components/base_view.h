@@ -82,6 +82,7 @@ public:
   void AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index);
   void RemoveSubView(std::shared_ptr<BaseView> &subView);
   void RemoveFromParentView();
+
   void SetRenderViewFrame(const HRRect &frame, const HRPadding &padding = HRPadding(0, 0, 0, 0));
   void UpdateEventListener(HippyValueObjectType &newEvents);
   bool CheckRegisteredEvent(std::string &eventName);
@@ -91,7 +92,7 @@ public:
 
   void SetPosition(const HRPosition &position);
 
-  virtual void OnClick() override;
+  virtual void OnClick(const HRPosition &position) override;
   virtual void OnTouch(int32_t actionType, const HRPosition &screenPosition) override;
   virtual void OnAppear() override;
   virtual void OnDisappear() override;
@@ -105,6 +106,7 @@ protected:
   virtual void OnChildReusedImpl(std::shared_ptr<BaseView> const &childView, int index) {}
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding);
   virtual void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding);
+  virtual bool IsValidFrame(const HRRect &frame) { return true; }
   virtual bool HandleGestureBySelf() { return false; }
 
 protected:
@@ -114,7 +116,7 @@ protected:
   bool SetShadowProp(const std::string &propKey, const HippyValue &propValue);
   bool SetEventProp(const std::string &propKey, const HippyValue &propValue);
 
-  void SetClickable(bool flag);
+  virtual void SetClickable(bool flag);
   void SetLongClickable(bool flag);
   void SetPressIn(bool flag);
   void SetPressOut(bool flag);
@@ -128,6 +130,7 @@ protected:
   void SetDetachedFromWindowHandle(bool flag);
   
   void UpdateLazyProps();
+  void UpdateLazyAll();
 
   void HandleInterceptPullUp();
   int64_t GetTimeMilliSeconds();

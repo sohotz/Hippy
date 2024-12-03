@@ -21,10 +21,12 @@
  */
 
 #include "renderer/components/rich_text_span_view.h"
+#include "renderer/components/rich_text_view.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_value_utils.h"
+#include "renderer/uimanager/hr_gesture_dispatcher.h"
 
 namespace hippy {
 inline namespace render {
@@ -40,32 +42,48 @@ SpanNode *RichTextSpanView::GetLocalRootArkUINode() {
 }
 
 void RichTextSpanView::CreateArkUINodeImpl() {
+#ifdef OHOS_DRAW_TEXT
+#else
   spanNode_ = std::make_shared<SpanNode>();
+#endif
 }
 
 void RichTextSpanView::DestroyArkUINodeImpl() {
+#ifdef OHOS_DRAW_TEXT
+#else
   spanNode_ = nullptr;
   ClearProps();
+#endif
 }
 
 bool RichTextSpanView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+#ifdef OHOS_DRAW_TEXT
+  return false;
+#else
   spanNode_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = spanNode_;
   spanNode_ = nullptr;
   ClearProps();
   return true;
+#endif
 }
 
 bool RichTextSpanView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+#ifdef OHOS_DRAW_TEXT
+  return false;
+#else
   if (recycleView->cachedNodes_.size() < 1) {
     return false;
   }
   spanNode_ = std::static_pointer_cast<SpanNode>(recycleView->cachedNodes_[0]);
   return true;
+#endif
 }
 
 bool RichTextSpanView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+#ifdef OHOS_DRAW_TEXT
+#else
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
     if (!text_.has_value() || value != text_) {
@@ -158,16 +176,17 @@ bool RichTextSpanView::SetPropImpl(const std::string &propKey, const HippyValue 
     uint32_t value = HRValueUtils::GetUint32(propValue);
     GetLocalRootArkUINode()->SetSpanTextBackgroundStyle(value);
     return true;
-  } else {
-    bool handled = SetEventProp(propKey, propValue);
-    return handled;
   }
-
   // Not to set some attributes for text span.
   // For example: NODE_BACKGROUND_COLOR will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
+#endif
+  bool handled = SetEventProp(propKey, propValue);
+  return handled;
 }
 
 void RichTextSpanView::OnSetPropsEndImpl() {
+#ifdef OHOS_DRAW_TEXT
+#else
   if (toSetTextDecoration_) {
     toSetTextDecoration_ = false;
     GetLocalRootArkUINode()->SetTextDecoration(decorationType_, decorationColor_, decorationStyle_);
@@ -176,6 +195,7 @@ void RichTextSpanView::OnSetPropsEndImpl() {
     toSetTextShadow = false;
     GetLocalRootArkUINode()->SetTextShadow(HRPixelUtils::DpToVp(textShadowRadius_), ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, HRPixelUtils::DpToVp(textShadowOffsetX_), HRPixelUtils::DpToVp(textShadowOffsetY_));
   }
+#endif
   BaseView::OnSetPropsEndImpl();
 }
 
@@ -193,6 +213,38 @@ void RichTextSpanView::ClearProps() {
   fontWeight_.reset();
   letterSpacing_.reset();
   lineHeight_.reset();
+}
+
+void RichTextSpanView::SetClickable(bool flag) {
+#ifdef OHOS_DRAW_TEXT
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    auto parentView = GetParent().lock();
+    if (parentView) {
+      auto textView = std::static_pointer_cast<RichTextView>(parentView);
+      textView->RegisterSpanClickEvent(shared_from_this());
+    }
+    auto weak_view = weak_from_this();
+    eventClick_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        auto spanView = std::static_pointer_cast<RichTextSpanView>(view);
+        HRGestureDispatcher::HandleClickEvent(spanView->ctx_, spanView->tag_, HRNodeProps::ON_CLICK);
+      }
+    };
+  } else {
+    auto parentView = GetParent().lock();
+    if (parentView) {
+      auto textView = std::static_pointer_cast<RichTextView>(parentView);
+      textView->UnregisterSpanClickEvent(shared_from_this());
+    }
+    eventClick_ = nullptr;
+  }
+#else
+  BaseView::SetClickable(flag);
+#endif
 }
 
 } // namespace native

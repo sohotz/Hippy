@@ -85,6 +85,7 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   void AfterLayout(std::weak_ptr<RootNode> root_node) override;
 
   using HippyValue = footstone::value::HippyValue;
+  using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
   void AddEventListener(std::weak_ptr<RootNode> root_node, std::weak_ptr<DomNode> dom_node, const std::string& name) override;
 
@@ -175,6 +176,9 @@ private:
     float width, LayoutMeasureMode width_measure_mode,
     float height, LayoutMeasureMode height_measure_mode);
 
+  std::shared_ptr<DomNode> GetAncestorTextNode(const std::shared_ptr<DomNode> &node);
+  bool GetTextNodeSizeProp(const std::shared_ptr<DomNode> &node, float &width, float &height);
+  
 private:
   uint32_t id_;
   napi_env ts_env_ = 0;
@@ -190,6 +194,11 @@ private:
 
   bool enable_ark_c_api_ = false;
   std::shared_ptr<NativeRenderProvider> c_render_provider_;
+  
+  std::shared_ptr<FontCollectionManager> font_collection_manager_;
+#ifdef OHOS_DRAW_TEXT
+  std::shared_ptr<DrawTextNodeManager> draw_text_node_manager_;
+#endif
 };
 
 }  // namespace native

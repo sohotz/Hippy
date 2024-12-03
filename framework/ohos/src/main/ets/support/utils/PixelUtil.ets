@@ -58,7 +58,17 @@ export class PixelUtil {
     return PixelUtil.density
   }
 
+  public static updateDensity(libHippy: HippyLibrary): void {
+    let newValue = vp2px(1.0)
+    if (newValue != PixelUtil.vp2pxValue) {
+      PixelUtil.vp2pxValue = newValue
+      PixelUtil.density = newValue / PixelUtil.densityScale
+      libHippy?.Setting_SetDensity(PixelUtil.density)
+    }
+  }
+
   private static densityScale: number = 1.0
   private static density: number = vp2px(1.0) / 1.0
+  private static vp2pxValue: number = vp2px(1.0)
   private static fontSizeScale: number = 1.0
 }
