@@ -1,5 +1,6 @@
 #pragma once
 
+#include <arkui/styled_string.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -66,7 +67,7 @@ private:
 #endif
 
     OH_Drawing_TypographyStyle *typoStyle_;
-    OH_Drawing_TypographyCreate *handler_;
+//     OH_Drawing_TypographyCreate *handler_;
     OH_Drawing_FontCollection *fontCollection_;
     double CalcSpanPostion(OH_Drawing_Typography *typography, OhMeasureResult &ret);
     std::vector<OhImageSpanHolder> imageSpans_;
@@ -80,4 +81,6 @@ private:
 #ifdef MEASURE_TEXT_LOG_RESULT
     std::string logTextContent_;
 #endif
+  
+  ArkUI_StyledString *styled_string_;
 };

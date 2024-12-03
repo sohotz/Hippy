@@ -118,7 +118,8 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap, co
             FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont not found font:" << fontFamilyName;
         }
     }
-    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
+//     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
+    styled_string_ = OH_ArkUI_StyledString_Create(typoStyle_, fontCollection_);
   
     if (HasProp(propMap, "lineHeight") && propMap["lineHeight"].size() > 0) {
         lineHeight_ = std::stod(propMap["lineHeight"]);
@@ -230,16 +231,19 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     // OH_Drawing_SetTextStyleEllipsis(txtStyle, );
     // OH_Drawing_SetTextStyleEllipsisModal(txtStyle, );
     // 将文本样式对象加入到handler中
-    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle);
+//     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle);
+    OH_ArkUI_StyledString_PushTextStyle(styled_string_, txtStyle);
     if (HasProp(propMap, "text")) {
-        OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str());
+//         OH_Drawing_TypographyHandlerAddText(handler_, propMap["text"].c_str());
+        OH_ArkUI_StyledString_AddText(styled_string_, propMap["text"].c_str());
 
 #ifdef MEASURE_TEXT_LOG_RESULT
         logTextContent_ += "[span]";
         logTextContent_ += propMap["text"];
 #endif
     }
-    OH_Drawing_TypographyHandlerPopTextStyle(handler_);
+//     OH_Drawing_TypographyHandlerPopTextStyle(handler_);
+    OH_ArkUI_StyledString_PopTextStyle(styled_string_);
     OH_Drawing_DestroyTextStyle(txtStyle);
 
 #ifdef MEASURE_TEXT_CHECK_PROP
@@ -267,7 +271,8 @@ void OhMeasureText::AddImage(std::map<std::string, std::string> &propMap) {
         span.height = std::stod(propMap["height"]);
     }
     span.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
-    OH_Drawing_TypographyHandlerAddPlaceholder(handler_, &span);
+//     OH_Drawing_TypographyHandlerAddPlaceholder(handler_, &span);
+    OH_ArkUI_StyledString_AddPlaceholder(styled_string_, &span);
     if (minLineHeight_ < span.height) {
         minLineHeight_ = span.height;
     }
@@ -401,7 +406,7 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     OhMeasureResult ret;
     size_t lineCount;
   
-    auto typography = OH_Drawing_CreateTypography(handler_);
+    auto typography = OH_ArkUI_StyledString_CreateTypography(styled_string_);//OH_Drawing_CreateTypography(handler_);
     double maxWidth = double(width) / density;
     if (maxWidth == 0 || std::isnan(maxWidth)) {
         // fix text measure width wrong when maxWidth is nan or 0
@@ -425,7 +430,8 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
 
     OH_Drawing_DestroyTypography(typography);
 
-    OH_Drawing_DestroyTypographyHandler(handler_);
+//     OH_Drawing_DestroyTypographyHandler(handler_);
+    OH_ArkUI_StyledString_Destroy(styled_string_);
     OH_Drawing_DestroyFontCollection(fontCollection_);
     OH_Drawing_DestroyTypographyStyle(typoStyle_);
 
