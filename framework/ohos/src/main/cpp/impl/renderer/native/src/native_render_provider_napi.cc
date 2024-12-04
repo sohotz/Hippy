@@ -442,9 +442,9 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
     if(measureFlag=="measure_add_start"){
       measureInst.StartMeasure(propMap, std::set<std::string>());
     } else if(measureFlag=="measure_add_text"){
-      measureInst.AddText(propMap);
+      measureInst.AddText(propMap, density);
     } else if(measureFlag=="measure_add_image"){
-      measureInst.AddImage(propMap);
+      measureInst.AddImage(propMap, density);
     } else if(measureFlag=="measure_add_end"){
       result = measureInst.EndMeasure(width, widthMode, height, heightMode, density);
       break;

@@ -23,6 +23,8 @@
 #pragma once
 
 #include <map>
+#include <mutex>
+#include "renderer/text_measure/text_measurer.h"
 
 namespace hippy {
 inline namespace render {
@@ -30,9 +32,27 @@ inline namespace native {
 
 class TextMeasureManager {
 public:
+  TextMeasureManager() {}
+  ~TextMeasureManager() {}
+  
+  void SetTextMeasurer(uint32_t node_id, std::shared_ptr<OhMeasureText> text_measurer) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    text_measurer_map_[node_id] = text_measurer;
+  }
+  
+  std::shared_ptr<OhMeasureText> GetTextMeasurer(uint32_t node_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return text_measurer_map_[node_id];
+  }
+  
+  void EraseTextMeasurer(uint32_t node_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    text_measurer_map_.erase(node_id);
+  }
   
 private:
-  
+  std::map<uint32_t, std::shared_ptr<OhMeasureText>> text_measurer_map_;
+  std::mutex mutex_;
 };
 
 } // namespace native

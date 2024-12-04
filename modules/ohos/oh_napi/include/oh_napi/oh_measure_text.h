@@ -46,12 +46,16 @@ public:
     ~OhMeasureText();
 
     void StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames);
-    void AddText(std::map<std::string, std::string> &propMap);
-    void AddImage(std::map<std::string, std::string> &propMap);
+    void AddText(std::map<std::string, std::string> &propMap, float density);
+    void AddImage(std::map<std::string, std::string> &propMap, float density);
     OhMeasureResult EndMeasure(int width, int widthMode, int height, int heightMode, float density);
 
     void RegisterFont(std::string &familyName, std::string &familySrc) {
         fontFamilyList_[familyName] = familySrc;
+    }
+  
+    ArkUI_StyledString *GetStyledString() {
+        return styled_string_;
     }
 
 private:
@@ -82,5 +86,5 @@ private:
     std::string logTextContent_;
 #endif
   
-  ArkUI_StyledString *styled_string_;
+  ArkUI_StyledString *styled_string_ = nullptr;
 };

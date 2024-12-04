@@ -147,7 +147,7 @@ void OhMeasureText::StartMeasure(std::map<std::string, std::string> &propMap, co
 #endif
 }
 
-void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
+void OhMeasureText::AddText(std::map<std::string, std::string> &propMap, float density) {
 #ifdef MEASURE_TEXT_CHECK_PROP
     StartCollectProp();
 #endif
@@ -165,7 +165,7 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     if (HasProp(propMap, "fontSize") && propMap["fontSize"].size() > 0) {
         fontSize = std::stod(propMap["fontSize"]);
     }
-    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize * density);
     if (HasProp(propMap, "fontWeight")) {
         int fontWeight = FontWeightToDrawing(propMap["fontWeight"]);
         OH_Drawing_SetTextStyleFontWeight(txtStyle, fontWeight);
@@ -224,7 +224,7 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
     // OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, );
     if (HasProp(propMap, "letterSpacing") && propMap["letterSpacing"].size() > 0) {
         double letterSpacing = std::stod(propMap["letterSpacing"]);
-        OH_Drawing_SetTextStyleLetterSpacing(txtStyle, letterSpacing);
+        OH_Drawing_SetTextStyleLetterSpacing(txtStyle, letterSpacing * density);
     }
     // OH_Drawing_SetTextStyleWordSpacing(txtStyle,);
     // OH_Drawing_SetTextStyleHalfLeading(txtStyle, );
@@ -259,16 +259,16 @@ void OhMeasureText::AddText(std::map<std::string, std::string> &propMap) {
 #endif
 }
 
-void OhMeasureText::AddImage(std::map<std::string, std::string> &propMap) {
+void OhMeasureText::AddImage(std::map<std::string, std::string> &propMap, float density) {
 #ifdef MEASURE_TEXT_CHECK_PROP
     StartCollectProp();
 #endif
     OH_Drawing_PlaceholderSpan span;
     if (HasProp(propMap, "width") && propMap["width"].size() > 0) {
-        span.width = std::stod(propMap["width"]);
+        span.width = std::stod(propMap["width"]) * density;
     }
     if (HasProp(propMap, "height") && propMap["height"].size() > 0) {
-        span.height = std::stod(propMap["height"]);
+        span.height = std::stod(propMap["height"]) * density;
     }
     span.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
 //     OH_Drawing_TypographyHandlerAddPlaceholder(handler_, &span);
@@ -407,7 +407,7 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     size_t lineCount;
   
     auto typography = OH_ArkUI_StyledString_CreateTypography(styled_string_);//OH_Drawing_CreateTypography(handler_);
-    double maxWidth = double(width) / density;
+    double maxWidth = double(width);
     if (maxWidth == 0 || std::isnan(maxWidth)) {
         // fix text measure width wrong when maxWidth is nan or 0
         maxWidth = std::numeric_limits<double>::max();
@@ -419,7 +419,7 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     // ret.width = fmax(realWidth, maxWidth);                   // 宽度
     
     // MATE 60, beta5, "新品" "商店" text cannot be fully displayed. So add 0.5.
-    ret.width = ceil(OH_Drawing_TypographyGetLongestLine(typography) + 0.5);
+    ret.width = ceil(OH_Drawing_TypographyGetLongestLine(typography) + 0.5 * density);
     ret.height = OH_Drawing_TypographyGetHeight(typography); // 高度
     lineCount = OH_Drawing_TypographyGetLineCount(typography);
 
@@ -428,12 +428,15 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
   
     ret.isEllipsized = OH_Drawing_TypographyDidExceedMaxLines(typography);
 
-    OH_Drawing_DestroyTypography(typography);
+  // TODO(hotxx):
+//     OH_Drawing_DestroyTypography(typography);
 
 //     OH_Drawing_DestroyTypographyHandler(handler_);
-    OH_ArkUI_StyledString_Destroy(styled_string_);
-    OH_Drawing_DestroyFontCollection(fontCollection_);
-    OH_Drawing_DestroyTypographyStyle(typoStyle_);
+  
+  // TODO(hotxx):
+//     OH_ArkUI_StyledString_Destroy(styled_string_);
+//     OH_Drawing_DestroyFontCollection(fontCollection_);
+//     OH_Drawing_DestroyTypographyStyle(typoStyle_);
 
     if (ret.height < minLineHeight_) {
         ret.height = minLineHeight_;
@@ -445,8 +448,8 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
       << logTextContent_.c_str() << ", lineCount: " << lineCount;
 #endif
   
-    ret.width *= density;
-    ret.height *= density;
+  // TODO(hotxx):
+
     if (lineHeight_ != 0) {
         ret.height = lineHeight_ * density * (double)lineCount;
     

@@ -1039,7 +1039,8 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   CollectAllProps(textPropMap, node);
 
   float density = GetDensity();
-  OhMeasureText measureInst(custom_font_path_map_);
+  auto measureInst = std::make_shared<OhMeasureText>(custom_font_path_map_);
+  //OhMeasureText measureInst(custom_font_path_map_);
   OhMeasureResult measureResult;
 
   std::set<std::string> fontFamilyNames;
@@ -1064,10 +1065,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
     }
   }
   
-  measureInst.StartMeasure(textPropMap, fontFamilyNames);
+  measureInst->StartMeasure(textPropMap, fontFamilyNames);
 
   if (node->GetChildCount() == 0) {
-    measureInst.AddText(textPropMap);
+    measureInst->AddText(textPropMap, density);
   } else {
     for(uint32_t i = 0; i < node->GetChildCount(); i++) {
       auto child = node->GetChildAt(i);
@@ -1075,10 +1076,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       if (grand_child_count == 0) {
         CollectAllProps(spanPropMap, child);
         if (child->GetViewName() == "Text") {
-          measureInst.AddText(spanPropMap);
+          measureInst->AddText(spanPropMap, density);
         } else if (child->GetViewName() == "Image") {
           if (spanPropMap.find("width") != spanPropMap.end() && spanPropMap.find("height") != spanPropMap.end()) {
-            measureInst.AddImage(spanPropMap);
+            measureInst->AddImage(spanPropMap, density);
             imageSpanNode.push_back(child);
           } else {
             FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
@@ -1091,10 +1092,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
           std::map<std::string, std::string> grandSpanPropMap = spanPropMap;
           CollectAllProps(grandSpanPropMap, grand_child, false);
           if (grand_child->GetViewName() == "Text") {
-            measureInst.AddText(grandSpanPropMap);
+            measureInst->AddText(grandSpanPropMap, density);
           } else if (grand_child->GetViewName() == "Image") {
             if (grandSpanPropMap.find("width") != grandSpanPropMap.end() && grandSpanPropMap.find("height") != grandSpanPropMap.end()) {
-              measureInst.AddImage(grandSpanPropMap);
+              measureInst->AddImage(grandSpanPropMap, density);
               imageSpanNode.push_back(grand_child);
             } else {
               FOOTSTONE_LOG(ERROR) << "Measure Text : ImageSpan without size";
@@ -1104,13 +1105,16 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
       }
     }
   }
-  measureResult = measureInst.EndMeasure(static_cast<int>(width), static_cast<int>(width_mode),
+  measureResult = measureInst->EndMeasure(static_cast<int>(width), static_cast<int>(width_mode),
                                          static_cast<int>(height), static_cast<int>(height_mode), density);
 
+  auto view_manager = c_render_provider_->GetNativeRenderImpl()->GetHRManager()->GetViewManager(root->GetId());
+  view_manager->GetRenderContext()->GetTextMeasureManager()->SetTextMeasurer(node->GetId(), measureInst);
+  
   if(measureResult.spanPos.size() > 0 && measureResult.spanPos.size() == imageSpanNode.size()) {
     for(uint32_t i = 0; i < imageSpanNode.size(); i++) {
-      double x = measureResult.spanPos[i].x;
-      double y = measureResult.spanPos[i].y;
+      double x = PxToDp((float)measureResult.spanPos[i].x);
+      double y = PxToDp((float)measureResult.spanPos[i].y);
       // 把 c 测量到的imageSpan的位置，通知给ArkTS组件
       if (enable_ark_c_api_) {
         c_render_provider_->SpanPosition(root->GetId(), imageSpanNode[i]->GetId(), float(x), float(y));

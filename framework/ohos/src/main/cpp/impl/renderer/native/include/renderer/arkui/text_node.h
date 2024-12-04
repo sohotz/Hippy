@@ -23,6 +23,7 @@
 #pragma once
 
 #include "renderer/arkui/arkui_node.h"
+#include <arkui/styled_string.h>
 
 namespace hippy {
 inline namespace render {
@@ -31,7 +32,8 @@ inline namespace native {
 class TextNode : public ArkUINode {
 private:
   enum class AttributeFlag {
-    TEXT_CONTENT = 0,
+    TEXT_CONTENT_WITH_STYLED_STRING = 0,
+    TEXT_CONTENT,
     FONT_COLOR,
     FONT_SIZE,
     FONT_STYLE,
@@ -58,6 +60,7 @@ public:
   TextNode();
   ~TextNode() override;
   
+  TextNode &SetTextContentWithStyledString(const ArkUI_StyledString *styledString);
   TextNode &SetTextContent(const std::string &text);
   TextNode &SetFontColor(uint32_t fontColor);
   TextNode &ResetFontColor();

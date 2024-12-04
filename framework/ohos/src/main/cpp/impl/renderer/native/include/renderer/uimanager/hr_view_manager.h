@@ -61,6 +61,10 @@ public:
   std::shared_ptr<RootView> &GetRootView() {
     return root_view_;
   }
+  
+  std::shared_ptr<NativeRenderContext> GetRenderContext() {
+    return ctx_;
+  }
 
   void AddMutations(std::shared_ptr<HRMutation> &m);
 
