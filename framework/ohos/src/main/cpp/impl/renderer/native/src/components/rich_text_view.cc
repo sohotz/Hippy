@@ -77,10 +77,26 @@ bool RichTextView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView)
 }
 
 bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
+  
+//   test code
+//   if (propKey != "text") {
+//     return true;
+//   }
+  
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
     if (!text_.has_value() || value != text_) {
-      GetLocalRootArkUINode()->SetTextContent(value);
+//       GetLocalRootArkUINode()->SetTextContent(value); // TODO(hotxx):
+      auto textMeasurer = ctx_->GetTextMeasureManager()->GetTextMeasurer(tag_);
+      if (textMeasurer) {
+        auto styledString = textMeasurer->GetStyledString();
+        if (styledString) {
+          GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
+        }
+      }
+      
+
+      
       text_ = value;
     }
     return true;
