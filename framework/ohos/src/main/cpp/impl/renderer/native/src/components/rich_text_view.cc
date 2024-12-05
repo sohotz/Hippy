@@ -87,13 +87,18 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     std::string value = HRValueUtils::GetString(propValue);
     if (!text_.has_value() || value != text_) {
 //       GetLocalRootArkUINode()->SetTextContent(value); // TODO(hotxx):
-      auto textMeasurer = ctx_->GetTextMeasureManager()->GetTextMeasurer(tag_);
-      if (textMeasurer) {
-        auto styledString = textMeasurer->GetStyledString();
-        if (styledString) {
-          GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
-        }
-      }
+      
+//       auto textMeasurer = ctx_->GetTextMeasureManager()->GetTextMeasurer(tag_);
+//       if (textMeasurer) {
+//         auto styledString = textMeasurer->GetStyledString();
+//         if (styledString) {
+//           GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
+//         } else {
+//           FOOTSTONE_LOG(INFO) << "xxx hippy, set text, styled string nil";
+//         }
+//       } else {
+//         FOOTSTONE_LOG(INFO) << "xxx hippy, set text, measurer nil";
+//       }
       
 
       
@@ -169,12 +174,12 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     }
     return true;
   } else if (propKey == HRNodeProps::TEXT_ALIGN) {
-    std::string value = HRValueUtils::GetString(propValue);
-    ArkUI_TextAlignment align = HRTextConvertUtils::TextAlignToArk(value);
-    if (!textAlign_.has_value() || align != textAlign_) {
-      GetLocalRootArkUINode()->SetTextAlign(align);
-      textAlign_ = align;
-    }
+//     std::string value = HRValueUtils::GetString(propValue);
+//     ArkUI_TextAlignment align = HRTextConvertUtils::TextAlignToArk(value);
+//     if (!textAlign_.has_value() || align != textAlign_) {
+//       GetLocalRootArkUINode()->SetTextAlign(align);
+//       textAlign_ = align;
+//     }
     return true;
   } else if (propKey == HRNodeProps::TEXT_DECORATION_LINE) {
     std::string value = HRValueUtils::GetString(propValue);
@@ -260,6 +265,19 @@ void RichTextView::OnSetPropsEndImpl() {
 void RichTextView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   BaseView::UpdateRenderViewFrameImpl(frame, padding);
   textNode_->SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
+  
+  // test code
+  auto textMeasurer = ctx_->GetTextMeasureManager()->GetTextMeasurer(tag_);
+  if (textMeasurer) {
+    auto styledString = textMeasurer->GetStyledString();
+    if (styledString) {
+      GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
+    } else {
+      FOOTSTONE_LOG(INFO) << "xxx hippy, set frame, styled string nil";
+    }
+  } else {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, set frame, measurer nil, tag: " << tag_ << ", text: " << text_.value();
+  }
 }
 
 void RichTextView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {

@@ -745,6 +745,13 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
   mutations.resize(len);
   for (uint32_t i = 0; i < len; i++) {
     const auto &result = nodes[i]->GetRenderLayoutResult();
+    
+    if (nodes[i]->GetViewName() == "Text") {
+      auto parentNode = nodes[i]->GetParent();
+      bool is_parent_text = parentNode && parentNode->GetViewName() == "Text";
+      FOOTSTONE_LOG(INFO) << "xxx hippy, update text layout, tag: " << nodes[i]->GetId() << ", is_parent_text: " << is_parent_text;
+    }
+ 
     auto m = std::make_shared<HRUpdateLayoutMutation>();
     m->tag_ = nodes[i]->GetId();
     m->left_ = HRPixelUtils::DpToVp(result.left);
@@ -759,6 +766,7 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
     }
     mutations[i] = m;
   }
+  
   c_render_provider_->UpdateLayout(root_id, mutations);
 }
 
@@ -1037,6 +1045,10 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   std::map<std::string, std::string> textPropMap;
   std::map<std::string, std::string> spanPropMap;
   CollectAllProps(textPropMap, node);
+  
+  auto parentNode = node->GetParent();
+  bool is_parent_text = parentNode && parentNode->GetViewName() == "Text";
+  FOOTSTONE_LOG(INFO) << "xxx hippy, do measure, tag: " << node->GetId() << ", text: " << (textPropMap.find("text") != textPropMap.end() ? textPropMap["text"] : "") << ", is_parent_text: " << is_parent_text;
 
   float density = GetDensity();
   auto measureInst = std::make_shared<OhMeasureText>(custom_font_path_map_);
