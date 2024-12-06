@@ -118,6 +118,7 @@ void RefreshWrapperView::OnRefreshing() {
 
 void RefreshWrapperView::OnStateChange(int32_t state) {
   FOOTSTONE_DLOG(INFO) << "Refresh wrapper view, OnStateChange: " << state;
+  
 }
 
 void RefreshWrapperView::OnOffsetChange(float_t offset) {
@@ -137,12 +138,10 @@ void RefreshWrapperView::SetRefreshOffset(float offset) {
 
 void RefreshWrapperView::BounceToHead() {
   refreshNode_->SetRefreshRefreshing(false);
-
-  // TODO(hot): setTimeout bounceTime
 }
 
 void RefreshWrapperView::StartRefresh() {
-  HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_REFRESH_WRAPPER_REFRESH, nullptr);
+  // 鸿蒙不支持程序开始刷新
 }
 
 void RefreshWrapperView::RefreshComplected() {

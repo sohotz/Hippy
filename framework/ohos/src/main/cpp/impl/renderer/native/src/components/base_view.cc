@@ -750,7 +750,7 @@ void BaseView::SetInterceptPullUp(bool flag) {
 }
 
 void BaseView::HandleInterceptPullUp() {
-  // TODO(hot):
+  // TODO: 如果有业务需求，再评估鸿蒙上实现方案。
 }
 
 void BaseView::SetAttachedToWindowHandle(bool flag) {
