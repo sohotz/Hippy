@@ -750,6 +750,14 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
       auto parentNode = nodes[i]->GetParent();
       bool is_parent_text = parentNode && parentNode->GetViewName() == "Text";
       FOOTSTONE_LOG(INFO) << "xxx hippy, update text layout, tag: " << nodes[i]->GetId() << ", is_parent_text: " << is_parent_text;
+      
+      auto view_manager = c_render_provider_->GetNativeRenderImpl()->GetHRManager()->GetViewManager(root->GetId());
+      auto textMeasurer = view_manager->GetRenderContext()->GetTextMeasureManager()->GetTextMeasurer(nodes[i]->GetId());
+      if (!textMeasurer) {
+        int64_t resultx = 0;
+        DoMeasureText(root_node, nodes[i], DpToPx(result.width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
+                      DpToPx(result.height), static_cast<int32_t>(LayoutMeasureMode::AtMost), resultx);
+      }
     }
  
     auto m = std::make_shared<HRUpdateLayoutMutation>();

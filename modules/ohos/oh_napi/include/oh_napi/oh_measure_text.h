@@ -87,4 +87,5 @@ private:
 #endif
   
   ArkUI_StyledString *styled_string_ = nullptr;
+  OH_Drawing_Typography *typography_ = nullptr;
 };

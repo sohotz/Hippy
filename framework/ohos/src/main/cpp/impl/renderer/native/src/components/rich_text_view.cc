@@ -272,6 +272,7 @@ void RichTextView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPaddin
     auto styledString = textMeasurer->GetStyledString();
     if (styledString) {
       GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
+//       ctx_->GetTextMeasureManager()->EraseTextMeasurer(tag_);
     } else {
       FOOTSTONE_LOG(INFO) << "xxx hippy, set frame, styled string nil";
     }

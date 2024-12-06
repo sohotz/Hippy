@@ -3,7 +3,12 @@
 
 OhMeasureText::OhMeasureText() {}
 
-OhMeasureText::~OhMeasureText() {}
+OhMeasureText::~OhMeasureText() {
+  if (typography_) {
+    OH_Drawing_DestroyTypography(typography_);
+    typography_ = nullptr;
+  }
+}
 
 OH_Drawing_FontWeight OhMeasureText::FontWeightToDrawing(std::string &str) {
   if (str.length() == 0 || str == "normal") {
@@ -429,6 +434,7 @@ OhMeasureResult OhMeasureText::EndMeasure(int width, int widthMode, int height, 
     ret.isEllipsized = OH_Drawing_TypographyDidExceedMaxLines(typography);
 
   // TODO(hotxx):
+  typography_ = typography;
 //     OH_Drawing_DestroyTypography(typography);
 
 //     OH_Drawing_DestroyTypographyHandler(handler_);
