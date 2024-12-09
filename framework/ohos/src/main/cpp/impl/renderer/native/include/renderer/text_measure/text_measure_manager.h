@@ -35,12 +35,12 @@ public:
   TextMeasureManager() {}
   ~TextMeasureManager() {}
   
-  void SetTextMeasurer(uint32_t node_id, std::shared_ptr<OhMeasureText> text_measurer) {
+  void SetTextMeasurer(uint32_t node_id, std::shared_ptr<TextMeasurer> text_measurer) {
     std::lock_guard<std::mutex> lock(mutex_);
     text_measurer_map_[node_id] = text_measurer;
   }
   
-  std::shared_ptr<OhMeasureText> GetTextMeasurer(uint32_t node_id) {
+  std::shared_ptr<TextMeasurer> GetTextMeasurer(uint32_t node_id) {
     std::lock_guard<std::mutex> lock(mutex_);
     return text_measurer_map_[node_id];
   }
@@ -51,7 +51,7 @@ public:
   }
   
 private:
-  std::map<uint32_t, std::shared_ptr<OhMeasureText>> text_measurer_map_;
+  std::map<uint32_t, std::shared_ptr<TextMeasurer>> text_measurer_map_;
   std::mutex mutex_;
 };
 

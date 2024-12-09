@@ -121,6 +121,8 @@ set(SOURCE_SET
   src/components/waterfall_item_view.cc
   src/components/waterfall_view.cc
   src/recycle/recycle_view.cc
+  src/text_measure/text_measurer.cc
+  src/text_measure/text_measure_manager.cc
   )
 set(PUBLIC_SOURCE_SET
   src/native_render_provider_capi.cc

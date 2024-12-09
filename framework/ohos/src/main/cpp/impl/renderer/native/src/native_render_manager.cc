@@ -34,7 +34,6 @@
 #include "footstone/macros.h"
 #include "dom/root_node.h"
 #include "oh_napi/ark_ts.h"
-#include "oh_napi/oh_measure_text.h"
 
 #define USE_C_MEASURE 1
 
@@ -1059,7 +1058,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   FOOTSTONE_LOG(INFO) << "xxx hippy, do measure, tag: " << node->GetId() << ", text: " << (textPropMap.find("text") != textPropMap.end() ? textPropMap["text"] : "") << ", is_parent_text: " << is_parent_text;
 
   float density = GetDensity();
-  auto measureInst = std::make_shared<OhMeasureText>(custom_font_path_map_);
+  auto measureInst = std::make_shared<TextMeasurer>(custom_font_path_map_);
   //OhMeasureText measureInst(custom_font_path_map_);
   OhMeasureResult measureResult;
 

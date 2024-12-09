@@ -25,7 +25,6 @@
 #include "oh_napi/oh_napi_task_runner.h"
 #include "oh_napi/oh_napi_invocation.h"
 #include "oh_napi/oh_napi_register.h"
-#include "oh_napi/oh_measure_text.h"
 #include "footstone/deserializer.h"
 #include "footstone/hippy_value.h"
 #include "dom/render_manager.h"
@@ -428,7 +427,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
   float density = render_manager->GetDensity();
 
   uint32_t p = 0;
-  OhMeasureText measureInst;
+  TextMeasurer measureInst;
   OhMeasureResult result;
   while (true) {
     auto measureFlag = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));
