@@ -85,10 +85,6 @@ bool TextMeasurer::GetPropValue(std::map<std::string, std::string> &propMap, con
 }
 
 void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames) {
-  if (typographyStyle_) {
-    return;
-  }
-  
 #ifdef MEASURE_TEXT_CHECK_PROP
   StartCollectProp();
 #endif

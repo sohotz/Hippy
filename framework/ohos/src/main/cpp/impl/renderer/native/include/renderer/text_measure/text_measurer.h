@@ -101,9 +101,9 @@ private:
   double CalcSpanPostion(OH_Drawing_Typography *typography, OhMeasureResult &ret);
   
   std::unordered_map<std::string, std::string> fontFamilyList_;
-  OH_Drawing_FontCollection *fontCollection_;
+  OH_Drawing_FontCollection *fontCollection_ = nullptr;
   
-  OH_Drawing_TypographyStyle *typographyStyle_;
+  OH_Drawing_TypographyStyle *typographyStyle_ = nullptr;
   OH_Drawing_Typography *typography_ = nullptr;
   ArkUI_StyledString *styled_string_ = nullptr;
   
