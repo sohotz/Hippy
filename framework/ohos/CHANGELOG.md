@@ -7,3 +7,7 @@
 ## Version 1.1.0
 ### Features
 - Improve the list component, improve the details of JSVM usage, optimize memory, and so on.
+
+## Version 1.2.0
+### Fix
+- Some bugs.
