@@ -18,11 +18,10 @@
  * limitations under the License.
  */
 import { HippyEngineContext } from 'hippy';
-import { HippyModulePromise } from 'hippy/src/main/ets/hippy_framework/modules/HippyModulePromise';
 import { HippyNativeModuleBase } from 'hippy/src/main/ets/hippy_framework/modules/native';
 import { HippyNativeModule } from 'hippy/src/main/ets/support/annotation/HippyNativeModule';
-import { HippyAny } from 'hippy/src/main/ets/support/common/HippyTypes';
-import { LogUtils } from 'hippy/src/main/ets/support/utils/LogUtils';
+import { HippyAny, HippyArray, HippyMap } from 'hippy/src/main/ets/support/common/HippyTypes';
+import { TurboConfig } from './turbo/TurboConfig';
 
 
 @HippyNativeModule({ name: "demoTurbo" })
@@ -37,19 +36,35 @@ export class ExampleNativeTurboModule extends HippyNativeModuleBase {
     return true
   }
 
-  public call(method: string, params: Array<HippyAny>, promise: HippyModulePromise): HippyAny {
-    switch (method) {
-      case 'getString': {
-        this.getString(params[0] as string);
-        break;
-      }
-      default:
-        super.call(method, params, promise);
-    }
-    return null;
-  }
-
   public getString(info: string): string {
     return 'demoTurbo' + info;
+  }
+
+  public getNum(num: number): number {
+    return num;
+  }
+
+  public getBoolean(b: boolean): boolean {
+    return b;
+  }
+
+  public getMap(map: HippyMap): HippyMap {
+    return map
+  }
+
+  public getArray(array: HippyArray): HippyArray {
+    return array
+  }
+
+  public getObject(obj: HippyAny): HippyAny {
+    return obj
+  }
+
+  public getTurboConfig(): TurboConfig {
+		return new TurboConfig();
+	}
+
+  public printTurboConfig(turboConfig: TurboConfig): string {
+    return turboConfig.info;
   }
 }

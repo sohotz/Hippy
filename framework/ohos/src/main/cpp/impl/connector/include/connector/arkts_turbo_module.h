@@ -24,7 +24,6 @@
 
 #include <string>
 
-//#include "connector/convert_utils.h"
 #include "connector/turbo.h"
 #include "driver/napi/js_ctx.h"
 
@@ -38,7 +37,7 @@ class ArkTsTurboModule {
   using CtxValue = hippy::napi::CtxValue;
   using FunctionWrapper = hippy::napi::FunctionWrapper;
   using PropertyDescriptor = hippy::napi::PropertyDescriptor;
-//
+
   struct TurboWrapper {
     ArkTsTurboModule* module;
     std::shared_ptr<CtxValue> name;
@@ -57,15 +56,14 @@ class ArkTsTurboModule {
 
   ArkTsTurboModule(const std::string& name,
                   std::shared_ptr<Turbo>& impl,
-                  const std::shared_ptr<Ctx>& ctx);
+                  const std::shared_ptr<Ctx>& ctx,
+                  napi_env env);
 
   std::string name;
   std::shared_ptr<Turbo> impl;
+  napi_env env;
   std::unique_ptr<hippy::napi::FunctionWrapper> wrapper_holder_;
-//
-//   // methodName, signature
-//   std::unordered_map<std::string, MethodInfo> method_map_;
-//
+
   std::shared_ptr<CtxValue> constructor;
   std::unique_ptr<FunctionWrapper> constructor_wrapper;
   std::unordered_map<std::shared_ptr<CtxValue>, std::unique_ptr<TurboWrapper>> turbo_wrapper_map;
@@ -77,9 +75,6 @@ class ArkTsTurboModule {
       hippy::napi::CallbackInfo& info,
       void* data);
 
-//   static void Init(JNIEnv* j_env);
-//
-//   static void Destroy(JNIEnv* j_env);
 };
 
 }

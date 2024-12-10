@@ -22,6 +22,7 @@
 
 #include "connector/arkts_turbo_module.h"
 
+#include "connector/turbo.utils.h"
 #include "driver/napi/js_ctx.h"
 #include "driver/napi/js_ctx_value.h"
 #include "driver/napi/callback_info.h"
@@ -29,44 +30,63 @@
 #include "footstone/logging.h"
 #include "footstone/string_view.h"
 #include "footstone/string_view_utils.h"
+#include "oh_napi/oh_napi_task_runner.h"
+#include "oh_napi/oh_napi_object.h"
 
-// using string_view = footstone::string_view;
-// using StringViewUtils = footstone::StringViewUtils;
-// using Ctx = hippy::Ctx;
-// using CtxValue = hippy::CtxValue;
-// using CallbackInfo = hippy::CallbackInfo;
-// using JNIEnvironment = hippy::JNIEnvironment;
-// using ScopeWrapper = hippy::ScopeWrapper;
-// using JavaRef = hippy::JavaRef;
-// using JniUtils = hippy::JniUtils;
+using string_view = footstone::string_view;
+using StringViewUtils = footstone::StringViewUtils;
+using Ctx = hippy::Ctx;
+using CtxValue = hippy::CtxValue;
+using CallbackInfo = hippy::CallbackInfo;
+using ScopeWrapper = hippy::ScopeWrapper;
+using TurboUtils = hippy::TurboUtils;
+
 
 namespace hippy {
 inline namespace framework {
 inline namespace turbo {
 
-// static jclass argument_utils_clazz;
-// static jmethodID get_methods_signature;
-
 std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_ptr<CtxValue>& prop_name,
                                                             CallbackInfo& info,
                                                             void* data) {
-  auto wrapper = reinterpret_cast<TurboWrapper*>(data);
-  FOOTSTONE_CHECK(wrapper && wrapper->module && wrapper->name);
-      auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
-  auto scope = scope_wrapper->scope.lock();
-      auto context = scope->GetContext();
-        return context->CreateUndefined();
-//   auto result = wrapper->module->InvokeArkTsMethod(wrapper->name, info, data);
+ FOOTSTONE_DLOG(INFO) << "[turbo-perf] enter invokeArkTSMethod";
 
-//     auto result = turboManager.Call(prop_name, args);
-//   });
-//   return module;
+  auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
+  auto scope = scope_wrapper->scope.lock();
+  FOOTSTONE_CHECK(scope);
+  auto context = scope->GetContext();
+  string_view str_view;
+  std::string method;
+  std::shared_ptr<CtxValue> result;
+  if (context->GetValueString(prop_name, &str_view)) {
+    method = StringViewUtils::ToStdString(
+        StringViewUtils::ConvertEncoding(str_view, string_view::Encoding::Utf8).utf8_value());
+  }
+    
+  FOOTSTONE_DLOG(INFO) << "invokeArkTSMethod, method = " << method.c_str();
+
+  OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
+  taskRunner->RunSyncTask([env = env, impl = impl, &info, context, method, &result]() {
+      ArkTS arkTs(env);
+      napi_ref turbo_module_ref = impl->GetRef();
+      auto turboModule = arkTs.GetObject(turbo_module_ref);
+      std::vector<napi_value> args;
+      for (size_t i = 0; i < info.Length(); ++i) {
+        auto item = info[i];
+        napi_value value = TurboUtils::CtxValue2NapiValue(env, context, item);
+        args.push_back(value); 
+      }
+      napi_value ret = turboModule.Call(method, args);
+      result = TurboUtils::NapiValue2CtxValue(env, ret, context);
+  });
+  return result;
 }
 
 ArkTsTurboModule::ArkTsTurboModule(const std::string& name,
                                  std::shared_ptr<Turbo>& impl,
-                                 const std::shared_ptr<Ctx>& ctx)
-  : name(name), impl(impl) {
+                                 const std::shared_ptr<Ctx>& ctx,
+                                 napi_env env)
+  : name(name), impl(impl), env(env) {
   auto getter = std::make_unique<FunctionWrapper>([](CallbackInfo& info, void* data) {
     auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
     auto scope = scope_wrapper->scope.lock();
@@ -87,7 +107,6 @@ ArkTsTurboModule::ArkTsTurboModule(const std::string& name,
       auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
       auto scope = scope_wrapper->scope.lock();
       FOOTSTONE_CHECK(scope);
-      auto ctx = scope->GetContext();
       auto wrapper = reinterpret_cast<TurboWrapper*>(data);
       FOOTSTONE_CHECK(wrapper && wrapper->module && wrapper->name);
       auto result = wrapper->module->InvokeArkTsMethod(wrapper->name, info, data);

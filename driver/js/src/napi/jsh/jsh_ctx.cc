@@ -45,7 +45,7 @@ using JSHVM = hippy::vm::JSHVM;
 using CallbackInfo = hippy::CallbackInfo;
 
 void* GetPointerInInstanceData(JSVM_Env env, int index) {
-  if (index < 0 || index >= kJSHExternalDataNum) {
+  if (index < 0 || index > KJSHTurboFunctionGetIndex) {
     return nullptr;
   }
   
@@ -143,6 +143,8 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
     cb_info.AddValue(std::make_shared<JSHCtxValue>(env, argv[i]));
   }
   
+  void *wrap_result = nullptr;
+  status = OH_JSVM_RemoveWrap(env, thisArg, &wrap_result);
   status = OH_JSVM_Wrap(env, thisArg, cb_info.GetData(), nullptr, nullptr, nullptr);
   FOOTSTONE_DCHECK(status == JSVM_OK);
 
@@ -213,7 +215,7 @@ std::shared_ptr<ClassDefinition> JSHCtx::GetClassDefinition(const string_view& n
 }
 
 void JSHCtx::SetPointerInInstanceData(int index, void* address) {
-  if (index < 0 || index >= kJSHExternalDataNum) {
+  if (index < 0 || index > KJSHTurboFunctionGetIndex) {
     return;
   }
   
@@ -1241,9 +1243,89 @@ void* JSHCtx::GetObjectExternalData(const std::shared_ptr<CtxValue>& object) {
   return nullptr;
 }
 
+static JSVM_Value GetPropertyCbInfo(JSVM_Env env, JSVM_Value name, JSVM_Value thisArg, JSVM_Value data) {
+  char strValue[100];
+  size_t size;
+  OH_JSVM_GetValueStringUtf8(env, name, strValue, 300, &size);
+  CallbackInfo cb_info;
+
+  void *scope_data = GetPointerInInstanceData(env, kJSHScopeWrapperIndex);
+  cb_info.SetSlot(scope_data);
+    
+  void *internal_data = nullptr;
+  auto status = OH_JSVM_Unwrap(env, thisArg, &internal_data);
+  if (status == JSVM_OK) {
+    if (internal_data) {
+      cb_info.SetData(internal_data);
+    }
+  }
+
+  cb_info.SetReceiver(std::make_shared<JSHCtxValue>(env, thisArg));
+  auto function_name = std::make_shared<JSHCtxValue>(env, name);
+  cb_info.AddValue(function_name);
+
+  void* turbo_function_get = GetPointerInInstanceData(env, KJSHTurboFunctionGetIndex);
+  auto function_wrapper = reinterpret_cast<FunctionWrapper*>(turbo_function_get);
+  FOOTSTONE_CHECK(function_wrapper);
+  auto js_cb = function_wrapper->callback;
+  auto external_data = function_wrapper->data;
+
+  js_cb(cb_info, external_data);
+  auto exception = std::static_pointer_cast<JSHCtxValue>(cb_info.GetExceptionValue()->Get());
+  if (exception) {
+    OH_JSVM_Throw(env, exception->GetValue());
+    JSVM_Value result = nullptr;
+    OH_JSVM_GetUndefined(env, &result);
+    return result;
+  }
+
+  auto ret_value = std::static_pointer_cast<JSHCtxValue>(cb_info.GetReturnValue()->Get());
+  if (!ret_value) {
+    JSVM_Value result = nullptr;
+    OH_JSVM_GetUndefined(env, &result);
+    return result;
+  }
+
+  return ret_value->GetValue();
+}
+
 std::shared_ptr<CtxValue> JSHCtx::DefineProxy(const std::unique_ptr<FunctionWrapper>& constructor_wrapper) {
-  // JSVM impl
-  return CreateFunction(constructor_wrapper);
+  JSHHandleScope handleScope(env_);
+  JSVM_Value func_tpl;
+    
+  callback_structs_.push_back(new JSVM_CallbackStruct());
+  JSVM_CallbackStruct* constructorParam = callback_structs_.back();
+  constructorParam->data = constructor_wrapper.get();
+  constructorParam->callback = InvokeJsCallbackOnConstruct;
+    
+  callback_structs_.push_back(new JSVM_CallbackStruct());
+  JSVM_CallbackStruct* callbackParam = callback_structs_.back();
+  callbackParam->data = constructor_wrapper.get();
+  callbackParam->callback = InvokeJsCallback;  
+    
+  SetPointerInInstanceData(KJSHTurboFunctionGetIndex, constructor_wrapper.get());
+    
+  JSVM_Value res = nullptr;
+  OH_JSVM_CreateBigintWords(env_, 1, 2, reinterpret_cast<const uint64_t *>(constructor_wrapper.get()), &res);
+  JSVM_PropertyHandlerConfigurationStruct* propertyHandlerCfg = new JSVM_PropertyHandlerConfigurationStruct();
+  propertyHandlerCfg->genericNamedPropertyGetterCallback = GetPropertyCbInfo;
+  propertyHandlerCfg->namedPropertyData = res;
+  propertyHandlerCfg->indexedPropertyData = res;
+  JSVM_PropertyHandlerCfg propertyHandlerConfig = propertyHandlerCfg;
+
+  JSVM_Status status = OH_JSVM_DefineClassWithPropertyHandler(
+    env_, 
+    "ProxyWrap",
+    JSVM_AUTO_LENGTH,
+    constructorParam, 
+    0,
+    nullptr,
+    propertyHandlerConfig,
+    callbackParam,
+    &func_tpl);
+  FOOTSTONE_DCHECK(status == JSVM_OK);  
+
+  return std::make_shared<JSHCtxValue>(env_, func_tpl);
 }
 
 std::shared_ptr<CtxValue> JSHCtx::DefineClass(const string_view& name,

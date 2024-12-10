@@ -266,10 +266,8 @@ export class HippyBridgeManagerImpl implements HippyBridgeManager, BridgeCallbac
     if (this.mContext != null) {
       this.mContext.reloadRootView();
     }
-    // TODO
     if (this.enableTurbo()) {
       const mTurboModuleManager = new TurboModuleManager(this.mContext, this.libHippy);
-      // TODO runtimeID
       mTurboModuleManager.install(this.mHippyBridge.getV8RuntimeId());
     }
     // if (mThirdPartyAdapter != null) {

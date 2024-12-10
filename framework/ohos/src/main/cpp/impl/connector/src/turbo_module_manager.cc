@@ -44,19 +44,15 @@
 
 
 #include <cstdint>
-#include <codecvt>
 
 #include "footstone/logging.h"
 #include "footstone/string_view.h"
 #include "footstone/string_view_utils.h"
-#include "driver/napi/v8/v8_ctx.h"
-
 
 
 using namespace hippy::napi;
 using string_view = footstone::string_view;
 using StringViewUtils = footstone::StringViewUtils;
-using V8Ctx = hippy::V8Ctx;
 
 constexpr char kTurboKey[] = "getTurboModule";
 
@@ -68,30 +64,6 @@ static napi_env s_env = 0;
 
 void InitTurbo(napi_env env) {
   s_env = env;
-}
-
-/**
- * com.tencent.mtt.hippy.bridge.jsi.TurboModuleManager.get
- */
-std::shared_ptr<Turbo> QueryTurboModuleImpl(std::shared_ptr<Scope>& scope, const std::string& module_name) {
-  FOOTSTONE_DLOG(INFO) << "enter QueryTurboModuleImpl " << module_name.c_str();
-  auto turbo = std::any_cast<std::shared_ptr<Turbo>>(scope->GetTurbo());
-  napi_ref object_ref = turbo->GetRef();
-  auto env = s_env;
-  ArkTS arkTs(env);
-  auto turboManager = arkTs.GetObject(object_ref);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-#pragma clang diagnostic pop
-  std::vector<napi_value> args = {
-    arkTs.CreateStringUtf16(converter.from_bytes(module_name)),
-  };
-  auto module = turboManager.Call("get", args);
-  auto module_object_ref = arkTs.CreateReference(module);
-  auto module_object = std::make_shared<Turbo>(module_object_ref);
-// });
-  return module_object;
 }
 
 void GetTurboModule(CallbackInfo& info, void* data) {
@@ -121,34 +93,37 @@ void GetTurboModule(CallbackInfo& info, void* data) {
     // 2. if not cached, query from ArkTs
     auto env = s_env;
     OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
-    taskRunner->RunAsyncTask([info, scope, u8_name, name, ctx, result]() {    
-    auto module_impl = QueryTurboModuleImpl(scope, u8_name);
-    if (!module_impl) { 
-      FOOTSTONE_LOG(ERROR) << "Cannot find TurboModule = " << name;
-      ctx->ThrowException("Cannot find TurboModule: " + name);
-      return info.GetReturnValue()->SetUndefined();
-    }
+    taskRunner->RunSyncTask([&info, env, scope, u8_name, name, ctx, &result]() {
+        auto turbo = std::any_cast<std::shared_ptr<Turbo>>(scope->GetTurbo());
+        ArkTS arkTs(env);
+        napi_ref object_ref = turbo->GetRef();
+        auto turboManager = arkTs.GetObject(object_ref);
+        std::vector<napi_value> args = {
+            arkTs.CreateString(u8_name),
+        };
+        auto module = turboManager.Call("get", args);
+        auto module_object_ref = arkTs.CreateReference(module);
+        auto module_object = std::make_shared<Turbo>(module_object_ref);
+            
+        // 3. constructor c++ JavaTurboModule
+        auto arkTs_turbo_module = std::make_shared<ArkTsTurboModule>(u8_name, module_object, ctx, env);
 
-    // 3. constructor c++ JavaTurboModule
-    auto arkTs_turbo_module = std::make_shared<ArkTsTurboModule>(u8_name, module_impl, ctx);
+        // 4. bind c++ JavaTurboModule to js
+        result = ctx->NewInstance(arkTs_turbo_module->constructor, 0, nullptr, arkTs_turbo_module.get());
 
-    // 4. bind c++ JavaTurboModule to js
-    result = ctx->NewInstance(arkTs_turbo_module->constructor, 0, nullptr, arkTs_turbo_module.get());
+        // 5. add To Cache
+        scope->SetTurboInstance(u8_name, result);
+        scope->SetTurboHostObject(u8_name, arkTs_turbo_module);
 
-    // 5. add To Cache
-    scope->SetTurboInstance(u8_name, result);
-    scope->SetTurboHostObject(u8_name, arkTs_turbo_module);
-
-    FOOTSTONE_DLOG(INFO) << "return module = " << name;
-     });
+        FOOTSTONE_DLOG(INFO) << "return module = " << name;
+        info.GetReturnValue()->Set(result);  
+    });
   } else {
     result = scope->GetTurboInstance(u8_name);
+    info.GetReturnValue()->Set(result);  
     FOOTSTONE_DLOG(INFO) << "return cached module = " << name;
   }
-
-  info.GetReturnValue()->Set(result);
   FOOTSTONE_DLOG(INFO) << "[turbo-perf] exit getTurboModule";
-    
 }
 
 void TurboModuleManager::Destroy(napi_env env, napi_callback_info info) {
