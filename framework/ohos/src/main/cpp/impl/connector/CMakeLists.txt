@@ -86,6 +86,7 @@ set(PUBLIC_SOURCE_SET
   src/turbo_module_manager.cc
   src/arkts_turbo_module.cc
   src/setting_napi.cc
+  src/turbo_utils.cc
   )
 target_sources(${PROJECT_NAME} PUBLIC ${PUBLIC_SOURCE_SET})
 # endregion
