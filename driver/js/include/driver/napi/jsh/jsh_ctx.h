@@ -58,8 +58,8 @@ class JSHHandleScope {
 constexpr static int kJSHExternalIndex = 0;
 constexpr static int kJSHScopeWrapperIndex = 1;
 constexpr static int kJSHWeakCallbackWrapperInvalidIndex = 2;
-constexpr static int kJSHExternalDataNum = 3;
-constexpr static int KJSHTurboFunctionGetIndex = 4;
+constexpr static int KJSHTurboFunctionGetIndex = 3;
+constexpr static int kJSHExternalDataNum = 4;
 
 extern void* GetPointerInInstanceData(JSVM_Env env, int index);
 

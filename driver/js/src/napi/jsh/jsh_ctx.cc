@@ -45,7 +45,7 @@ using JSHVM = hippy::vm::JSHVM;
 using CallbackInfo = hippy::CallbackInfo;
 
 void* GetPointerInInstanceData(JSVM_Env env, int index) {
-  if (index < 0 || index > KJSHTurboFunctionGetIndex) {
+  if (index < 0 || index >= kJSHExternalDataNum) {
     return nullptr;
   }
   
@@ -215,7 +215,7 @@ std::shared_ptr<ClassDefinition> JSHCtx::GetClassDefinition(const string_view& n
 }
 
 void JSHCtx::SetPointerInInstanceData(int index, void* address) {
-  if (index < 0 || index > KJSHTurboFunctionGetIndex) {
+  if (index < 0 || index >= kJSHExternalDataNum) {
     return;
   }
   
