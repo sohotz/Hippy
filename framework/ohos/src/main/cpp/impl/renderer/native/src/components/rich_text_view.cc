@@ -240,6 +240,21 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
 }
 
 void RichTextView::OnSetPropsEndImpl() {
+    
+  // test code
+  auto textMeasurer = ctx_->GetTextMeasureManager()->GetTextMeasurer(tag_);
+  if (textMeasurer) {
+    auto styledString = textMeasurer->GetStyledString();
+    if (styledString) {
+      GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
+//       ctx_->GetTextMeasureManager()->EraseTextMeasurer(tag_);
+    } else {
+      FOOTSTONE_LOG(INFO) << "xxx hippy, set frame, styled string nil";
+    }
+  } else {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, set frame, measurer nil, tag: " << tag_ << ", text: " << text_.value();
+  }
+  
   if (!fontSize_.has_value()) {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;
     GetLocalRootArkUINode()->SetFontSize(defaultValue);
@@ -265,20 +280,6 @@ void RichTextView::OnSetPropsEndImpl() {
 void RichTextView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   BaseView::UpdateRenderViewFrameImpl(frame, padding);
   textNode_->SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
-  
-  // test code
-  auto textMeasurer = ctx_->GetTextMeasureManager()->GetTextMeasurer(tag_);
-  if (textMeasurer) {
-    auto styledString = textMeasurer->GetStyledString();
-    if (styledString) {
-      GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
-//       ctx_->GetTextMeasureManager()->EraseTextMeasurer(tag_);
-    } else {
-      FOOTSTONE_LOG(INFO) << "xxx hippy, set frame, styled string nil";
-    }
-  } else {
-    FOOTSTONE_LOG(INFO) << "xxx hippy, set frame, measurer nil, tag: " << tag_ << ", text: " << text_.value();
-  }
 }
 
 void RichTextView::OnChildInsertedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) {

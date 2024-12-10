@@ -346,6 +346,16 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
   if (!root) {
     return;
   }
+  
+  for (const auto &n : nodes) {
+    auto node = root->GetNode(n->GetId());
+    if (node == nullptr)
+      continue;
+    if (n->GetViewName() == "Text") {
+      auto textNode = GetAncestorTextNode(node);
+      draw_text_nodes_[node->GetId()] = textNode;
+    }
+  }
 
   uint32_t root_id = root->GetId();
   auto len = nodes.size();
@@ -369,6 +379,10 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
         DEFINE_SELF(NativeRenderManager)
         if (!self) {
           return LayoutSize{0, 0};
+        }
+        auto node = weak_node.lock();
+        if (node) {
+          self->draw_text_nodes_.erase(node->GetId());
         }
         int64_t result;
         self->DoMeasureText(root_node, weak_node, self->DpToPx(width), static_cast<int32_t>(width_measure_mode),
@@ -744,21 +758,6 @@ void NativeRenderManager::UpdateLayout_C(std::weak_ptr<RootNode> root_node, cons
   mutations.resize(len);
   for (uint32_t i = 0; i < len; i++) {
     const auto &result = nodes[i]->GetRenderLayoutResult();
-    
-    if (nodes[i]->GetViewName() == "Text") {
-      auto parentNode = nodes[i]->GetParent();
-      bool is_parent_text = parentNode && parentNode->GetViewName() == "Text";
-      FOOTSTONE_LOG(INFO) << "xxx hippy, update text layout, tag: " << nodes[i]->GetId() << ", is_parent_text: " << is_parent_text;
-      
-      auto view_manager = c_render_provider_->GetNativeRenderImpl()->GetHRManager()->GetViewManager(root->GetId());
-      auto textMeasurer = view_manager->GetRenderContext()->GetTextMeasureManager()->GetTextMeasurer(nodes[i]->GetId());
-      if (!textMeasurer) {
-        int64_t resultx = 0;
-        DoMeasureText(root_node, nodes[i], DpToPx(result.width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
-                      DpToPx(result.height), static_cast<int32_t>(LayoutMeasureMode::AtMost), resultx);
-      }
-    }
- 
     auto m = std::make_shared<HRUpdateLayoutMutation>();
     m->tag_ = nodes[i]->GetId();
     m->left_ = HRPixelUtils::DpToVp(result.left);
@@ -838,9 +837,47 @@ void NativeRenderManager::EndBatch_TS(std::weak_ptr<RootNode> root_node) {
 void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
   auto root = root_node.lock();
   if (root) {
+    for (auto it : draw_text_nodes_) {
+      auto node = it.second.lock();
+      if (node) {
+        float width = 0;
+        float height = 0;
+        GetTextNodeSizeProp(node, width, height);
+        int64_t result = 0;
+        DoMeasureText(root_node, node, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
+                      DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
+      }
+    }
+    draw_text_nodes_.clear();
+    
     uint32_t root_id = root->GetId();
     c_render_provider_->EndBatch(root_id);
   }
+}
+
+bool NativeRenderManager::GetTextNodeSizeProp(const std::shared_ptr<DomNode> &node, float &width, float &height) {
+  width = std::numeric_limits<float>::max();
+  height = std::numeric_limits<float>::max();
+  
+  auto style = node->GetStyleMap();
+  auto it = style->find("width");
+  if (it != style->end()) {
+    auto value = it->second;
+    double d = 0;
+    if (value->ToDouble(d)) {
+      width = (float)d;
+    }
+  }
+  
+  it = style->find("height");
+  if (it != style->end()) {
+    auto value = it->second;
+    double d = 0;
+    if (value->ToDouble(d)) {
+      height = (float)d;
+    }
+  }
+  return true;
 }
 
 void NativeRenderManager::BeforeLayout(std::weak_ptr<RootNode> root_node){}
@@ -1271,9 +1308,38 @@ void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, 
         MARK_DIRTY_PROPERTY(diff_style, kText, node->GetLayoutNode());
         MARK_DIRTY_PROPERTY(diff_style, kEnableScale, node->GetLayoutNode());
         MARK_DIRTY_PROPERTY(diff_style, kNumberOfLines, node->GetLayoutNode());
+        
+        if (diff_style->find(kFontStyle) != diff_style->end()
+          || diff_style->find(kLetterSpacing) != diff_style->end()
+          || diff_style->find(kColor) != diff_style->end()
+          || diff_style->find(kFontSize) != diff_style->end()
+          || diff_style->find(kFontFamily) != diff_style->end()
+          || diff_style->find(kFontWeight) != diff_style->end()
+          || diff_style->find(kTextDecorationLine) != diff_style->end()
+          || diff_style->find(kTextShadowOffset) != diff_style->end()
+          || diff_style->find(kTextShadowRadius) != diff_style->end()
+          || diff_style->find(kTextShadowColor) != diff_style->end()
+          || diff_style->find(kLineHeight) != diff_style->end()
+          || diff_style->find(kTextAlign) != diff_style->end() // TODO:
+          || diff_style->find(kText) != diff_style->end()
+          || diff_style->find(kEnableScale) != diff_style->end()
+          || diff_style->find(kNumberOfLines) != diff_style->end()) {
+          auto textNode = GetAncestorTextNode(node);
+          draw_text_nodes_[node->GetId()] = textNode;
+        }
       }
     }
   }
+}
+
+std::shared_ptr<DomNode> NativeRenderManager::GetAncestorTextNode(const std::shared_ptr<DomNode> &node) {
+  auto textNode = node;
+  auto parentNode = textNode->GetParent();
+  while (parentNode && parentNode->GetViewName() == "Text") {
+    textNode = parentNode;
+    parentNode = textNode->GetParent();
+  }
+  return textNode;
 }
 
 bool NativeRenderManager::IsCustomMeasureNode(const std::string &name) {

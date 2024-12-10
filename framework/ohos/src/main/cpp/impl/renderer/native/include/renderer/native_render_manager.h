@@ -175,6 +175,9 @@ private:
     float width, LayoutMeasureMode width_measure_mode,
     float height, LayoutMeasureMode height_measure_mode);
 
+  std::shared_ptr<DomNode> GetAncestorTextNode(const std::shared_ptr<DomNode> &node);
+  bool GetTextNodeSizeProp(const std::shared_ptr<DomNode> &node, float &width, float &height);
+  
 private:
   uint32_t id_;
   napi_env ts_env_ = 0;
@@ -190,6 +193,8 @@ private:
 
   bool enable_ark_c_api_ = false;
   std::shared_ptr<NativeRenderProvider> c_render_provider_;
+  
+  std::map<uint32_t, std::weak_ptr<DomNode>> draw_text_nodes_;
 };
 
 }  // namespace native
