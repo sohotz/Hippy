@@ -61,8 +61,9 @@ JSHVM::JSHVM(const std::shared_ptr<JSHVMInitParam>& param) : VM(param) {
       
       JSVM_InitOptions init_options;
       memset(&init_options, 0, sizeof(init_options));
+      // 说明：这里init返回结果不需要判断，有可能App其它地方已经init过JSVM，这里会返回错误码9，但没影响。
       auto status = OH_JSVM_Init(&init_options);
-      FOOTSTONE_CHECK(status == JSVM_OK);
+      FOOTSTONE_LOG(INFO) << "JSHVM OH_JSVM_Init result: " << status;
       platform_initted = true;
 #ifdef ENABLE_INSPECTOR
       auto trace = reinterpret_cast<v8::platform::tracing::TracingController*>(platform->GetTracingController());
@@ -79,7 +80,7 @@ JSHVM::JSHVM(const std::shared_ptr<JSHVMInitParam>& param) : VM(param) {
   FOOTSTONE_CHECK(status == JSVM_OK);
 
   enable_v8_serialization_ = param->enable_v8_serialization;
-  FOOTSTONE_DLOG(INFO) << "V8VM end";
+  FOOTSTONE_DLOG(INFO) << "JSHVM end";
 }
 
 static void UncaughtExceptionMessageCallback(JSVM_Env env, JSVM_Value error, void *external_data) {

@@ -6,7 +6,7 @@
   "repository": "https://github.com/sohotz/Hippy.git",
   "homepage": "https://openhippy.com/",
   "keywords": ["hippy", "cross-platform"],
-  "version": "1.1.0",
+  "version": "1.2.0",
   "dependencies": {},
   "devDependencies": {},
 }

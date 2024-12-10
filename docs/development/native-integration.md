@@ -298,7 +298,7 @@ Ohos Demo：源码依赖 Hippy。体验方法：DevEco 打开 hippy 项目根目
 
  ```json
   "dependencies": {
-    "hippy": "1.0.0"
+    "hippy": "1.2.0"
   }
  ```
 

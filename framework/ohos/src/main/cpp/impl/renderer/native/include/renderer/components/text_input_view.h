@@ -130,8 +130,8 @@ private:
   bool isListenEndEditing_ = false;
   bool isListenFocus_ = false;
   bool isListenBlur_ = false;
-  bool isListenKeyboardWillShow_ = false; // TODO(hot):
-  bool isListenKeyboardWillHide_ = false; // TODO(hot):
+  bool isListenKeyboardWillShow_ = false; // TODO: 如果有业务需求，再评估鸿蒙上实现方案。
+  bool isListenKeyboardWillHide_ = false;
   bool isListenContentSizeChange_ = false;
 
   bool focus_ = false;

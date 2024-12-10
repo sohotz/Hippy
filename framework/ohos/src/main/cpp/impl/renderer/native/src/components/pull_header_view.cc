@@ -55,7 +55,6 @@ void PullHeaderView::CallImpl(const std::string &method, const std::vector<Hippy
     if (r && map.size() > 0) {
       auto collapseTime = HRValueUtils::GetInt32(map["time"]);
       if (collapseTime > 0) {
-        // TODO(hot):
         OnHeadRefreshFinish(collapseTime);
       } else {
         OnHeadRefreshFinish();
@@ -76,7 +75,6 @@ void PullHeaderView::OnHeadRefreshFinish(int32_t delay) {
       listView->ScrollToIndex(1, true);
     } else if (parentView->GetViewType() == "WaterfallView") {
       auto waterView = std::static_pointer_cast<WaterfallView>(parentView);
-      // TODO(hot):
       waterView->OnHeadRefreshFinish(delay);
     }
   }

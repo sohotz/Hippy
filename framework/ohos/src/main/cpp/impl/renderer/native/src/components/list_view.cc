@@ -61,7 +61,7 @@ void ListView::Init() {
       listView->HandleOnChildrenUpdated();
       listView->CheckInitOffset();
       
-      // TODO(hot): rowShouldSticky
+      // TODO: rowShouldSticky 吸顶逻辑，如果有业务需求，再评估鸿蒙上实现方案。
     }
   });
 }
