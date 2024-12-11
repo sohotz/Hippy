@@ -17,21 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HippyCallNativeParams } from '../bridge/HippyCallNativeParams';
-import { HippyAPIProvider } from '../bridge/HippyAPIProvider';
-import { HippyNativeModuleBase } from './native';
-import { HippyJavaScriptModuleBase } from './javascript/HippyJavaScriptModuleBase';
-import { HippyNativeModuleCreator } from './HippyModuleManagerImpl';
 
-export interface HippyModuleManager {
 
-  callNatives(params: HippyCallNativeParams): void;
-
-  destroy(): void;
-
-  getNativeModule(name: string, isTurbo: boolean): HippyNativeModuleBase | null;
-
-  getJavaScriptModule(name: string): HippyJavaScriptModuleBase | null;
-
-  addModules(customNativeModules: Map<string, HippyNativeModuleCreator> | null): void;
+export class TurboConfig {
+  public info = "info from turboConfig"
 }

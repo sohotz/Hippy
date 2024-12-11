@@ -58,7 +58,8 @@ class JSHHandleScope {
 constexpr static int kJSHExternalIndex = 0;
 constexpr static int kJSHScopeWrapperIndex = 1;
 constexpr static int kJSHWeakCallbackWrapperInvalidIndex = 2;
-constexpr static int kJSHExternalDataNum = 3;
+constexpr static int KJSHTurboFunctionGetIndex = 3;
+constexpr static int kJSHExternalDataNum = 4;
 
 extern void* GetPointerInInstanceData(JSVM_Env env, int index);
 
@@ -75,6 +76,9 @@ class JSHCtx : public Ctx {
     }
     for (auto arr : prop_descriptor_arrays_) {
       delete []arr;
+    }
+    for (auto property_st : property_structs_) {
+      delete property_st;
     }
     template_map_.clear();
     OH_JSVM_CloseEnvScope(env_, env_scope_);
@@ -228,6 +232,7 @@ class JSHCtx : public Ctx {
   
   std::vector<JSVM_CallbackStruct*> callback_structs_;
   std::vector<JSVM_PropertyDescriptor*> prop_descriptor_arrays_;
+  std::vector<JSVM_PropertyHandlerConfigurationStruct*> property_structs_;
 
  private:
   std::shared_ptr<CtxValue> CreateTemplate(const std::unique_ptr<FunctionWrapper>& wrapper);
