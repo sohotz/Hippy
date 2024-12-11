@@ -1242,9 +1242,6 @@ void* JSHCtx::GetObjectExternalData(const std::shared_ptr<CtxValue>& object) {
 }
 
 static JSVM_Value GetPropertyCbInfo(JSVM_Env env, JSVM_Value name, JSVM_Value thisArg, JSVM_Value data) {
-  char strValue[100];
-  size_t size;
-  OH_JSVM_GetValueStringUtf8(env, name, strValue, 300, &size);
   CallbackInfo cb_info;
 
   void *scope_data = GetPointerInInstanceData(env, kJSHScopeWrapperIndex);
@@ -1305,7 +1302,9 @@ std::shared_ptr<CtxValue> JSHCtx::DefineProxy(const std::unique_ptr<FunctionWrap
     
   JSVM_Value res = nullptr;
   OH_JSVM_CreateBigintWords(env_, 1, 2, reinterpret_cast<const uint64_t *>(constructor_wrapper.get()), &res);
-  JSVM_PropertyHandlerConfigurationStruct* propertyHandlerCfg = new JSVM_PropertyHandlerConfigurationStruct();
+    
+  property_structs_.push_back( new JSVM_PropertyHandlerConfigurationStruct());
+  JSVM_PropertyHandlerConfigurationStruct* propertyHandlerCfg = property_structs_.back();
   propertyHandlerCfg->genericNamedPropertyGetterCallback = GetPropertyCbInfo;
   propertyHandlerCfg->namedPropertyData = res;
   propertyHandlerCfg->indexedPropertyData = res;

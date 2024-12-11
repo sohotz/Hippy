@@ -77,6 +77,9 @@ class JSHCtx : public Ctx {
     for (auto arr : prop_descriptor_arrays_) {
       delete []arr;
     }
+    for (auto property_st : property_structs_) {
+      delete property_st;
+    }
     template_map_.clear();
     OH_JSVM_CloseEnvScope(env_, env_scope_);
     env_scope_ = nullptr;
@@ -229,6 +232,7 @@ class JSHCtx : public Ctx {
   
   std::vector<JSVM_CallbackStruct*> callback_structs_;
   std::vector<JSVM_PropertyDescriptor*> prop_descriptor_arrays_;
+  std::vector<JSVM_PropertyHandlerConfigurationStruct*> property_structs_;
 
  private:
   std::shared_ptr<CtxValue> CreateTemplate(const std::unique_ptr<FunctionWrapper>& wrapper);
