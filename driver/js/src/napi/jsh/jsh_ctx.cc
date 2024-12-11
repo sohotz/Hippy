@@ -142,9 +142,7 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
   for (size_t i = 0; i < argc; i++) {
     cb_info.AddValue(std::make_shared<JSHCtxValue>(env, argv[i]));
   }
-  
-  void *wrap_result = nullptr;
-  status = OH_JSVM_RemoveWrap(env, thisArg, &wrap_result);
+    
   status = OH_JSVM_Wrap(env, thisArg, cb_info.GetData(), nullptr, nullptr, nullptr);
   FOOTSTONE_DCHECK(status == JSVM_OK);
 

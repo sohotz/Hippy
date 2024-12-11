@@ -104,7 +104,7 @@ void GetTurboModule(CallbackInfo& info, void* data) {
         auto module = turboManager.Call("get", args);
         auto module_object_ref = arkTs.CreateReference(module);
         auto module_object = std::make_shared<Turbo>(module_object_ref);
-            
+
         // 3. constructor c++ JavaTurboModule
         auto arkTs_turbo_module = std::make_shared<ArkTsTurboModule>(u8_name, module_object, ctx, env);
 
@@ -116,11 +116,11 @@ void GetTurboModule(CallbackInfo& info, void* data) {
         scope->SetTurboHostObject(u8_name, arkTs_turbo_module);
 
         FOOTSTONE_DLOG(INFO) << "return module = " << name;
-        info.GetReturnValue()->Set(result);  
+        info.GetReturnValue()->Set(result);
     });
   } else {
     result = scope->GetTurboInstance(u8_name);
-    info.GetReturnValue()->Set(result);  
+    info.GetReturnValue()->Set(result);
     FOOTSTONE_DLOG(INFO) << "return cached module = " << name;
   }
   FOOTSTONE_DLOG(INFO) << "[turbo-perf] exit getTurboModule";
@@ -144,8 +144,7 @@ int Install(napi_env env, napi_callback_info info) {
   auto turbo = std::make_shared<Turbo>(object_ref);
   scope->SetTurbo(turbo);
   InitTurbo(env);
-    
-  // v8的操作放到js线程
+
   auto runner = scope->GetTaskRunner();
   if (!runner) {
     FOOTSTONE_LOG(WARNING) << "TurboModuleManager install, runner invalid";
