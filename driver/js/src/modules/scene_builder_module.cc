@@ -328,14 +328,6 @@ std::tuple<bool, std::string, std::shared_ptr<DomInfo>> CreateDomInfo(
   std::shared_ptr<DiffInfo> diff_info = nullptr;
   uint32_t len = context->GetArrayLength(node);
   if (len > 0) {
-    if (type == DomManager::DomManagerType::kJson) {
-      std::shared_ptr<string_view> stringify = std::make_shared<string_view>();
-      bool status = context->GetValueJson(context->CopyArrayElement(node, 0), stringify.get());
-      if (status) {
-        dom_info = std::make_shared<DomInfo>(stringify);
-      }
-      return std::make_tuple(status, "", dom_info);
-    }
     auto dom_node_tuple =
         CreateNode(context, context->CopyArrayElement(node, 0), scope);
     if (!std::get<0>(dom_node_tuple)) {
@@ -365,6 +357,26 @@ std::tuple<bool, std::string, std::shared_ptr<DomInfo>> CreateDomInfo(
   return std::make_tuple(true, "", dom_info);
 }
 
+std::shared_ptr<DomInfo> CreateStringifyDomInfo(
+    const std::shared_ptr<Ctx> &context,
+    const std::shared_ptr<CtxValue> &node
+) {
+  uint32_t len = context->GetArrayLength(node);
+  if (len > 0) {
+    std::shared_ptr<string_view> stringify = std::make_shared<string_view>();
+    auto info_node = context->CopyArrayElement(node, 0);
+    if (len > 1) {
+      context->SetProperty(info_node, context->CreateString("refInfo"),
+          context->CopyArrayElement(node, 1));
+    }
+    bool status = context->GetValueJson(info_node, stringify.get());
+    if (status) {
+      return std::make_shared<DomInfo>(stringify);
+    }
+  }
+  return nullptr;
+}
+
 std::tuple<bool, std::string, std::vector<std::shared_ptr<DomInfo>>> HandleJsValue(
     const std::shared_ptr<Ctx> &context,
     const std::shared_ptr<CtxValue> &nodes,
@@ -375,11 +387,19 @@ std::tuple<bool, std::string, std::vector<std::shared_ptr<DomInfo>>> HandleJsVal
   auto type = dom_manager ? dom_manager->GetType() : DomManager::DomManagerType::kHippyValue;
   for (uint32_t i = 0; i < len; ++i) {
     std::shared_ptr<CtxValue> domInfo = context->CopyArrayElement(nodes, i);
-    auto tuple = CreateDomInfo(context, domInfo, scope, type);
-    if (!std::get<0>(tuple)) {
-      return std::make_tuple(false, std::move(std::get<1>(tuple)), std::move(dom_nodes));
+    if (type == DomManager::DomManagerType::kJson) {
+      auto stringifyDomInfo = CreateStringifyDomInfo(context, domInfo);
+      if (!stringifyDomInfo) {
+        return std::make_tuple(false, "stringify dom node info error.", std::move(dom_nodes));
+      }
+      dom_nodes.push_back(stringifyDomInfo);
+    } else {
+      auto tuple = CreateDomInfo(context, domInfo, scope, type);
+      if (!std::get<0>(tuple)) {
+        return std::make_tuple(false, std::move(std::get<1>(tuple)), std::move(dom_nodes));
+      }
+      dom_nodes.push_back(std::get<2>(tuple));
     }
-    dom_nodes.push_back(std::get<2>(tuple));
   }
   return std::make_tuple(true, "", std::move(dom_nodes));
 }
@@ -488,32 +508,41 @@ std::shared_ptr<ClassTemplate<SceneBuilder>> RegisterSceneBuilder(const std::wea
     std::shared_ptr<CtxValue> nodes = arguments[0];
     std::shared_ptr<Ctx> context = scope->GetContext();
     FOOTSTONE_CHECK(context);
+    auto dom_manager = scope->GetDomManager().lock();
+    auto type = dom_manager ? dom_manager->GetType() : DomManager::DomManagerType::kHippyValue;
     auto len = context->GetArrayLength(nodes);
     std::vector<std::shared_ptr<DomInfo>> dom_infos;
     for (uint32_t i = 0; i < len; ++i) {
       std::shared_ptr<CtxValue> info = context->CopyArrayElement(nodes, i);
-      auto length = context->GetArrayLength(info);
-      if (length > 0) {
-        auto node = context->CopyArrayElement(info, 0);
-        auto id_tuple = GetNodeId(context, node);
-        if (!std::get<0>(id_tuple)) {
-          return nullptr;
+      if (type == DomManager::DomManagerType::kJson) {
+        auto dom_info = CreateStringifyDomInfo(context, info);
+        if (dom_info) {
+          dom_infos.push_back(dom_info);
         }
-
-        auto pid_tuple = GetNodePid(context, node);
-        if (!std::get<0>(pid_tuple)) {
-          return nullptr;
-        }
-        if (length >= 2) {
-          auto ref_info_tuple = CreateRefInfo(
-              context, context->CopyArrayElement(info, 1), scope);
-          dom_infos.push_back(std::make_shared<DomInfo>(
-              std::make_shared<DomNode>(
-                  std::get<2>(id_tuple),
-                  std::get<2>(pid_tuple),
-                  scope->GetRootNode()),
-              std::get<2>(ref_info_tuple),
-              nullptr));
+      } else {
+        auto length = context->GetArrayLength(info);
+        if (length > 0) {
+          auto node = context->CopyArrayElement(info, 0);
+          auto id_tuple = GetNodeId(context, node);
+          if (!std::get<0>(id_tuple)) {
+            return nullptr;
+          }
+  
+          auto pid_tuple = GetNodePid(context, node);
+          if (!std::get<0>(pid_tuple)) {
+            return nullptr;
+          }
+          if (length >= 2) {
+            auto ref_info_tuple = CreateRefInfo(
+                context, context->CopyArrayElement(info, 1), scope);
+            dom_infos.push_back(std::make_shared<DomInfo>(
+                std::make_shared<DomNode>(
+                    std::get<2>(id_tuple),
+                    std::get<2>(pid_tuple),
+                    scope->GetRootNode()),
+                std::get<2>(ref_info_tuple),
+                nullptr));
+          }
         }
       }
     }
@@ -537,29 +566,38 @@ std::shared_ptr<ClassTemplate<SceneBuilder>> RegisterSceneBuilder(const std::wea
     auto nodes = arguments[0];
     auto context = scope->GetContext();
     FOOTSTONE_CHECK(context);
+    auto dom_manager = scope->GetDomManager().lock();
+    auto type = dom_manager ? dom_manager->GetType() : DomManager::DomManagerType::kHippyValue;
     auto len = context->GetArrayLength(nodes);
     std::vector<std::shared_ptr<DomInfo>> dom_infos;
     for (uint32_t i = 0; i < len; ++i) {
       std::shared_ptr<CtxValue> info = context->CopyArrayElement(nodes, i);
-      auto length = context->GetArrayLength(info);
-      if (length > 0) {
-        auto node = context->CopyArrayElement(info, 0);
-        auto id_tuple = GetNodeId(context, node);
-        if (!std::get<0>(id_tuple)) {
-          return nullptr;
+      if (type == DomManager::DomManagerType::kJson) {
+        auto dom_info = CreateStringifyDomInfo(context, info);
+        if (dom_info) {
+          dom_infos.push_back(dom_info);
         }
-
-        auto pid_tuple = GetNodePid(context, node);
-        if (!std::get<0>(pid_tuple)) {
-
-          return nullptr;
+      } else {
+        auto length = context->GetArrayLength(info);
+        if (length > 0) {
+         auto node = context->CopyArrayElement(info, 0);
+          auto id_tuple = GetNodeId(context, node);
+          if (!std::get<0>(id_tuple)) {
+            return nullptr;
+          }
+  
+          auto pid_tuple = GetNodePid(context, node);
+          if (!std::get<0>(pid_tuple)) {
+  
+            return nullptr;
+          }
+          dom_infos.push_back(std::make_shared<DomInfo>(
+              std::make_shared<DomNode>(
+                  std::get<2>(id_tuple),
+                  std::get<2>(pid_tuple),
+                  scope->GetRootNode()),
+              nullptr, nullptr));
         }
-        dom_infos.push_back(std::make_shared<DomInfo>(
-            std::make_shared<DomNode>(
-                std::get<2>(id_tuple),
-                std::get<2>(pid_tuple),
-                scope->GetRootNode()),
-            nullptr, nullptr));
       }
     }
     SceneBuilder::Delete(scope->GetDomManager(), scope->GetRootNode(), std::move(dom_infos));
