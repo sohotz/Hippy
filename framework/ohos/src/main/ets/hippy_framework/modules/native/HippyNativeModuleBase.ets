@@ -30,6 +30,10 @@ export class HippyNativeModuleBase {
     this.ctx = ctx
   }
 
+  isTurbo() {
+    return false;
+  }
+
   call(method: string, params: Array<HippyAny>, promise: HippyModulePromise): HippyAny {
     return null
   }
