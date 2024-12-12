@@ -52,7 +52,7 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_
     return view;
   } else if (view_name == "Image") {
     if (is_parent_text) {
-#ifdef OHOS_DRAW_TEXT
+#ifdef OHOS_DRAW_TEXT1
       return nullptr;
 #else
       auto view = std::make_shared<RichTextImageSpanView>(ctx);
@@ -66,7 +66,7 @@ std::shared_ptr<BaseView> HippyCreateRenderView(std::string &view_name, bool is_
     }
   } else if (view_name == "Text") {
     if (is_parent_text) {
-#ifdef OHOS_DRAW_TEXT
+#ifdef OHOS_DRAW_TEXT1
       return nullptr;
 #else
       auto view = std::make_shared<RichTextSpanView>(ctx);

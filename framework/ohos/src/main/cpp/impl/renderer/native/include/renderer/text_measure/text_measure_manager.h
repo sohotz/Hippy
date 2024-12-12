@@ -24,6 +24,7 @@
 
 #include <map>
 #include <mutex>
+#include "oh_napi/oh_measure_text.h"
 #include "renderer/text_measure/text_measurer.h"
 
 namespace hippy {
@@ -32,8 +33,8 @@ inline namespace native {
 
 class TextMeasureCache {
 public:
-  std::shared_ptr<TextMeasurer> used_ = nullptr;
-  std::shared_ptr<TextMeasurer> builded_ = nullptr;
+  std::shared_ptr<OhMeasureText> used_ = nullptr;
+  std::shared_ptr<OhMeasureText> builded_ = nullptr;
 };
 
 class TextMeasureManager {
@@ -41,7 +42,7 @@ public:
   TextMeasureManager() {}
   ~TextMeasureManager() {}
   
-  void SaveNewTextMeasurer(uint32_t node_id, std::shared_ptr<TextMeasurer> text_measurer) {
+  void SaveNewOhMeasureText(uint32_t node_id, std::shared_ptr<OhMeasureText> text_measurer) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = text_measurer_map_.find(node_id);
     if (it != text_measurer_map_.end()) {
@@ -54,7 +55,7 @@ public:
     }
   }
   
-  bool HasNewTextMeasurer(uint32_t node_id) {
+  bool HasNewOhMeasureText(uint32_t node_id) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = text_measurer_map_.find(node_id);
     if (it != text_measurer_map_.end()) {
@@ -66,7 +67,7 @@ public:
     return false;
   }
   
-  std::shared_ptr<TextMeasurer> UseNewTextMeasurer(uint32_t node_id) {
+  std::shared_ptr<OhMeasureText> UseNewOhMeasureText(uint32_t node_id) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = text_measurer_map_.find(node_id);
     if (it != text_measurer_map_.end()) {
@@ -80,7 +81,7 @@ public:
     return nullptr;
   }
   
-  std::shared_ptr<TextMeasurer> GetUsedTextMeasurer(uint32_t node_id) {
+  std::shared_ptr<OhMeasureText> GetUsedOhMeasureText(uint32_t node_id) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = text_measurer_map_.find(node_id);
     if (it != text_measurer_map_.end()) {
@@ -90,7 +91,7 @@ public:
     return nullptr;
   }
 
-  void EraseTextMeasurer(uint32_t node_id) {
+  void EraseOhMeasureText(uint32_t node_id) {
     std::lock_guard<std::mutex> lock(mutex_);
     text_measurer_map_.erase(node_id);
   }

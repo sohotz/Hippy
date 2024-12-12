@@ -39,7 +39,7 @@
 // Note: Do not open normally, it impacts performance.
 // #define MEASURE_TEXT_CHECK_PROP
 // #define MEASURE_TEXT_LOG_RESULT
-
+#if 0
 namespace hippy {
 inline namespace render {
 inline namespace native {
@@ -81,9 +81,9 @@ public:
   
   void Destroy();
   
-  ArkUI_StyledString *GetStyledString() {
-    return styled_string_;
-  }
+//   ArkUI_StyledString *GetStyledString() {
+//     return styled_string_;
+//   }
   
 private:
 #ifdef MEASURE_TEXT_CHECK_PROP
@@ -105,7 +105,8 @@ private:
   
   OH_Drawing_TypographyStyle *typographyStyle_ = nullptr;
   OH_Drawing_Typography *typography_ = nullptr;
-  ArkUI_StyledString *styled_string_ = nullptr;
+//   ArkUI_StyledString *styled_string_ = nullptr;
+  OH_Drawing_TypographyCreate *handler_ = nullptr;
   
   std::vector<OhImageSpanHolder> imageSpans_;
   double lineHeight_ = 0; // 外部指定的行高，最高优先级
@@ -119,3 +120,4 @@ private:
 } // namespace native
 } // namespace render
 } // namespace hippy
+#endif

@@ -427,7 +427,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
   float density = render_manager->GetDensity();
 
   uint32_t p = 0;
-  TextMeasurer measureInst;
+  OhMeasureText measureInst;
   OhMeasureResult result;
   while (true) {
     auto measureFlag = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));
@@ -441,9 +441,9 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
     if(measureFlag=="measure_add_start"){
       measureInst.StartMeasure(propMap, std::set<std::string>());
     } else if(measureFlag=="measure_add_text"){
-      measureInst.AddText(propMap, density);
+      measureInst.AddText(propMap);
     } else if(measureFlag=="measure_add_image"){
-      measureInst.AddImage(propMap, density);
+      measureInst.AddImage(propMap);
     } else if(measureFlag=="measure_add_end"){
       result = measureInst.EndMeasure(width, widthMode, height, heightMode, density);
       break;

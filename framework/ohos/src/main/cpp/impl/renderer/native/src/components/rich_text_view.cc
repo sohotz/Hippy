@@ -44,7 +44,7 @@ RichTextView::~RichTextView() {
     }
     children_.clear();
   }
-#ifdef OHOS_DRAW_TEXT
+#ifdef OHOS_DRAW_TEXT1
   if (textNode_) {
     textNode_->ResetTextContentWithStyledStringAttribute();
     auto textMeasureMgr = ctx_->GetTextMeasureManager();
@@ -84,7 +84,7 @@ bool RichTextView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView)
 }
 
 bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
-#ifdef OHOS_DRAW_TEXT
+#ifdef OHOS_DRAW_TEXT1
 #else
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
@@ -229,25 +229,25 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
 }
 
 void RichTextView::OnSetPropsEndImpl() {
-#ifdef OHOS_DRAW_TEXT
-  std::shared_ptr<TextMeasurer> textMeasurer = nullptr;
-  auto textMeasureMgr = ctx_->GetTextMeasureManager();
-  if (textMeasureMgr->HasNewTextMeasurer(tag_)) {
-    GetLocalRootArkUINode()->ResetTextContentWithStyledStringAttribute();
-    textMeasurer = textMeasureMgr->UseNewTextMeasurer(tag_);
-  } else if (!GetLocalRootArkUINode()->HasStyledString()) {
-    textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
-  }
-  if (textMeasurer) {
-    auto styledString = textMeasurer->GetStyledString();
-    if (styledString) {
-      GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
-    } else {
-      FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, nil, tag: " << tag_ << ", text: " << (text_.has_value() ? text_.value() : "");
-    }
-  } else {
-    FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, textMeasurer nil, tag: " << tag_ << ", text: " << (text_.has_value() ? text_.value() : "");
-  }
+#ifdef OHOS_DRAW_TEXT1
+//   std::shared_ptr<TextMeasurer> textMeasurer = nullptr;
+//   auto textMeasureMgr = ctx_->GetTextMeasureManager();
+//   if (textMeasureMgr->HasNewTextMeasurer(tag_)) {
+//     GetLocalRootArkUINode()->ResetTextContentWithStyledStringAttribute();
+//     textMeasurer = textMeasureMgr->UseNewTextMeasurer(tag_);
+//   } else if (!GetLocalRootArkUINode()->HasStyledString()) {
+//     textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
+//   }
+//   if (textMeasurer) {
+//     auto styledString = textMeasurer->GetStyledString();
+//     if (styledString) {
+//       GetLocalRootArkUINode()->SetTextContentWithStyledString(styledString);
+//     } else {
+//       FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, nil, tag: " << tag_ << ", text: " << (text_.has_value() ? text_.value() : "");
+//     }
+//   } else {
+//     FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, textMeasurer nil, tag: " << tag_ << ", text: " << (text_.has_value() ? text_.value() : "");
+//   }
 #else
   if (!fontSize_.has_value()) {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;

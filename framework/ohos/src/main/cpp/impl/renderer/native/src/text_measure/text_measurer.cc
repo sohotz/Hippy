@@ -22,7 +22,7 @@
 
 #include "renderer/text_measure/text_measurer.h"
 #include "footstone/logging.h"
-
+#if 0
 namespace hippy {
 inline namespace render {
 inline namespace native {
@@ -146,7 +146,9 @@ void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, con
     }
   }
 
-  styled_string_ = OH_ArkUI_StyledString_Create(typographyStyle_, fontCollection_);
+//   styled_string_ = OH_ArkUI_StyledString_Create(typographyStyle_, fontCollection_);
+      handler_ = OH_Drawing_CreateTypographyHandler(typographyStyle_, fontCollection_);
+
   
   if (GetPropValue(propMap, "lineHeight", propValue) && propValue.size() > 0) {
     lineHeight_ = std::stod(propValue);
@@ -255,16 +257,22 @@ void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float de
     OH_Drawing_SetTextStyleLetterSpacing(txtStyle, letterSpacing * density);
   }
   
-  OH_ArkUI_StyledString_PushTextStyle(styled_string_, txtStyle);
+//   OH_ArkUI_StyledString_PushTextStyle(styled_string_, txtStyle);
+      OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle);
+
   if (GetPropValue(propMap, "text", propValue)) {
-    OH_ArkUI_StyledString_AddText(styled_string_, propValue.c_str());
+//     OH_ArkUI_StyledString_AddText(styled_string_, propValue.c_str());
+            OH_Drawing_TypographyHandlerAddText(handler_, propValue.c_str());
+
 #ifdef MEASURE_TEXT_LOG_RESULT
     logTextContent_ += "[span]";
     logTextContent_ += propValue;
 #endif
   }
 
-  OH_ArkUI_StyledString_PopTextStyle(styled_string_);
+//   OH_ArkUI_StyledString_PopTextStyle(styled_string_);
+      OH_Drawing_TypographyHandlerPopTextStyle(handler_);
+
   OH_Drawing_DestroyTextStyle(txtStyle);
 
 #ifdef MEASURE_TEXT_CHECK_PROP
@@ -296,7 +304,9 @@ void TextMeasurer::AddImage(std::map<std::string, std::string> &propMap, float d
   }
   span.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
 
-  OH_ArkUI_StyledString_AddPlaceholder(styled_string_, &span);
+//   OH_ArkUI_StyledString_AddPlaceholder(styled_string_, &span);
+      OH_Drawing_TypographyHandlerAddPlaceholder(handler_, &span);
+
   
   if (minLineHeight_ < span.height) {
     minLineHeight_ = span.height;
@@ -422,7 +432,9 @@ OhMeasureResult TextMeasurer::EndMeasure(int width, int widthMode, int height, i
   OhMeasureResult ret;
   size_t lineCount = 0;
   
-  typography_ = OH_ArkUI_StyledString_CreateTypography(styled_string_);
+//   typography_ = OH_ArkUI_StyledString_CreateTypography(styled_string_);
+  typography_ = OH_Drawing_CreateTypography(handler_);
+
   double maxWidth = double(width);
   if (maxWidth == 0 || std::isnan(maxWidth)) {
     // fix text measure width wrong when maxWidth is nan or 0
@@ -465,9 +477,13 @@ void TextMeasurer::Destroy() {
     OH_Drawing_DestroyTypography(typography_);
     typography_ = nullptr;
   }
-  if (styled_string_) {
-    OH_ArkUI_StyledString_Destroy(styled_string_);
-    styled_string_ = nullptr;
+//   if (styled_string_) {
+//     OH_ArkUI_StyledString_Destroy(styled_string_);
+//     styled_string_ = nullptr;
+//   }
+  if (handler_) {
+    OH_Drawing_DestroyTypographyHandler(handler_);
+    handler_ = nullptr;
   }
   if (fontCollection_) {
     OH_Drawing_DestroyFontCollection(fontCollection_);
@@ -482,3 +498,4 @@ void TextMeasurer::Destroy() {
 } // namespace native
 } // namespace render
 } // namespace hippy
+#endif
