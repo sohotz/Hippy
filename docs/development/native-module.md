@@ -358,7 +358,7 @@ export class ExampleNativeTurboModule extends HippyNativeModuleBase {
   }
 
   isTurbo(): boolean {
-    return false
+    return true
   }
 
   public getString(info: string): string {
