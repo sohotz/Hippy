@@ -1167,7 +1167,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
 
 #ifdef OHOS_DRAW_TEXT
   auto view_manager = c_render_provider_->GetNativeRenderImpl()->GetHRManager()->GetViewManager(root->GetId());
-  view_manager->GetRenderContext()->GetTextMeasureManager()->SetTextMeasurer(node->GetId(), measureInst);
+  view_manager->GetRenderContext()->GetTextMeasureManager()->SaveNewTextMeasurer(node->GetId(), measureInst);
 #endif
 
   if(measureResult.spanPos.size() > 0 && measureResult.spanPos.size() == imageSpanNode.size()) {
