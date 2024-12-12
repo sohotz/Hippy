@@ -150,11 +150,13 @@ export class HippyModuleManagerImpl implements HippyModuleManager {
       if (creator) {
         let module = creator(this.ctx)
         if (module.isTurbo() !== isTurbo) {
+          LogUtils.e('hippy', name + ' module is not turbo module')
           return null;
         }
         this.cachedNativeModuleMap.set(name, module)
         return module
       } else {
+        LogUtils.e('hippy', name + ' module is null')
         return null
       }
     }

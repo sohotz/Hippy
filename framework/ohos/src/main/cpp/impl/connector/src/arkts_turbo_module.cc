@@ -57,19 +57,27 @@ std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_
   auto context = scope->GetContext();
   string_view str_view;
   std::string method;
-  std::shared_ptr<CtxValue> result;
+  std::shared_ptr<CtxValue> result = context->CreateUndefined();
   if (context->GetValueString(prop_name, &str_view)) {
     method = StringViewUtils::ToStdString(
         StringViewUtils::ConvertEncoding(str_view, string_view::Encoding::Utf8).utf8_value());
   }
     
   FOOTSTONE_DLOG(INFO) << "invokeArkTSMethod, method = " << method.c_str();
-
+  auto method_set = method_set_;
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
-  taskRunner->RunSyncTask([env = env, impl = impl, &info, context, method, &result]() {
+  taskRunner->RunSyncTask([env = env, impl = impl, &info, context, method, &result, &method_set]() {
       ArkTS arkTs(env);
       napi_ref turbo_module_ref = impl->GetRef();
       auto turboModule = arkTs.GetObject(turbo_module_ref);
+      if (method_set.size() <= 0) {
+         FOOTSTONE_DLOG(ERROR) << "turboModule object has no method, method = " << method.c_str();
+         return;
+      }
+      if (method_set.find(method) == method_set.end()) {
+         FOOTSTONE_DLOG(ERROR) << "turboModule method is null, method = " << method.c_str();
+         return;  
+      }
       std::vector<napi_value> args;
       for (size_t i = 0; i < info.Length(); ++i) {
         auto item = info[i];
@@ -82,11 +90,34 @@ std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_
   return result;
 }
 
+void ArkTsTurboModule::InitMethodSet() {
+   ArkTS arkTs(env);
+   napi_ref turbo_module_ref = impl->GetRef();
+   auto turboModule = arkTs.GetObject(turbo_module_ref);
+   if (turboModule.isNull()) {
+      FOOTSTONE_DLOG(ERROR) << "turboModule object is null";  
+      return; 
+   }
+   std::vector<std::pair<napi_value, napi_value>> value = turboModule.GetKeyValuePairs();
+   if (value.size() <= 0) {
+      FOOTSTONE_DLOG(ERROR) << "turboModule object is null";  
+      return;
+   }
+   std::vector<std::pair<napi_value, napi_value>> pairs = turboModule.GetObjectPrototypeProperties();
+   for (auto it = pairs.begin(); it != pairs.end(); it++) {
+      auto &pair = *it;
+      auto &pairItem1 = pair.first;
+      auto method = arkTs.GetString(pairItem1);
+      method_set_.insert(method);
+   }
+}
+
 ArkTsTurboModule::ArkTsTurboModule(const std::string& name,
                                  std::shared_ptr<Turbo>& impl,
                                  const std::shared_ptr<Ctx>& ctx,
                                  napi_env env)
   : name(name), impl(impl), env(env) {
+  InitMethodSet();
   auto getter = std::make_unique<FunctionWrapper>([](CallbackInfo& info, void* data) {
     auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
     auto scope = scope_wrapper->scope.lock();

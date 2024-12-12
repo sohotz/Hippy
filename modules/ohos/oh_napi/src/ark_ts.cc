@@ -254,6 +254,14 @@ uint32_t ArkTS::GetArrayLength(napi_value array) {
   return length;
 }
 
+std::vector<std::pair<napi_value, napi_value>> ArkTS::GetObjectPrototypeProperties(napi_value object) {
+  napi_value prototype;
+  auto status = napi_get_prototype(env_, object, &prototype);
+  this->MaybeThrowFromStatus(status, "Failed to retrieve prototype object");
+  auto result = GetObjectProperties(prototype);
+  return result;
+}
+
 std::vector<std::pair<napi_value, napi_value>> ArkTS::GetObjectProperties(napi_value object) {
   napi_value propertyNames;
   auto status = napi_get_property_names(env_, object, &propertyNames);

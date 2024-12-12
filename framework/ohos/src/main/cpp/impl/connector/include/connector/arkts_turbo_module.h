@@ -23,6 +23,7 @@
 #pragma once
 
 #include <string>
+#include <set>
 
 #include "connector/turbo.h"
 #include "driver/napi/js_ctx.h"
@@ -63,6 +64,7 @@ class ArkTsTurboModule {
   std::shared_ptr<Turbo> impl;
   napi_env env;
   std::unique_ptr<hippy::napi::FunctionWrapper> wrapper_holder_;
+  std::set<std::string> method_set_;
 
   std::shared_ptr<CtxValue> constructor;
   std::unique_ptr<FunctionWrapper> constructor_wrapper;
@@ -74,6 +76,7 @@ class ArkTsTurboModule {
       const std::shared_ptr<CtxValue>& prop_name,
       hippy::napi::CallbackInfo& info,
       void* data);
+  void InitMethodSet();
 
 };
 
