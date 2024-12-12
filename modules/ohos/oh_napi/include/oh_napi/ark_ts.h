@@ -117,6 +117,8 @@ class ArkTS {
   uint32_t GetArrayLength(napi_value array);
 
   std::vector<std::pair<napi_value, napi_value>> GetObjectProperties(napi_value object);
+    
+  std::vector<std::pair<napi_value, napi_value>> GetObjectPrototypeProperties(napi_value object);
 
   std::string GetString(napi_value value);
 
