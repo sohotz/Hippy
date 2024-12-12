@@ -33,7 +33,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_library(${PROJECT_NAME} STATIC)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILE_OPTIONS})
-target_compile_definitions(${PROJECT_NAME} PRIVATE "OHOS_DRAW_TEXT")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "OHOS_DRAW_TEXT")
 #target_compile_definitions(${PROJECT_NAME} INTERFACE "OHOS_NATIVE_RENDER")
 # endregion
 
