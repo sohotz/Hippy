@@ -30,28 +30,73 @@ namespace hippy {
 inline namespace render {
 inline namespace native {
 
+class TextMeasureCache {
+public:
+  std::shared_ptr<TextMeasurer> used_ = nullptr;
+  std::shared_ptr<TextMeasurer> builded_ = nullptr;
+};
+
 class TextMeasureManager {
 public:
   TextMeasureManager() {}
   ~TextMeasureManager() {}
   
-  void SetTextMeasurer(uint32_t node_id, std::shared_ptr<TextMeasurer> text_measurer) {
+  void SaveNewTextMeasurer(uint32_t node_id, std::shared_ptr<TextMeasurer> text_measurer) {
     std::lock_guard<std::mutex> lock(mutex_);
-    text_measurer_map_[node_id] = text_measurer;
+    auto it = text_measurer_map_.find(node_id);
+    if (it != text_measurer_map_.end()) {
+      auto cache = it->second;
+      cache->builded_ = text_measurer;
+    } else {
+      auto cache = std::make_shared<TextMeasureCache>();
+      cache->builded_ = text_measurer;
+      text_measurer_map_[node_id] = cache;
+    }
   }
   
-  std::shared_ptr<TextMeasurer> GetTextMeasurer(uint32_t node_id) {
+  bool HasNewTextMeasurer(uint32_t node_id) {
     std::lock_guard<std::mutex> lock(mutex_);
-    return text_measurer_map_[node_id];
+    auto it = text_measurer_map_.find(node_id);
+    if (it != text_measurer_map_.end()) {
+      auto cache = it->second;
+      if (cache->builded_) {
+        return true;
+      }
+    }
+    return false;
   }
   
+  std::shared_ptr<TextMeasurer> UseNewTextMeasurer(uint32_t node_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = text_measurer_map_.find(node_id);
+    if (it != text_measurer_map_.end()) {
+      auto cache = it->second;
+      if (cache->builded_) {
+        cache->used_ = cache->builded_;
+        cache->builded_ = nullptr;
+        return cache->used_;
+      }
+    }
+    return nullptr;
+  }
+  
+  std::shared_ptr<TextMeasurer> GetUsedTextMeasurer(uint32_t node_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = text_measurer_map_.find(node_id);
+    if (it != text_measurer_map_.end()) {
+      auto cache = it->second;
+      return cache->used_;
+    }
+    return nullptr;
+  }
+
   void EraseTextMeasurer(uint32_t node_id) {
     std::lock_guard<std::mutex> lock(mutex_);
     text_measurer_map_.erase(node_id);
   }
   
 private:
-  std::map<uint32_t, std::shared_ptr<TextMeasurer>> text_measurer_map_;
+  std::map<uint32_t, std::shared_ptr<TextMeasureCache>> text_measurer_map_;
   std::mutex mutex_;
 };
 

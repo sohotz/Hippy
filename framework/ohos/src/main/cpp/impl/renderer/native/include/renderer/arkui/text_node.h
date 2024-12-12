@@ -87,7 +87,15 @@ public:
   TextNode &SetTextHeightAdaptivePolicy(int32_t policyType);
   TextNode &SetTextIndent(float textIndent);
   
+  void ResetTextContentWithStyledStringAttribute();
   void ResetAllAttributes() override;
+  
+  bool HasStyledString() {
+    return hasStyledString_;
+  }
+  
+private:
+  bool hasStyledString_ = false;
 };
 
 } // namespace native

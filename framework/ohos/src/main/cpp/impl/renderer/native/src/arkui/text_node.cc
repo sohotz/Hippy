@@ -38,6 +38,7 @@ TextNode &TextNode::SetTextContentWithStyledString(const ArkUI_StyledString *sty
   ArkUI_AttributeItem item = {.object = (void*)styledString};
   MaybeThrow(NativeNodeApi::GetInstance()->setAttribute(nodeHandle_, NODE_TEXT_CONTENT_WITH_STYLED_STRING, &item));
   SetSubAttributeFlag((uint32_t)AttributeFlag::TEXT_CONTENT_WITH_STYLED_STRING);
+  hasStyledString_ = true;
   return *this;
 }
 
@@ -229,6 +230,13 @@ TextNode &TextNode::SetTextIndent(float textIndent) {
   return *this;
 }
 
+void TextNode::ResetTextContentWithStyledStringAttribute() {
+  if (hasStyledString_) {
+    MaybeThrow(NativeNodeApi::GetInstance()->resetAttribute(nodeHandle_, NODE_TEXT_CONTENT_WITH_STYLED_STRING));
+    hasStyledString_ = false;
+  }
+}
+
 void TextNode::ResetAllAttributes() {
   ArkUINode::ResetAllAttributes();
   if (!subAttributesFlagValue_) {
@@ -257,6 +265,7 @@ void TextNode::ResetAllAttributes() {
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_HEIGHT_ADAPTIVE_POLICY, NODE_TEXT_HEIGHT_ADAPTIVE_POLICY);
   ARK_UI_NODE_RESET_SUB_ATTRIBUTE(AttributeFlag::TEXT_INDENT, NODE_TEXT_INDENT);
   subAttributesFlagValue_ = 0;
+  hasStyledString_ = false;
 }
 
 } // namespace native
