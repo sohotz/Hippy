@@ -26,6 +26,7 @@
 #include "oh_napi/ark_ts.h"
 #include "footstone/check.h"
 #include "footstone/logging.h"
+#include "renderer/utils/hr_pixel_utils.h"
 
 namespace hippy {
 inline namespace framework {
@@ -42,7 +43,29 @@ static napi_value SetFlags(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
+static napi_value SetDensityScale(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  float densityScale = (float)arkTs.GetDouble(args[0]);
+  
+  HRPixelUtils::SetDensityScale(densityScale);
+  
+  return arkTs.GetUndefined();
+}
+
+static napi_value SetFontSizeScale(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  float fontSizeScale = (float)arkTs.GetDouble(args[0]);
+  
+  HRPixelUtils::SetFontSizeScale(fontSizeScale);
+  
+  return arkTs.GetUndefined();
+}
+
 REGISTER_OH_NAPI("Setting", "Setting_SetFlags", SetFlags)
+REGISTER_OH_NAPI("Setting", "Setting_SetDensityScale", SetDensityScale)
+REGISTER_OH_NAPI("Setting", "Setting_SetFontSizeScale", SetFontSizeScale)
 
 }
 }

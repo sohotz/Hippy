@@ -1,3 +1,5 @@
+import { HippyLibrary } from "../../hippy_library/HippyLibrary"
+
 /*
  * Tencent is pleased to support the open source community by making
  * Hippy available.
@@ -21,14 +23,16 @@ declare function vp2px(vp: number): number
 
 export class PixelUtil {
   // 缩放字体和宽高
-  public static setDensityScale(densityScale: number): void {
+  public static setDensityScale(densityScale: number, libHippy: HippyLibrary): void {
     PixelUtil.densityScale = densityScale
     PixelUtil.density = vp2px(1.0) / PixelUtil.densityScale
+    libHippy?.Setting_SetDensityScale(densityScale)
   }
 
   // 只缩放字体
-  public static setFontSizeScale(scale: number): void {
+  public static setFontSizeScale(scale: number, libHippy: HippyLibrary): void {
     PixelUtil.fontSizeScale = scale
+    libHippy?.Setting_SetFontSizeScale(scale)
   }
 
   public static getDensityScale(): number {

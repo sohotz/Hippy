@@ -34,6 +34,12 @@ public:
     fontSizeScale_ = static_cast<float>(font_size_scale);
   }
   
+  inline static void SetDensityScale(float densityScale) {
+    density_ = density_ * densityScale_ / densityScale;
+    densityScale_ = densityScale;
+  }
+  inline static void SetFontSizeScale(float fontSizeScale) { fontSizeScale_ = fontSizeScale; }
+  
   inline static float GetDensityScale() { return densityScale_;  }
   inline static float GetFontSizeScale() { return fontSizeScale_; }
   
