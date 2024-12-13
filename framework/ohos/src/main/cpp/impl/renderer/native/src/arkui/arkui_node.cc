@@ -105,6 +105,22 @@ void ArkUINode::RemoveSelfFromParent() {
   }
 }
 
+void ArkUINode::ReplaceSelfFromParent(ArkUINode *newNode) {
+  auto parentHandle = NativeNodeApi::GetInstance()->getParent(nodeHandle_);
+  if (parentHandle) {
+    MaybeThrow(NativeNodeApi::GetInstance()->insertChildBefore(parentHandle, newNode->GetArkUINodeHandle(), nodeHandle_));
+    MaybeThrow(NativeNodeApi::GetInstance()->removeChild(parentHandle, nodeHandle_));
+  }
+}
+
+bool ArkUINode::HasParent() {
+  auto parentHandle = NativeNodeApi::GetInstance()->getParent(nodeHandle_);
+  if (parentHandle) {
+    return true;
+  }
+  return false;
+}
+
 void ArkUINode::SetDefaultAttributes() {
   SetHitTestMode(ARKUI_HIT_TEST_MODE_TRANSPARENT);
   baseAttributesFlagValue_ = 0;

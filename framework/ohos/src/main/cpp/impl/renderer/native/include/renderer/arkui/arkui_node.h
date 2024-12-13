@@ -71,6 +71,8 @@ public:
   void InsertChild(ArkUINode *child, int32_t index);
   void RemoveChild(ArkUINode *child);
   void RemoveSelfFromParent();
+  void ReplaceSelfFromParent(ArkUINode *newNode);
+  bool HasParent();
   
   void SetDefaultAttributes();
 
