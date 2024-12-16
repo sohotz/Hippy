@@ -387,7 +387,8 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
       }
     }
     if (this.moduleLoadParams) {
-      const rootId = this.params.domInterceptor?.instanceId ?? this.rootView?.getRootId() ?? 0;
+      // hippy规定使用整10数作为rootId，暂定使用DomInterceptorId * 10
+      const rootId = this.rootView?.getRootId() ?? (this.params.domInterceptor?.instanceId ?? 0) * 10;
       this.mEngineContext.getBridgeManager()?.loadInstance(this.moduleLoadParams.componentName || '', rootId, this.moduleLoadParams.jsParams);
     }
 

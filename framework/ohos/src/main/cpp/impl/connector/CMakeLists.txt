@@ -75,6 +75,17 @@ add_subdirectory(${CPP_ROOT_DIR}/../renderer/native
 target_link_libraries(${PROJECT_NAME} PUBLIC native_renderer)
 # endregion
 
+# region nlohmann_json
+InfraPackage_Add(json
+        REMOTE "devtools/backend/third_party/json/3.10.5/json.tar.xz"
+        LOCAL "third_party/json")
+target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
+
+add_compile_definitions(
+    # no exception
+    "JSON_NOEXCEPTION")
+# endregion
+
 # region source set
 set(PUBLIC_SOURCE_SET
   src/dom_manager_napi.cc

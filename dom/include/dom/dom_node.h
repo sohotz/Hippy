@@ -29,7 +29,6 @@
 #include <vector>
 
 #include "dom/animation/animation_manager.h"
-#include "dom/dom_event.h"
 #include "dom/dom_listener.h"
 #include "dom/dom_manager.h"
 #include "dom/layout_node.h"

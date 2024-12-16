@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 
+#include "dom/dom_node.h"
 #include "dom/dom_event.h"
 
 namespace hippy {
@@ -26,6 +27,28 @@ inline namespace dom {
 void DomEvent::StopPropagation() {
   prevent_bubble_ = true;
   prevent_capture_ = true;
+}
+
+uint32_t DomEvent::GetCurrentTargetId() {
+  if (current_target_id_) {
+    return current_target_id_;
+  }
+  auto dom_node = current_target_.lock();
+  if (dom_node) {
+    return dom_node->GetId();
+  }
+  return 0;
+}
+
+uint32_t DomEvent::GetTargetId() {
+  if (target_id_) {
+    return target_id_;
+  }
+  auto dom_node = target_.lock();
+  if (dom_node) {
+    return dom_node->GetId();
+  }
+  return 0;
 }
 
 }

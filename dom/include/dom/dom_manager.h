@@ -116,9 +116,9 @@ class DomManager {
                             const DomArgument& param, const CallFunctionCallback& cb) = 0;
   virtual void SetRootSize(const std::weak_ptr<RootNode>& weak_root_node, float width, float height) = 0;
   virtual void DoLayout(const std::weak_ptr<RootNode>& weak_root_node) = 0;
-  virtual void PostTask(const Scene&& scene) = 0;
-  virtual uint32_t PostDelayedTask(const Scene&& scene, footstone::TimeDelta delay) = 0;
-  virtual void CancelTask(uint32_t id) = 0;
+  void PostTask(const Scene&& scene);
+  uint32_t PostDelayedTask(const Scene&& scene, footstone::TimeDelta delay);
+  void CancelTask(uint32_t id);
 
   virtual byte_string GetSnapShot(const std::shared_ptr<RootNode>& root_node) = 0;
   virtual bool SetSnapShot(const std::shared_ptr<RootNode>& root_node, const byte_string& buffer) = 0;
@@ -137,9 +137,13 @@ class DomManager {
   inline auto GetDomStartTimePoint() { return dom_start_time_point_; }
   inline auto GetDomEndTimePoint() { return dom_end_time_point_; }
   inline DomManagerType GetType() { return type_; }
+  inline void SetId(uint32_t id) { id_ = id; }
 
+ protected:
+  uint32_t id_;
  private:
   DomManagerType type_;
+  std::unordered_map<uint32_t, std::shared_ptr<BaseTimer>> timer_map_;
   std::shared_ptr<TaskRunner> task_runner_;
   std::shared_ptr<Worker> worker_;
 
@@ -188,9 +192,6 @@ class DomManagerImpl : public DomManager {
                     const CallFunctionCallback& cb) override;
   void SetRootSize(const std::weak_ptr<RootNode>& weak_root_node, float width, float height) override;
   void DoLayout(const std::weak_ptr<RootNode>& weak_root_node) override;
-  void PostTask(const Scene&& scene) override;
-  uint32_t PostDelayedTask(const Scene&& scene, footstone::TimeDelta delay) override;
-  void CancelTask(uint32_t id) override;
 
   byte_string GetSnapShot(const std::shared_ptr<RootNode>& root_node) override;
   bool SetSnapShot(const std::shared_ptr<RootNode>& root_node, const byte_string& buffer) override;
@@ -200,7 +201,6 @@ class DomManagerImpl : public DomManager {
 
   std::shared_ptr<LayerOptimizedRenderManager> optimized_render_manager_;
   std::weak_ptr<RenderManager> render_manager_;
-  std::unordered_map<uint32_t, std::shared_ptr<BaseTimer>> timer_map_;
 };
 }  // namespace dom
 }  // namespace hippy

@@ -237,8 +237,10 @@ export class HippyEngineContextImpl implements HippyEngineContext {
 
   createRootView(loadParams: ModuleLoadParams) {
     if (this.mEngineInitParams.domInterceptor) {
-      this.attachDomToRootView(this.mEngineInitParams.domInterceptor.instanceId);
-      this.attachJsToRootView(this.mEngineInitParams.domInterceptor.instanceId);
+      // hippy规定使用整10数作为rootId，暂定使用DomInterceptorId * 10
+      const rootId = this.mEngineInitParams.domInterceptor.instanceId * 10;
+      this.attachDomToRootView(rootId);
+      this.attachJsToRootView(rootId);
       return null;
     }
     const rootView = this.nativeRenderProvider!.getNativeRenderImpl().createRootView(loadParams.componentName, {}, loadParams.wrappedCustomRenderViewBuilder)

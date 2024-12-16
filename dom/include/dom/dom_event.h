@@ -56,12 +56,21 @@ class DomEvent {
       : DomEvent(std::move(type), target, can_capture, can_bubble, nullptr) {}
   DomEvent(std::string type, std::weak_ptr<DomNode> target, std::shared_ptr<HippyValue> value)
       : DomEvent(std::move(type), target, false, false, value) {}
+  DomEvent(std::string type, uint32_t target_id, bool can_capture, bool can_bubble, std::shared_ptr<std::string> stringify_value)
+      : DomEvent(std::move(type), std::weak_ptr<DomNode>(), can_capture, can_bubble, nullptr) {
+        target_id_ = target_id;
+        current_target_id_ = target_id;
+        stringify_value_ = stringify_value;
+      }
   void StopPropagation();
   inline void SetValue(std::shared_ptr<HippyValue> value) {
     value_ = value;
   }
   inline std::shared_ptr<HippyValue> GetValue() {
     return value_;
+  }
+  inline std::shared_ptr<std::string> GetStringifyValue() {
+    return stringify_value_;
   }
   inline bool IsPreventCapture() {
     return prevent_capture_;
@@ -77,16 +86,28 @@ class DomEvent {
   }
   inline void SetCurrentTarget(std::weak_ptr<DomNode> current) {
     current_target_ = current;
+    current_target_id_ = 0;
+  }
+  inline void SetCurrentTargetId(uint32_t id) {
+    current_target_ = std::weak_ptr<DomNode>();
+    current_target_id_ = id;
   }
   inline std::weak_ptr<DomNode> GetCurrentTarget() {
     return current_target_;
   }
+  uint32_t GetCurrentTargetId();
   inline void SetTarget(std::weak_ptr<DomNode> target) {
     target_ = target;
+    target_id_ = 0;
+  }
+  inline void SetTargetId(uint32_t id) {
+    target_ = std::weak_ptr<DomNode>();
+    target_id_ = id;
   }
   inline std::weak_ptr<DomNode> GetTarget() {
     return target_;
   }
+  uint32_t GetTargetId();
   inline std::string GetType() {
     return type_;
   }
@@ -100,13 +121,16 @@ class DomEvent {
  private:
   std::string type_;
   std::weak_ptr<DomNode> target_;
+  uint32_t target_id_ = 0;
   std::weak_ptr<DomNode> current_target_;
+  uint32_t current_target_id_ = 0;
   bool prevent_capture_;
   bool prevent_bubble_;
   bool can_capture_;
   bool can_bubble_;
   EventPhase event_phase_ = EventPhase::kNone;
   std::shared_ptr<HippyValue> value_;
+  std::shared_ptr<std::string> stringify_value_ = nullptr;
 };
 
 }  // namespace dom

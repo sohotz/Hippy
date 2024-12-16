@@ -53,6 +53,25 @@ using Deserializer = footstone::value::Deserializer;
 
 using HippyValueArrayType = footstone::value::HippyValue::HippyValueArrayType;
 
+void DomManager::PostTask(const Scene&& scene) {
+  auto func = [scene = scene] { scene.Build(); };
+  GetTaskRunner()->PostTask(std::move(func));
+}
+
+uint32_t DomManager::PostDelayedTask(const Scene&& scene, TimeDelta delay) {
+  auto func = [scene] { scene.Build(); };
+  auto task = std::make_unique<Task>(std::move(func));
+  auto id = task->GetId();
+  std::shared_ptr<OneShotTimer> timer = std::make_unique<OneShotTimer>(GetTaskRunner());
+  timer->Start(std::move(task), delay);
+  timer_map_.insert({id, timer});
+  return id;
+}
+
+void DomManager::CancelTask(uint32_t id) {
+  timer_map_.erase(id);
+}
+
 void DomManagerImpl::SetRenderManager(const std::weak_ptr<RenderManager>& render_manager) {
 #ifdef EXPERIMENT_LAYER_OPTIMIZATION
   optimized_render_manager_ = std::make_shared<LayerOptimizedRenderManager>(render_manager.lock());
@@ -196,25 +215,6 @@ void DomManagerImpl::DoLayout(const std::weak_ptr<RootNode>& weak_root_node) {
     return;
   }
   root_node->DoAndFlushLayout(render_manager);
-}
-
-void DomManagerImpl::PostTask(const Scene&& scene) {
-  auto func = [scene = scene] { scene.Build(); };
-  GetTaskRunner()->PostTask(std::move(func));
-}
-
-uint32_t DomManagerImpl::PostDelayedTask(const Scene&& scene, TimeDelta delay) {
-  auto func = [scene] { scene.Build(); };
-  auto task = std::make_unique<Task>(std::move(func));
-  auto id = task->GetId();
-  std::shared_ptr<OneShotTimer> timer = std::make_unique<OneShotTimer>(GetTaskRunner());
-  timer->Start(std::move(task), delay);
-  timer_map_.insert({id, timer});
-  return id;
-}
-
-void DomManagerImpl::CancelTask(uint32_t id) {
-  timer_map_.erase(id);
 }
 
 DomManager::byte_string DomManagerImpl::GetSnapShot(const std::shared_ptr<RootNode>& root_node) {
