@@ -189,15 +189,18 @@ void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float de
     lineHeight_ = std::stod(propValue);
   }
   
+  uint32_t color = 0xff000000; // 颜色默认值，绘制时必须有颜色设置
   if (GetPropValue(propMap, "color", propValue) && propValue.size() > 0) {
-    unsigned long color = std::stoul(propValue);
-    OH_Drawing_SetTextStyleColor(txtStyle, (uint32_t)color);
+    color = (uint32_t)std::stoul(propValue);
   }
+  OH_Drawing_SetTextStyleColor(txtStyle, color);
+
   double fontSize = 14; // 默认的fontSize是14
   if (GetPropValue(propMap, "fontSize", propValue) && propValue.size() > 0) {
     fontSize = std::stod(propValue);
   }
   OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize * density);
+
   if (GetPropValue(propMap, "fontWeight", propValue)) {
     int fontWeight = FontWeightToDrawing(propValue);
     OH_Drawing_SetTextStyleFontWeight(txtStyle, fontWeight);
@@ -217,8 +220,8 @@ void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float de
     OH_Drawing_SetTextStyleDecoration(txtStyle, td);
   }
   if (GetPropValue(propMap, "textDecorationColor", propValue) && propValue.size() > 0) {
-    unsigned long color = std::stoul(propValue);
-    OH_Drawing_SetTextStyleDecorationColor(txtStyle, (uint32_t)color);
+    unsigned long dColor = std::stoul(propValue);
+    OH_Drawing_SetTextStyleDecorationColor(txtStyle, (uint32_t)dColor);
   }
   if (GetPropValue(propMap, "textDecorationStyle", propValue)) {
     OH_Drawing_TextDecorationStyle ds = TEXT_DECORATION_STYLE_SOLID;
