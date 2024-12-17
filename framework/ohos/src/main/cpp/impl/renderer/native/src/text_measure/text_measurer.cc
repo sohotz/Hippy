@@ -22,6 +22,8 @@
 
 #include "renderer/text_measure/text_measurer.h"
 #include "footstone/logging.h"
+#include "footstone/string_view_utils.h"
+#include "oh_napi/ark_ts.h"
 
 namespace hippy {
 inline namespace render {
@@ -258,6 +260,12 @@ void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float de
   OH_ArkUI_StyledString_PushTextStyle(styled_string_, txtStyle);
   if (GetPropValue(propMap, "text", propValue)) {
     OH_ArkUI_StyledString_AddText(styled_string_, propValue.c_str());
+
+    std::u16string str16 = footstone::StringViewUtils::CovertToUtf16(string_view((const string_view::char8_t_*)propValue.c_str()), string_view::Encoding::Utf8).utf16_value();
+    int strLen = (int)str16.size();
+    spanOffsets_.emplace_back(std::tuple(charOffset_, charOffset_ + strLen));
+    charOffset_ += strLen;
+    
 #ifdef MEASURE_TEXT_LOG_RESULT
     logTextContent_ += "[span]";
     logTextContent_ += propValue;
@@ -477,6 +485,32 @@ void TextMeasurer::Destroy() {
     OH_Drawing_DestroyTypographyStyle(typographyStyle_);
     typographyStyle_ = nullptr;
   }
+}
+
+int TextMeasurer::SpanIndexAt(float spanX, float spanY, float density) {
+    int resultIndex = -1;
+    for (size_t index = 0; index < spanOffsets_.size(); ++index) {
+        int lastSpanBegin = std::get<0>(spanOffsets_[index]);
+        int lastSpanEnd =   std::get<1>(spanOffsets_[index]);
+        OH_Drawing_TextBox* box  = OH_Drawing_TypographyGetRectsForRange(typography_, (size_t)lastSpanBegin, (size_t)lastSpanEnd, RECT_HEIGHT_STYLE_MAX, RECT_WIDTH_STYLE_MAX);
+        int n = (int)OH_Drawing_GetSizeOfTextBox(box);
+        float dpi = density;
+        for (int boxIndex = 0; boxIndex < n; ++boxIndex) {
+            float left = OH_Drawing_GetLeftFromTextBox(box, boxIndex) / dpi;
+            float right = OH_Drawing_GetRightFromTextBox(box, boxIndex) / dpi;
+            float top = OH_Drawing_GetTopFromTextBox(box, boxIndex) / dpi;
+            float bottom = OH_Drawing_GetBottomFromTextBox(box, boxIndex) / dpi;
+            if(spanX < left || spanX >= right || spanY < top || spanY >= bottom) {
+                continue;
+            }
+            resultIndex = (int)index;
+            break;
+        }
+        if (resultIndex != -1) {
+            break;
+        }
+    }
+    return resultIndex;
 }
 
 } // namespace native

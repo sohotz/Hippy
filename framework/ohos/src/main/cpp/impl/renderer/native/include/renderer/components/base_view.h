@@ -114,7 +114,7 @@ protected:
   bool SetShadowProp(const std::string &propKey, const HippyValue &propValue);
   bool SetEventProp(const std::string &propKey, const HippyValue &propValue);
 
-  void SetClickable(bool flag);
+  virtual void SetClickable(bool flag);
   void SetLongClickable(bool flag);
   void SetPressIn(bool flag);
   void SetPressOut(bool flag);

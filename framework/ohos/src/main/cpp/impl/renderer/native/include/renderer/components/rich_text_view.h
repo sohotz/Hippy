@@ -49,10 +49,21 @@ public:
   void OnChildRemovedImpl(std::shared_ptr<BaseView> const &childView, int32_t index) override;
 
   void SendTextEllipsizedEvent();
+  
+#ifdef OHOS_DRAW_TEXT
+  void RegisterSpanClickEvent(const std::shared_ptr<BaseView> spanView);
+  void UnregisterSpanClickEvent(const std::shared_ptr<BaseView> spanView);
+#endif
 
 private:
   void ClearProps();
   
+#ifdef OHOS_DRAW_TEXT
+  virtual void SetClickable(bool flag) override;
+  virtual void OnClick() override;
+  std::shared_ptr<BaseView> GetTextSpanView(int spanIndex);
+#endif
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-private-field"
   
@@ -60,6 +71,7 @@ private:
   // 问题：绘制包含ImageSpan的Text组件时，ImageSpan可以作为child加到Text上，但是ImageSpan的x和y不生效。
   // 解决方法：套了一层容器组件，用来解决ImageSpan位置不生效的问题。
   std::shared_ptr<StackNode> containerNode_ = nullptr;
+  std::set<std::shared_ptr<BaseView>> clickableSpanViews_;
 #endif
   
   std::shared_ptr<TextNode> textNode_ = nullptr;

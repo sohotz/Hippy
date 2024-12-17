@@ -93,6 +93,9 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
   }
   
   CreateArkUINodeImpl();
+  if (!GetLocalRootArkUINode()) {
+    return;
+  }
   isLazyCreate_ = false;
   
   if (parent) {

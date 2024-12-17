@@ -85,6 +85,8 @@ public:
     return styled_string_;
   }
   
+  int SpanIndexAt(float spanX, float spanY, float density);
+  
 private:
 #ifdef MEASURE_TEXT_CHECK_PROP
   void StartCollectProp();
@@ -108,6 +110,10 @@ private:
   ArkUI_StyledString *styled_string_ = nullptr;
   
   std::vector<OhImageSpanHolder> imageSpans_;
+  std::vector<std::tuple<int, int>> spanOffsets_; // begin, end
+
+  int charOffset_ = 0;
+
   double lineHeight_ = 0; // 外部指定的行高，最高优先级
   double minLineHeight_ = 0; // 子组件中只有ImageSpan，没有TextSpan时，Placeholder不能撑大高度，使用ImageSpan的高度
   double paddingTop_ = 0;

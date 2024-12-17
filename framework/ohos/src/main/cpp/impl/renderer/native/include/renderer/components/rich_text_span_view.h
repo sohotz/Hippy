@@ -46,6 +46,11 @@ public:
 private:
   void ClearProps();
   
+  virtual void SetClickable(bool flag) override;
+  
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+
   std::shared_ptr<SpanNode> spanNode_;
 
   std::optional<std::string> text_;
@@ -67,6 +72,8 @@ private:
 
   bool toSetTextDecoration_ = false;
   bool toSetTextShadow = false;
+
+#pragma clang diagnostic pop
 };
 
 } // namespace native

@@ -22,11 +22,13 @@
 
 #include "renderer/components/rich_text_view.h"
 #include "renderer/arkui/image_node.h"
+#include "renderer/components/rich_text_span_view.h"
 #include "renderer/dom_node/hr_node_props.h"
 #include "renderer/utils/hr_pixel_utils.h"
 #include "renderer/utils/hr_text_convert_utils.h"
 #include "renderer/utils/hr_event_utils.h"
 #include "renderer/utils/hr_value_utils.h"
+#include "renderer/uimanager/hr_gesture_dispatcher.h"
 
 namespace hippy {
 inline namespace render {
@@ -354,6 +356,74 @@ void RichTextView::ClearProps() {
   textAlign_.reset();
   ellipsizeModeValue_.reset();
 }
+
+#ifdef OHOS_DRAW_TEXT
+void RichTextView::SetClickable(bool flag) {
+  if (HandleGestureBySelf()) {
+    return;
+  }
+  if (flag) {
+    GetLocalRootArkUINode()->RegisterClickEvent();
+    auto weak_view = weak_from_this();
+    eventClick_ = [weak_view]() {
+      auto view = weak_view.lock();
+      if (view) {
+        auto textView = std::static_pointer_cast<RichTextView>(view);
+        HRGestureDispatcher::HandleClickEvent(textView->ctx_, textView->tag_, HRNodeProps::ON_CLICK);
+      }
+    };
+  } else {
+    eventClick_ = nullptr;
+  }
+}
+
+void RichTextView::OnClick() {
+  float x = 0;
+  float y = 0;
+  if (clickableSpanViews_.size() > 0) {
+    auto textMeasureMgr = ctx_->GetTextMeasureManager();
+    auto textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
+    if (textMeasurer) {
+      auto spanIndex = textMeasurer->SpanIndexAt(x, y, HRPixelUtils::GetDensity());
+      if (spanIndex >= 0) {
+        auto textSpanView = GetTextSpanView(spanIndex);
+        if (textSpanView) {
+          auto regIt = clickableSpanViews_.find(textSpanView);
+          if (regIt != clickableSpanViews_.end()) {
+            textSpanView->OnClick();
+            return;
+          }
+        }
+      }
+    }
+  }
+  BaseView::OnClick();
+}
+
+void RichTextView::RegisterSpanClickEvent(const std::shared_ptr<BaseView> spanView) {
+  clickableSpanViews_.insert(spanView);
+  GetLocalRootArkUINode()->RegisterClickEvent();
+}
+
+void RichTextView::UnregisterSpanClickEvent(const std::shared_ptr<BaseView> spanView) {
+  clickableSpanViews_.erase(spanView);
+}
+
+std::shared_ptr<BaseView> RichTextView::GetTextSpanView(int spanIndex) {
+  int textSpanCnt = 0;
+  for (auto it = children_.begin(); it != children_.end(); it++) {
+    auto subView = *it;
+    if (subView->GetViewType() == "Text") {
+      if (textSpanCnt == spanIndex) {
+        return subView;
+      } else {
+        ++textSpanCnt;
+      }
+    }
+  }
+  return nullptr;
+}
+#endif
 
 } // namespace native
 } // namespace render
