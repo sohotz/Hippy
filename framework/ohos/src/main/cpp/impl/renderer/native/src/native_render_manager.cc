@@ -168,6 +168,9 @@ StyleFilter::StyleFilter() {
 NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"),
       serializer_(std::make_shared<footstone::value::Serializer>()) {
   id_ = unique_native_render_manager_id_.fetch_add(1);
+#ifdef OHOS_DRAW_TEXT
+  draw_text_node_manager_ = std::make_shared<DrawTextNodeManager>();
+#endif
 }
 
 NativeRenderManager::~NativeRenderManager() {
@@ -354,7 +357,8 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       continue;
     if (n->GetViewName() == "Text") {
       auto textNode = GetAncestorTextNode(node);
-      draw_text_nodes_[node->GetId()] = textNode;
+      auto cache = draw_text_node_manager_->GetCache(root->GetId());
+      cache->draw_text_nodes_[node->GetId()] = textNode;
     }
   }
 #endif
@@ -385,7 +389,8 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
 #ifdef OHOS_DRAW_TEXT
         auto node = weak_node.lock();
         if (node) {
-          self->draw_text_nodes_.erase(node->GetId());
+          auto cache = self->draw_text_node_manager_->GetCache(root_node.lock()->GetId());
+          cache->draw_text_nodes_.erase(node->GetId());
         }
 #endif
         int64_t result;
@@ -842,7 +847,8 @@ void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
   auto root = root_node.lock();
   if (root) {
 #ifdef OHOS_DRAW_TEXT
-    for (auto it : draw_text_nodes_) {
+    auto cache = draw_text_node_manager_->GetCache(root->GetId());
+    for (auto it : cache->draw_text_nodes_) {
       auto node = it.second.lock();
       if (node) {
         float width = 0;
@@ -853,7 +859,7 @@ void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
                       DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
       }
     }
-    draw_text_nodes_.clear();
+    cache->draw_text_nodes_.clear();
 #endif
 
     uint32_t root_id = root->GetId();
@@ -1329,7 +1335,8 @@ void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, 
           || diff_style->find(kEnableScale) != diff_style->end()
           || diff_style->find(kNumberOfLines) != diff_style->end()) {
           auto textNode = GetAncestorTextNode(node);
-          draw_text_nodes_[node->GetId()] = textNode;
+          auto cache = draw_text_node_manager_->GetCache(root_node->GetId());
+          cache->draw_text_nodes_[node->GetId()] = textNode;
         }
 #endif
       }

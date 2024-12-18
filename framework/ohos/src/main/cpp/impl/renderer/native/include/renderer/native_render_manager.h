@@ -195,7 +195,7 @@ private:
   std::shared_ptr<NativeRenderProvider> c_render_provider_;
   
 #ifdef OHOS_DRAW_TEXT
-  std::map<uint32_t, std::weak_ptr<DomNode>> draw_text_nodes_;
+  std::shared_ptr<DrawTextNodeManager> draw_text_node_manager_;
 #endif
 };
 

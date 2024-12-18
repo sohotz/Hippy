@@ -24,6 +24,7 @@
 
 #include <map>
 #include <mutex>
+#include "dom/render_manager.h"
 #include "renderer/text_measure/text_measurer.h"
 
 namespace hippy {
@@ -97,6 +98,34 @@ public:
   
 private:
   std::map<uint32_t, std::shared_ptr<TextMeasureCache>> text_measurer_map_;
+  std::mutex mutex_;
+};
+
+class DrawTextNodeCache {
+public:
+  std::map<uint32_t, std::weak_ptr<DomNode>> draw_text_nodes_;
+};
+
+class DrawTextNodeManager {
+public:
+  std::shared_ptr<DrawTextNodeCache> GetCache(uint32_t rootId) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = cache_map_.find(rootId);
+    if (it != cache_map_.end()) {
+      return it->second;
+    }
+    auto cache = std::make_shared<DrawTextNodeCache>();
+    cache_map_[rootId] = cache;
+    return cache;
+  }
+  
+  void RemoveCache(uint32_t rootId) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    cache_map_.erase(rootId);
+  }
+  
+private:
+  std::map<uint32_t, std::shared_ptr<DrawTextNodeCache>> cache_map_;
   std::mutex mutex_;
 };
 
