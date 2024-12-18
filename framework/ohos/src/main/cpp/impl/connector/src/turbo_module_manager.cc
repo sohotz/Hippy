@@ -88,8 +88,9 @@ void GetTurboModule(CallbackInfo& info, void* data) {
   }
   auto u8_name = StringViewUtils::ToStdString(StringViewUtils::ConvertEncoding(name, string_view::Encoding::Utf8).utf8_value());
   std::shared_ptr<CtxValue> result;
-  auto has_instance = scope->HasTurboInstance(u8_name);
-  if (!has_instance) {
+//   close cache temporary， need find a solution on JSVM     
+//   auto has_instance = scope->HasTurboInstance(u8_name);
+//   if (!has_instance) {
     // 2. if not cached, query from ArkTs
     auto env = s_env;
     OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
@@ -118,11 +119,11 @@ void GetTurboModule(CallbackInfo& info, void* data) {
         FOOTSTONE_DLOG(INFO) << "return module = " << name;
         info.GetReturnValue()->Set(result);
     });
-  } else {
-    result = scope->GetTurboInstance(u8_name);
-    info.GetReturnValue()->Set(result);
-    FOOTSTONE_DLOG(INFO) << "return cached module = " << name;
-  }
+//   } else {
+//     result = scope->GetTurboInstance(u8_name);
+//     info.GetReturnValue()->Set(result);
+//     FOOTSTONE_DLOG(INFO) << "return cached module = " << name;
+//   }
   FOOTSTONE_DLOG(INFO) << "[turbo-perf] exit getTurboModule";
 }
 
