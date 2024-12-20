@@ -288,7 +288,7 @@ void RichTextView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPaddin
     textNode_->SetSize(HRSize(frame.width, frame.height));
     textNode_->SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
   }
-  drawFrameWidth_ = frame.width;
+  drawTextWidth_ = frame.width - padding.paddingLeft - padding.paddingRight;
   UpdateDrawTextContent();
 #else
   textNode_->SetPosition(HRPosition(frame.x, frame.y));
@@ -344,7 +344,7 @@ void RichTextView::ClearProps() {
 
 #ifdef OHOS_DRAW_TEXT
 void RichTextView::UpdateDrawTextContent() {
-  if (drawFrameWidth_ <= 0) {
+  if (drawTextWidth_ <= 0) {
     return;
   }
   
@@ -359,9 +359,9 @@ void RichTextView::UpdateDrawTextContent() {
   if (textMeasurer) {
     auto styledString = textMeasurer->GetStyledString();
     if (styledString) {
-      float pxFrameWidth = HRPixelUtils::VpToPx(drawFrameWidth_);
-      if (textMeasurer->IsRedraw(pxFrameWidth)) {
-        textMeasurer->DoRedraw(pxFrameWidth);
+      float pxTextWidth = HRPixelUtils::VpToPx(drawTextWidth_);
+      if (textMeasurer->IsRedraw(pxTextWidth)) {
+        textMeasurer->DoRedraw(pxTextWidth);
         textMeasurer->ResetRedraw();
       }
       textNode_->SetTextContentWithStyledString(styledString);
