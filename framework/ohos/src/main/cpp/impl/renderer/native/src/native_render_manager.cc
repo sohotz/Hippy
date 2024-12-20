@@ -358,7 +358,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     if (n->GetViewName() == "Text") {
       auto textNode = GetAncestorTextNode(node);
       auto cache = draw_text_node_manager_->GetCache(root->GetId());
-      cache->draw_text_nodes_[node->GetId()] = textNode;
+      cache->draw_text_nodes_[textNode->GetId()] = textNode;
     }
   }
 #endif
@@ -853,10 +853,11 @@ void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
       if (node) {
         float width = 0;
         float height = 0;
-        GetTextNodeSizeProp(node, width, height);
-        int64_t result = 0;
-        DoMeasureText(root_node, node, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
-                      DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
+        if (GetTextNodeSizeProp(node, width, height)) {
+          int64_t result = 0;
+          DoMeasureText(root_node, node, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
+                        DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
+        }
       }
     }
     cache->draw_text_nodes_.clear();
@@ -871,6 +872,8 @@ bool NativeRenderManager::GetTextNodeSizeProp(const std::shared_ptr<DomNode> &no
   width = std::numeric_limits<float>::max();
   height = std::numeric_limits<float>::max();
   
+  bool hasWidth = false;
+  
   auto style = node->GetStyleMap();
   auto it = style->find("width");
   if (it != style->end()) {
@@ -878,7 +881,12 @@ bool NativeRenderManager::GetTextNodeSizeProp(const std::shared_ptr<DomNode> &no
     double d = 0;
     if (value->ToDouble(d)) {
       width = (float)d;
+      hasWidth = true;
     }
+  }
+  
+  if (!hasWidth) {
+    return false;
   }
   
   it = style->find("height");
@@ -1330,13 +1338,13 @@ void NativeRenderManager::MarkTextDirty(std::weak_ptr<RootNode> weak_root_node, 
           || diff_style->find(kTextShadowRadius) != diff_style->end()
           || diff_style->find(kTextShadowColor) != diff_style->end()
           || diff_style->find(kLineHeight) != diff_style->end()
-          || diff_style->find(kTextAlign) != diff_style->end() // TODO:
+          || diff_style->find(kTextAlign) != diff_style->end()
           || diff_style->find(kText) != diff_style->end()
           || diff_style->find(kEnableScale) != diff_style->end()
           || diff_style->find(kNumberOfLines) != diff_style->end()) {
           auto textNode = GetAncestorTextNode(node);
           auto cache = draw_text_node_manager_->GetCache(root_node->GetId());
-          cache->draw_text_nodes_[node->GetId()] = textNode;
+          cache->draw_text_nodes_[textNode->GetId()] = textNode;
         }
 #endif
       }
