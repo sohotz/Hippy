@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "footstone/logging.h"
+#include "renderer/utils/hr_pixel_utils.h"
 #include <string>
 #include <map>
 #include <set>
@@ -85,6 +87,16 @@ public:
     return styled_string_;
   }
   
+  bool IsRedraw(float maxWidth) {
+    return text_align_ != TEXT_ALIGN_START && fabs(measureWidth_ - maxWidth) >= HRPixelUtils::DpToPx(1.0);
+  }
+  
+  void ResetRedraw() {
+    text_align_ = TEXT_ALIGN_START;
+  }
+
+  void DoRedraw(float maxWidth);
+
   int SpanIndexAt(float spanX, float spanY, float density);
   
 private:
@@ -108,6 +120,8 @@ private:
   OH_Drawing_TypographyStyle *typographyStyle_ = nullptr;
   OH_Drawing_Typography *typography_ = nullptr;
   ArkUI_StyledString *styled_string_ = nullptr;
+  int text_align_ = TEXT_ALIGN_START;
+  double measureWidth_ = 0;
   
   std::vector<OhImageSpanHolder> imageSpans_;
   std::vector<std::tuple<int, int>> spanOffsets_; // begin, end

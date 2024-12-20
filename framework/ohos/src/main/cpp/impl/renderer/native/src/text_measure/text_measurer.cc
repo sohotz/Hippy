@@ -95,17 +95,17 @@ void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, con
   
   std::string propValue;
   
-  int textAlign = TEXT_ALIGN_START;
+  text_align_ = TEXT_ALIGN_START;
   if (GetPropValue(propMap, "textAlign", propValue)) {
     if (propValue == "center") {
-      textAlign = TEXT_ALIGN_CENTER;
+      text_align_ = TEXT_ALIGN_CENTER;
     } else if (propValue == "end") {
-      textAlign = TEXT_ALIGN_END;
+      text_align_ = TEXT_ALIGN_END;
     } else if (propValue == "justify") {
-      textAlign = TEXT_ALIGN_JUSTIFY;
+      text_align_ = TEXT_ALIGN_JUSTIFY;
     }
   }
-  OH_Drawing_SetTypographyTextAlign(typographyStyle_, textAlign);
+  OH_Drawing_SetTypographyTextAlign(typographyStyle_, text_align_);
 
   int maxLines = 100000;
   if (GetPropValue(propMap, "numberOfLines", propValue) && propValue.size() > 0) {
@@ -468,6 +468,8 @@ OhMeasureResult TextMeasurer::EndMeasure(int width, int widthMode, int height, i
 #endif
   }
   
+  measureWidth_ = maxWidth;
+  
   return ret;
 }
 
@@ -514,6 +516,11 @@ int TextMeasurer::SpanIndexAt(float spanX, float spanY, float density) {
         }
     }
     return resultIndex;
+}
+
+void TextMeasurer::DoRedraw(float maxWidth) {
+  OH_Drawing_TypographyLayout(typography_, maxWidth);
+  measureWidth_ = maxWidth;
 }
 
 } // namespace native

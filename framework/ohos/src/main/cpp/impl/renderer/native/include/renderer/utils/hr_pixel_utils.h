@@ -51,6 +51,8 @@ public:
   inline static float DpToVp(float dp) { return dp / densityScale_; }
   inline static float VpToDp(float vp) { return vp * densityScale_; }
 
+  inline static float VpToPx(float vp) { return vp * densityScale_ * density_; }
+
 private:
   static float density_;
   static float densityScale_;

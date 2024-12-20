@@ -249,24 +249,7 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
 
 void RichTextView::OnSetPropsEndImpl() {
 #ifdef OHOS_DRAW_TEXT
-  std::shared_ptr<TextMeasurer> textMeasurer = nullptr;
-  auto textMeasureMgr = ctx_->GetTextMeasureManager();
-  if (textMeasureMgr->HasNewTextMeasurer(tag_)) {
-    textNode_->ResetTextContentWithStyledStringAttribute();
-    textMeasurer = textMeasureMgr->UseNewTextMeasurer(tag_);
-  } else if (!textNode_->HasStyledString()) {
-    textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
-  }
-  if (textMeasurer) {
-    auto styledString = textMeasurer->GetStyledString();
-    if (styledString) {
-      textNode_->SetTextContentWithStyledString(styledString);
-    } else {
-      FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, nil, tag: " << tag_ << ", text: " << (text_.has_value() ? text_.value() : "");
-    }
-  } else {
-    FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, textMeasurer nil, tag: " << tag_ << ", text: " << (text_.has_value() ? text_.value() : "");
-  }
+  UpdateDrawTextContent();
 #else
   if (!fontSize_.has_value()) {
     float defaultValue = HRNodeProps::FONT_SIZE_SP;
@@ -305,6 +288,8 @@ void RichTextView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPaddin
     textNode_->SetSize(HRSize(frame.width, frame.height));
     textNode_->SetPadding(padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft);
   }
+  drawFrameWidth_ = frame.width;
+  UpdateDrawTextContent();
 #else
   textNode_->SetPosition(HRPosition(frame.x, frame.y));
   textNode_->SetSize(HRSize(frame.width, frame.height));
@@ -358,6 +343,34 @@ void RichTextView::ClearProps() {
 }
 
 #ifdef OHOS_DRAW_TEXT
+void RichTextView::UpdateDrawTextContent() {
+  if (drawFrameWidth_ <= 0) {
+    return;
+  }
+  
+  std::shared_ptr<TextMeasurer> textMeasurer = nullptr;
+  auto textMeasureMgr = ctx_->GetTextMeasureManager();
+  if (textMeasureMgr->HasNewTextMeasurer(tag_)) {
+    textNode_->ResetTextContentWithStyledStringAttribute();
+    textMeasurer = textMeasureMgr->UseNewTextMeasurer(tag_);
+  } else if (!textNode_->HasStyledString()) {
+    textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
+  }
+  if (textMeasurer) {
+    auto styledString = textMeasurer->GetStyledString();
+    if (styledString) {
+      float pxFrameWidth = HRPixelUtils::VpToPx(drawFrameWidth_);
+      if (textMeasurer->IsRedraw(pxFrameWidth)) {
+        textMeasurer->DoRedraw(pxFrameWidth);
+        textMeasurer->ResetRedraw();
+      }
+      textNode_->SetTextContentWithStyledString(styledString);
+    } else {
+      FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, nil, tag: " << tag_ << ", text: " << (text_.has_value() ? text_.value() : "");
+    }
+  }
+}
+
 void RichTextView::SetClickable(bool flag) {
   if (HandleGestureBySelf()) {
     return;
