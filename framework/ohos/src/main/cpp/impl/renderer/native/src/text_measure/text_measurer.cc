@@ -86,7 +86,7 @@ bool TextMeasurer::GetPropValue(std::map<std::string, std::string> &propMap, con
   return true;
 }
 
-void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames) {
+void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames, const std::shared_ptr<FontCollectionCache> fontCache) {
 #ifdef MEASURE_TEXT_CHECK_PROP
   StartCollectProp();
 #endif
@@ -133,22 +133,23 @@ void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, con
     OH_Drawing_SetTypographyTextEllipsisModal(typographyStyle_, em);
   }
 
-  fontCollection_ = OH_Drawing_CreateFontCollection();
-  for (auto itName = fontFamilyNames.begin(); itName != fontFamilyNames.end(); itName++) {
-    auto &fontFamilyName = *itName;
-    auto itFont = fontFamilyList_.find(fontFamilyName);
-    if (itFont != fontFamilyList_.end()) {
-      auto font = itFont->second;
-      uint32_t ret = OH_Drawing_RegisterFont(fontCollection_, fontFamilyName.c_str(), font.c_str());
-      if (ret != 0) {
-        FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont(" << fontFamilyName << "," << font << ") fail";
+  if (fontCache) {
+    for (auto itName = fontFamilyNames.begin(); itName != fontFamilyNames.end(); itName++) {
+      auto &fontName = *itName;
+      if (!fontCache->HasFont(fontName)) {
+        auto itFont = fontFamilyList_.find(fontName);
+        if (itFont != fontFamilyList_.end()) {
+          auto fontPath = itFont->second;
+          fontCache->RegisterFont(fontName, fontPath);
+        } else {
+          FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont not found font:" << fontName;
+        }
       }
-    } else {
-      FOOTSTONE_LOG(ERROR) << "Measure Text OH_Drawing_RegisterFont not found font:" << fontFamilyName;
     }
   }
 
-  styled_string_ = OH_ArkUI_StyledString_Create(typographyStyle_, fontCollection_);
+  OH_Drawing_FontCollection *fontCollection = fontCache ? fontCache->fontCollection_ : nullptr;
+  styled_string_ = OH_ArkUI_StyledString_Create(typographyStyle_, fontCollection);
   
   if (GetPropValue(propMap, "lineHeight", propValue) && propValue.size() > 0) {
     lineHeight_ = std::stod(propValue);
@@ -481,10 +482,6 @@ void TextMeasurer::Destroy() {
   if (styled_string_) {
     OH_ArkUI_StyledString_Destroy(styled_string_);
     styled_string_ = nullptr;
-  }
-  if (fontCollection_) {
-    OH_Drawing_DestroyFontCollection(fontCollection_);
-    fontCollection_ = nullptr;
   }
   if (typographyStyle_) {
     OH_Drawing_DestroyTypographyStyle(typographyStyle_);

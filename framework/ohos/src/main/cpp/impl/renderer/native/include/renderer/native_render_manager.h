@@ -196,6 +196,7 @@ private:
   
 #ifdef OHOS_DRAW_TEXT
   std::shared_ptr<DrawTextNodeManager> draw_text_node_manager_;
+  std::shared_ptr<FontCollectionManager> font_collection_manager_;
 #endif
 };
 

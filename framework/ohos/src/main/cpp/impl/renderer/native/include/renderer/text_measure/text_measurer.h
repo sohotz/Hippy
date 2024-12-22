@@ -23,6 +23,7 @@
 #pragma once
 
 #include "footstone/logging.h"
+#include "renderer/text_measure/font_collection_manager.h"
 #include "renderer/utils/hr_pixel_utils.h"
 #include <string>
 #include <map>
@@ -76,7 +77,7 @@ public:
     Destroy();
   }
   
-  void StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames);
+  void StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames, const std::shared_ptr<FontCollectionCache> fontCache);
   void AddText(std::map<std::string, std::string> &propMap, float density);
   void AddImage(std::map<std::string, std::string> &propMap, float density);
   OhMeasureResult EndMeasure(int width, int widthMode, int height, int heightMode, float density);
@@ -115,7 +116,6 @@ private:
   double CalcSpanPostion(OH_Drawing_Typography *typography, OhMeasureResult &ret);
   
   std::unordered_map<std::string, std::string> fontFamilyList_;
-  OH_Drawing_FontCollection *fontCollection_ = nullptr;
   
   OH_Drawing_TypographyStyle *typographyStyle_ = nullptr;
   OH_Drawing_Typography *typography_ = nullptr;

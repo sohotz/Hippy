@@ -170,6 +170,7 @@ NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"
   id_ = unique_native_render_manager_id_.fetch_add(1);
 #ifdef OHOS_DRAW_TEXT
   draw_text_node_manager_ = std::make_shared<DrawTextNodeManager>();
+  font_collection_manager_ = std::make_shared<FontCollectionManager>();
 #endif
 }
 
@@ -1136,7 +1137,8 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
     }
   }
   
-  measureInst->StartMeasure(textPropMap, fontFamilyNames);
+  auto fontCache = font_collection_manager_->GetCache(root->GetId());
+  measureInst->StartMeasure(textPropMap, fontFamilyNames, fontCache);
 
   if (node->GetChildCount() == 0) {
     measureInst->AddText(textPropMap, density);
@@ -1393,6 +1395,7 @@ void NativeRenderManager::DestroyRoot(uint32_t root_id) {
   if (enable_ark_c_api_) {
     c_render_provider_->DestroyRoot(root_id);
   }
+  font_collection_manager_->RemoveCache(root_id);
 }
 
 void NativeRenderManager::DoCallbackForCallCustomTsView(uint32_t root_id, uint32_t node_id, uint32_t callback_id, const HippyValue &result) {

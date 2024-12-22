@@ -439,7 +439,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
       propMap[propName] = propValue;
     }
     if(measureFlag=="measure_add_start"){
-      measureInst.StartMeasure(propMap, std::set<std::string>());
+      measureInst.StartMeasure(propMap, std::set<std::string>(), nullptr);
     } else if(measureFlag=="measure_add_text"){
       measureInst.AddText(propMap, density);
     } else if(measureFlag=="measure_add_image"){
