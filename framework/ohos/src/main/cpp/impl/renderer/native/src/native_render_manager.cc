@@ -1182,8 +1182,9 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
                                          static_cast<int>(height), static_cast<int>(height_mode), density);
 
 #ifdef OHOS_DRAW_TEXT
-  auto view_manager = c_render_provider_->GetNativeRenderImpl()->GetHRManager()->GetViewManager(root->GetId());
-  view_manager->GetRenderContext()->GetTextMeasureManager()->SaveNewTextMeasurer(node->GetId(), measureInst);
+  if (enable_ark_c_api_) {
+    c_render_provider_->UpdateTextMeasurer(root->GetId(), node->GetId(), measureInst);
+  }
 #endif
 
   if(measureResult.spanPos.size() > 0 && measureResult.spanPos.size() == imageSpanNode.size()) {
