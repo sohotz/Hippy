@@ -50,9 +50,9 @@ RichTextView::~RichTextView() {
 #ifdef OHOS_DRAW_TEXT
   if (textNode_) {
     textNode_->ResetTextContentWithStyledStringAttribute();
-    auto textMeasureMgr = ctx_->GetTextMeasureManager();
-    textMeasureMgr->EraseTextMeasurer(tag_);
   }
+  auto textMeasureMgr = ctx_->GetTextMeasureManager();
+  textMeasureMgr->EraseTextMeasurer(tag_);
 #endif
 }
 
