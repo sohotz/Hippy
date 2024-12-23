@@ -238,6 +238,30 @@ void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float de
     }
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, ds);
   }
+  
+  std::string shadowColorString;
+  std::string shadowOffsetString;
+  std::string shadowRadiusString;
+  if (GetPropValue(propMap, "textShadowColor", propValue)) {
+    shadowColorString = propValue;
+  }
+  if (GetPropValue(propMap, "textShadowOffset", propValue)) {
+    shadowOffsetString = propValue;
+  }
+  if (GetPropValue(propMap, "textShadowRadius", propValue)) {
+    shadowRadiusString = propValue;
+  }
+  if (shadowColorString.size() > 0 || shadowOffsetString.size() > 0 || shadowRadiusString.size() > 0) {
+    OH_Drawing_TextShadow *shadow = OH_Drawing_CreateTextShadow();
+    uint32_t shadowColor = shadowColorString.size() > 0 ? (uint32_t)std::stoul(shadowColorString) : 0xff000000;
+    double shadowRadius = shadowRadiusString.size() > 0 ? std::stod(shadowRadiusString) : 0;
+    // TODO: offset
+    auto shadowOffset = OH_Drawing_PointCreate(3.0, 3.0);
+    OH_Drawing_SetTextShadow(shadow, shadowColor, shadowOffset, shadowRadius);
+    OH_Drawing_PointDestroy(shadowOffset);
+    OH_Drawing_TextStyleAddShadow(txtStyle, shadow);
+    OH_Drawing_DestroyTextShadow(shadow);
+  }
 
   // If font height is set, measure results for some special char will be wrong.
   // For example, ε (utf8 code: e0bdbdceb5). Measured height is less than drawn height.

@@ -34,6 +34,7 @@
 #include <arkui/styled_string.h>
 #include <native_drawing/drawing_color.h>
 #include <native_drawing/drawing_font_collection.h>
+#include <native_drawing/drawing_point.h>
 #include <native_drawing/drawing_text_declaration.h>
 #include <native_drawing/drawing_types.h>
 #include <native_drawing/drawing_text_typography.h>
