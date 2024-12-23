@@ -11,3 +11,7 @@
 ## Version 1.2.0
 ### Fix
 - Some bugs.
+
+## Version 1.3.0
+### Fix
+- Some bugs.
