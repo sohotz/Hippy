@@ -60,7 +60,8 @@ void ListView::Init() {
       auto listView = std::static_pointer_cast<ListView>(view);
       listView->HandleOnChildrenUpdated();
       listView->CheckInitOffset();
-      
+      listView->CheckInitListReadyNotify();
+
       // TODO: rowShouldSticky 吸顶逻辑，如果有业务需求，再评估鸿蒙上实现方案。
     }
   });
@@ -601,6 +602,13 @@ void ListView::CheckValidListSize() {
       adapter_ = std::make_shared<ListItemAdapter>(children_);
       listNode_->SetLazyAdapter(adapter_->GetHandle());
     }
+  }
+}
+
+void ListView::CheckInitListReadyNotify() {
+  if (!isInitListReadyNotified) {
+    HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_RECYCLER_LIST_READY, nullptr);
+    isInitListReadyNotified = true;
   }
 }
 

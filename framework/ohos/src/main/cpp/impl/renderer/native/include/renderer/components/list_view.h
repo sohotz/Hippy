@@ -96,6 +96,7 @@ private:
   void CheckStickyOnItemVisibleAreaChange(int32_t index, bool isVisible, float currentRatio);
   void CheckInitOffset();
   void CheckValidListSize();
+  void CheckInitListReadyNotify();
 
   constexpr static const char *CONTENT_OFFSET = "contentOffset";
   constexpr static const char *PULL_HEADER_VIEW_TYPE = "PullHeaderView";
@@ -146,6 +147,8 @@ private:
   uint64_t end_batch_callback_id_ = 0;
   
   bool isListZeroSize = false;
+  
+  bool isInitListReadyNotified = false;
 };
 
 } // namespace native

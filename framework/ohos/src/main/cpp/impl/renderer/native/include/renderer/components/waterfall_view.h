@@ -90,6 +90,7 @@ private:
   void HandleOnChildrenUpdated();
   void SendOnReachedEvent();
   void UpdateFooterView();
+  void CheckInitListReadyNotify();
   std::shared_ptr<StackNode> stackNode_;
   std::shared_ptr<ListNode> listNode_;
   std::shared_ptr<ColumnNode> colInnerNode_;
@@ -116,6 +117,8 @@ private:
   int32_t lastScrollIndex_ = 0;
   bool headerVisible = false;
   bool footerVisible = false;
+  
+  bool isInitListReadyNotified = false;
 };
 
 } // namespace native

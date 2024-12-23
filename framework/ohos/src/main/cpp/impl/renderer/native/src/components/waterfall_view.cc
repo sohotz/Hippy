@@ -138,7 +138,8 @@ void WaterfallView::Init() {
   end_batch_callback_id_ = ctx_->GetNativeRender().lock()->AddEndBatchCallback(ctx_->GetRootId(), [weak_view]() {
     auto view = weak_view.lock();
     if (view) {
-//      auto waterfallView = std::dynamic_pointer_cast<WaterfallView>(view);
+      auto waterfallView = std::static_pointer_cast<WaterfallView>(view);
+      waterfallView->CheckInitListReadyNotify();
     }
   });
 }
@@ -370,6 +371,13 @@ void WaterfallView::UpdateFooterView(){
             textView->GetLocalRootArkUINode()->SetPosition(HRPosition(0,0));
       }
     }
+  }
+}
+
+void WaterfallView::CheckInitListReadyNotify() {
+  if (!isInitListReadyNotified) {
+    HREventUtils::SendComponentEvent(ctx_, tag_, HREventUtils::EVENT_RECYCLER_LIST_READY, nullptr);
+    isInitListReadyNotified = true;
   }
 }
 
