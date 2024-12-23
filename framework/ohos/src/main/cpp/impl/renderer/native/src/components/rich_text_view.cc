@@ -234,7 +234,9 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     ArkUI_WordBreak wordBreak = HRTextConvertUtils::WordBreakToArk(value);
     GetLocalRootArkUINode()->SetWordBreak(wordBreak);
     return true;
-  } else if (propKey == "ellipsized") {
+  }
+#endif
+  if (propKey == "ellipsized") {
     isListenEllipsized_ = HRValueUtils::GetBool(propValue, false);
     if (isListenEllipsized_ && toSendEllipsizedEvent_) {
       HREventUtils::SendComponentEvent(ctx_, tag_, "ellipsized", nullptr);
@@ -242,7 +244,6 @@ bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &pro
     }
     return true;
   }
-#endif
 
   return BaseView::SetPropImpl(propKey, propValue);
 }

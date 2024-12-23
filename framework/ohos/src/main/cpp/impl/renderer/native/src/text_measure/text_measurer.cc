@@ -123,15 +123,16 @@ void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, con
     OH_Drawing_SetTypographyTextBreakStrategy(typographyStyle_, bs);
   }
 
+  OH_Drawing_EllipsisModal em = ELLIPSIS_MODAL_TAIL;
   if (GetPropValue(propMap, "ellipsizeMode", propValue)) {
-    OH_Drawing_EllipsisModal em = ELLIPSIS_MODAL_TAIL;
     if (propValue == "head") {
       em = ELLIPSIS_MODAL_HEAD;
     } else if (propValue == "middle") {
       em = ELLIPSIS_MODAL_MIDDLE;
     }
-    OH_Drawing_SetTypographyTextEllipsisModal(typographyStyle_, em);
   }
+  OH_Drawing_SetTypographyTextEllipsis(typographyStyle_, "...");
+  OH_Drawing_SetTypographyTextEllipsisModal(typographyStyle_, em);
 
   if (fontCache) {
     for (auto itName = fontFamilyNames.begin(); itName != fontFamilyNames.end(); itName++) {
