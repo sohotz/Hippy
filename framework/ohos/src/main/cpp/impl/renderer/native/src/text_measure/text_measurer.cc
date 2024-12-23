@@ -208,7 +208,7 @@ void TextMeasurer::AddText(HippyValueObjectType &propMap, float density) {
   double fontSize = 14; // 默认的fontSize是14
   if (GetPropValue(propMap, HRNodeProps::FONT_SIZE, propValue)) {
     auto doubleValue = HippyValue2Double(propValue);
-    fontSize = doubleValue;
+    fontSize = doubleValue > 0 ? doubleValue : fontSize;
   }
   OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize * density);
 
@@ -284,6 +284,14 @@ void TextMeasurer::AddText(HippyValueObjectType &propMap, float density) {
     OH_Drawing_DestroyTextShadow(shadow);
   }
 
+#ifdef OHOS_DRAW_TEXT
+  if (lineHeight_ > 0 && fontSize > 0) {
+    double fontHeight = lineHeight_ / fontSize;
+    OH_Drawing_SetTextStyleFontHeight(txtStyle, fontHeight);
+    OH_Drawing_SetTextStyleHalfLeading(txtStyle, true);
+  }
+#endif
+  
   // If font height is set, measure results for some special char will be wrong.
   // For example, ε (utf8 code: e0bdbdceb5). Measured height is less than drawn height.
   // OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
