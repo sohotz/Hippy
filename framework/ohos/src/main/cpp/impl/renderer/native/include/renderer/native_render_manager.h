@@ -85,6 +85,7 @@ class NativeRenderManager : public RenderManager, public std::enable_shared_from
   void AfterLayout(std::weak_ptr<RootNode> root_node) override;
 
   using HippyValue = footstone::value::HippyValue;
+  using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
   void AddEventListener(std::weak_ptr<RootNode> root_node, std::weak_ptr<DomNode> dom_node, const std::string& name) override;
 

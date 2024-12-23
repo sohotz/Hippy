@@ -432,7 +432,7 @@ static napi_value DoMeasureText(napi_env env, napi_callback_info info) {
   while (true) {
     auto measureFlag = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));
     int propCount=std::stoi(arkTs.GetString(arkTs.GetArrayElement(args[1], p++)));
-    std::map<std::string, std::string> propMap;
+    HippyValueObjectType propMap;
     for (int i = 0; i < propCount; i++) {
       auto propName = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));
       auto propValue = arkTs.GetString(arkTs.GetArrayElement(args[1], p++));

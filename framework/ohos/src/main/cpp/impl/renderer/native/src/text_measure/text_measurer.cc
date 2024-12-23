@@ -24,6 +24,7 @@
 #include "footstone/logging.h"
 #include "footstone/string_view_utils.h"
 #include "oh_napi/ark_ts.h"
+#include "renderer/dom_node/hr_node_props.h"
 
 namespace hippy {
 inline namespace render {
@@ -73,10 +74,10 @@ OH_Drawing_FontWeight TextMeasurer::FontWeightToDrawing(std::string &str) {
   }
 }
 
-bool TextMeasurer::GetPropValue(std::map<std::string, std::string> &propMap, const char *prop, std::string &propValue) {
+bool TextMeasurer::GetPropValue(HippyValueObjectType &propMap, const char *prop, HippyValue &propValue) {
   auto it = propMap.find(prop);
   if (it == propMap.end()) {
-    propValue.clear();
+    propValue = HippyValue::Undefined();
     return false;
   }
 #ifdef MEASURE_TEXT_CHECK_PROP
@@ -86,38 +87,41 @@ bool TextMeasurer::GetPropValue(std::map<std::string, std::string> &propMap, con
   return true;
 }
 
-void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames, const std::shared_ptr<FontCollectionCache> fontCache) {
+void TextMeasurer::StartMeasure(HippyValueObjectType &propMap, const std::set<std::string> &fontFamilyNames, const std::shared_ptr<FontCollectionCache> fontCache) {
 #ifdef MEASURE_TEXT_CHECK_PROP
   StartCollectProp();
 #endif
   typographyStyle_ = OH_Drawing_CreateTypographyStyle();
   OH_Drawing_SetTypographyTextDirection(typographyStyle_, TEXT_DIRECTION_LTR); // 从左向右排版
   
-  std::string propValue;
+  HippyValue propValue;
   
   text_align_ = TEXT_ALIGN_START;
   if (GetPropValue(propMap, "textAlign", propValue)) {
-    if (propValue == "center") {
+    auto strValue = HippyValue2String(propValue);
+    if (strValue == "center") {
       text_align_ = TEXT_ALIGN_CENTER;
-    } else if (propValue == "end") {
+    } else if (strValue == "end") {
       text_align_ = TEXT_ALIGN_END;
-    } else if (propValue == "justify") {
+    } else if (strValue == "justify") {
       text_align_ = TEXT_ALIGN_JUSTIFY;
     }
   }
   OH_Drawing_SetTypographyTextAlign(typographyStyle_, text_align_);
 
   int maxLines = 100000;
-  if (GetPropValue(propMap, "numberOfLines", propValue) && propValue.size() > 0) {
-    maxLines = std::stoi(propValue);
+  if (GetPropValue(propMap, "numberOfLines", propValue)) {
+    auto intValue = HippyValue2Int(propValue);
+    maxLines = intValue > 0 ? intValue : maxLines;
   }
   OH_Drawing_SetTypographyTextMaxLines(typographyStyle_, maxLines);
 
   if (GetPropValue(propMap, "breakStrategy", propValue)) {
+    auto strValue = HippyValue2String(propValue);
     OH_Drawing_BreakStrategy bs = BREAK_STRATEGY_GREEDY;
-    if (propValue == "high_quality") {
+    if (strValue == "high_quality") {
       bs = BREAK_STRATEGY_HIGH_QUALITY;
-    } else if (propValue == "balanced") {
+    } else if (strValue == "balanced") {
       bs = BREAK_STRATEGY_BALANCED;
     }
     OH_Drawing_SetTypographyTextBreakStrategy(typographyStyle_, bs);
@@ -125,9 +129,10 @@ void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, con
 
   OH_Drawing_EllipsisModal em = ELLIPSIS_MODAL_TAIL;
   if (GetPropValue(propMap, "ellipsizeMode", propValue)) {
-    if (propValue == "head") {
+    auto strValue = HippyValue2String(propValue);
+    if (strValue == "head") {
       em = ELLIPSIS_MODAL_HEAD;
-    } else if (propValue == "middle") {
+    } else if (strValue == "middle") {
       em = ELLIPSIS_MODAL_MIDDLE;
     }
   }
@@ -152,18 +157,19 @@ void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, con
   OH_Drawing_FontCollection *fontCollection = fontCache ? fontCache->fontCollection_ : nullptr;
   styled_string_ = OH_ArkUI_StyledString_Create(typographyStyle_, fontCollection);
   
-  if (GetPropValue(propMap, "lineHeight", propValue) && propValue.size() > 0) {
-    lineHeight_ = std::stod(propValue);
+  if (GetPropValue(propMap, "lineHeight", propValue)) {
+    auto doubleValue = HippyValue2Double(propValue);
+    lineHeight_ = doubleValue;
   }
-  if (GetPropValue(propMap, "paddingVertical", propValue) && propValue.size() > 0) {
-    auto paddingValue = std::stod(propValue);
-    paddingTop_ = paddingValue;
-    paddingBottom_ = paddingValue;
+  if (GetPropValue(propMap, "paddingVertical", propValue)) {
+    auto doubleValue = HippyValue2Double(propValue);
+    paddingTop_ = doubleValue;
+    paddingBottom_ = doubleValue;
   }
-  if (GetPropValue(propMap, "paddingHorizontal", propValue) && propValue.size() > 0) {
-    auto paddingValue = std::stod(propValue);
-    paddingLeft_ = paddingValue;
-    paddingRight_ = paddingValue;
+  if (GetPropValue(propMap, "paddingHorizontal", propValue)) {
+    auto doubleValue = HippyValue2Double(propValue);
+    paddingLeft_ = doubleValue;
+    paddingRight_ = doubleValue;
   }
 
 #ifdef MEASURE_TEXT_CHECK_PROP
@@ -178,85 +184,100 @@ void TextMeasurer::StartMeasure(std::map<std::string, std::string> &propMap, con
 #endif
 }
 
-void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float density) {
+void TextMeasurer::AddText(HippyValueObjectType &propMap, float density) {
 #ifdef MEASURE_TEXT_CHECK_PROP
   StartCollectProp();
 #endif
 
   OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
   
-  std::string propValue;
+  HippyValue propValue;
   
-  if (GetPropValue(propMap, "lineHeight", propValue) && propValue.size() > 0) {
-    lineHeight_ = std::stod(propValue);
+  if (GetPropValue(propMap, "lineHeight", propValue)) {
+    auto doubleValue = HippyValue2Double(propValue);
+    lineHeight_ = doubleValue;
   }
   
   uint32_t color = 0xff000000; // 颜色默认值，绘制时必须有颜色设置
-  if (GetPropValue(propMap, "color", propValue) && propValue.size() > 0) {
-    color = (uint32_t)std::stoul(propValue);
+  if (GetPropValue(propMap, "color", propValue)) {
+    auto uintValue = HippyValue2Uint(propValue);
+    color = uintValue > 0 ? uintValue : color;
   }
   OH_Drawing_SetTextStyleColor(txtStyle, color);
 
   double fontSize = 14; // 默认的fontSize是14
-  if (GetPropValue(propMap, "fontSize", propValue) && propValue.size() > 0) {
-    fontSize = std::stod(propValue);
+  if (GetPropValue(propMap, "fontSize", propValue)) {
+    auto doubleValue = HippyValue2Double(propValue);
+    fontSize = doubleValue;
   }
   OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize * density);
 
   if (GetPropValue(propMap, "fontWeight", propValue)) {
-    int fontWeight = FontWeightToDrawing(propValue);
+    auto strValue = HippyValue2String(propValue);
+    int fontWeight = FontWeightToDrawing(strValue);
     OH_Drawing_SetTextStyleFontWeight(txtStyle, fontWeight);
   }
 
   OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
 
   if (GetPropValue(propMap, "textDecorationLine", propValue)) {
+    auto strValue = HippyValue2String(propValue);
     OH_Drawing_TextDecoration td = TEXT_DECORATION_NONE;
-    if (propValue == "underline") {
+    if (strValue == "underline") {
       td = TEXT_DECORATION_UNDERLINE;
-    } else if (propValue == "line-through") {
+    } else if (strValue == "line-through") {
       td = TEXT_DECORATION_LINE_THROUGH;
-    } else if (propValue == "overline") {
+    } else if (strValue == "overline") {
       td = TEXT_DECORATION_OVERLINE;
     }
     OH_Drawing_SetTextStyleDecoration(txtStyle, td);
   }
-  if (GetPropValue(propMap, "textDecorationColor", propValue) && propValue.size() > 0) {
-    unsigned long dColor = std::stoul(propValue);
-    OH_Drawing_SetTextStyleDecorationColor(txtStyle, (uint32_t)dColor);
+  if (GetPropValue(propMap, "textDecorationColor", propValue)) {
+    auto uintValue = HippyValue2Uint(propValue);
+    uint32_t dColor = uintValue;
+    OH_Drawing_SetTextStyleDecorationColor(txtStyle, dColor);
   }
   if (GetPropValue(propMap, "textDecorationStyle", propValue)) {
+    auto strValue = HippyValue2String(propValue);
     OH_Drawing_TextDecorationStyle ds = TEXT_DECORATION_STYLE_SOLID;
-    if (propValue == "dotted") {
+    if (strValue == "dotted") {
       ds = TEXT_DECORATION_STYLE_DOTTED;
-    } else if (propValue == "double") {
+    } else if (strValue == "double") {
       ds = TEXT_DECORATION_STYLE_DOUBLE;
-    } else if (propValue == "dashed") {
+    } else if (strValue == "dashed") {
       ds = TEXT_DECORATION_STYLE_DASHED;
-    } else if (propValue == "wavy") {
+    } else if (strValue == "wavy") {
       ds = TEXT_DECORATION_STYLE_WAVY;
     }
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, ds);
   }
   
-  std::string shadowColorString;
-  std::string shadowOffsetString;
-  std::string shadowRadiusString;
+  uint32_t shadowColor = 0xff000000;
+  double shadowOffsetX = 0;
+  double shadowOffsetY = 0;
+  double shadowRadius = 0;
+  bool hasShadow = false;
   if (GetPropValue(propMap, "textShadowColor", propValue)) {
-    shadowColorString = propValue;
+    auto uintValue = HippyValue2Uint(propValue);
+    shadowColor = uintValue;
+    hasShadow = true;
   }
   if (GetPropValue(propMap, "textShadowOffset", propValue)) {
-    shadowOffsetString = propValue;
+    HippyValueObjectType obj;
+    if (propValue.ToObject(obj)) {
+      shadowOffsetX = HippyValue2Double(obj[HRNodeProps::WIDTH]);
+      shadowOffsetY = HippyValue2Double(obj[HRNodeProps::HEIGHT]);
+      hasShadow = true;
+    }
   }
   if (GetPropValue(propMap, "textShadowRadius", propValue)) {
-    shadowRadiusString = propValue;
+    auto doubleValue = HippyValue2Double(propValue);
+    shadowRadius = doubleValue;
+    hasShadow = true;
   }
-  if (shadowColorString.size() > 0 || shadowOffsetString.size() > 0 || shadowRadiusString.size() > 0) {
+  if (hasShadow) {
     OH_Drawing_TextShadow *shadow = OH_Drawing_CreateTextShadow();
-    uint32_t shadowColor = shadowColorString.size() > 0 ? (uint32_t)std::stoul(shadowColorString) : 0xff000000;
-    double shadowRadius = shadowRadiusString.size() > 0 ? std::stod(shadowRadiusString) : 0;
-    // TODO: offset
-    auto shadowOffset = OH_Drawing_PointCreate(3.0, 3.0);
+    auto shadowOffset = OH_Drawing_PointCreate((float)shadowOffsetX, (float)shadowOffsetY);
     OH_Drawing_SetTextShadow(shadow, shadowColor, shadowOffset, shadowRadius);
     OH_Drawing_PointDestroy(shadowOffset);
     OH_Drawing_TextStyleAddShadow(txtStyle, shadow);
@@ -268,11 +289,12 @@ void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float de
   // OH_Drawing_SetTextStyleFontHeight(txtStyle, 1.25);
 
   if (GetPropValue(propMap, "fontFamily", propValue)) {
-    const char *fontFamilies[] = {propValue.c_str()};
+    auto strValue = HippyValue2String(propValue);
+    const char *fontFamilies[] = { strValue.c_str() };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
   }
   int fontStyle = FONT_STYLE_NORMAL;
-  if (GetPropValue(propMap, "fontStyle", propValue) && propValue == "italic") {
+  if (GetPropValue(propMap, "fontStyle", propValue) && HippyValue2String(propValue) == "italic") {
     fontStyle = FONT_STYLE_ITALIC;
   }
   OH_Drawing_SetTextStyleFontStyle(txtStyle, fontStyle);
@@ -281,16 +303,18 @@ void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float de
   // If en is set, measure results for Chinese characters will be inaccurate.
   // OH_Drawing_SetTextStyleLocale(txtStyle, "zh");
   
-  if (GetPropValue(propMap, "letterSpacing", propValue) && propValue.size() > 0) {
-    double letterSpacing = std::stod(propValue);
+  if (GetPropValue(propMap, "letterSpacing", propValue)) {
+    auto doubleValue = HippyValue2Double(propValue);
+    double letterSpacing = doubleValue;
     OH_Drawing_SetTextStyleLetterSpacing(txtStyle, letterSpacing * density);
   }
   
   OH_ArkUI_StyledString_PushTextStyle(styled_string_, txtStyle);
   if (GetPropValue(propMap, "text", propValue)) {
-    OH_ArkUI_StyledString_AddText(styled_string_, propValue.c_str());
+    auto strValue = HippyValue2String(propValue);
+    OH_ArkUI_StyledString_AddText(styled_string_, strValue.c_str());
 
-    std::u16string str16 = footstone::StringViewUtils::CovertToUtf16(string_view((const string_view::char8_t_*)propValue.c_str()), string_view::Encoding::Utf8).utf16_value();
+    std::u16string str16 = footstone::StringViewUtils::CovertToUtf16(string_view((const string_view::char8_t_*)strValue.c_str()), string_view::Encoding::Utf8).utf16_value();
     int strLen = (int)str16.size();
     spanOffsets_.emplace_back(std::tuple(charOffset_, charOffset_ + strLen));
     charOffset_ += strLen;
@@ -317,19 +341,21 @@ void TextMeasurer::AddText(std::map<std::string, std::string> &propMap, float de
 #endif
 }
 
-void TextMeasurer::AddImage(std::map<std::string, std::string> &propMap, float density) {
+void TextMeasurer::AddImage(HippyValueObjectType &propMap, float density) {
 #ifdef MEASURE_TEXT_CHECK_PROP
   StartCollectProp();
 #endif
 
-  std::string propValue;
+  HippyValue propValue;
   
   OH_Drawing_PlaceholderSpan span;
-  if (GetPropValue(propMap, "width", propValue) && propValue.size() > 0) {
-      span.width = std::stod(propValue) * density;
+  if (GetPropValue(propMap, "width", propValue)) {
+    double doubleValue = HippyValue2Double(propValue);
+    span.width = doubleValue * density;
   }
-  if (GetPropValue(propMap, "height", propValue) && propValue.size() > 0) {
-      span.height = std::stod(propValue) * density;
+  if (GetPropValue(propMap, "height", propValue)) {
+    double doubleValue = HippyValue2Double(propValue);
+    span.height = doubleValue * density;
   }
   span.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
 
@@ -345,13 +371,14 @@ void TextMeasurer::AddImage(std::map<std::string, std::string> &propMap, float d
   spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
 
   if (GetPropValue(propMap, "verticalAlign", propValue)) {
-    if (propValue == "top") {
+    auto strValue = HippyValue2String(propValue);
+    if (strValue == "top") {
       spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_TOP_OF_ROW_BOX;
-    } else if (propValue == "middle") {
+    } else if (strValue == "middle") {
       spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_CENTER_OF_ROW_BOX;
-    } else if (propValue == "baseline") {
+    } else if (strValue == "baseline") {
       spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_OFFSET_AT_BASELINE;
-    } else if (propValue == "bottom") {
+    } else if (strValue == "bottom") {
       spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_BOTTOM_OF_ROW_BOX;
     }
   }
@@ -359,12 +386,14 @@ void TextMeasurer::AddImage(std::map<std::string, std::string> &propMap, float d
     // TODO: check
     spanH.alignment = OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_ABOVE_BASELINE;
   }
-  if (GetPropValue(propMap, "margin", propValue) && propValue.size() > 0) {
-    spanH.marginTop = std::stod(propValue);
-    spanH.marginBottom = std::stod(propValue);
+  if (GetPropValue(propMap, "margin", propValue)) {
+    double doubleValue = HippyValue2Double(propValue);
+    spanH.marginTop = doubleValue;
+    spanH.marginBottom = doubleValue;
   }
-  if (GetPropValue(propMap, "top", propValue) && propValue.size() > 0) {
-    spanH.top = std::stod(propValue);
+  if (GetPropValue(propMap, "top", propValue)) {
+    double doubleValue = HippyValue2Double(propValue);
+    spanH.top = doubleValue;
   }
 
   imageSpans_.push_back(spanH);
@@ -543,6 +572,34 @@ int TextMeasurer::SpanIndexAt(float spanX, float spanY, float density) {
 void TextMeasurer::DoRedraw(float maxWidth) {
   OH_Drawing_TypographyLayout(typography_, maxWidth);
   measureWidth_ = maxWidth;
+}
+
+std::string TextMeasurer::HippyValue2String(HippyValue &value) {
+  std::string str;
+  if (value.ToString(str)) {
+    return str;
+  }
+  return "";
+}
+
+double TextMeasurer::HippyValue2Double(HippyValue &value) {
+  double d = 0;
+  if (value.ToDouble(d)) {
+    return d;
+  }
+  std::string str;
+  if (value.ToString(str) && str.size() > 0) {
+    return std::stod(str);
+  }
+  return 0;
+}
+
+int32_t TextMeasurer::HippyValue2Int(HippyValue &value) {
+  return (int32_t)HippyValue2Double(value);
+}
+
+uint32_t TextMeasurer::HippyValue2Uint(HippyValue &value) {
+  return (uint32_t)HippyValue2Double(value);
 }
 
 } // namespace native

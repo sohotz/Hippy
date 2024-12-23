@@ -231,7 +231,7 @@ void NativeRenderManager::CreateRenderNode(std::weak_ptr<RootNode> root_node,
   }
 }
 
-void CollectAllHippyValueProps(footstone::value::HippyValue::HippyValueObjectType &props, std::shared_ptr<DomNode> &node, bool reset = true) {
+void CollectAllHippyValueProps(HippyValueObjectType &props, std::shared_ptr<DomNode> &node, bool reset = true) {
   if (reset) {
     props.clear();
   }
@@ -270,7 +270,7 @@ void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node,
   dom_node_array.resize(len);
   for (uint32_t i = 0; i < len; i++) {
     const auto& render_info = nodes[i]->GetRenderInfo();
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(render_info.id);
     dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
     dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
@@ -333,7 +333,7 @@ void NativeRenderManager::CreateRenderNode_TS(std::weak_ptr<RootNode> root_node,
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     }
 
-    footstone::value::HippyValue::HippyValueObjectType props;
+    HippyValueObjectType props;
     CollectAllHippyValueProps(props, nodes[i]);
 
     dom_node[kProps] = props;
@@ -438,7 +438,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       nodes[i]->GetLayoutNode()->SetMeasureFunction(measure_function);
     }
 
-    footstone::value::HippyValue::HippyValueObjectType props;
+    HippyValueObjectType props;
     CollectAllHippyValueProps(props, nodes[i]);
     m->props_ = props;
     
@@ -448,7 +448,7 @@ void NativeRenderManager::CreateRenderNode_C(std::weak_ptr<RootNode> root_node, 
       
       auto grandParentNode = parentNode->GetParent();
       if (grandParentNode && grandParentNode->GetViewName() == "Text") {
-        footstone::value::HippyValue::HippyValueObjectType mergedProps;
+        HippyValueObjectType mergedProps;
         CollectAllHippyValueProps(mergedProps, parentNode);
         for (auto it = props.begin(); it != props.end(); it++) {
           mergedProps[it->first] = it->second;
@@ -502,13 +502,13 @@ void NativeRenderManager::UpdateRenderNode_TS(std::weak_ptr<RootNode> root_node,
   dom_node_array.resize(len);
   for (uint32_t i = 0; i < len; i++) {
     const auto &render_info = nodes[i]->GetRenderInfo();
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(render_info.id);
     dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
     dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
     dom_node[kName] = footstone::value::HippyValue(nodes[i]->GetViewName());
 
-    footstone::value::HippyValue::HippyValueObjectType diff_props;
+    HippyValueObjectType diff_props;
     footstone::value::HippyValue::HippyValueArrayType del_props;
     auto diff = nodes[i]->GetDiffStyle();
     if (diff) {
@@ -566,7 +566,7 @@ void NativeRenderManager::UpdateRenderNode_C(std::weak_ptr<RootNode> root_node, 
     m->index_ = render_info.index;
     m->view_name_ = nodes[i]->GetViewName();
 
-    footstone::value::HippyValue::HippyValueObjectType diff_props;
+    HippyValueObjectType diff_props;
     std::vector<std::string> del_props;
     auto diff = nodes[i]->GetDiffStyle();
     if (diff) {
@@ -628,7 +628,7 @@ void NativeRenderManager::MoveRenderNode_TS(std::weak_ptr<RootNode> root_node, s
   uint32_t pid;
   for (uint32_t i = 0; i < len; i++) {
     const auto &render_info = nodes[i]->GetRenderInfo();
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(render_info.id);
     dom_node[kPid] = footstone::value::HippyValue(render_info.pid);
     dom_node[kIndex] = footstone::value::HippyValue(render_info.index);
@@ -735,7 +735,7 @@ void NativeRenderManager::UpdateLayout_TS(std::weak_ptr<RootNode> root_node, con
   footstone::value::HippyValue::HippyValueArrayType dom_node_array;
   dom_node_array.resize(len);
   for (uint32_t i = 0; i < len; i++) {
-    footstone::value::HippyValue::HippyValueObjectType dom_node;
+    HippyValueObjectType dom_node;
     dom_node[kId] = footstone::value::HippyValue(nodes[i]->GetId());
     const auto &result = nodes[i]->GetRenderLayoutResult();
     dom_node[kWidth] = footstone::value::HippyValue(DpToPx(result.width));
@@ -1050,29 +1050,7 @@ LayoutSize NativeRenderManager::CallNativeCustomMeasureMethod_C(uint32_t root_id
   return c_render_provider_->CustomMeasure(root_id, node_id, width, width_measure_mode, height, height_measure_mode);
 }
 
-std::string HippyValueToString(const HippyValue &value) {
-  std::string sv;
-  if (value.IsString()) {
-    value.ToString(sv);
-  } else if(value.IsDouble()) {
-    double d;
-    value.ToDouble(d);
-    sv = std::to_string(d);
-  } else if(value.IsInt32()) {
-    int32_t i;
-    value.ToInt32(i);
-    sv = std::to_string(i);
-  } else if(value.IsUInt32()) {
-    uint32_t ui;
-    value.ToUint32(ui);
-    sv = std::to_string(ui);
-  } else {
-    FOOTSTONE_LOG(ERROR) << "Measure Text, unknown value type: " << (int32_t)value.GetType();
-  }
-  return sv;
-}
-
-void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_ptr<DomNode> node, bool reset = true) {
+void CollectAllProps(HippyValueObjectType &propMap, std::shared_ptr<DomNode> node, bool reset = true) {
   if (reset) {
     propMap.clear();
   }
@@ -1080,14 +1058,18 @@ void CollectAllProps(std::map<std::string, std::string> &propMap, std::shared_pt
   auto style = node->GetStyleMap();
   auto iter = style->begin();
   while (iter != style->end()) {
-    propMap[iter->first] = HippyValueToString(*(iter->second));
+    if (iter->second) {
+      propMap[iter->first] = *(iter->second);
+    }
     iter++;
   }
   // 用户自定义属性
   auto dom_ext = *node->GetExtStyle();
   iter = dom_ext.begin();
   while (iter != dom_ext.end()) {
-    propMap[iter->first] = HippyValueToString(*(iter->second));
+    if (iter->second) {
+      propMap[iter->first] = *(iter->second);
+    }
     iter++;
   }
 }
@@ -1107,8 +1089,8 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   }
 
   std::vector<std::shared_ptr<DomNode>> imageSpanNode;
-  std::map<std::string, std::string> textPropMap;
-  std::map<std::string, std::string> spanPropMap;
+  HippyValueObjectType textPropMap;
+  HippyValueObjectType spanPropMap;
   CollectAllProps(textPropMap, node);
 
   float density = GetDensity();
@@ -1118,21 +1100,30 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   std::set<std::string> fontFamilyNames;
   auto text_prop_it = textPropMap.find("fontFamily");
   if (text_prop_it != textPropMap.end()) {
-    fontFamilyNames.insert(text_prop_it->second);
+    std::string fontName;
+    if (text_prop_it->second.ToString(fontName) && fontName.size() > 0) {
+      fontFamilyNames.insert(fontName);
+    }
   }
   for(uint32_t i = 0; i < node->GetChildCount(); i++) {
     auto child = node->GetChildAt(i);
     auto style_map = child->GetStyleMap();
     auto it = style_map->find("fontFamily");
     if (it != style_map->end()) {
-      fontFamilyNames.insert(HippyValueToString(*(it->second)));
+      std::string fontName;
+      if (it->second && it->second->ToString(fontName) && fontName.size() > 0) {
+        fontFamilyNames.insert(fontName);
+      }
     }
     for(uint32_t j = 0; j < child->GetChildCount(); j++) {
       auto grand_child = child->GetChildAt(j);
       auto grand_style_map = grand_child->GetStyleMap();
       auto grand_it = grand_style_map->find("fontFamily");
       if (grand_it != grand_style_map->end()) {
-        fontFamilyNames.insert(HippyValueToString(*(grand_it->second)));
+        std::string fontName;
+        if (grand_it->second && grand_it->second->ToString(fontName) && fontName.size() > 0) {
+          fontFamilyNames.insert(fontName);
+        }
       }
     }
   }
@@ -1162,7 +1153,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
         CollectAllProps(spanPropMap, child);
         for(uint32_t j = 0; j < grand_child_count; j++) {
           auto grand_child = child->GetChildAt(j);
-          std::map<std::string, std::string> grandSpanPropMap = spanPropMap;
+          HippyValueObjectType grandSpanPropMap = spanPropMap;
           CollectAllProps(grandSpanPropMap, grand_child, false);
           if (grand_child->GetViewName() == "Text") {
             measureInst->AddText(grandSpanPropMap, density);
@@ -1230,8 +1221,8 @@ void NativeRenderManager::HandleListenerOps_TS(std::weak_ptr<RootNode> root_node
 
   footstone::value::HippyValue::HippyValueArrayType event_listener_ops;
   for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
-    footstone::value::HippyValue::HippyValueObjectType op;
-    footstone::value::HippyValue::HippyValueObjectType events;
+    HippyValueObjectType op;
+    HippyValueObjectType events;
 
     const std::vector<ListenerOp> &listener_ops = iter->second;
     const auto len = listener_ops.size();
@@ -1278,7 +1269,7 @@ void NativeRenderManager::HandleListenerOps_C(std::weak_ptr<RootNode> root_node,
   std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> mutations;
   for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
     auto m = std::make_shared<HRUpdateEventListenerMutation>();
-    footstone::value::HippyValue::HippyValueObjectType events;
+    HippyValueObjectType events;
 
     const std::vector<ListenerOp> &listener_ops = iter->second;
     const auto len = listener_ops.size();

@@ -23,6 +23,7 @@
 #pragma once
 
 #include "footstone/logging.h"
+#include "footstone/hippy_value.h"
 #include "renderer/text_measure/font_collection_manager.h"
 #include "renderer/utils/hr_pixel_utils.h"
 #include <string>
@@ -47,6 +48,9 @@
 namespace hippy {
 inline namespace render {
 inline namespace native {
+
+using HippyValue = footstone::value::HippyValue;
+using HippyValueObjectType = footstone::value::HippyValue::HippyValueObjectType;
 
 struct OhImageSpanHolder {
   double width;
@@ -78,9 +82,9 @@ public:
     Destroy();
   }
   
-  void StartMeasure(std::map<std::string, std::string> &propMap, const std::set<std::string> &fontFamilyNames, const std::shared_ptr<FontCollectionCache> fontCache);
-  void AddText(std::map<std::string, std::string> &propMap, float density);
-  void AddImage(std::map<std::string, std::string> &propMap, float density);
+  void StartMeasure(HippyValueObjectType &propMap, const std::set<std::string> &fontFamilyNames, const std::shared_ptr<FontCollectionCache> fontCache);
+  void AddText(HippyValueObjectType &propMap, float density);
+  void AddImage(HippyValueObjectType &propMap, float density);
   OhMeasureResult EndMeasure(int width, int widthMode, int height, int heightMode, float density);
   
   void Destroy();
@@ -113,8 +117,13 @@ private:
   
 private:
   OH_Drawing_FontWeight FontWeightToDrawing(std::string &str);
-  bool GetPropValue(std::map<std::string, std::string> &propMap, const char *prop, std::string &propValue);
+  bool GetPropValue(HippyValueObjectType &propMap, const char *prop, HippyValue &propValue);
   double CalcSpanPostion(OH_Drawing_Typography *typography, OhMeasureResult &ret);
+  
+  std::string HippyValue2String(HippyValue &value);
+  double HippyValue2Double(HippyValue &value);
+  int32_t HippyValue2Int(HippyValue &value);
+  uint32_t HippyValue2Uint(HippyValue &value);
   
   std::unordered_map<std::string, std::string> fontFamilyList_;
   
