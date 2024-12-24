@@ -82,6 +82,7 @@ public:
   void AddSubRenderView(std::shared_ptr<BaseView> &subView, int32_t index);
   void RemoveSubView(std::shared_ptr<BaseView> &subView);
   void RemoveFromParentView();
+
   void SetRenderViewFrame(const HRRect &frame, const HRPadding &padding = HRPadding(0, 0, 0, 0));
   void UpdateEventListener(HippyValueObjectType &newEvents);
   bool CheckRegisteredEvent(std::string &eventName);
@@ -105,6 +106,7 @@ protected:
   virtual void OnChildReusedImpl(std::shared_ptr<BaseView> const &childView, int index) {}
   void UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding);
   virtual void UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding);
+  virtual bool IsValidFrame(const HRRect &frame) { return true; }
   virtual bool HandleGestureBySelf() { return false; }
 
 protected:

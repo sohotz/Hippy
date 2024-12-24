@@ -949,9 +949,11 @@ void BaseView::SetRenderViewFrame(const HRRect &frame, const HRPadding &padding)
 }
 
 void BaseView::UpdateRenderViewFrame(const HRRect &frame, const HRPadding &padding) {
-  lazyFrame_ = frame;
-  lazyPadding_ = padding;
-  
+  if (IsValidFrame(frame)) {
+    lazyFrame_ = frame;
+    lazyPadding_ = padding;
+  }
+
   if (GetLocalRootArkUINode()) {
     UpdateRenderViewFrameImpl(frame, padding);
   }

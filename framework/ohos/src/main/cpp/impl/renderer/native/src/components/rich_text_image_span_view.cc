@@ -115,10 +115,17 @@ bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyV
 }
 
 void RichTextImageSpanView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
-  if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
+  if (IsValidFrame(frame)) {
     GetLocalRootArkUINode()->SetPosition(HRPosition(frame.x, frame.y));
     return;
   }
+}
+
+bool RichTextImageSpanView::IsValidFrame(const HRRect &frame) {
+  if (frame.x != 0 || frame.y != 0) { // c 测得span的位置
+    return true;
+  }
+  return false;
 }
 
 void RichTextImageSpanView::FetchAltImage(const std::string &imageUrl) {
