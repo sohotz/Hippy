@@ -168,9 +168,9 @@ StyleFilter::StyleFilter() {
 NativeRenderManager::NativeRenderManager() : RenderManager("NativeRenderManager"),
       serializer_(std::make_shared<footstone::value::Serializer>()) {
   id_ = unique_native_render_manager_id_.fetch_add(1);
+  font_collection_manager_ = std::make_shared<FontCollectionManager>();
 #ifdef OHOS_DRAW_TEXT
   draw_text_node_manager_ = std::make_shared<DrawTextNodeManager>();
-  font_collection_manager_ = std::make_shared<FontCollectionManager>();
 #endif
 }
 

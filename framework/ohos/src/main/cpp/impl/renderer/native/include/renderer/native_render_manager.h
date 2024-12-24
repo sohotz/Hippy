@@ -195,9 +195,9 @@ private:
   bool enable_ark_c_api_ = false;
   std::shared_ptr<NativeRenderProvider> c_render_provider_;
   
+  std::shared_ptr<FontCollectionManager> font_collection_manager_;
 #ifdef OHOS_DRAW_TEXT
   std::shared_ptr<DrawTextNodeManager> draw_text_node_manager_;
-  std::shared_ptr<FontCollectionManager> font_collection_manager_;
 #endif
 };
 
