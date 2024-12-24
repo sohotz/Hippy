@@ -116,7 +116,9 @@ bool RichTextImageSpanView::SetPropImpl(const std::string &propKey, const HippyV
 
 void RichTextImageSpanView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {
   if (IsValidFrame(frame)) {
+#ifdef OHOS_DRAW_TEXT
     GetLocalRootArkUINode()->SetPosition(HRPosition(frame.x, frame.y));
+#endif
     return;
   }
 }
