@@ -92,7 +92,7 @@ public:
 
   void SetPosition(const HRPosition &position);
 
-  virtual void OnClick() override;
+  virtual void OnClick(const HRPosition &position) override;
   virtual void OnTouch(int32_t actionType, const HRPosition &screenPosition) override;
   virtual void OnAppear() override;
   virtual void OnDisappear() override;

@@ -661,7 +661,11 @@ void ArkUINode::OnNodeEvent(ArkUI_NodeEvent *event) {
 
   auto eventType = OH_ArkUI_NodeEvent_GetEventType(event);
   if (eventType == ArkUI_NodeEventType::NODE_ON_CLICK) {
-    arkUINodeDelegate_->OnClick();
+    auto nodeComponentEvent = OH_ArkUI_NodeEvent_GetNodeComponentEvent(event);
+    ArkUI_NumberValue* data = nodeComponentEvent->data;
+    float x = HRPixelUtils::PxToDp(data[0].f32);
+    float y = HRPixelUtils::PxToDp(data[1].f32);
+    arkUINodeDelegate_->OnClick(HRPosition(x, y));
   } else if (eventType == ArkUI_NodeEventType::NODE_TOUCH_EVENT) {
     ArkUI_UIInputEvent *inputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
     auto type = OH_ArkUI_UIInputEvent_GetType(inputEvent);

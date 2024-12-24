@@ -996,7 +996,7 @@ void BaseView::SetPosition(const HRPosition &position) {
   }
 }
 
-void BaseView::OnClick() {
+void BaseView::OnClick(const HRPosition &position) {
   if (eventClick_) {
     eventClick_();
   }

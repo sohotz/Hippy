@@ -61,7 +61,7 @@ private:
 #ifdef OHOS_DRAW_TEXT
   void UpdateDrawTextContent();
   virtual void SetClickable(bool flag) override;
-  virtual void OnClick() override;
+  virtual void OnClick(const HRPosition &position) override;
   std::shared_ptr<BaseView> GetTextSpanView(int spanIndex);
 #endif
 

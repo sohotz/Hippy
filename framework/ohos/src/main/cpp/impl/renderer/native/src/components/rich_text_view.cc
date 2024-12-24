@@ -391,9 +391,9 @@ void RichTextView::SetClickable(bool flag) {
   }
 }
 
-void RichTextView::OnClick() {
-  float x = 0;
-  float y = 0;
+void RichTextView::OnClick(const HRPosition &position) {
+  float x = position.x;
+  float y = position.y;
   if (clickableSpanViews_.size() > 0) {
     auto textMeasureMgr = ctx_->GetTextMeasureManager();
     auto textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
@@ -404,14 +404,14 @@ void RichTextView::OnClick() {
         if (textSpanView) {
           auto regIt = clickableSpanViews_.find(textSpanView);
           if (regIt != clickableSpanViews_.end()) {
-            textSpanView->OnClick();
+            textSpanView->OnClick(HRPosition(0, 0));
             return;
           }
         }
       }
     }
   }
-  BaseView::OnClick();
+  BaseView::OnClick(position);
 }
 
 void RichTextView::RegisterSpanClickEvent(const std::shared_ptr<BaseView> spanView) {
