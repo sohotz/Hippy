@@ -130,6 +130,7 @@ protected:
   void SetDetachedFromWindowHandle(bool flag);
   
   void UpdateLazyProps();
+  void UpdateLazyAll();
 
   void HandleInterceptPullUp();
   int64_t GetTimeMilliSeconds();

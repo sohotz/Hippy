@@ -83,7 +83,6 @@ bool RichTextSpanView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleV
 
 bool RichTextSpanView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
 #ifdef OHOS_DRAW_TEXT
-  return false;
 #else
   if (propKey == "text") {
     std::string value = HRValueUtils::GetString(propValue);
@@ -177,14 +176,12 @@ bool RichTextSpanView::SetPropImpl(const std::string &propKey, const HippyValue 
     uint32_t value = HRValueUtils::GetUint32(propValue);
     GetLocalRootArkUINode()->SetSpanTextBackgroundStyle(value);
     return true;
-  } else {
-    bool handled = SetEventProp(propKey, propValue);
-    return handled;
   }
-
   // Not to set some attributes for text span.
   // For example: NODE_BACKGROUND_COLOR will return ARKUI_ERROR_CODE_ATTRIBUTE_OR_EVENT_NOT_SUPPORTED (106102)
 #endif
+  bool handled = SetEventProp(propKey, propValue);
+  return handled;
 }
 
 void RichTextSpanView::OnSetPropsEndImpl() {
@@ -198,8 +195,8 @@ void RichTextSpanView::OnSetPropsEndImpl() {
     toSetTextShadow = false;
     GetLocalRootArkUINode()->SetTextShadow(HRPixelUtils::DpToVp(textShadowRadius_), ARKUI_SHADOW_TYPE_COLOR, textShadowColor_, HRPixelUtils::DpToVp(textShadowOffsetX_), HRPixelUtils::DpToVp(textShadowOffsetY_));
   }
-  BaseView::OnSetPropsEndImpl();
 #endif
+  BaseView::OnSetPropsEndImpl();
 }
 
 void RichTextSpanView::UpdateRenderViewFrameImpl(const HRRect &frame, const HRPadding &padding) {

@@ -94,6 +94,7 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
   
   CreateArkUINodeImpl();
   if (!GetLocalRootArkUINode()) {
+    UpdateLazyProps();
     return;
   }
   isLazyCreate_ = false;
@@ -103,7 +104,7 @@ void BaseView::CreateArkUINode(bool isFromLazy, int index) {
     parent->OnChildInsertedImpl(shared_from_this(), child_index);
   }
   
-  UpdateLazyProps();
+  UpdateLazyAll();
   
   if (isFromLazy) {
     for (int32_t i = 0; i < (int32_t)children_.size(); i++) {
@@ -181,7 +182,7 @@ bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t
     parent->OnChildReusedImpl(shared_from_this(), index);
   }
   
-  UpdateLazyProps();
+  UpdateLazyAll();
   
   if (recycleView->children_.size() > children_.size()) {
     for (int32_t k = (int32_t)recycleView->children_.size() - 1; k >= (int32_t)children_.size() ; k--) {
@@ -207,10 +208,6 @@ bool BaseView::ReuseArkUINode(std::shared_ptr<RecycleView> &recycleView, int32_t
 }
 
 void BaseView::UpdateLazyProps() {
-  GetLocalRootArkUINode()->SetArkUINodeDelegate(this);
-  std::string id_str = "HippyId" + std::to_string(tag_);
-  GetLocalRootArkUINode()->SetId(id_str);
-  
   if (lazyProps_.size() > 0) {
     for (auto it = lazyProps_.begin(); it != lazyProps_.end(); it++) {
       // value maybe empty string / false / 0
@@ -221,6 +218,15 @@ void BaseView::UpdateLazyProps() {
     }
     OnSetPropsEndImpl();
   }
+}
+
+void BaseView::UpdateLazyAll() {
+  GetLocalRootArkUINode()->SetArkUINodeDelegate(this);
+  std::string id_str = "HippyId" + std::to_string(tag_);
+  GetLocalRootArkUINode()->SetId(id_str);
+  
+  UpdateLazyProps();
+
   if (lazyFrame_.has_value() && lazyPadding_.has_value()) {
     UpdateRenderViewFrameImpl(lazyFrame_.value(), lazyPadding_.value());
   }
