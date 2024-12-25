@@ -11,7 +11,7 @@
     {
       "name": "debug",
       "externalNativeOptions": {
-        "arguments": "-DENABLE_INSPECTOR=false",
+        "arguments": "-DOHOS_STL=c++_static -DENABLE_INSPECTOR=false",
         "abiFilters": [
           "arm64-v8a",
         ],
@@ -20,7 +20,7 @@
     {
       "name": "release",
       "externalNativeOptions": {
-        "arguments": "-DENABLE_INSPECTOR=false",
+        "arguments": "-DOHOS_STL=c++_static -DENABLE_INSPECTOR=false",
         "abiFilters": [
           "arm64-v8a",
         ],
