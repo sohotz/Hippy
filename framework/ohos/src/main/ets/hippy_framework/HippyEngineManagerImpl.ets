@@ -59,7 +59,7 @@ import { DevSupportManager } from './devsupport/DevSupportManager';
 import { DevServerCallBack } from './devsupport/DevServerCallBack';
 import { HippyJsException } from './common/HippyJsException';
 import { DimensionsUtil } from '../support/utils/DimensionsUtil';
-import { PixelUtil } from "hippy/src/main/ets/support/utils/PixelUtil";
+import { PixelUtil } from "../support/utils/PixelUtil";
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevServerCallBack {
   private libHippy: HippyLibrary
