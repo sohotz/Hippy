@@ -47,6 +47,7 @@ inline namespace framework {
 inline namespace turbo {
 
 std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_ptr<CtxValue>& prop_name,
+                                                            ArkTsTurboModule* module,
                                                             CallbackInfo& info,
                                                             void* data) {
  FOOTSTONE_DLOG(INFO) << "[turbo-perf] enter invokeArkTSMethod";
@@ -64,11 +65,11 @@ std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_
   }
     
   FOOTSTONE_DLOG(INFO) << "invokeArkTSMethod, method = " << method.c_str();
-  auto method_set = method_set_;
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
-  taskRunner->RunSyncTask([env = env, impl = impl, &info, context, method, &result, &method_set]() {
+  taskRunner->RunSyncTask([env = env, impl = impl, &info, context, method, &result, &module]() {
       ArkTS arkTs(env);
       napi_ref turbo_module_ref = impl->GetRef();
+      auto method_set =module->InitMethodSet();
       auto turboModule = arkTs.GetObject(turbo_module_ref);
       if (method_set.size() <= 0) {
          FOOTSTONE_DLOG(ERROR) << "turboModule object has no method, method = " << method.c_str();
@@ -90,18 +91,21 @@ std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_
   return result;
 }
 
-void ArkTsTurboModule::InitMethodSet() {
+std::set<std::string> ArkTsTurboModule::InitMethodSet() {
+   if (method_set_.size() > 0) {
+       return method_set_;
+   }
    ArkTS arkTs(env);
    napi_ref turbo_module_ref = impl->GetRef();
    auto turboModule = arkTs.GetObject(turbo_module_ref);
    if (turboModule.isNull()) {
       FOOTSTONE_DLOG(ERROR) << "turboModule object is null";  
-      return; 
+      return method_set_; 
    }
    std::vector<std::pair<napi_value, napi_value>> value = turboModule.GetKeyValuePairs();
    if (value.size() <= 0) {
       FOOTSTONE_DLOG(ERROR) << "turboModule object is null";  
-      return;
+      return method_set_;
    }
    std::vector<std::pair<napi_value, napi_value>> pairs = turboModule.GetObjectPrototypeProperties();
    for (auto it = pairs.begin(); it != pairs.end(); it++) {
@@ -110,6 +114,7 @@ void ArkTsTurboModule::InitMethodSet() {
       auto method = arkTs.GetString(pairItem1);
       method_set_.insert(method);
    }
+   return method_set_;
 }
 
 ArkTsTurboModule::ArkTsTurboModule(const std::string& name,
@@ -117,7 +122,6 @@ ArkTsTurboModule::ArkTsTurboModule(const std::string& name,
                                  const std::shared_ptr<Ctx>& ctx,
                                  napi_env env)
   : name(name), impl(impl), env(env) {
-  InitMethodSet();
   auto getter = std::make_unique<FunctionWrapper>([](CallbackInfo& info, void* data) {
     auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
     auto scope = scope_wrapper->scope.lock();
@@ -140,7 +144,7 @@ ArkTsTurboModule::ArkTsTurboModule(const std::string& name,
       FOOTSTONE_CHECK(scope);
       auto wrapper = reinterpret_cast<TurboWrapper*>(data);
       FOOTSTONE_CHECK(wrapper && wrapper->module && wrapper->name);
-      auto result = wrapper->module->InvokeArkTsMethod(wrapper->name, info, data);
+      auto result = wrapper->module->InvokeArkTsMethod(wrapper->name, wrapper->module, info, data);
       info.GetReturnValue()->Set(result);
     }, turbo_wrapper.get());
     func_object = ctx->CreateFunction(func_wrapper);

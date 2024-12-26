@@ -93,8 +93,9 @@ void GetTurboModule(CallbackInfo& info, void* data) {
 //   if (!has_instance) {
     // 2. if not cached, query from ArkTs
     auto env = s_env;
+    std::shared_ptr<Turbo> module_object;
     OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
-    taskRunner->RunSyncTask([&info, env, scope, u8_name, name, ctx, &result]() {
+    taskRunner->RunSyncTask([env, scope, u8_name, name, ctx, &module_object]() {
         auto turbo = std::any_cast<std::shared_ptr<Turbo>>(scope->GetTurbo());
         ArkTS arkTs(env);
         napi_ref object_ref = turbo->GetRef();
@@ -104,26 +105,25 @@ void GetTurboModule(CallbackInfo& info, void* data) {
         };
         auto module = turboManager.Call("get", args);
         auto module_object_ref = arkTs.CreateReference(module);
-        auto module_object = std::make_shared<Turbo>(module_object_ref);
-
-        // 3. constructor c++ JavaTurboModule
-        auto arkTs_turbo_module = std::make_shared<ArkTsTurboModule>(u8_name, module_object, ctx, env);
-
-        // 4. bind c++ JavaTurboModule to js
-        result = ctx->NewInstance(arkTs_turbo_module->constructor, 0, nullptr, arkTs_turbo_module.get());
-
-        // 5. add To Cache
-        scope->SetTurboInstance(u8_name, result);
-        scope->SetTurboHostObject(u8_name, arkTs_turbo_module);
-
-        FOOTSTONE_DLOG(INFO) << "return module = " << name;
-        info.GetReturnValue()->Set(result);
+        module_object = std::make_shared<Turbo>(module_object_ref);
     });
-//   } else {
-//     result = scope->GetTurboInstance(u8_name);
-//     info.GetReturnValue()->Set(result);
-//     FOOTSTONE_DLOG(INFO) << "return cached module = " << name;
-//   }
+  // 3. constructor c++ JavaTurboModule - on js thread
+  auto arkTs_turbo_module = std::make_shared<ArkTsTurboModule>(u8_name, module_object, ctx, env);
+    
+  // 4. bind c++ JavaTurboModule to js
+  result = ctx->NewInstance(arkTs_turbo_module->constructor, 0, nullptr, arkTs_turbo_module.get());
+
+  // 5. add To Cache
+  scope->SetTurboInstance(u8_name, result);
+  scope->SetTurboHostObject(u8_name, arkTs_turbo_module);
+
+  FOOTSTONE_DLOG(INFO) << "return module = " << name;
+  info.GetReturnValue()->Set(result);
+  //   } else {
+  //     result = scope->GetTurboInstance(u8_name);
+  //     info.GetReturnValue()->Set(result);
+  //     FOOTSTONE_DLOG(INFO) << "return cached module = " << name;
+  //   }
   FOOTSTONE_DLOG(INFO) << "[turbo-perf] exit getTurboModule";
 }
 
