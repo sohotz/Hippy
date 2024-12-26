@@ -59,6 +59,7 @@ import { DevSupportManager } from './devsupport/DevSupportManager';
 import { DevServerCallBack } from './devsupport/DevServerCallBack';
 import { HippyJsException } from './common/HippyJsException';
 import { DimensionsUtil } from '../support/utils/DimensionsUtil';
+import { PixelUtil } from "hippy/src/main/ets/support/utils/PixelUtil";
 
 export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevServerCallBack {
   private libHippy: HippyLibrary
@@ -352,6 +353,20 @@ export class HippyEngineManagerImpl implements HippyEngine, FrameworkProxy, DevS
   }
 
   onSizeChanged(rootId: number, w: number, h: number, ow: number, oh: number): void {
+    if (this.mEngineContext) {
+      let manager = this.mEngineContext.getModuleManager();
+      if (manager) {
+        let eventModule = manager.getJavaScriptModule(EventDispatcher.MODULE_NAME);
+        if (eventModule) {
+          let map = new Map<string, number>()
+          map.set('width', PixelUtil.vp2dp(w))
+          map.set('height', PixelUtil.vp2dp(h))
+          map.set('oldWidth', PixelUtil.vp2dp(ow))
+          map.set('oldHeight', PixelUtil.vp2dp(oh));
+          (eventModule as EventDispatcher).receiveNativeEvent("onSizeChanged", map);
+        }
+      }
+    }
   }
 
   loadJsModule(loadJsModuleCallback: HippyModuleLoadCallback | null) {
