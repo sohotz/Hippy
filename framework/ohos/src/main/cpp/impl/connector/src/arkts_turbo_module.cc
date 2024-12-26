@@ -69,7 +69,8 @@ std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_
   taskRunner->RunSyncTask([env = env, impl = impl, &info, context, method, &result, &module]() {
       ArkTS arkTs(env);
       napi_ref turbo_module_ref = impl->GetRef();
-      auto method_set =module->InitMethodSet();
+      // on main thread
+      auto method_set = module->InitMethodSet();
       auto turboModule = arkTs.GetObject(turbo_module_ref);
       if (method_set.size() <= 0) {
          FOOTSTONE_DLOG(ERROR) << "turboModule object has no method, method = " << method.c_str();
