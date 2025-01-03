@@ -95,7 +95,6 @@ std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_
          if (is_turbo_object) {
             auto turbo_object_ref = arkTs.CreateReference(ret);
             turbo_object = std::make_shared<Turbo>(turbo_object_ref);
-            result = TurboUtils::NapiValue2CtxValue(env, ret, context);
          } else {
             result = TurboUtils::NapiValue2CtxValue(env, ret, context);
          }
