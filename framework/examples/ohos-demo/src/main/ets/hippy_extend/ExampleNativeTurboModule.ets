@@ -23,7 +23,6 @@ import { HippyNativeModule } from 'hippy/src/main/ets/support/annotation/HippyNa
 import { HippyAny, HippyArray, HippyMap } from 'hippy/src/main/ets/support/common/HippyTypes';
 import { TurboConfig } from './turbo/TurboConfig';
 
-
 @HippyNativeModule({ name: "demoTurbo" })
 export class ExampleNativeTurboModule extends HippyNativeModuleBase {
   public static readonly NAME = 'demoTurbo'
@@ -61,10 +60,10 @@ export class ExampleNativeTurboModule extends HippyNativeModuleBase {
   }
 
   public getTurboConfig(): TurboConfig {
-		return new TurboConfig();
+		return TurboConfig.getInstance();
 	}
 
   public printTurboConfig(turboConfig: TurboConfig): string {
-    return turboConfig.info;
+    return turboConfig.toString();
   }
 }

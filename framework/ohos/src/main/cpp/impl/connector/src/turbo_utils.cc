@@ -19,6 +19,7 @@
  * limitations under the License.
  *
  */
+#include "connector/arkts_turbo_module.h"
 #include "connector/turbo.utils.h"
 #include "oh_napi/oh_napi_utils.h"
 #include "oh_napi/oh_napi_object.h"
@@ -36,6 +37,36 @@ using StringViewUtils = footstone::StringViewUtils;
 namespace hippy {
 inline namespace framework {
 inline namespace turbo {
+
+constexpr char kTurboPropertyName[] = "isTurbo";
+
+bool TurboUtils::isTurboObject(
+    napi_env env, 
+    napi_value value) {
+   ArkTS arkTs(env);
+   auto turboObject = arkTs.GetObject(value);
+   if (turboObject.isNull()) {
+      FOOTSTONE_DLOG(ERROR) << "isTurboObject object is null";  
+      return false; 
+   }
+   std::vector<std::pair<napi_value, napi_value>> pairs = turboObject.GetObjectPrototypeProperties();
+   for (auto it = pairs.begin(); it != pairs.end(); it++) {
+      auto &pair = *it;
+      auto &pairItem1 = pair.first;
+      auto key = arkTs.GetString(pairItem1);
+      if (key == kTurboPropertyName) {
+         napi_valuetype valueType;
+         napi_typeof(env, pair.second, &valueType);
+         if (valueType == napi_boolean) {
+             bool result;
+             napi_get_value_bool(env, pair.second, &result);
+             return result;
+         }
+         return false;
+      }
+   }
+    return false;
+}
 
 std::shared_ptr<CtxValue> TurboUtils::NapiValue2CtxValue(
   napi_env env,
@@ -156,6 +187,12 @@ napi_value TurboUtils::CtxValue2NapiValue(
      }   
      return arkTs.CreateArray(argv);
   } else if (ctx->IsObject(value)) {
+    auto host_object = reinterpret_cast<ArkTsTurboModule*>(ctx->GetObjectExternalData(value));
+    if (host_object) {
+        auto object_ref = host_object->impl->GetRef();
+        auto object = arkTs.GetReferenceValue(object_ref);
+        return object;
+    }   
     std::unordered_map<std::shared_ptr<CtxValue>, std::shared_ptr<CtxValue>> map;
     auto flag = ctx->GetEntriesFromObject(value, map);
     FOOTSTONE_CHECK(flag);
