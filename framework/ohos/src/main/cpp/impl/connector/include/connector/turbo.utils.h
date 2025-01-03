@@ -49,6 +49,9 @@ public:
     napi_env env, 
     const std::shared_ptr<Ctx>& ctx,
     const std::shared_ptr<CtxValue>& value);
+  static bool isTurboObject(
+    napi_env env, 
+    napi_value value);
 };
 
 }

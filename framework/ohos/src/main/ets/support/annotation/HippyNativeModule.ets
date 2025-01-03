@@ -27,3 +27,9 @@ export function HippyNativeModule(config: ModuleOption): ClassDecorator {
     target.prototype.moduleName = config.name;
   };
 }
+
+export function HippyTurboObject(): ClassDecorator {
+  return (target: Function) => {
+    target.prototype.isTurbo = true;
+  };
+}

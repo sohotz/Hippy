@@ -49,7 +49,8 @@ inline namespace turbo {
 std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_ptr<CtxValue>& prop_name,
                                                             ArkTsTurboModule* module,
                                                             CallbackInfo& info,
-                                                            void* data) {
+                                                            void* data,
+                                                            std::shared_ptr<Ctx> ctx) {
  FOOTSTONE_DLOG(INFO) << "[turbo-perf] enter invokeArkTSMethod";
 
   auto scope_wrapper = reinterpret_cast<ScopeWrapper*>(std::any_cast<void*>(info.GetSlot()));
@@ -63,10 +64,11 @@ std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_
     method = StringViewUtils::ToStdString(
         StringViewUtils::ConvertEncoding(str_view, string_view::Encoding::Utf8).utf8_value());
   }
-    
+  bool is_turbo_object = false;
+  std::shared_ptr<Turbo> turbo_object;
   FOOTSTONE_DLOG(INFO) << "invokeArkTSMethod, method = " << method.c_str();
   OhNapiTaskRunner *taskRunner = OhNapiTaskRunner::Instance(env);
-  taskRunner->RunSyncTask([env = env, impl = impl, &info, context, method, &result, &module]() {
+  taskRunner->RunSyncTask([env = env, impl = impl, &info, context, method, &result, &module, &is_turbo_object, &turbo_object]() {
       ArkTS arkTs(env);
       napi_ref turbo_module_ref = impl->GetRef();
       // on main thread
@@ -87,8 +89,26 @@ std::shared_ptr<CtxValue> ArkTsTurboModule::InvokeArkTsMethod(const std::shared_
         args.push_back(value); 
       }
       napi_value ret = turboModule.Call(method, args);
-      result = TurboUtils::NapiValue2CtxValue(env, ret, context);
+      auto type = arkTs.GetType(ret);
+      if (type == napi_object && !arkTs.IsArray(ret)) { 
+         is_turbo_object = TurboUtils::isTurboObject(env, ret);
+         if (is_turbo_object) {
+            auto turbo_object_ref = arkTs.CreateReference(ret);
+            turbo_object = std::make_shared<Turbo>(turbo_object_ref);
+            result = TurboUtils::NapiValue2CtxValue(env, ret, context);
+         } else {
+            result = TurboUtils::NapiValue2CtxValue(env, ret, context);
+         }
+      } else {
+         result = TurboUtils::NapiValue2CtxValue(env, ret, context);
+      }
   });
+  if (is_turbo_object) {
+      auto arkTs_turbo_module = std::make_shared<ArkTsTurboModule>(method, turbo_object, ctx, env);
+      result = ctx->NewInstance(arkTs_turbo_module->constructor, 0, nullptr, arkTs_turbo_module.get());
+      scope->SetTurboInstance(method, result);
+      scope->SetTurboHostObject(method, arkTs_turbo_module);
+  }
   return result;
 }
 
@@ -145,7 +165,7 @@ ArkTsTurboModule::ArkTsTurboModule(const std::string& name,
       FOOTSTONE_CHECK(scope);
       auto wrapper = reinterpret_cast<TurboWrapper*>(data);
       FOOTSTONE_CHECK(wrapper && wrapper->module && wrapper->name);
-      auto result = wrapper->module->InvokeArkTsMethod(wrapper->name, wrapper->module, info, data);
+      auto result = wrapper->module->InvokeArkTsMethod(wrapper->name, wrapper->module, info, data, scope->GetContext());
       info.GetReturnValue()->Set(result);
     }, turbo_wrapper.get());
     func_object = ctx->CreateFunction(func_wrapper);

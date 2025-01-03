@@ -17,8 +17,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyTurboObject } from 'hippy/src/main/ets/support/annotation/HippyNativeModule';
 
-
+@HippyTurboObject()
 export class TurboConfig {
+  public static readonly NAME = 'turboConfig'
   public info = "info from turboConfig"
+  private static instance: TurboConfig;
+
+  public static getInstance() {
+    if (!TurboConfig.instance) {
+      TurboConfig.instance = new TurboConfig();
+    }
+    return TurboConfig.instance;
+  }
+
+  public toString() {
+    return this.info;
+  }
+
+  public getTestString() {
+    return 'test' + this.info;
+  }
 }
