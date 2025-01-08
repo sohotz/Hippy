@@ -18,6 +18,25 @@
  * limitations under the License.
  */
 export * from "./HippyEngine"
-export * from "./bridge/HippyAPIProvider"
 export * from "./HippyEngineContext"
+export * from "./HippyGlobalConfigs"
+export * from "./HippyResourceLoader"
+
+export * from "./adapter/device/HippyDeviceAdapter"
+export * from "./adapter/exception/HippyExceptionHandlerAdapter"
+export * from "./adapter/executor/HippyExecutorSupplierAdapter"
+export * from "./adapter/file/HippyFileAdapter"
+export * from "./adapter/font/HippyFontScaleAdapter"
+export * from "./adapter/http/HippyHttpAdapter"
+export * from "./adapter/http/HippyHttpHeader"
+export * from "./adapter/http/HippyHttpRequest"
+export * from "./adapter/http/HippyHttpResponse"
 export * from "./adapter/log/HippyLogAdapter"
+export * from "./adapter/monitor/HippyEngineMonitorAdapter"
+export * from "./adapter/soloader/HippySoLoaderAdapter"
+export * from "./adapter/storage/HippyStorageAdapter"
+export * from "./adapter/thirdparty/HippyThirdPartyAdapter"
+
+export * from "./bridge/HippyAPIProvider"
+
+export * from "./modules/native"
