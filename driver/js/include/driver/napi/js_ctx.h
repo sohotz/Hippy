@@ -222,6 +222,7 @@ class Ctx {
   virtual void SetWeak(std::shared_ptr<CtxValue> value,
                        const std::unique_ptr<WeakCallbackWrapper>& wrapper) = 0;
   virtual void InvalidWeakCallbackWrapper() {}
+  virtual void SetReceiverData(std::shared_ptr<CtxValue> value, void* data) {}
 };
 
 }

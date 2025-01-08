@@ -207,6 +207,7 @@ class JSHCtx : public Ctx {
   virtual void SetWeak(std::shared_ptr<CtxValue> value,
                        const std::unique_ptr<WeakCallbackWrapper>& wrapper) override;
   virtual void InvalidWeakCallbackWrapper() override;
+  virtual void SetReceiverData(std::shared_ptr<CtxValue> value, void* data) override;
 
   virtual std::shared_ptr<CtxValue> GetPropertyNames(const std::shared_ptr<CtxValue>& value);
   virtual std::shared_ptr<CtxValue> GetOwnPropertyNames(const std::shared_ptr<CtxValue>& value);
