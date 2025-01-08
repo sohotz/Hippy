@@ -59,6 +59,22 @@ void* GetPointerInInstanceData(JSVM_Env env, int index) {
   return nullptr;
 }
 
+void ClearPointerInInstanceData(JSVM_Env env, int index) {
+  if (index < 0 || index >= kJSHExternalDataNum) {
+    return;
+  }
+  
+  JSHHandleScope handleScope(env);
+  
+  void *data = nullptr;
+  auto status = OH_JSVM_GetInstanceData(env, &data);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
+  
+  if (data) {
+    ((void**)data)[index] = nullptr;
+  }
+}
+
 JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   size_t argc = 0;
   auto status = OH_JSVM_GetCbInfo(env, info, &argc, nullptr, nullptr, nullptr);
@@ -81,6 +97,7 @@ JSVM_Value InvokeJsCallback(JSVM_Env env, JSVM_CallbackInfo info) {
   status = OH_JSVM_Unwrap(env, thisArg, &internal_data);
   if (status == JSVM_OK) {
     if (internal_data) {
+      // FOOTSTONE_DLOG(INFO) << "hippy gc, InvokeJsCb, func: " << reinterpret_cast<FunctionWrapper*>(data)->data << ", obj: " << internal_data;
       cb_info.SetData(internal_data);
     }
   }
@@ -136,20 +153,20 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
   void *new_instance_external = GetPointerInInstanceData(env, kJSHExternalIndex);
   if (new_instance_external) {
     cb_info.SetData(new_instance_external);
+    ClearPointerInInstanceData(env, kJSHExternalIndex);
   }
 
   cb_info.SetReceiver(std::make_shared<JSHCtxValue>(env, thisArg));
   for (size_t i = 0; i < argc; i++) {
     cb_info.AddValue(std::make_shared<JSHCtxValue>(env, argv[i]));
   }
-    
-  status = OH_JSVM_Wrap(env, thisArg, cb_info.GetData(), nullptr, nullptr, nullptr);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
 
   auto function_wrapper = reinterpret_cast<FunctionWrapper*>(data);
   FOOTSTONE_CHECK(function_wrapper);
   auto js_cb = function_wrapper->callback;
   auto external_data = function_wrapper->data;
+
+  // FOOTSTONE_DLOG(INFO) << "hippy gc, InvokeJsCbOnConstruct, class_tp: " << external_data << ", obj: " << cb_info.GetData();
 
   js_cb(cb_info, external_data);
 
@@ -167,14 +184,14 @@ JSVM_Value InvokeJsCallbackOnConstruct(JSVM_Env env, JSVM_CallbackInfo info) {
     OH_JSVM_GetUndefined(env, &result);
     return result;
   }
-  
-  void *result = nullptr;
-  status = OH_JSVM_RemoveWrap(env, thisArg, &result);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
-  status = OH_JSVM_Wrap(env, thisArg, cb_info.GetData(), nullptr, nullptr, nullptr);
-  FOOTSTONE_DCHECK(status == JSVM_OK);
 
   return thisArg;
+}
+
+void JSHCtx::SetReceiverData(std::shared_ptr<CtxValue> value, void* data) {
+  auto jsh_value = std::static_pointer_cast<JSHCtxValue>(value);
+  auto status = OH_JSVM_Wrap(env_, jsh_value->GetValue(), data, nullptr, nullptr, nullptr);
+  FOOTSTONE_DCHECK(status == JSVM_OK);
 }
 
 JSHCtx::JSHCtx(JSVM_VM vm, ExceptionMessageCallback exception_cb, void *external_data) : vm_(vm),
@@ -1458,6 +1475,9 @@ void JSH_Finalize(JSVM_Env env, void* finalizeData, void* finalizeHint) {
     return;
   }
   auto wrapper = reinterpret_cast<WeakCallbackWrapper*>(finalizeData);
+  
+  // FOOTSTONE_DLOG(INFO) << "hippy gc, finalize, class_tp: " << wrapper->data << ", obj: " << finalizeHint;
+  
   wrapper->callback(wrapper->data, finalizeHint);
 }
 
@@ -1469,6 +1489,7 @@ void JSHCtx::SetWeak(std::shared_ptr<CtxValue> value,
   auto status = OH_JSVM_Unwrap(env_, ctx_value->GetValue(), &internal_data);
   if (status == JSVM_OK) {
     if (internal_data) {
+      // FOOTSTONE_DLOG(INFO) << "hippy gc, setWeak, class_tp: " << wrapper.get()->data << ", obj: " << internal_data;
       OH_JSVM_AddFinalizer(env_, ctx_value->GetValue(), wrapper.get(), JSH_Finalize, internal_data, nullptr);
     }
   }
