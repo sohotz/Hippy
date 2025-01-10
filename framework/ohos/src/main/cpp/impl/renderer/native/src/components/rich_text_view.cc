@@ -77,29 +77,33 @@ void RichTextView::DestroyArkUINodeImpl() {
 }
 
 bool RichTextView::RecycleArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+#ifdef OHOS_DRAW_TEXT
+  textNode_->ResetAllAttributes();
+  textNode_ = nullptr;
+  containerNode_ = nullptr;
+  ClearProps();
+  return false;
+#else
   textNode_->ResetAllAttributes();
   recycleView->cachedNodes_.resize(1);
   recycleView->cachedNodes_[0] = textNode_;
-#ifdef OHOS_DRAW_TEXT
-  if (containerNode_) {
-    containerNode_->RemoveChild(textNode_.get());
-    if (containerNode_->HasParent()) {
-      containerNode_->ReplaceSelfFromParent(textNode_.get());
-    }
-  }
-  containerNode_ = nullptr;
-#endif
   textNode_ = nullptr;
   ClearProps();
   return true;
+#endif
 }
 
 bool RichTextView::ReuseArkUINodeImpl(std::shared_ptr<RecycleView> &recycleView) {
+#ifdef OHOS_DRAW_TEXT
+  // not reuse for crash in OHOS::Ace::NG::TxtParagraph::Paint
+  return false;
+#else
   if (recycleView->cachedNodes_.size() < 1) {
     return false;
   }
   textNode_ = std::static_pointer_cast<TextNode>(recycleView->cachedNodes_[0]);
   return true;
+#endif
 }
 
 bool RichTextView::SetPropImpl(const std::string &propKey, const HippyValue &propValue) {
