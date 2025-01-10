@@ -96,10 +96,6 @@ public:
   bool IsRedraw(float maxWidth) {
     return text_align_ != TEXT_ALIGN_START && fabs(measureWidth_ - maxWidth) >= HRPixelUtils::DpToPx(1.0);
   }
-  
-  void ResetRedraw() {
-    text_align_ = TEXT_ALIGN_START;
-  }
 
   void DoRedraw(float maxWidth);
 

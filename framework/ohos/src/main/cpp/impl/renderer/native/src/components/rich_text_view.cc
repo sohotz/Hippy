@@ -358,20 +358,37 @@ void RichTextView::UpdateDrawTextContent() {
   if (textMeasureMgr->HasNewTextMeasurer(tag_)) {
     textNode_->ResetTextContentWithStyledStringAttribute();
     textMeasurer = textMeasureMgr->UseNewTextMeasurer(tag_);
+    if (textMeasurer) {
+      auto styledString = textMeasurer->GetStyledString();
+      if (styledString) {
+        float pxTextWidth = HRPixelUtils::VpToPx(drawTextWidth_);
+        if (textMeasurer->IsRedraw(pxTextWidth)) {
+          textMeasurer->DoRedraw(pxTextWidth);
+        }
+        textNode_->SetTextContentWithStyledString(styledString);
+      }
+    }
   } else if (!textNode_->HasStyledString()) {
     textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
-  }
-  if (textMeasurer) {
-    auto styledString = textMeasurer->GetStyledString();
-    if (styledString) {
-      float pxTextWidth = HRPixelUtils::VpToPx(drawTextWidth_);
-      if (textMeasurer->IsRedraw(pxTextWidth)) {
-        textMeasurer->DoRedraw(pxTextWidth);
-        textMeasurer->ResetRedraw();
+    if (textMeasurer) {
+      auto styledString = textMeasurer->GetStyledString();
+      if (styledString) {
+        float pxTextWidth = HRPixelUtils::VpToPx(drawTextWidth_);
+        if (textMeasurer->IsRedraw(pxTextWidth)) {
+          textMeasurer->DoRedraw(pxTextWidth);
+        }
+        textNode_->SetTextContentWithStyledString(styledString);
       }
-      textNode_->SetTextContentWithStyledString(styledString);
-    } else {
-      FOOTSTONE_DLOG(ERROR) << "RichTextView set styled string, nil, tag: " << tag_ << ", text: " << (text_.has_value() ? text_.value() : "");
+    }
+  } else {
+    textMeasurer = textMeasureMgr->GetUsedTextMeasurer(tag_);
+    float pxTextWidth = HRPixelUtils::VpToPx(drawTextWidth_);
+    if (textMeasurer && textMeasurer->IsRedraw(pxTextWidth)) {
+      auto styledString = textMeasurer->GetStyledString();
+      if (styledString) {
+        textMeasurer->DoRedraw(pxTextWidth);
+        textNode_->SetTextContentWithStyledString(styledString);
+      }
     }
   }
 }
