@@ -43,6 +43,16 @@ static napi_value SetFlags(napi_env env, napi_callback_info info) {
   return arkTs.GetUndefined();
 }
 
+static napi_value SetDensity(napi_env env, napi_callback_info info) {
+  ArkTS arkTs(env);
+  auto args = arkTs.GetCallbackArgs(info);
+  float density = (float)arkTs.GetDouble(args[0]);
+
+  HRPixelUtils::SetDensity(density);
+
+  return arkTs.GetUndefined();
+}
+
 static napi_value SetDensityScale(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
@@ -64,6 +74,7 @@ static napi_value SetFontSizeScale(napi_env env, napi_callback_info info) {
 }
 
 REGISTER_OH_NAPI("Setting", "Setting_SetFlags", SetFlags)
+REGISTER_OH_NAPI("Setting", "Setting_SetDensity", SetDensity)
 REGISTER_OH_NAPI("Setting", "Setting_SetDensityScale", SetDensityScale)
 REGISTER_OH_NAPI("Setting", "Setting_SetFontSizeScale", SetFontSizeScale)
 

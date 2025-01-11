@@ -67,6 +67,10 @@ export interface HippyEngine {
   getHippyEngineContext(): HippyEngineContext | null
 
   sendEvent(event: string, params: HippyAny): void;
+
+  onEngineResume(): void;
+
+  onEnginePause(): void;
 }
 
 export function createHippyEngine(params: EngineInitParams): HippyEngine {

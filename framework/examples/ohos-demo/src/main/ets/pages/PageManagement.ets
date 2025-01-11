@@ -77,6 +77,18 @@ struct PageManagement {
     return true
   }
 
+  onPageShow(): void {
+    for (let params of this.pageitems) {
+      params.hippyEngine?.onEngineResume()
+    }
+  }
+
+  onPageHide(): void {
+    for (let params of this.pageitems) {
+      params.hippyEngine?.onEnginePause()
+    }
+  }
+
   build() {
     Column() {
       Row() {

@@ -91,6 +91,14 @@ struct Index {
     })
   }
 
+  onPageShow(): void {
+    this.hippyEngine?.onEngineResume()
+  }
+
+  onPageHide(): void {
+    this.hippyEngine?.onEnginePause()
+  }
+
   build() {
     Column() {
       HippyRoot({

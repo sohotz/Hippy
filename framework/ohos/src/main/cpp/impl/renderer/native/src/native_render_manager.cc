@@ -862,6 +862,23 @@ void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
       }
     }
     cache->draw_text_nodes_.clear();
+    // when density changed
+    if (HRPixelUtils::GetDensity() != density_) {
+//       auto textNodes = root->GetAllTextNodes();
+//       for (auto it = textNodes.begin(); it != textNodes.end(); it++) {
+//         auto textNode = it->lock();
+//         if (textNode) {
+//           float width = 0;
+//           float height = 0;
+//           if (GetTextNodeSizeProp(textNode, width, height)) {
+//             int64_t result = 0;
+//             DoMeasureText(root_node, textNode, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
+//                           DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
+//           }
+//         }
+//       }
+      density_ = HRPixelUtils::GetDensity();
+    }
 #endif
 
     uint32_t root_id = root->GetId();
@@ -901,7 +918,27 @@ bool NativeRenderManager::GetTextNodeSizeProp(const std::shared_ptr<DomNode> &no
   return true;
 }
 
-void NativeRenderManager::BeforeLayout(std::weak_ptr<RootNode> root_node){}
+void NativeRenderManager::BeforeLayout(std::weak_ptr<RootNode> root_node) {
+#ifdef OHOS_DRAW_TEXT
+  if (HRPixelUtils::GetDensity() != density_) {
+    auto root = root_node.lock();
+    if (root) {
+      auto layout = root->GetLayoutNode();
+      layout->SetScaleFactor(HRPixelUtils::GetDensity());
+      
+      auto textNodes = root->GetAllTextNodes();
+      for (auto it = textNodes.begin(); it != textNodes.end(); it++) {
+        auto node = it->lock();
+        if (node) {
+          if (node->GetViewName() == "Text") {
+            node->GetLayoutNode()->MarkDirty();
+          }
+        }
+      }
+    }
+  }
+#endif
+}
 
 void NativeRenderManager::AfterLayout(std::weak_ptr<RootNode> root_node) {
   // 更新布局信息前处理事件监听
@@ -1020,9 +1057,9 @@ void NativeRenderManager::ReceivedEvent(std::weak_ptr<RootNode> root_node, uint3
   dom_manager->PostTask(Scene(std::move(ops)));
 }
 
-float NativeRenderManager::DpToPx(float dp) const { return dp * density_; }
+float NativeRenderManager::DpToPx(float dp) const { return HRPixelUtils::DpToPx(dp); }
 
-float NativeRenderManager::PxToDp(float px) const { return px / density_; }
+float NativeRenderManager::PxToDp(float px) const { return HRPixelUtils::PxToDp(px); }
 
 void NativeRenderManager::CallNativeMethod(const std::string& method, uint32_t root_id, const std::pair<uint8_t*, size_t>& buffer) {
   hippy::CallRenderDelegateMethod(ts_env_, ts_render_provider_ref_, method, root_id, buffer);
@@ -1093,7 +1130,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   HippyValueObjectType spanPropMap;
   CollectAllProps(textPropMap, node);
 
-  float density = GetDensity();
+  float density = HRPixelUtils::GetDensity();
   auto measureInst = std::make_shared<TextMeasurer>(custom_font_path_map_);
   OhMeasureResult measureResult;
 
