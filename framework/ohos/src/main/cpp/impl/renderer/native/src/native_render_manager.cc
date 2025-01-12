@@ -864,19 +864,19 @@ void NativeRenderManager::EndBatch_C(std::weak_ptr<RootNode> root_node) {
     cache->draw_text_nodes_.clear();
     // when density changed
     if (HRPixelUtils::GetDensity() != density_) {
-//       auto textNodes = root->GetAllTextNodes();
-//       for (auto it = textNodes.begin(); it != textNodes.end(); it++) {
-//         auto textNode = it->lock();
-//         if (textNode) {
-//           float width = 0;
-//           float height = 0;
-//           if (GetTextNodeSizeProp(textNode, width, height)) {
-//             int64_t result = 0;
-//             DoMeasureText(root_node, textNode, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
-//                           DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
-//           }
-//         }
-//       }
+      auto textNodes = root->GetAllTextNodes();
+      for (auto it = textNodes.begin(); it != textNodes.end(); it++) {
+        auto textNode = it->lock();
+        if (textNode) {
+          float width = 0;
+          float height = 0;
+          if (GetTextNodeSizeProp(textNode, width, height)) {
+            int64_t result = 0;
+            DoMeasureText(root_node, textNode, DpToPx(width), static_cast<int32_t>(LayoutMeasureMode::AtMost),
+                          DpToPx(height), static_cast<int32_t>(LayoutMeasureMode::AtMost), result);
+          }
+        }
+      }
       density_ = HRPixelUtils::GetDensity();
     }
 #endif

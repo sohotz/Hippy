@@ -53,6 +53,7 @@ RichTextView::~RichTextView() {
   }
   auto textMeasureMgr = ctx_->GetTextMeasureManager();
   textMeasureMgr->EraseTextMeasurer(tag_);
+  oldUsedTextMeasurerHolder_ = nullptr;
 #endif
 }
 
@@ -357,6 +358,7 @@ void RichTextView::UpdateDrawTextContent() {
   auto textMeasureMgr = ctx_->GetTextMeasureManager();
   if (textMeasureMgr->HasNewTextMeasurer(tag_)) {
     textNode_->ResetTextContentWithStyledStringAttribute();
+    oldUsedTextMeasurerHolder_ = textMeasureMgr->GetUsedTextMeasurer(tag_);
     textMeasurer = textMeasureMgr->UseNewTextMeasurer(tag_);
     if (textMeasurer) {
       auto styledString = textMeasurer->GetStyledString();
