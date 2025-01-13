@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HippyViewEvent } from 'hippy'
 import HippyRenderBaseView, {
   HippyObservedArray,
   HIPPY_COMPONENT_KEY_PREFIX
@@ -48,7 +49,11 @@ export struct ExampleComponentA {
   @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
 
   aboutToAppear() {
-
+    // 自定义事件举例
+    let event = new HippyViewEvent("onEvent1")
+    let params = new Map<string, string>()
+    params['key1'] = 'value1'
+    event.send(this.renderView.ctx, this.renderView.tag, params)
   }
 
   aboutToDisappear() {

@@ -17,14 +17,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NativeRenderContext } from "."
+import { HippyAny } from "../support"
+import { HREventUtils } from "./utils/HREventUtils"
 
-export * from "./HippyBizViewBuilder"
-export * from "./HippyRootView"
-export * from "./HippyViewEvent"
-export * from "./NativeRender"
-export * from "./NativeRenderContext"
+export class HippyViewEvent {
+  eventName: string
 
-export * from "./components/base/HippyRenderBaseView"
-export * from "./components/custom/HippyCustomComponentView"
+  constructor(eventName: string) {
+    this.eventName = eventName
+  }
 
-export * from "./dom_node/HRNodeProps"
+  send(ctx: NativeRenderContext, nodeId: number, params: HippyAny) {
+    HREventUtils.sendComponentEvent(ctx, nodeId, this.eventName, params)
+  }
+}
