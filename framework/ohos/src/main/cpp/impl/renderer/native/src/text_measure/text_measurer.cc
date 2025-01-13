@@ -184,7 +184,7 @@ void TextMeasurer::StartMeasure(HippyValueObjectType &propMap, const std::set<st
 #endif
 }
 
-void TextMeasurer::AddText(HippyValueObjectType &propMap, float density) {
+void TextMeasurer::AddText(HippyValueObjectType &propMap, float density, bool isTextInput) {
 #ifdef MEASURE_TEXT_CHECK_PROP
   StartCollectProp();
 #endif
@@ -331,6 +331,11 @@ void TextMeasurer::AddText(HippyValueObjectType &propMap, float density) {
     logTextContent_ += "[span]";
     logTextContent_ += propValue;
 #endif
+  } else {
+    // TextInput组件测量时，没有text内容，会返回错误的测量高度16，所以需要特殊处理下。
+    if (isTextInput) {
+      OH_ArkUI_StyledString_AddText(styled_string_, " ");
+    }
   }
 
   OH_ArkUI_StyledString_PopTextStyle(styled_string_);

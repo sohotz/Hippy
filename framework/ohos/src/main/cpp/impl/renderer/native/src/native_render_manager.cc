@@ -80,6 +80,10 @@ static bool IsMeasureNode(const std::string &name) {
   return name == "Text" || name == "TextInput";
 }
 
+static bool IsTextInputMeasureNode(const std::string &name) {
+  return name == "TextInput";
+}
+
 std::atomic<uint32_t> NativeRenderManager::unique_native_render_manager_id_{1};
 footstone::utils::PersistentObjectMap<uint32_t, std::shared_ptr<hippy::NativeRenderManager>> NativeRenderManager::persistent_map_;
 
@@ -1124,6 +1128,8 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   if (node == nullptr) {
     return;
   }
+  
+  bool isTextInput = IsTextInputMeasureNode(node->GetViewName());
 
   std::vector<std::shared_ptr<DomNode>> imageSpanNode;
   HippyValueObjectType textPropMap;
@@ -1169,7 +1175,7 @@ void NativeRenderManager::DoMeasureText(const std::weak_ptr<RootNode> root_node,
   measureInst->StartMeasure(textPropMap, fontFamilyNames, fontCache);
 
   if (node->GetChildCount() == 0) {
-    measureInst->AddText(textPropMap, density);
+    measureInst->AddText(textPropMap, density, isTextInput);
   } else {
     for(uint32_t i = 0; i < node->GetChildCount(); i++) {
       auto child = node->GetChildAt(i);
