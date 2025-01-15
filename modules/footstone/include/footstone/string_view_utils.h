@@ -303,7 +303,6 @@ class StringViewUtils {
 #pragma clang diagnostic ignored "-Wdeprecated"
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert(
         kCharConversionFailedPrompt, kU32CharConversionFailedPrompt);
-#pragma clang diagnostic pop
     std::string bytes = convert.to_bytes(str);
     const string_view::char8_t_ *ptr =
         reinterpret_cast<const string_view::char8_t_ *>(bytes.data());
@@ -313,8 +312,6 @@ class StringViewUtils {
 
   inline static std::u32string U8ToU32(
       const string_view::u8string &str) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     const char *ptr = reinterpret_cast<const char *>(str.c_str());
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated"
@@ -330,7 +327,6 @@ class StringViewUtils {
 #pragma clang diagnostic ignored "-Wdeprecated"
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert(
         kCharConversionFailedPrompt, kU16CharConversionFailedPrompt);
-#pragma clang diagnostic pop
     std::string bytes = convert.to_bytes(str);
     const string_view::char8_t_ *ptr =
         reinterpret_cast<const string_view::char8_t_ *>(bytes.data());
@@ -340,8 +336,6 @@ class StringViewUtils {
 
   inline static std::u16string U8ToU16(
       const string_view::u8string &str) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     const char *ptr = reinterpret_cast<const char *>(str.c_str());
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated"
@@ -356,7 +350,6 @@ class StringViewUtils {
 #pragma clang diagnostic ignored "-Wdeprecated"
     std::wstring_convert<std::codecvt_utf16<char32_t>, char32_t> convert(
         kCharConversionFailedPrompt, kU32CharConversionFailedPrompt);
-#pragma clang diagnostic pop
     std::string bytes = convert.to_bytes(str);
 #pragma clang diagnostic pop
     return std::u16string(reinterpret_cast<const char16_t *>(bytes.c_str()),
@@ -364,8 +357,6 @@ class StringViewUtils {
   }
 
   inline static std::u32string U16ToU32(const std::u16string &str) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     const char16_t *ptr = str.c_str();
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated"

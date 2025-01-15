@@ -60,7 +60,8 @@ static napi_value OnCreateDevtools(napi_env env, napi_callback_info info) {
     DevtoolsDataSource::SetFileCacheDir(data_dir);
 
     auto devtools_data_source =
-        std::make_shared<hippy::devtools::DevtoolsDataSource>(ws_url, worker_manager);
+        std::make_shared<hippy::devtools::DevtoolsDataSource>();
+    devtools_data_source->CreateDevtoolsService(ws_url, worker_manager);
     uint32_t id = devtools::DevtoolsDataSource::Insert(devtools_data_source);
 
     napi_value result = arkTs.CreateInt(static_cast<int>(id));

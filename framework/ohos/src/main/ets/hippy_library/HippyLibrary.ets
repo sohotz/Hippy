@@ -82,7 +82,7 @@ export interface HippyLibrary {
   ): boolean;
   JsDriver_SetRootNode(instanceId: number, rootId: number): void;
   JsDriver_OnNativeInitEnd(instanceId: number, startTime: number, endTime: number): void;
-  JsDriver_OnFirstFrameEnd(instanceId: number, time: number): void;
+  JsDriver_OnFirstFrameEnd(instanceId: number, rootId: number, time: number): void;
   JsDriver_OnResourceLoadEnd(
     instanceId: number,
     uri: string,

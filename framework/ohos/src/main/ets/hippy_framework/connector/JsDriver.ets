@@ -176,9 +176,10 @@ export class JsDriver {
   }
 
   onFirstFrameEnd(
+    rootId: number,
     time: number
   ) {
-    this.libHippy?.JsDriver_OnFirstFrameEnd(this.instanceId, time)
+    this.libHippy?.JsDriver_OnFirstFrameEnd(this.instanceId, rootId, time)
   }
 
   onResourceLoadEnd(

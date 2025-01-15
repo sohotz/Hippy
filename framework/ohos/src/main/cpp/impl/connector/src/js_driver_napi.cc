@@ -435,13 +435,14 @@ static napi_value OnFirstFrameEnd(napi_env env, napi_callback_info info) {
   ArkTS arkTs(env);
   auto args = arkTs.GetCallbackArgs(info);
   uint32_t scope_id = static_cast<uint32_t>(arkTs.GetInteger(args[0]));
-  int64_t time = static_cast<int64_t>(arkTs.GetInteger(args[1]));
+  uint32_t root_id = static_cast<uint32_t>(arkTs.GetInteger(args[1]));
+  int64_t time = static_cast<int64_t>(arkTs.GetInteger(args[2]));
 
   auto scope = GetScope(scope_id);
   auto runner = scope->GetEngine().lock()->GetJsTaskRunner();
   if (runner) {
     std::weak_ptr<Scope> weak_scope = scope;
-    auto task = [weak_scope, time]() {
+    auto task = [weak_scope, root_id, time]() {
       auto scope = weak_scope.lock();
       if (!scope) {
         return;
@@ -451,9 +452,9 @@ static napi_value OnFirstFrameEnd(napi_env env, napi_callback_info info) {
         return;
       }
       auto entry = scope->GetPerformance()->PerformanceNavigation("hippyInit");
-      entry->SetHippyDomStart(dom_manager->GetDomStartTimePoint());
-      entry->SetHippyDomEnd(dom_manager->GetDomEndTimePoint());
-      entry->SetHippyFirstFrameStart(dom_manager->GetDomEndTimePoint());
+      entry->SetHippyDomStart(dom_manager->GetDomStartTimePoint(root_id));
+      entry->SetHippyDomEnd(dom_manager->GetDomEndTimePoint(root_id));
+      entry->SetHippyFirstFrameStart(dom_manager->GetDomEndTimePoint(root_id));
       entry->SetHippyFirstFrameEnd(footstone::TimePoint::FromEpochDelta(footstone::TimeDelta::FromMilliseconds(time)));
     };
     runner->PostTask(std::move(task));
