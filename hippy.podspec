@@ -150,13 +150,23 @@ Pod::Spec.new do |s|
         'driver/js/include/driver/runtime',
         'driver/js/src/runtime', 
         'driver/js/include/driver/vm/v8', 
-        'driver/js/src/vm/v8']
+        'driver/js/src/vm/v8',
+        'driver/js/include/driver/napi/jsh',
+        'driver/js/src/napi/jsh',
+        'driver/js/include/driver/vm/jsh', 
+        'driver/js/src/vm/jsh'
+      ]
     elsif js_engine == "v8"
       driver.exclude_files = [
         'driver/js/include/driver/napi/jsc',
         'driver/js/src/napi/jsc', 
         'driver/js/include/driver/vm/jsc', 
-        'driver/js/src/vm/jsc']
+        'driver/js/src/vm/jsc',
+        'driver/js/include/driver/napi/jsh',
+        'driver/js/src/napi/jsh',
+        'driver/js/include/driver/vm/jsh', 
+        'driver/js/src/vm/jsh'
+      ]
     else
       driver.exclude_files = [
         'driver/js/include/driver/napi/v8',
@@ -168,7 +178,12 @@ Pod::Spec.new do |s|
         'driver/js/include/driver/napi/jsc',
         'driver/js/src/napi/jsc', 
         'driver/js/include/vm/jsc', 
-        'driver/js/src/vm/jsc']
+        'driver/js/src/vm/jsc',
+        'driver/js/include/driver/napi/jsh',
+        'driver/js/src/napi/jsh',
+        'driver/js/include/driver/vm/jsh', 
+        'driver/js/src/vm/jsh'
+      ]
     end
 
     definition_engine = ''
