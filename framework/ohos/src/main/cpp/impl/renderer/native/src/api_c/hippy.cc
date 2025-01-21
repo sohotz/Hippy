@@ -25,9 +25,15 @@
 #include "renderer/native_render_manager.h"
 #include "renderer/utils/hr_pixel_utils.h"
 
+#define ROOT_VIEW_ID_INCREMENT 10
+
+static uint32_t sHippyRootIdCounter = 0;
+
 using namespace hippy;
 
-void HippyViewProvider_CreateRoot(uint32_t root_id, uint32_t first_dom_manager_id) {
+uint32_t HippyViewProvider_CreateRoot(uint32_t first_dom_manager_id) {
+  sHippyRootIdCounter += ROOT_VIEW_ID_INCREMENT;
+  uint32_t root_id = sHippyRootIdCounter;
   double density = HRPixelUtils::GetDensity();
 
   std::shared_ptr<hippy::RootNode> saved_root_node;
@@ -45,7 +51,7 @@ void HippyViewProvider_CreateRoot(uint32_t root_id, uint32_t first_dom_manager_i
   FOOTSTONE_CHECK(flag);
 
   if (root_node->GetDomManager().lock()) {
-    return;
+    return root_id;
   }
 
   uint32_t next_id = GlobalGetNextDomManagerId(first_dom_manager_id);
@@ -56,6 +62,7 @@ void HippyViewProvider_CreateRoot(uint32_t root_id, uint32_t first_dom_manager_i
   auto dom_manager_object = std::any_cast<std::shared_ptr<DomManager>>(dom_manager);
 
   root_node->SetDomManager(dom_manager_object);
+  return root_id;
 }
 
 void HippyViewProvider_DestroyRoot(uint32_t render_manager_id, uint32_t root_id) {
