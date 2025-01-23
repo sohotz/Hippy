@@ -1,6 +1,6 @@
 # 终端能力适配
 
-可以把 Native 的一些基础能力接口，抽象为 Adapter，方便业务注入实现。支持 Android、iOS、Flutter、Web(同构) 等平台。
+可以把 Native 的一些基础能力接口，抽象为 Adapter，方便业务注入实现。支持 Android、iOS、Ohos、Flutter、Web(同构) 等平台。
 <br/>
 
 # Android
@@ -171,6 +171,15 @@ HIPPY_EXPORT_MODULE() // 全局注册该模块至Hippy
 <br/>
 <br/>
 <br/>
+
+
+# Ohos
+
+---
+
+Ohos App 开发中存在很多第三方基础库。
+TODO(hot): doc
+
 
 # Voltron
 

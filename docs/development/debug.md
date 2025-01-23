@@ -61,6 +61,10 @@ Hippy 中运行的 JS 代码可以来源于本地文件(local file)，或者远�
    }
    ```
 
+3. **Ohos**：
+
+TODO(hot): doc
+
 # 前端环境准备
 
 1. 安装新一代调试工具： `npm i -D @hippy/debug-server-next@latest`
@@ -189,6 +193,10 @@ Hippy 实现了节点和属性从前端到终端的映射，可以在 Chrome Dev
   <source src="../assets/img/elements-inspect.webm" type="video/webm">
   Elements 可视化审查示例(您的浏览器不支持webm视频格式)
 </video>
+
+## Ohos
+
+TODO(hot): doc
 
 <br />
 <br />

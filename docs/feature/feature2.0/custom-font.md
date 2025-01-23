@@ -66,3 +66,9 @@ Android 只需要在静态资源 `assets` 目录中建立 `fonts` 目录，然�
 需要注意的是，字体文件名需要和 FontFamily 一致，因为 Android 虽然也可以做字体文件名映射，但是字体和文件名一致无疑是最简单的办法。
 
 > 官方 demo 的字体放在 [res/fonts](https://github.com/Tencent/Hippy/tree/master/examples/android-demo/res) 目录下，是因为编译脚本[将 `res` 目录下的文件直接拷贝到 `assets` 目录](https://github.com/Tencent/Hippy/blob/master/examples/android-demo/build.gradle#L35)下了，所以 `res/assets` 就变成 `assets/assets` 目录，为了让字体目录正确拷贝进 `assets` 静态资源目录，只能让它放在 `res` 下。
+
+# Ohos
+
+## 注册字体
+
+TODO(hot): doc

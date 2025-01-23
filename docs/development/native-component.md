@@ -1,6 +1,6 @@
 # 自定义组件
 
-App 开发中有可能使用到大量的UI组件，Hippy SDK 已包括其中常用的部分，如`View`、`Text`、`Image` 等，但这极有可能无法满足你的需求，这就需要对 UI 组件进行扩展封装。支持 Android、iOS、Flutter、Web(同构) 等平台。
+App 开发中有可能使用到大量的UI组件，Hippy SDK 已包括其中常用的部分，如`View`、`Text`、`Image` 等，但这极有可能无法满足你的需求，这就需要对 UI 组件进行扩展封装。支持 Android、iOS、Ohos、Flutter、Web(同构) 等平台。
 
 <br/>
 <br/>
@@ -312,6 +312,15 @@ HIPPY_EXPORT_METHOD(focus:(nonnull NSNumber *)reactTag callback:(HippyPromiseRes
 
 到此，一个简单的`NativeRenderMyViewManager`与`NativeRenderMyView`创建完成。
 
+
+# Ohos
+
+---
+
+## 组件扩展
+
+我们将以`MyView`为例，从头介绍如何扩展组件。
+TODO(hot): doc
 
 
 # Voltron
