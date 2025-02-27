@@ -178,8 +178,20 @@ HIPPY_EXPORT_MODULE() // 全局注册该模块至Hippy
 ---
 
 Ohos App 开发中存在很多第三方基础库。
-TODO(hot): doc
 
+Hippy SDK 将所有基础能力接口化，抽象为 Adapter，方便业务注入实现，同时大多数基础能力我们也默认实现了一个最简单的方案。
+
+Hippy SDK 现在所提供的 Adapter 包括：
+
+- `HippyHttpAdapter`：Http 请求 Adapter。
+- `HippyExceptionHandlerAdapter`：引擎和 JS 异常处理 Adapter。
+- `HippyStorageAdapter`：数据库（KEY-VALUE）Adapter。
+- `HippyExecutorSupplierAdapter`：线程池 Adapter。
+- `HippyEngineMonitorAdapter`：Hippy 引擎状态监控 Adapter。
+
+<br/>
+<br/>
+<br/>
 
 # Voltron
 

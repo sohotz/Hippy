@@ -317,10 +317,104 @@ HIPPY_EXPORT_METHOD(focus:(nonnull NSNumber *)reactTag callback:(HippyPromiseRes
 
 ---
 
-## 组件扩展
+## TS 组件扩展
 
-我们将以`MyView`为例，从头介绍如何扩展组件。
-TODO(hot): doc
+我们将以`ExampleViewA`为例，从头介绍如何扩展组件。
+详细代码参考 [Demo](https://github.com/Tencent/Hippy/tree/main/framework/examples/ohos-demo/src/main/ets/hippy_extend)
+
+扩展组件包括：
+
+1. 扩展 `HippyCustomComponentView`，实现组件View `ExampleViewA`，以及组件的属性处理函数 `setProp` 和方法调用函数 `call`
+2. 实现组件 `ExampleComponentA`
+3. 实现 `Builder` 函数关联组件View和组件，并配置到 `ModuleLoadParams` 参数
+4. 注册组件View `ExampleViewA`
+
+因为鸿蒙ArkUI是声明式组装组件的，`ExampleViewA` 相当于组件的数据模型，`ExampleComponentA` 是实际的声明式组件，通过 `Builder` 函数来构建组件，通过`@ObjectLink` 装饰器来绑定数据。
+
+## 实现组件View
+
+```typescript
+@Observed
+export class ExampleViewA extends HippyCustomComponentView {
+  constructor(ctx: NativeRenderContext) {
+    super(ctx)
+  }
+
+  setProp(propKey: string, propValue: HippyAny): boolean {
+    return super.setProp(propKey, propValue)
+  }
+
+  call(method: string, params: Array<HippyAny>, callback: HippyRenderCallback | null): void {
+
+  }
+}
+```
+
+## 实现组件
+
+```typescript
+@Component
+export struct ExampleComponentA {
+  @ObjectLink renderView: ExampleViewA
+  @ObjectLink children: HippyObservedArray<HippyRenderBaseView>
+
+  build() {
+    Stack() {
+      Text("This is a custom component A.")
+      ForEach(this.children, (item: HippyRenderBaseView) => {
+        buildHippyRenderView(item, null)
+      }, (item: HippyRenderBaseView) => item.tag + '')
+    }
+    .applyRenderViewBaseAttr(this.renderView)
+  }
+}
+
+```
+
+## 实现 `Builder` 函数并配置
+
+实现：
+
+```typescript
+@Builder
+export function buildCustomRenderView($$: HippyRenderBaseView) {
+  if ($$ instanceof ExampleViewA) {
+    ExampleComponentA({ renderView: $$ as ExampleViewA, children: $$.children })
+  }
+}
+```
+
+配置：
+
+```typescript
+loadParams.wrappedCustomRenderViewBuilder = wrapBuilder(buildCustomRenderView)
+```
+
+## 注册组件View
+
+继承 `HippyAPIProvider` 接口并注册自定义组件View：
+
+```typescript
+export class ExampleAPIProvider implements HippyAPIProvider {
+  getCustomRenderViewCreatorMap(): Map<string, HRRenderViewCreator> | null {
+    let registerMap: Map<string, HRRenderViewCreator> =
+      new Map()
+    registerMap.set("ExampleViewA",
+      (ctx): HippyRenderBaseView => new ExampleViewA(ctx))
+    return registerMap
+  }
+}
+```
+
+配置 `ExampleAPIProvider` 到 `EngineInitParams` 参数:
+
+```typescript
+params.providers = new Array(new ExampleAPIProvider())
+```
+
+## C 组件扩展
+
+详细代码参考 [Demo](https://github.com/Tencent/Hippy/tree/main/framework/examples/ohos-demo/src/main/cpp/hippy_extend)
 
 
 # Voltron
