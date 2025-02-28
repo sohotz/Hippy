@@ -69,6 +69,47 @@ Android 只需要在静态资源 `assets` 目录中建立 `fonts` 目录，然�
 
 # Ohos
 
+## 整合字体文件
+
+Ohos 只需要在静态资源 `resfile` 目录中建立 `fonts` 目录，然后把字体文件拷贝进去即可。
+当前其它目录也可以，也可以下载字体文件到某个目录。
+
+需要注意的是，字体文件名需要和 FontFamily 一致，因为虽然也可以做字体文件名映射，但是字体和文件名一致无疑是最简单的办法。
+
+> 官方 demo 的字体目录参考 [resfile/fonts](https://github.com/Tencent/Hippy/tree/main/framework/examples/ohos-demo/src/main/resources/resfile/fonts)
+
 ## 注册字体
 
-TODO(hot): doc
+```typescript
+let fontPath = this.context.resourceDir + '/fonts/TTTGB.otf'
+font.registerFont({
+  familyName: 'TTTGB',
+  familySrc: `file://${fontPath}`
+})
+```
+
+具体代码可参考 Demo 里 [EntryAbility.ets](https://github.com/Tencent/Hippy/blob/main/framework/examples/ohos-demo/src/main/ets/entryability/EntryAbility.ets)
+
+## 配置字体路径到 C 层
+
+继承 `HippyAPIProvider` 接口并配置自定义字体 familyName 和文件路径：
+
+```typescript
+export class ExampleAPIProvider implements HippyAPIProvider {
+  // 注册字体路径至hippy测量函数
+  getCustomFontPathMap(): Map<string, string> | null {
+    let map = new Map<string, string>();
+    // 暂时hardcode路径在此，生产环境应通过Context属性获取字体文件路径
+    map.set("TTTGB", "/data/storage/el1/bundle/entry/resources/resfile/fonts/TTTGB.otf");
+    return map
+  }
+}
+```
+
+具体代码可参考 Demo 里 [ExampleAPIProvider.ets](https://github.com/Tencent/Hippy/blob/main/framework/examples/ohos-demo/src/main/ets/hippy_extend/ExampleAPIProvider.ets)
+
+配置 `ExampleAPIProvider` 到 `EngineInitParams` 参数:
+
+```typescript
+params.providers = new Array(new ExampleAPIProvider())
+```
