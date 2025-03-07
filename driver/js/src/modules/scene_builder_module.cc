@@ -289,6 +289,7 @@ CreateNode(const std::shared_ptr<Ctx> &context,
   FOOTSTONE_CHECK(!scope->GetDomManager().expired());
   auto root_node = scope->GetRootNode().lock();
   LayoutEngineType layout_type = root_node ? root_node->GetLayoutEngineType() : LayoutEngineDefault;
+    FOOTSTONE_LOG(INFO) << "xxx hippy, event, createNode, tag: " << std::get<2>(id_tuple) << ", pid: " << std::get<2>(pid_tuple);
   dom_node = std::make_shared<DomNode>(std::get<2>(id_tuple),
                                        std::get<2>(pid_tuple),
                                        0,
@@ -501,6 +502,7 @@ std::shared_ptr<ClassTemplate<SceneBuilder>> RegisterSceneBuilder(const std::wea
               context, context->CopyArrayElement(info, 1), scope);
           auto root_node = scope->GetRootNode().lock();
           LayoutEngineType layout_type = root_node ? root_node->GetLayoutEngineType() : LayoutEngineDefault;
+                    FOOTSTONE_LOG(INFO) << "xxx hippy, event, moveNode, tag: " << std::get<2>(id_tuple) << ", pid: " << std::get<2>(pid_tuple);
           dom_infos.push_back(std::make_shared<DomInfo>(
               std::make_shared<DomNode>(
                   std::get<2>(id_tuple),
@@ -551,6 +553,7 @@ std::shared_ptr<ClassTemplate<SceneBuilder>> RegisterSceneBuilder(const std::wea
         }
         auto root_node = scope->GetRootNode().lock();
         LayoutEngineType layout_type = root_node ? root_node->GetLayoutEngineType() : LayoutEngineDefault;
+                FOOTSTONE_LOG(INFO) << "xxx hippy, event, deleteNode, tag: " << std::get<2>(id_tuple) << ", pid: " << std::get<2>(pid_tuple);
         dom_infos.push_back(std::make_shared<DomInfo>(
             std::make_shared<DomNode>(
                 std::get<2>(id_tuple),

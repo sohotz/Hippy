@@ -954,6 +954,7 @@ void NativeRenderManager::AddEventListener(std::weak_ptr<RootNode> root_node,
                                            std::weak_ptr<DomNode> dom_node, const std::string& name) {
   auto node = dom_node.lock();
   if (node) {
+        FOOTSTONE_LOG(INFO) << "xxx hippy, event, add, tag: " << node->GetId() << ", event: " << name << ", domNode: " << node.get();
     auto &ops = root_node.lock()->EventListenerOps();
     ops[node->GetId()].emplace_back(ListenerOp(true, dom_node, name));
   }
@@ -963,6 +964,7 @@ void NativeRenderManager::RemoveEventListener(std::weak_ptr<RootNode> root_node,
                                               std::weak_ptr<DomNode> dom_node, const std::string& name) {
   auto node = dom_node.lock();
   if (node) {
+        FOOTSTONE_LOG(INFO) << "xxx hippy, event, add, rem: " << dom_node.lock()->GetId() << ", event: " << name << ", domNode: " << node.get();
     auto &ops = root_node.lock()->EventListenerOps();
     ops[node->GetId()].emplace_back(ListenerOp(false, dom_node, name));
   }
@@ -1307,12 +1309,16 @@ void NativeRenderManager::HandleListenerOps_C(std::weak_ptr<RootNode> root_node,
   if (ops.empty()) {
     return;
   }
+    
+    FOOTSTONE_LOG(INFO) << "xxx hippy, event loop, begin |||||||--- ";
 
   uint32_t root_id = root->GetId();
   std::vector<std::shared_ptr<HRUpdateEventListenerMutation>> mutations;
   for (auto iter = ops.begin(); iter != ops.end(); ++iter) {
     auto m = std::make_shared<HRUpdateEventListenerMutation>();
     HippyValueObjectType events;
+        
+        FOOTSTONE_LOG(INFO) << "xxx hippy, event, begin -------- , listener_ops.size: " << iter->second.size();
 
     const std::vector<ListenerOp> &listener_ops = iter->second;
     const auto len = listener_ops.size();
@@ -1323,6 +1329,7 @@ void NativeRenderManager::HandleListenerOps_C(std::weak_ptr<RootNode> root_node,
       if (dom_node == nullptr) {
         break;
       }
+            FOOTSTONE_LOG(INFO) << "xxx hippy, event, tag: " << dom_node->GetId() << ", event: " << listener_op.name << ", domNode: " << dom_node.get();
       events[listener_op.name] = footstone::value::HippyValue(listener_op.add);
     }
     if (index == len) {
@@ -1330,7 +1337,11 @@ void NativeRenderManager::HandleListenerOps_C(std::weak_ptr<RootNode> root_node,
       m->props_ = events;
       mutations.push_back(m);
     }
+        FOOTSTONE_LOG(INFO) << "xxx hippy, event, end -------- ";
   }
+    
+    FOOTSTONE_LOG(INFO) << "xxx hippy, event loop, end |||||||--- ";
+    
   ops.clear();
   if (mutations.empty()) {
     return;

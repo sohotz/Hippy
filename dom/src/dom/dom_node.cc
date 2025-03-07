@@ -77,14 +77,19 @@ DomNode::DomNode(uint32_t id, uint32_t pid, int32_t index, std::string tag_name,
       func_cb_map_(nullptr),
       event_listener_map_(nullptr) {
   layout_node_ = hippy::dom::CreateLayoutNode(layout_engine_type);
+    FOOTSTONE_LOG(INFO) << "xxx hippy, event, domNode create1, tag: " << id << ", domNode: " << this;
 }
 
 DomNode::DomNode(uint32_t id, uint32_t pid, std::weak_ptr<RootNode> weak_root_node, LayoutEngineType layout_engine_type)
-    : DomNode(id, pid, 0, "", "", nullptr, nullptr, std::move(weak_root_node), layout_engine_type) {}
+    : DomNode(id, pid, 0, "", "", nullptr, nullptr, std::move(weak_root_node), layout_engine_type) {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, event, domNode create2, tag: " << id << ", domNode: " << this;
+    }
 
 DomNode::DomNode() : DomNode(0, 0, {}, LayoutEngineDefault) {}
 
-DomNode::~DomNode() = default;
+DomNode::~DomNode() {
+    FOOTSTONE_LOG(INFO) << "xxx hippy, event, domNode destroy, tag: " << GetId() << ", domNode: " << this;
+}
 
 int32_t DomNode::IndexOf(const std::shared_ptr<DomNode>& child) {
   for (size_t i = 0; i < children_.size(); i++) {

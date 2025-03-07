@@ -75,6 +75,7 @@ void SceneBuilder::AddEventListener(const std::weak_ptr<DomManager>& weak_dom_ma
   auto dom_manager = weak_dom_manager.lock();
   if (dom_manager) {
     uint32_t dom_id = event_listener_info.dom_id;
+        FOOTSTONE_LOG(INFO) << "xxx hippy, event, SceneBuilder add, tag: " << dom_id << ", event: " << event_listener_info.event_name;
     dom_manager->AddEventListener(root_node, dom_id, event_listener_info.event_name,
                                   event_listener_info.listener_id, event_listener_info.use_capture,
                                   event_listener_info.callback);
