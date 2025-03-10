@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Text,
   View,
@@ -153,34 +153,39 @@ const stylesOffset = StyleSheet.create({
 });
 
 export default function BoxShadowExpo() {
+  const [spProps, setSpProps] = useState({
+    mapClick: (e) => {
+      console.log('xxx mapClick:', e);
+    },
+  });
+
+  const changeXxxprops = () => {
+    console.log('xxx changeXxxprops');
+    setSpProps({
+      mapClick: (e) => {
+        console.log('xxx mapClick:', e);
+      },
+      mapdidchange: (e) => {
+        console.log('xxx mapdidchange:', e);
+      },
+      mapWillchange: (e) => {
+        console.log('xxx mapwillchange:', e);
+      },
+    });
+  };
+  console.log('xxx props', spProps);
   return (
     <View style={stylesNoOffset.shadowDemo}>
-      {Platform.OS === 'android' ? (
-        <View style={stylesNoOffset.shadowDemoCubeAndroid}>
-          <View style={stylesNoOffset.shadowDemoContentAndroid}>
-            <Text style={stylesNoOffset.text}>没有偏移阴影样式</Text>
-          </View>
-        </View>
-      ) : (
-        <View style={stylesNoOffset.shadowDemoCubeIos}>
-          <View style={stylesNoOffset.shadowDemoContentIos}>
-            <Text style={stylesNoOffset.text}>没有偏移阴影样式</Text>
-          </View>
-        </View>
-      )}
-      {Platform.OS === 'android' ? (
+
+        { 
         <View style={stylesOffset.shadowDemoCubeAndroid}>
-          <View style={stylesOffset.shadowDemoContentAndroid}>
+          <View style={stylesOffset.shadowDemoContentAndroid} onClick={changeXxxprops}>
             <Text style={stylesOffset.text}>偏移阴影样式</Text>
           </View>
+          <View {...spProps} />
         </View>
-      ) : (
-        <View style={stylesOffset.shadowDemoCubeIos}>
-          <View style={stylesOffset.shadowDemoContentIos}>
-            <Text style={stylesOffset.text}>偏移阴影样式</Text>
-          </View>
-        </View>
-      )}
+       }
+
     </View>
   );
 }
