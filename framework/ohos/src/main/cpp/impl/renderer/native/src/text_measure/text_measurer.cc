@@ -154,7 +154,14 @@ void TextMeasurer::StartMeasure(HippyValueObjectType &propMap, const std::set<st
     }
   }
 
-  OH_Drawing_FontCollection *fontCollection = fontCache ? fontCache->fontCollection_ : nullptr;
+  OH_Drawing_FontCollection *fontCollection = nullptr;
+  bool hasCustomFont = (fontFamilyNames.size() > 0) ? true : false;
+  if (hasCustomFont) {
+    fontCollection = fontCache ? fontCache->fontCollection_ : nullptr;
+  } else {
+    fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
+  }
+
   styled_string_ = OH_ArkUI_StyledString_Create(typographyStyle_, fontCollection);
   
   if (GetPropValue(propMap, HRNodeProps::LINE_HEIGHT, propValue)) {
