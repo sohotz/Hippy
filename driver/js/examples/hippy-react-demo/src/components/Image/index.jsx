@@ -128,6 +128,49 @@ export default class ImageExpo extends React.Component {
                 url,
               },
             });
+
+            // test performance api
+            let all = performance.getEntries();
+            ConsoleModule.log('xxx hippy, performance.getEntries(): ' + JSON.stringify(all));
+
+            let naviEntry = all[0];
+            ConsoleModule.log('xxx hippy, performance.naviEntry.entryType: ' + naviEntry.entryType);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.name: ' + naviEntry.name);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.startTime: ' + naviEntry.startTime);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.duration: ' + naviEntry.duration);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyNativeInitStart: ' + naviEntry.hippyNativeInitStart);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyNativeInitEnd: ' + naviEntry.hippyNativeInitEnd);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyJsEngineInitStart: ' + naviEntry.hippyJsEngineInitStart);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyJsEngineInitEnd: ' + naviEntry.hippyJsEngineInitEnd);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyRunApplicationStart: ' + naviEntry.hippyRunApplicationStart);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyRunApplicationEnd: ' + naviEntry.hippyRunApplicationEnd);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyDomStart: ' + naviEntry.hippyDomStart);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyDomEnd: ' + naviEntry.hippyDomEnd);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyFirstFrameStart: ' + naviEntry.hippyFirstFrameStart);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyFirstFrameEnd: ' + naviEntry.hippyFirstFrameEnd);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.hippyFirstContentfulPaintEnd: ' + naviEntry.hippyFirstContentfulPaintEnd);
+            ConsoleModule.log('xxx hippy, performance.naviEntry.bundleInfo: ' + JSON.stringify(naviEntry.bundleInfo));
+
+            let resEntry = all[1];
+            ConsoleModule.log('xxx hippy, performance.resEntry.entryType: ' + resEntry.entryType);
+            ConsoleModule.log('xxx hippy, performance.resEntry.name: ' + resEntry.name);
+            ConsoleModule.log('xxx hippy, performance.resEntry.startTime: ' + resEntry.startTime);
+            ConsoleModule.log('xxx hippy, performance.resEntry.duration: ' + resEntry.duration);
+            ConsoleModule.log('xxx hippy, performance.resEntry.initiatorType: ' + resEntry.initiatorType);
+            ConsoleModule.log('xxx hippy, performance.resEntry.loadSourceStart: ' + resEntry.loadSourceStart);
+            ConsoleModule.log('xxx hippy, performance.resEntry.loadSourceEnd: ' + resEntry.loadSourceEnd);
+
+
+            let now = performance.now();
+            ConsoleModule.log('xxx hippy, performance.now(): ' + now);
+
+            let mem = performance.memory
+            ConsoleModule.log('xxx hippy, memory: ' + JSON.stringify(mem));
+
+            ConsoleModule.log('xxx hippy, to requestAnimationFrame...');
+            global.requestAnimationFrame(() => {})
+            // global.cancelAnimationFrame()
+
           }}
         />
         <Text style={styles.img_result}>{ `gifLoadResult: { width: ${gifWidth}, height: ${gifHeight}, url: ${gifUrl} }` }</Text>
