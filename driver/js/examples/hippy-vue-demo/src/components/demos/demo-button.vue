@@ -28,6 +28,7 @@
 </template>
 
 <script>
+import Vue from 'vue';
 export default {
   data() {
     return {
@@ -38,6 +39,11 @@ export default {
   methods: {
     clickView() {
       this.isClicked = !this.isClicked;
+
+      global.ConsoleModule.log('xxx hippy ---');
+      global.ConsoleModule.log('xxx hippy, Vue.Native.Dimensions', Vue.Native.Dimensions);
+      global.ConsoleModule.log('xxx hippy, Vue.Native.Dimensions.window.statusBarHeight', Vue.Native.Dimensions.window.statusBarHeight);
+      global.ConsoleModule.log('xxx hippy, Vue.Native.Dimensions.window.navigatorBarHeight', Vue.Native.Dimensions.window.navigatorBarHeight);
     },
     // button touch event is supported after hippy-vue 2.6.2
     onTouchBtnStart(evt) {
