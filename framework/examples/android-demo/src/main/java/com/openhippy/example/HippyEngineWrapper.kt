@@ -29,10 +29,12 @@ import com.tencent.mtt.hippy.HippyEngine.*
 import com.tencent.mtt.hippy.HippyEngineManagerImpl
 import com.tencent.mtt.hippy.adapter.DefaultLogAdapter
 import com.tencent.mtt.hippy.adapter.exception.HippyExceptionHandlerAdapter
+import com.tencent.mtt.hippy.bridge.bundleloader.HippyAssetBundleLoader
 import com.tencent.mtt.hippy.common.HippyJsException
 import com.tencent.mtt.hippy.common.HippyMap
 import com.tencent.mtt.hippy.utils.LogUtils
 import com.tencent.mtt.hippy.utils.UIThreadUtils
+
 
 class HippyEngineWrapper//TODO: Coming soon
     (
@@ -187,6 +189,11 @@ class HippyEngineWrapper//TODO: Coming soon
                             hippySnapshotView = snapshotView as ViewGroup
                         }
                     }
+
+                  // TODO: test preload
+                  var loader = HippyAssetBundleLoader(context, "vue2/index.android.js", true, "Demo")
+                  hippyEngine.preloadModule(loader)
+
                     hippyRootView = hippyEngine.loadModule(loadParams, object : ModuleListener {
                         override fun onLoadCompleted(statusCode: ModuleLoadStatus, msg: String?) {
                             callback.onLoadModuleCompleted(statusCode, msg)
