@@ -91,7 +91,8 @@ export default class ModalExpo extends React.Component {
           <View
             onPressIn={() => this.feedback('in')}
             onPressOut={() => this.feedback('out')}
-            onClick={this.show}
+            onClick={() => console.log('xxx hippy, click')}
+            onLongClick={() => console.log('xxx hippy, long click...')}
             style={[styles.buttonView, {
               borderColor: SKIN_COLOR.mainLight,
               opacity: (press ? 0.5 : 1),

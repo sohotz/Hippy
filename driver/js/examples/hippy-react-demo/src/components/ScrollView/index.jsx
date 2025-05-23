@@ -58,6 +58,11 @@ export default function ScrollExpo() {
             onMomentumScrollEnd={params => console.log('onMomentumScrollEnd', params)}
             onScrollBeginDrag={params => console.log('onScrollBeginDrag', params)}
             onScrollEndDrag={params => console.log('onScrollEndDrag', params)}
+            onClick={(event) => {
+              console.log('click scrollView', event.target.nodeId, event.currentTarget.nodeId);
+              // return false means trigger bubble
+              return true;
+            }}
         >
           <Text style={styles.itemStyle}>A</Text>
           <Text style={styles.itemStyle}>B</Text>

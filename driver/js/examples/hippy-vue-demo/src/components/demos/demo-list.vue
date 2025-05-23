@@ -185,7 +185,7 @@ export default {
       Vue,
       loadingState: 'Loading now...',
       dataSource: [],
-      horizontal: undefined,
+      horizontal: true,
     };
   },
   mounted() {

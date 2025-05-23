@@ -1,4 +1,4 @@
-import { Hippy } from '@hippy/react';
+import { Hippy, HippyEventEmitter, Dimensions } from '@hippy/react';
 import App from './app';
 
 global.Hippy.on('uncaughtException', (err) => {
@@ -18,3 +18,9 @@ new Hippy({
   // set log output, default is false
   silent: false,
 }).start();
+
+const hippyEventEmitter = new HippyEventEmitter();
+hippyEventEmitter.addListener('onSizeChanged',({rootViewId, oldWidth, oldHeight, width, height}) => {
+  console.log('xxx hippy size, Dimensions get width: ', Dimensions.get('screen').width);
+  ConsoleModule.log('xxx hippy size, Dimensions get width: ' + Dimensions.get('screen').width);
+});

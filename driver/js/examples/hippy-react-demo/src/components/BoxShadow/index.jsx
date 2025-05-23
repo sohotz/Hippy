@@ -85,6 +85,32 @@ const stylesNoOffset = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  shadowDemoContentIos1: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: 160,
+    height: 160,
+    backgroundColor: 'grey',
+    borderRadius: 5,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 6,
+  },
+  shadowDemoContentIos2: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: 160,
+    height: 160,
+    backgroundColor: 'grey',
+    borderRadius: 5,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+
+  },
   text: {
     color: 'white',
   },
@@ -163,8 +189,11 @@ export default function BoxShadowExpo() {
         </View>
       ) : (
         <View style={stylesNoOffset.shadowDemoCubeIos}>
-          <View style={stylesNoOffset.shadowDemoContentIos}>
-            <Text style={stylesNoOffset.text}>没有偏移阴影样式</Text>
+          <View style={stylesNoOffset.shadowDemoContentIos1}>
+            <Text style={stylesNoOffset.text}>没有偏移阴影样式yyy</Text>
+          </View>
+          <View style={stylesNoOffset.shadowDemoContentIos2}>
+            <Text style={stylesNoOffset.text}>xxxxxxx</Text>
           </View>
         </View>
       )}

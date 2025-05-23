@@ -11,7 +11,8 @@
       class="async-com-wrapper"
     >
       <AsyncComponentFromLocal class="async-component-outer-local" />
-      <AsyncComponentFromHttp />
+      <AsyncComponentFromLocal2 class="async-component-outer-local" />
+
     </div>
   </div>
 </template>
@@ -35,12 +36,8 @@ export default {
      */
     AsyncComponentFromLocal: () => import(/* webpackMode: "lazy", webpackChunkName: "asyncComponentFromLocal" */'./dynamicImport/async-component-local.vue').then(res => res).catch(err => console.error('import async local component error', err)),
 
-    /**
-     *  远程加载参考 AsyncComponentFromHttp，需显式指定chunk远程地址 customChunkPath，和chunk名称 webpackChunkName
-     *  customChunkPath 会在运行时替换全局配置的publicPath
-     *  import 出错时需在catch里做对应的降级方案
-     */
-    AsyncComponentFromHttp: process.env.NODE_ENV === 'development' ? () => import(/* webpackMode: "lazy", webpackChunkName: "asyncComponentFromHttp" */'./dynamicImport/async-component-http.vue').then(res => res).catch(err => console.error('import async remote component error', err)) : () => import(/* webpackMode: "lazy",customChunkPath: "https://raw.githubusercontent.com/sohotz/Hippy/main/driver/js/static/hippy-vue/", webpackChunkName: "asyncComponentFromHttp" */'./dynamicImport/async-component-http.vue').then(res => res).catch(err => console.error('import async remote component error', err)),
+    AsyncComponentFromLocal2: () => import(/* webpackMode: "lazy", webpackChunkName: "asyncComponentFromLocal2" */'./dynamicImport2/async-component-local.vue').then(res => res).catch(err => console.error('import async local component error2', err)),
+
   },
   data() {
     return {

@@ -1,13 +1,10 @@
 <template>
-  <div class="button-demo">
+  <div class="button-demo" @touchstart="onParentTouchBtnStart">
     <label class="button-label">按钮和状态绑定</label>
     <button
       :class="{ 'is-active': isClicked, 'is-pressing': isPressing }"
       class="button-demo-1"
-      @touchstart="onTouchBtnStart"
-      @touchmove="onTouchBtnMove"
-      @touchend="onTouchBtnEnd"
-      @click="clickView"
+
     >
       <span
         v-if="isClicked"
@@ -42,6 +39,10 @@ export default {
     // button touch event is supported after hippy-vue 2.6.2
     onTouchBtnStart(evt) {
       console.log('onBtnTouchDown', evt);
+      evt.stopPropagation();
+    },
+    onParentTouchBtnStart(evt) {
+      console.log('onParentBtnTouchDown', evt);
       evt.stopPropagation();
     },
     // button touch event is supported after hippy-vue 2.6.2

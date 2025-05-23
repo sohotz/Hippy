@@ -16,22 +16,16 @@
 <script>
 const horizonAnimation = {
   transform: {
-    translateX: [
-      {
-        startValue: 50,
-        toValue: 150,
-        duration: 1000,
-        timingFunction: 'cubic-bezier(0.45,2.84, 000.38,.5)',
-      },
-      {
-        startValue: 150,
-        toValue: 50,
-        duration: 1000,
-        repeatCount: -1, // 'loop' string supported above 2.12.2
-        timingFunction: 'cubic-bezier(0.45,2.84, 000.38,.5)',
-      },
-    ],
-  },
+          // 单个 Animation
+          translateY: {
+            startValue: 200,
+            toValue: 0,
+            duration: 3000,
+            timingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            valueType: 'px', // 动画的开始和结束值的单位类型，默认为 undefined, 可设为 rad、deg、color
+          },
+        },
+
 };
 
 export default {
