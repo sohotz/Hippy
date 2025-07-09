@@ -8,6 +8,7 @@ import demoPullHeaderFooter from './demo-pull-header-footer.vue';
 import demoWaterfall from './demo-waterfall.vue';
 import demoNestedScroll from './demo-nested-scroll.vue';
 import demoNativeScroll from './demo-native-scroll.vue';
+import demoWebScroll from './demo-web-scroll.vue';
 
 const demos = {};
 
@@ -53,6 +54,12 @@ if (Vue.Native.Platform == 'ohos') {
     demoNativeScroll: {
       name: 'native scroll 示例',
       component: demoNativeScroll,
+    },
+  });
+  Object.assign(demos, {
+    demoWebScroll: {
+      name: 'web scroll 示例',
+      component: demoWebScroll,
     },
   });
 }
